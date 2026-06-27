@@ -20,7 +20,6 @@
 | Shell | [fish](https://fishshell.com/) | 交互式 Shell |
 | Shell | [starship](https://starship.rs/) | 终端提示符 |
 | 终端 | [alacritty](https://alacrittyty.org/) | GPU 加速终端 |
-| 终端 | [kitty](https://sw.kovidgoyal.net/kitty/) | 功能丰富的终端 |
 | 编辑器 | [neovim](https://neovim.io/) | 现代 Vim |
 | 编辑器 | [micro](https://micro-editor.github.io/) | 简单终端编辑器 |
 | 窗口管理 | [niri](https://github.com/YaLTeR/niri) | 滚动式 Wayland 合成器 |
@@ -54,7 +53,7 @@ chezmoi init --apply LanRhyme
 ## 安装所有依赖
 
 ```bash
-paru -S fish starship alacritty kitty neovim micro \
+paru -S fish starship alacritty neovim micro \
         niri noctalia kando fcitx5-rime kvantum \
         btop cava superfile neofetch \
         obs-studio gpu-screen-recorder krita \
@@ -72,7 +71,6 @@ dotfiles/
 └── .config/
     ├── alacritty/              # Alacritty 终端
     │   └── alacritty.toml      # 主题、字体、快捷键
-    ├── kitty/                  # Kitty 终端
     ├── fish/                   # Fish Shell
     │   ├── config.fish         # 主配置
     │   └── conf.d/             # 环境变量加载
