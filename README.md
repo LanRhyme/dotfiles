@@ -1,6 +1,6 @@
 # CachyOS Dotfiles
 
-使用 [chezmoi](https://www.chezmoi.io/) 管理的 CachyOS 个人配置文件。
+使用 [chezmoi](https://www.chezmoi.io/) 管理的 CachyOS 个人配置文件
 
 ## 截图
 
@@ -200,11 +200,6 @@ git add .chezmoiignore
 git commit -m "chore: exclude secret file"
 ```
 
-## 灵感来源
-
-- [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) - README 结构
-- [Aylur/dotfiles](https://github.com/Aylur/dotfiles) - 配置组织方式
-
 ## 许可证
 
-个人配置文件，仅供参考学习。
+个人配置文件，仅供参考学习
