@@ -29,36 +29,36 @@ multiplier = 3
 draw_bold_text_with_bright_colors = true
 
 [colors.primary]
-background = "#121212"
-foreground = "#e3e3e3"
+background = "#1a1a18"
+foreground = "#f2f2f2"
 
 [colors.normal]
-black = "#1c1c1c"
-red = "#ff6c6b"
-green = "#98be65"
-yellow = "#ecbe7b"
-blue = "#51afef"
-magenta = "#c678dd"
-cyan = "#46d9ff"
-white = "#bbc2cf"
+black = "#0f0f0f"
+red = "#ca8685"
+green = "#88a069"
+yellow = "#caad83"
+blue = "#689bbe"
+magenta = "#af7dbd"
+cyan = "#6baebf"
+white = "#b1b6be"
 
 [colors.bright]
-black = "#5b6268"
-red = "#da8548"
-green = "#4db5bd"
-yellow = "#ecbe7b"
-blue = "#3071db"
-magenta = "#a9a1e1"
-cyan = "#46d9ff"
-white = "#dfdfdf"
+black = "#515457"
+red = "#b17c57"
+green = "#599296"
+yellow = "#caad83"
+blue = "#4a6da7"
+magenta = "#a49fc9"
+cyan = "#6baebf"
+white = "#d2d2d2"
 
 [colors.cursor]
-text = "#121212"
-cursor = "#ffffff"
+text = "#1a1a18"
+cursor = "#afac9c"
 
 [colors.selection]
-text = "#121212"
-background = "#3f444a"
+text = "#f2f2f2"
+background = "#43423c"
 
 [font]
 size = 12

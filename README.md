@@ -30,7 +30,7 @@
 | 监控 | [btop](https://github.com/aristocratos/btop) | 系统监控 |
 | 可视化 | [cava](https://github.com/karlstav/cava) | 音频可视化 |
 | 文件管理 | [superfile](https://github.com/MHN-SuperFile/superfile) | 终端文件管理器 |
-| 信息展示 | [neofetch](https://github.com/dylanaraps/neofetch) | 系统信息 |
+| 信息展示 | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | 系统信息（chafa 头像 + 莫兰迪主题） |
 | 录屏 | [OBS Studio](https://obsproject.com/) | 录屏/直播 |
 | 录屏 | [gpu-screen-recorder](https://nowrep.github.io/gpu-screen-recorder/) | GPU 录屏 |
 | 绘图 | [Krita](https://krita.org/) | 数字绘画 |
@@ -55,7 +55,7 @@ chezmoi init --apply LanRhyme
 ```bash
 paru -S fish starship alacritty neovim micro \
         niri noctalia kando fcitx5-rime kvantum \
-        btop cava superfile neofetch \
+        btop cava superfile fastfetch chafa \
         obs-studio gpu-screen-recorder krita \
         github-cli uv yay kdeconnect frpc
 ```
@@ -88,7 +88,7 @@ dotfiles/
     ├── btop/                   # Btop 系统监控
     ├── cava/                   # Cava 音频可视化
     ├── superfile/              # Superfile 文件管理器
-    ├── neofetch/               # Neofetch 系统信息
+    ├── fastfetch/              # Fastfetch 系统信息 + 头像
     ├── obs-studio/             # OBS 录屏
     ├── krita/                  # Krita 绘图
     ├── gh/                     # GitHub CLI
