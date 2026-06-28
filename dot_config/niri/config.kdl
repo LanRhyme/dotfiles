@@ -6,23 +6,9 @@ include "./cfg/layout.kdl"
 include "./cfg/rules.kdl"
 include "./cfg/misc.kdl"
 include "./cfg/animation.kdl"
+include "./cfg/colors.kdl"
 binds {
     Mod+Print { spawn "mark-shot"; }
-}
-layout {
-    // 聚焦窗口边框颜色（红紫到蓝紫渐变，低饱和度）
-    focus-ring {
-        width 2
-        active-gradient from="#a86c8d" to="#7875a6" angle=45
-        inactive-gradient from="#5e3f50" to="#43425e" angle=45
-    }
-
-    // 或者使用 border 替代 focus-ring
-    border {
-        off
-        // active-gradient from="#a86c8d" to="#7875a6" angle=45
-        // inactive-gradient from="#5e3f50" to="#43425e" angle=45
-    }
 }
 
 environment {

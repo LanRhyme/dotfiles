@@ -51,7 +51,8 @@
         "viewMode": "grid"
     },
     "audio": {
-        "mprisBlacklist": [],
+        "mprisBlacklist": [
+        ],
         "preferredPlayer": "",
         "spectrumFrameRate": 30,
         "spectrumMirrored": true,
@@ -212,15 +213,16 @@
             ],
             "right": [
                 {
-                    "blacklist": [],
+                    "blacklist": [
+                    ],
                     "chevronColor": "none",
                     "colorizeIcons": false,
                     "drawerEnabled": true,
                     "hidePassive": false,
                     "id": "Tray",
                     "pinned": [
-                        "\u8f93\u5165\u6cd5",
-                        "\u952e\u76d8 - \u82f1\u8bed\uff08\u7f8e\u56fd\uff09"
+                        "输入法",
+                        "键盘 - 英语（美国）"
                     ]
                 },
                 {
@@ -232,7 +234,8 @@
                     "unreadBadgeColor": "primary"
                 },
                 {
-                    "defaultSettings": {},
+                    "defaultSettings": {
+                    },
                     "id": "plugin:kde-connect"
                 },
                 {
@@ -279,7 +282,8 @@
         }
     },
     "brightness": {
-        "backlightDeviceMappings": [],
+        "backlightDeviceMappings": [
+        ],
         "brightnessStep": 5,
         "enableDdcSupport": false,
         "enforceMinimum": true
@@ -302,7 +306,7 @@
     },
     "colorSchemes": {
         "darkMode": true,
-        "generationMethod": "muted",
+        "generationMethod": "tonal-spot",
         "manualSunrise": "06:30",
         "manualSunset": "18:30",
         "monitorForColors": "",
@@ -459,9 +463,11 @@
         "launcherIconColor": "none",
         "launcherPosition": "end",
         "launcherUseDistroLogo": false,
-        "monitors": [],
+        "monitors": [
+        ],
         "onlySameOutput": true,
-        "pinnedApps": [],
+        "pinnedApps": [
+        ],
         "pinnedStatic": false,
         "position": "bottom",
         "showDockIndicator": false,
@@ -475,7 +481,7 @@
         "animationDisabled": false,
         "animationSpeed": 0.59,
         "autoStartAuth": false,
-        "avatarImage": "/home/lanrhyme/\u56fe\u7247/\u63d2\u753b39-1.png",
+        "avatarImage": "/home/lanrhyme/图片/插画39-1.png",
         "boxRadiusRatio": 1,
         "clockFormat": "hh\\nmm",
         "clockStyle": "custom",
@@ -516,7 +522,8 @@
         "lockScreenAnimations": true,
         "lockScreenBlur": 0.54,
         "lockScreenCountdownDuration": 10000,
-        "lockScreenMonitors": [],
+        "lockScreenMonitors": [
+        ],
         "lockScreenTint": 0.28,
         "passwordChars": false,
         "radiusRatio": 1,
@@ -536,14 +543,14 @@
     "hooks": {
         "colorGeneration": "",
         "darkModeChange": "",
-        "enabled": false,
+        "enabled": true,
         "performanceModeDisabled": "",
         "performanceModeEnabled": "",
         "screenLock": "",
         "screenUnlock": "",
         "session": "",
         "startup": "",
-        "wallpaperChange": ""
+        "wallpaperChange": "bash ~/.config/noctalia/apply-morandi.sh"
     },
     "idle": {
         "customCommands": "[]",
@@ -610,7 +617,8 @@
         "enabled": true,
         "location": "top_right",
         "lowUrgencyDuration": 3,
-        "monitors": [],
+        "monitors": [
+        ],
         "normalUrgencyDuration": 8,
         "overlayLayer": true,
         "respectExpireTimeout": false,
@@ -639,7 +647,8 @@
             2
         ],
         "location": "top_right",
-        "monitors": [],
+        "monitors": [
+        ],
         "overlayLayer": true
     },
     "plugins": {
@@ -738,7 +747,8 @@
         "warningColor": ""
     },
     "templates": {
-        "activeTemplates": [],
+        "activeTemplates": [
+        ],
         "enableUserTheming": false
     },
     "ui": {
@@ -757,7 +767,7 @@
     },
     "wallpaper": {
         "automationEnabled": false,
-        "directory": "/home/lanrhyme/\u56fe\u7247/WallPapers",
+        "directory": "/home/lanrhyme/图片/WallPapers",
         "enableMultiMonitorDirectories": false,
         "enabled": true,
         "favorites": [
@@ -772,7 +782,7 @@
                     "#a38f9f",
                     "#d5707a"
                 ],
-                "path": "/home/lanrhyme/\u56fe\u7247/WallPapers/306D4B4A013C65CF1FBDD27E4875D13F.png",
+                "path": "/home/lanrhyme/图片/WallPapers/306D4B4A013C65CF1FBDD27E4875D13F.png",
                 "useWallpaperColors": true
             },
             {
@@ -781,12 +791,40 @@
                 "darkMode": true,
                 "generationMethod": "tonal-spot",
                 "paletteColors": [
-                    "#b098b3",
-                    "#a58da2",
-                    "#a38f9c",
-                    "#cf6069"
+                    "#b9c3ff",
+                    "#c3c5dd",
+                    "#e5bad8",
+                    "#ffb4ab"
                 ],
-                "path": "/home/lanrhyme/\u56fe\u7247/WallPapers/2D9A993FD410E733DD40A24CD57FB81D.png",
+                "path": "/home/lanrhyme/图片/WallPapers/2D9A993FD410E733DD40A24CD57FB81D.png",
+                "useWallpaperColors": true
+            },
+            {
+                "appearance": "dark",
+                "colorScheme": "Kanagawa",
+                "darkMode": true,
+                "generationMethod": "muted",
+                "paletteColors": [
+                    "#a6a6a6",
+                    "#999999",
+                    "#999999",
+                    "#fd4663"
+                ],
+                "path": "/home/lanrhyme/图片/WallPapers/CC1D9C9200C61A702B40A773463620E8.jpg",
+                "useWallpaperColors": true
+            },
+            {
+                "appearance": "dark",
+                "colorScheme": "Kanagawa",
+                "darkMode": true,
+                "generationMethod": "muted",
+                "paletteColors": [
+                    "#dad8ce",
+                    "#d8d9cf",
+                    "#d5d8d0",
+                    "#fd4663"
+                ],
+                "path": "/home/lanrhyme/图片/WallPapers/kita.png",
                 "useWallpaperColors": true
             }
         ],
@@ -808,7 +846,7 @@
         ],
         "overviewBlur": 0,
         "overviewEnabled": true,
-        "overviewTint": 0.03,
+        "overviewTint": 0.06,
         "panelPosition": "follow_bar",
         "randomIntervalSec": 300,
         "setWallpaperOnAllMonitors": true,
@@ -816,12 +854,17 @@
         "skipStartupTransition": false,
         "solidColor": "#1a1a2e",
         "sortOrder": "name",
-        "transitionDuration": 1500,
-        "transitionEdgeSmoothness": 0.05,
+        "transitionDuration": 4600,
+        "transitionEdgeSmoothness": 0.14,
         "transitionType": [
-            "disc"
+            "disc",
+            "fade",
+            "stripes",
+            "wipe",
+            "pixelate",
+            "honeycomb"
         ],
-        "useOriginalImages": false,
+        "useOriginalImages": true,
         "useSolidColor": false,
         "useWallhaven": false,
         "viewMode": "browse",
