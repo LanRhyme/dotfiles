@@ -27,6 +27,7 @@ ColorManagement/UseSystemMonitorProfile=false
 ConvertToImageColorSpaceOnImport=false
 CreateBackupFile=true
 CurrentWorkspace=Big_Paint_2
+ExportConfiguration-image/png=<!DOCTYPE params>\n<params>\n <param name="alpha" type="internal">true</param>\n <param name="compression" type="internal">3</param>\n <param name="downsample" type="internal">false</param>\n <param name="forceSRGB" type="internal">true</param>\n <param name="indexed" type="internal">false</param>\n <param name="interlaced" type="internal">false</param>\n <param name="saveAsHDR" type="internal">false</param>\n <param name="saveSRGBProfile" type="internal">false</param>\n <param name="storeAuthor" type="internal">false</param>\n <param name="storeMetaData" type="internal">false</param>\n <param name="transparencyFillcolor" type="color"><![CDATA[<!DOCTYPE color>\n<color>\n <RGB b="1" g="1" r="1" space="sRGB-elle-V2-g10.icc"/>\n</color>\n]]></param>\n</params>\n
 ExrDefaultColorProfile=...2-g10.icc
 GamutMasks.viewMode=0
 KineticScrollingEnabled=true
@@ -297,6 +298,7 @@ zoomSteps=2
 
 [File Dialogs]
 DontUseNativeFileDialog=true
+SaveAs=/home/lanrhyme/图片
 krita_resources=/home/lanrhyme/下载
 
 [GradientChooser]
@@ -659,6 +661,11 @@ yPosition=22
 
 [OverviewDocker]
 pinControls=true
+
+[RecentFiles]
+File1[$e]=$HOME/图片/headportrait.png
+Name1=headportrait.png
+maxRecentFileItems=100
 
 [SelectedTags]
 brushes=All

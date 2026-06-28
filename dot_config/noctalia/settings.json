@@ -35,12 +35,12 @@
             "org.kde.krita",
             "kando",
             "io.missioncenter.MissionCenter",
-            "ugeetablet",
             "Clash Verge",
             "ssh-tunnel-cachyos",
             "app.zen_browser.zen",
             "frpc-manager",
-            "frpc-webui"
+            "frpc-webui",
+            "ugeetablet"
         ],
         "position": "bottom_center",
         "screenshotAnnotationTool": "",
@@ -306,7 +306,7 @@
     },
     "colorSchemes": {
         "darkMode": true,
-        "generationMethod": "tonal-spot",
+        "generationMethod": "muted",
         "manualSunrise": "06:30",
         "manualSunset": "18:30",
         "monitorForColors": "",
