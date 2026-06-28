@@ -1,9 +1,6 @@
 [Shortcuts]
+KisToolSelectContiguous=W
+KisToolSelectOutline=Alt+U
 make_brush_color_lighter=;\s
 showToolOptions=;\s
-激活 Krita 动作（红色）=L
-KisToolSelectContiguous=W
 toggle_layer_alpha_lock=Ctrl+Alt+L
-KisToolSelectOutline=Alt+U
-
-

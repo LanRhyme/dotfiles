@@ -3,3 +3,17 @@
  create mode 100644 sync.log
 To https://github.com/LanRhyme/dotfiles.git
    4984c54..653e975  master -> master
+[master fbcf454] auto: 2026-06-28-14:00:00
+ 10 files changed, 53 insertions(+), 62 deletions(-)
+ rename dot_config/noctalia/{apply-morandi.sh => executable_apply-morandi.sh} (100%)
+ mode change 100755 => 100644
+ rename dot_config/noctalia/{morandi-gen.py => executable_morandi-gen.py} (100%)
+ mode change 100755 => 100644
+To https://github.com/LanRhyme/dotfiles.git
+   efd46b5..fbcf454  master -> master
+chezmoi: .config/kando: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/kando, /home/lanrhyme/.local/share/chezmoi/dot_config/private_kando)
+.config/kando/config.json: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/kando/config.json, /home/lanrhyme/.local/share/chezmoi/dot_config/private_kando/config.json)
+chezmoi: .config/kando: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/kando, /home/lanrhyme/.local/share/chezmoi/dot_config/private_kando)
+.config/kando/config.json: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/kando/config.json, /home/lanrhyme/.local/share/chezmoi/dot_config/private_kando/config.json)
+chezmoi: .config/kando: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/kando, /home/lanrhyme/.local/share/chezmoi/dot_config/private_kando)
+.config/kando/config.json: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/kando/config.json, /home/lanrhyme/.local/share/chezmoi/dot_config/private_kando/config.json)

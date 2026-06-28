@@ -176,5 +176,6 @@ mods = "Control"
 action = "ResetFontSize"
 
 [general]
+import = ["~/.config/alacritty/themes/noctalia.toml"]
 live_config_reload = true
 working_directory = "None"

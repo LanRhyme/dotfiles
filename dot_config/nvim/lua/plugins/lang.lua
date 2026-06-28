@@ -1,62 +1,63 @@
 return {
   {
-    "rust-lang/rust.vim",
-    ft = "rust",
-    init = function()
-      vim.g.rustfmt_autosave = 1
-    end,
-  },
-  
-  {
-    "saecki/crates.nvim",
-    event = { "BufRead Cargo.toml" },
-    dependencies = { "nvim-lua/plenary.nvim" },
-    config = true,
-  },
-  
-  {
-    "python-rope/ropevim",
-    ft = "python",
-  },
-  
-  {
-    "m-demare/hlargs.nvim",
-    event = { "BufReadPost", "BufNewFile" },
-    config = true,
-  },
-  
-  {
-    "NvChad/nvim-colorizer.lua",
-    event = { "BufReadPost", "BufNewFile" },
-    config = function()
-      require("colorizer").setup({
-        filetypes = {
-          "css",
-          "scss",
-          "html",
-          "javascript",
-          "typescript",
-          "typescriptreact",
-          "javascriptreact",
-          "lua",
-          "rust",
+    "folke/which-key.nvim",
+    opts = {
+      icons = {
+        breadcrumb = "»",
+        separator = "➜",
+        group = "+",
+      },
+      replace = {
+        key = {
+          { "<Space>", "空格" },
+          { "<CR>", "回车" },
+          { "<Esc>", "ESC" },
+          { "<Tab>", "Tab" },
+          { "<BS>", "退格" },
+          { "<Del>", "删除" },
+          { "<Up>", "↑" },
+          { "<Down>", "↓" },
+          { "<Left>", "←" },
+          { "<Right>", "→" },
+          { "<C-", "Ctrl+" },
+          { "<A-", "Alt+" },
+          { "<S-", "Shift+" },
+          { "<M-", "Alt+" },
         },
-        user_default_options = {
-          RGB = true,
-          RRGGBB = true,
-          names = false,
-          RRGGBBAA = true,
-          AARRGGBB = true,
-          rgb_fn = true,
-          hsl_fn = true,
-          css = true,
-          css_fn = true,
-          mode = "background",
-          tailwind = true,
-          sass = { enable = true, parsers = { "css" } },
-          virtualtext = "■",
-        },
-      })
-    end,
+      },
+      spec = {
+        { "<leader>", group = "领导者键" },
+        { "<leader>f", group = "查找" },
+        { "<leader>g", group = "Git" },
+        { "<leader>b", group = "缓冲区" },
+        { "<leader>c", group = "代码" },
+        { "<leader>d", group = "调试" },
+        { "<leader>e", group = "编辑器" },
+        { "<leader>h", group = "帮助" },
+        { "<leader>n", group = "通知" },
+        { "<leader>q", group = "会话" },
+        { "<leader>r", group = "运行" },
+        { "<leader>s", group = "搜索" },
+        { "<leader>t", group = "标签页" },
+        { "<leader>u", group = "工具" },
+        { "<leader>w", group = "窗口" },
+        { "<leader>x", group = "诊断" },
+        { "<leader>z", group = "折叠" },
+        { "<leader>?", group = "快捷键帮助" },
+        { "<leader>/", group = "搜索" },
+        { "<leader>.", group = "最近文件" },
+        { "<leader>,", group = "切换缓冲区" },
+        { "<leader>?", group = "按键提示" },
+        { "g", group = "全局" },
+        { "gc", group = "注释" },
+        { "gs", group = "替换" },
+        { "z", group = "折叠" },
+        { "[", group = "上一个" },
+        { "]", group = "下一个" },
+        { "<C-w>", group = "窗口" },
+        { "<C-x>", group = "补全" },
+        { "<C-r>", group = "寄存器" },
+      },
+    },
   },
 }
