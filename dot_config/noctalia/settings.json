@@ -21,7 +21,6 @@
             "qq",
             "org.kde.kdeconnect.app",
             "micyou",
-            "steam",
             "appimagekit_ca699532e2a5cfc8929c41c8cb20c609-SPlayer",
             "android-studio-beta",
             "OBS Studio",
@@ -43,7 +42,8 @@
             "neovide",
             "blender",
             "heroic",
-            "org.kde.krita"
+            "org.kde.krita",
+            "steam"
         ],
         "position": "bottom_center",
         "screenshotAnnotationTool": "",
@@ -765,19 +765,15 @@
             },
             {
                 "enabled": true,
-                "id": "niri"
-            },
-            {
-                "enabled": true,
-                "id": "alacritty"
-            },
-            {
-                "enabled": true,
                 "id": "gtk"
             },
             {
                 "enabled": true,
                 "id": "starship"
+            },
+            {
+                "enabled": true,
+                "id": "code"
             }
         ],
         "enableUserTheming": false

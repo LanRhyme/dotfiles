@@ -12,6 +12,7 @@
     },
     "display": {
         "separator": "  ",
+        "disableLinewrap": true,
         "color": {
             "keys": "#afac9c",
             "title": "#f2f2f2"

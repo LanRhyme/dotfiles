@@ -441,6 +441,7 @@ def write_fastfetch(palette):
     }},
     "display": {{
         "separator": "  ",
+        "disableLinewrap": true,
         "color": {{
             "keys": "{palette['iris']}",
             "title": "{palette['text']}"
