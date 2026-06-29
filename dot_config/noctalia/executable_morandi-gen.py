@@ -51,14 +51,14 @@ def blend(c1, c2, ratio=0.5):
 
 def generate_palette(c):
     p = {}
-    primary = c["mPrimary"]
-    secondary = c["mSecondary"]
-    tertiary = c["mTertiary"]
-    error = c["mError"]
-    surface = c["mSurface"]
-    on_surface = c["mOnSurface"]
-    surface_var = c["mSurfaceVariant"]
-    outline = c["mOutline"]
+    primary = c.get("mPrimary", c.get("primary"))
+    secondary = c.get("mSecondary", c.get("secondary"))
+    tertiary = c.get("mTertiary", c.get("tertiary"))
+    error = c.get("mError", c.get("error"))
+    surface = c.get("mSurface", c.get("surface"))
+    on_surface = c.get("mOnSurface", c.get("on_surface"))
+    surface_var = c.get("mSurfaceVariant", c.get("surface_variant"))
+    outline = c.get("mOutline", c.get("outline"))
 
     p["base"] = morandi(surface, 0.5, -2)
     p["mantle"] = morandi(surface, 0.6, -5)
@@ -103,6 +103,23 @@ layout {{
     }}
     border {{
         off
+    }}
+    shadow {{
+        color "{palette['surface0']}70"
+    }}
+    tab-indicator {{
+        active-color "{palette['iris']}"
+        inactive-color "{palette['surface1']}"
+        urgent-color "{palette['love']}"
+    }}
+    insert-hint {{
+        color "{palette['iris']}80"
+    }}
+}}
+recent-windows {{
+    highlight {{
+        active-color "{palette['iris']}"
+        urgent-color "{palette['love']}"
     }}
 }}
 """
