@@ -34,7 +34,7 @@ KineticScrollingEnabled=true
 KineticScrollingGesture=2
 KineticScrollingHideScrollbar=false
 KineticScrollingSensitivity=75
-KisDlgPreferences/CurrentPage=
+KisDlgPreferences/CurrentPage=general
 Krita/Ocio/DisplayDevice=sRGB
 Krita/Ocio/DisplayLook=无
 Krita/Ocio/DisplayView=Raw
@@ -298,7 +298,7 @@ use_custom_system_font=false
 widgetStyle=Breeze
 zoomHorizontal=false
 zoomMarginSize=0
-zoomSteps=2
+zoomSteps=4
 
 [File Dialogs]
 DontUseNativeFileDialog=true
