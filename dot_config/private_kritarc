@@ -45,10 +45,10 @@ Krita/Ocio/OcioLockColorVisualRepresentation=false
 Krita/Ocio/OcioLutPath=
 Krita/Ocio/UseOcio=false
 LastBackGroundColor=<!DOCTYPE LastBackGroundColor>\n<LastBackGroundColor>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastBackGroundColor>\n
-LastColorHistory=<!DOCTYPE LastColorHistory>\n<colors>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.345098048448563" g="0.407843142747879" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.407843142747879" g="0.545098066329956" r="0.317647069692612" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.360784322023392" g="0.647058844566345" r="0.490196079015732" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.7843137383461" g="0.82745099067688" r="0.803921580314636" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.588235318660736" g="0.666666686534882" r="0.627451002597809" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.301960796117783" g="0.431372553110123" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="1" g="1" r="1" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.0862745121121407" g="0.0862745121121407" r="0.0862745121121407" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</colors>\n
+LastColorHistory=<!DOCTYPE LastColorHistory>\n<colors>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.274509817361832" g="0.313725501298904" r="0.403921574354172" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.345098048448563" g="0.407843142747879" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.407843142747879" g="0.545098066329956" r="0.317647069692612" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.360784322023392" g="0.647058844566345" r="0.490196079015732" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.7843137383461" g="0.82745099067688" r="0.803921580314636" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.588235318660736" g="0.666666686534882" r="0.627451002597809" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.301960796117783" g="0.431372553110123" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="1" g="1" r="1" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.0862745121121407" g="0.0862745121121407" r="0.0862745121121407" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</colors>\n
 LastEraser_0=a) Eraser Circle
 LastForeGroundColor=<!DOCTYPE LastForeGroundColor>\n<LastForeGroundColor>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastForeGroundColor>\n
-LastPreset_-1=b) Basic-5 Size Opacity
+LastPreset_-1=b) Basic-6 Details
 LastPreset_0=b) Basic-5 Size Opacity
 LineSmoothingDelayDistance=50
 LineSmoothingDistanceKeepAspectRatio=true
@@ -246,7 +246,7 @@ popuppalette/usevisualcolorselector=true
 presetChooserViewMode=1
 presetIconSize=40
 presetStripVisible=true
-presethistory=The good line square+fade,The good line square+fade Alt Circle,a) Eraser Circle,01. DRAFTER - TOMBOFNULL,04. LINER SOFT - TOMBOFNULL,08. COLOR - TOMBOFNULL,07. MAG-TOMBOFNULL,11. GRIME STAMP - TOMBOFNULL,06. 9RL TX - TOMBOFNULL,b) Basic-5 Size Opacity
+presethistory=01. DRAFTER - TOMBOFNULL,04. LINER SOFT - TOMBOFNULL,08. COLOR - TOMBOFNULL,07. MAG-TOMBOFNULL,11. GRIME STAMP - TOMBOFNULL,06. 9RL TX - TOMBOFNULL,b) Basic-5 Size Opacity,b) Basic-6 Details,f) Bristles-1 Details,f) Bristles-2 Flat Rough
 renameDuplicatedLayers=true
 renameMergedLayers=true
 renamePastedLayers=true
@@ -338,35 +338,48 @@ useOverlayPreviewStyle=false
 [KritaFill/KisToolFill]
 whatToFill=fillContiguousRegion
 
+[LiquifyTool]
+mode=0
+
+[LiquifyTool/Move]
+amount=0.05
+amountHasPressure=false
+flow=0.2
+reverseDirection=false
+size=16.02
+sizeHasPressure=false
+spacing=0.2
+useWashMode=false
+
 [MainWindow]
-2 screens: Height=1056
-2 screens: Width=1860
+2 screens: Height=1080
+2 screens: Width=1920
 State=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dABEAG8AYwBrAGUAcgAAAAAA/////wAAAI8A////+wAAACgAUwBuAGEAcABHAHUAaQBkAGUAIABQAHIAbwBwAGUAcgB0AGkAZQBzAAAAAAD/////AAAAAAAAAAD7AAAAOABUAGUAeAB0AEQAbwBjAHUAbQBlAG4AdABJAG4AcwBwAGUAYwB0AGkAbwBuAEQAbwBjAGsAZQByAgAABJoAAAIVAAABKgAAAK77AAAAEgBMAHUAdABEAG8AYwBrAGUAcggAAAIxAAABsgAAAToA////+wAAABQARwByAGkAZABEAG8AYwBrAGUAcgAAAAAA/////wAAATAA////+wAAAB4ASABpAHMAdABvAGcAcgBhAG0ARABvAGMAawBlAHIAAAAAAP////8AAABKAP////sAAAAaAFAAcgBlAHMAZQB0AEgAaQBzAHQAbwByAHkAAAAAAP////8AAABzAP////sAAAAWAFQAbwB1AGMAaABEAG8AYwBrAGUAcgAAAAAA/////wAAAPMA////+wAAACwAVwBpAGQAZQBHAGEAbQB1AHQAQwBvAGwAbwByAFMAZQBsAGUAYwB0AG8AcgAAAAAA/////wAAAN4A////+wAAADIAUwB2AGcAUwB5AG0AYgBvAGwAQwBvAGwAbABlAGMAdABpAG8AbgBEAG8AYwBrAGUAcgAAAAAA/////wAAAJMA////+wAAABwAQgByAHUAcwBoAEgAdQBkAEQAbwBjAGsAZQByAAAAAAD/////AAAAkQD////7AAAAEgBHAGEAbQB1AHQATQBhAHMAawAAAAAA/////wAAAL0A////+wAAABoAQQByAHIAYQBuAGcAZQBEAG8AYwBrAGUAcgAAAAAA/////wAAADcA////+wAAABwAVABlAHgAdABQAHIAbwBwAGUAcgB0AGkAZQBzAAAAAAD/////AAAAegD////7AAAAEgBMAG8AZwBEAG8AYwBrAGUAcgAAAAAA/////wAAAIUA////+wAAACAAUwB0AG8AcgB5AGIAbwBhAHIAZABEAG8AYwBrAGUAcgAAAAAA/////wAAANMA////+wAAABwAUgBlAGMAbwByAGQAZQByAEQAbwBjAGsAZQByAAAAAAD/////AAAAawD////7AAAAMABwAHkAawByAGkAdABhAF8AdwBvAHIAawBmAGwAbwB3AF8AYgB1AHQAdABvAG4AcwAAAAAA/////wAAAFMA////+wAAACYAbABhAHMAdABkAG8AYwB1AG0AZQBuAHQAcwBkAG8AYwBrAGUAcgAAAAAA/////wAAAJIA////+wAAABoAbQB1AHQAYQB0AG8AcgBEAG8AYwBrAGUAcgAAAAAA/////wAAATcA////AAAAAgAAB4AAAAC8/AEAAAAB+wAAABoAVABvAG8AbABCAGEAcgBEAG8AYwBrAGUAcgAAAAAA/////wAAAAAAAAAAAAAAAwAAAAAAAAAA/AEAAAAF+wAAABwARgBsAGkAcABiAG8AbwBrAEQAbwBjAGsAZQByAAAAAAD/////AAAAAAAAAAD7AAAAIABPAG4AaQBvAG4AUwBrAGkAbgBzAEQAbwBjAGsAZQByAAAAAAD/////AAAA+AD////7AAAAHgBBAG4AaQBtAGEAdABpAG8AbgBEAG8AYwBrAGUAcgAAAAAA/////wAAAAAAAAAA+wAAABwAVABpAG0AZQBsAGkAbgBlAEQAbwBjAGsAZQByAAAAAAD/////AAADPAD////7AAAAKgBBAG4AaQBtAGEAdABpAG8AbgBDAHUAcgB2AGUAcwBEAG8AYwBrAGUAcgAAAAAA/////wAABBoA////AAAFYQAAA9AAAAAEAAAABAAAAAgAAAAI/AAAAAEAAAACAAAABQAAABYAbQBhAGkAbgBUAG8AbwBsAEIAYQByAQAAAAD/////AAAAAAAAAAAAAAAeAEIAcgB1AHMAaABlAHMAQQBuAGQAUwB0AHUAZgBmAQAAAGz/////AAAAAAAAAAAAAAAWAGUAZABpAHQAVABvAG8AbABCAGEAcgEAAAT8/////wAAAAAAAAAAAAAAHABjAHUAcwB0AG8AbQBUAG8AbwBsAEIAYQByADEAAAAAAP////8AAAAAAAAAAAAAABwAYwB1AHMAdABvAG0AVABvAG8AbABCAGEAcgAyAAAAAAD/////AAAAAAAAAAA=
-ko_geometry=AdnQywADAAAAAAeAAAAAAAAADsMAAAQfAAAHgAAAAAAAAA7DAAAEHwAAAAEAAAAAB4AAAAeAAAAAAAAADsMAAAQf
+ko_geometry=AdnQywADAAAAAAeAAAAAAAAADv8AAAQ3AAAHgAAAAAAAAA7/AAAENwAAAAEABAAAB4AAAAeAAAAAAAAADv8AAAQ3
 
 [MainWindow][DockWidget AnimationCurvesDocker]
 DockArea=8
 Locked=false
-height=480
-width=640
+height=448
+width=1275
 xPosition=0
-yPosition=0
+yPosition=32
 
 [MainWindow][DockWidget ArrangeDocker]
 DockArea=2
 Locked=false
-height=264
-width=222
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget ArtisticColorSelector]
 DockArea=2
 Locked=false
-height=284
-width=334
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget BrushHudDocker]
 DockArea=2
@@ -379,15 +392,15 @@ yPosition=0
 [MainWindow][DockWidget ChannelDocker]
 DockArea=2
 Locked=false
-height=30
-width=100
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget ColorSelectorNg]
 DockArea=1
 Locked=false
-height=233
+height=239
 width=258
 xPosition=0
 yPosition=22
@@ -403,26 +416,26 @@ yPosition=22
 [MainWindow][DockWidget DigitalMixer]
 DockArea=2
 Locked=false
-height=30
-width=100
+height=163
+width=302
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget GamutMask]
 DockArea=2
 Locked=false
-height=322
-width=363
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget GridDocker]
 DockArea=2
 Locked=false
-height=853
-width=1626
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget HistogramDocker]
 DockArea=2
@@ -443,7 +456,7 @@ yPosition=22
 [MainWindow][DockWidget KisLayerBox]
 DockArea=2
 Locked=false
-height=520
+height=534
 width=283
 xPosition=0
 yPosition=22
@@ -451,31 +464,31 @@ yPosition=22
 [MainWindow][DockWidget LogDocker]
 DockArea=2
 Locked=false
-height=260
-width=400
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget LutDocker]
 DockArea=2
 Locked=false
-height=328
-width=357
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget OnionSkinsDocker]
 DockArea=8
 Locked=false
-height=282
-width=336
+height=379
+width=569
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget OverviewDocker]
 DockArea=2
 Locked=false
-height=305
+height=313
 width=283
 xPosition=0
 yPosition=22
@@ -483,23 +496,23 @@ yPosition=22
 [MainWindow][DockWidget PaletteDocker]
 DockArea=1
 Locked=false
-height=422
-width=340
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget PatternDocker]
 DockArea=2
 Locked=false
-height=291
-width=221
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget PresetDocker]
 DockArea=1
 Locked=false
-height=299
+height=307
 width=258
 xPosition=0
 yPosition=22
@@ -507,50 +520,50 @@ yPosition=22
 [MainWindow][DockWidget PresetHistory]
 DockArea=2
 Locked=false
-height=30
-width=100
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget RecorderDocker]
 DockArea=2
 Locked=false
-height=369
-width=324
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget SmallColorSelector]
 DockArea=2
 Locked=false
-height=30
-width=100
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget Snapshot]
 DockArea=1
 Locked=false
-height=30
-width=100
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget SpecificColorSelector]
 DockArea=1
 Locked=false
-height=207
-width=268
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget StoryboardDocker]
 DockArea=2
 Locked=false
-height=561
-width=604
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget SvgSymbolCollectionDocker]
 DockArea=2
@@ -563,26 +576,26 @@ yPosition=22
 [MainWindow][DockWidget TasksetDocker]
 DockArea=2
 Locked=false
-height=300
-width=400
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget TextProperties]
 DockArea=2
 Locked=false
-height=100
-width=0
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget TimelineDocker]
 DockArea=8
 Locked=false
-height=50
-width=100
+height=448
+width=828
 xPosition=0
-yPosition=0
+yPosition=32
 
 [MainWindow][DockWidget ToolBox]
 DockArea=1
@@ -595,26 +608,26 @@ yPosition=0
 [MainWindow][DockWidget TouchDocker]
 DockArea=2
 Locked=false
-height=341
-width=116
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget WideGamutColorSelector]
 DockArea=2
 Locked=false
-height=480
+height=458
 width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget comics_project_manager_docker]
 DockArea=2
 Locked=false
-height=480
+height=458
 width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget lastdocumentsdocker]
 DockArea=2
@@ -635,7 +648,7 @@ yPosition=22
 [MainWindow][DockWidget pykrita_hclsliders]
 DockArea=1
 Locked=false
-height=115
+height=119
 width=258
 xPosition=0
 yPosition=22
@@ -651,7 +664,7 @@ yPosition=22
 [MainWindow][DockWidget quick_settings_docker]
 DockArea=1
 Locked=false
-height=214
+height=220
 width=258
 xPosition=0
 yPosition=22
