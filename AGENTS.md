@@ -28,3 +28,9 @@ These rules define the user's system architecture, preferences, and mandatory pr
   - Windows C Drive: `/mnt/WindowsC`
   - Windows D Drive: `/mnt/WindowsD`
 - When searching for external VSTs, games, or Windows configurations, always check these mount points.
+
+## 6. Auto-Memory & Context Retention (MEMORY.md)
+- **Concept**: To prevent repeating the same mistakes and to build long-term context, agents must use a centralized memory file.
+- **Location**: `~/MEMORY.md`
+- **Read Rule**: Whenever starting a new complex task or troubleshooting an issue, you MUST quickly scan `~/MEMORY.md` to see if there are any documented solutions, user preferences, or past quirks related to the task.
+- **Write Rule**: If you solve a difficult environment issue (e.g., undocumented paths, dependency conflicts, or weird software behaviors) or if the user explicitly asks you to "remember" something, you MUST summarize it concisely and append it to `~/MEMORY.md`. Do not overwrite existing memory unless it is explicitly obsolete.
