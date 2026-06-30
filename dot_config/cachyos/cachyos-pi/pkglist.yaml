@@ -11,7 +11,6 @@
     - mixxx
     - musescore
     - rosegarden
-    - bitwig-studio
 
 - name: "Browsers"
   packages:
@@ -20,7 +19,7 @@
     - firefox-esr-bin
     - firefox-pure
     - chromium
-    - ungoogled-chromium
+    - ungoogled-chromium-bin
     - vivaldi vivaldi-ffmpeg-codecs
     - torbrowser-launcher
     - brave-bin
@@ -57,11 +56,11 @@
     - jenkins
     - puppet
     - prometheus
-    - vagrant
     - terraform
 
 - name: "Games"
   packages:
+    - cachyos-gaming-applications cachyos-gaming-meta
     - aisleriot
     - mari0
     - kapman
@@ -96,6 +95,21 @@
     - fontforge
     - birdfont
 
+- name: "Hardware Tools"
+  packages:
+    - amdgpu_top
+    - cachyos-benchmarker
+    - coolercontrol
+    - cpu-x
+    - gparted
+    - kdiskmark
+    - lact
+    - nvtop
+    - occt
+    - openlinkhub
+    - openrgb
+    - rog-control-center
+
 - name: "Internet"
   packages:
     - xdman
@@ -127,12 +141,11 @@
     - handbrake
     - transmageddon
     - soundconverter
-    - stremio
     - kodi kodi-platform kodi-eventclients
     - mediaelch
     - kid3
     - easytag
-    - k3b cdparanoia cdrdao dvd+rw-tools emovix transcode vcdimager cdrtools
+    - k3b cdparanoia cdrdao dvd+rw-tools emovix vcdimager cdrtools
     - brasero
     - xfburn
 
@@ -163,7 +176,6 @@
     - dragon
     - shotcut
     - pitivi frei0r-plugins
-    - openshot
     - obs-studio
     - vlc
     - smplayer smplayer-skins smplayer-themes
@@ -174,4 +186,3 @@
     - virtualbox
     - gnome-boxes
     - virt-manager
-
