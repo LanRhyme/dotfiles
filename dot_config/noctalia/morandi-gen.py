@@ -314,28 +314,34 @@ def write_zrythm(palette):
     
     css = zrythm_css_src.read_text()
     
+    # Conservatively override variables instead of global text replacement
     mapping = {
-        "#D68A0C": palette["iris"],
-        "#F79616": palette["rose"],
-        "#202020": palette["base"],
-        "#262626": palette["surface0"],
-        "#2D2D2D": palette["surface1"],
-        "#1F1F1F": palette["mantle"],
-        "#121212": palette["mantle"],
-        "#444444": palette["surface2"],
+        "accent_color": palette["iris"],
+        "accent_bg_color": palette["rose"],
+        "window_bg_color": palette["base"],
+        "dialog_bg_color": palette["surface0"]
+    }
+    for key, new_color in mapping.items():
+        css = re.sub(rf"@define-color\s+{key}\s+#[a-fA-F0-9]+;", f"@define-color {key} {new_color};", css)
+
+    # Safely replace hardcoded colors by matching exact patterns
+    hardcoded = {
         "#F9CA1B": palette["gold"],
         "#9D3955": palette["love"],
+        "#F79616": palette["rose"],
+        "#D68A0C": palette["iris"],
         "#ED2939": palette["love"],
         "#FF2400": palette["love"],
         "#19664c": palette["pine"],
-        "#2eb398": palette["foam"],
-        "background-color: alpha(white,0.1)": f"background-color: {palette['surface2']}",
+        "#2eb398": palette["foam"]
     }
-    
-    for old_color, new_color in mapping.items():
-        css = css.replace(old_color, new_color)
-        css = css.replace(old_color.lower(), new_color)
-        
+    for old, new in hardcoded.items():
+        css = re.sub(rf"{old}(?![0-9a-fA-F])", new, css, flags=re.IGNORECASE)
+
+    # Make background colors match Morandi theme
+    css = re.sub(r"background-color:\s*#[a-fA-F0-9]+;", f"background-color: {palette['base']};", css)
+    css = re.sub(r"background-color:\s*alpha\(white,\s*0\.1\);", f"background-color: {palette['surface2']};", css)
+
     zrythm_css_dest.parent.mkdir(parents=True, exist_ok=True)
     zrythm_css_dest.write_text(css)
 
