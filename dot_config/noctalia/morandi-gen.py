@@ -326,9 +326,87 @@ def write_godot(palette):
         content = re.sub(r'interface/theme/color_preset\s*=\s*".*"', 'interface/theme/color_preset = "Custom"', content)
         path.write_text(content)
 
+def write_obs(palette):
+    obs_theme_dir = Path.home() / ".config/obs-studio/themes"
+    obs_theme_dir.mkdir(parents=True, exist_ok=True)
+    
+    def rgb_str(hex_c):
+        r, g, b = hex_to_rgb(hex_c)
+        return f"rgb({r},{g},{b})"
+        
+    content = f"""@OBSThemeMeta {{
+    name: 'Morandi';
+    id: 'com.obsproject.Yami.Morandi';
+    extends: 'com.obsproject.Yami';
+    author: 'morandi-gen';
+    dark: 'true';
+}}
 
+@OBSThemeVars {{
+    --primary: {rgb_str(palette['iris'])};
+    --primary_light: {rgb_str(palette['foam'])};
+    --primary_lighter: {rgb_str(palette['sky'])};
+    --primary_dark: {rgb_str(palette['pine'])};
+    --primary_darker: {rgb_str(palette['base'])};
 
+    --bg_base: {rgb_str(palette['mantle'])};
+    --bg_window: {rgb_str(palette['base'])};
+    --bg_preview: {rgb_str(palette['mantle'])};
 
+    --border_color: {rgb_str(palette['surface1'])};
+
+    --input_bg: {rgb_str(palette['surface0'])};
+    --input_bg_hover: {rgb_str(palette['surface1'])};
+    --input_bg_focus: {rgb_str(palette['surface1'])};
+
+    --list_item_bg_selected: {rgb_str(palette['surface0'])};
+    --list_item_bg_hover: {rgb_str(palette['surface1'])};
+
+    --input_border: {rgb_str(palette['surface2'])};
+    --input_border_hover: {rgb_str(palette['iris'])};
+    --input_border_focus: {rgb_str(palette['iris'])};
+
+    --button_bg: {rgb_str(palette['surface0'])};
+    --button_bg_hover: {rgb_str(palette['surface1'])};
+    --button_bg_down: {rgb_str(palette['surface2'])};
+    --button_bg_disabled: {rgb_str(palette['mantle'])};
+
+    --button_bg_red: {rgb_str(palette['love'])};
+    --button_bg_red_hover: {rgb_str(palette['rose'])};
+    --button_bg_red_down: {rgb_str(palette['love'])};
+
+    --button_border: {rgb_str(palette['surface2'])};
+    --button_border_hover: {rgb_str(palette['iris'])};
+    --button_border_focus: {rgb_str(palette['iris'])};
+
+    --tab_bg: {rgb_str(palette['surface0'])};
+    --tab_bg_hover: {rgb_str(palette['surface1'])};
+    --tab_bg_down: {rgb_str(palette['surface2'])};
+    --tab_bg_disabled: {rgb_str(palette['mantle'])};
+
+    --tab_border: {rgb_str(palette['surface0'])};
+    --tab_border_hover: {rgb_str(palette['surface2'])};
+    --tab_border_focus: {rgb_str(palette['surface2'])};
+    --tab_border_selected: {rgb_str(palette['iris'])};
+
+    --scrollbar_handle: {rgb_str(palette['surface1'])};
+    --scrollbar_hover: {rgb_str(palette['surface2'])};
+    --scrollbar_down: {rgb_str(palette['surface0'])};
+    --scrollbar_border: {rgb_str(palette['surface1'])};
+
+    --toolbutton_bg: {rgb_str(palette['surface0'])};
+    --toolbutton_bg_hover: {rgb_str(palette['surface1'])};
+    --toolbutton_bg_down: {rgb_str(palette['surface2'])};
+    --toolbutton_bg_disabled: {rgb_str(palette['mantle'])};
+}}
+"""
+    (obs_theme_dir / "Morandi.ovt").write_text(content)
+    
+    obs_config = Path.home() / ".config/obs-studio/global.ini"
+    if obs_config.exists():
+        conf = obs_config.read_text()
+        conf = re.sub(r"^CurrentTheme3=.*", "CurrentTheme3=Morandi", conf, flags=re.MULTILINE)
+        obs_config.write_text(conf)
 
 
 
@@ -391,7 +469,10 @@ def main():
         print(f"Failed to write godot theme: {e}")
         
 
-        
+    try:
+        write_obs(palette)
+    except Exception as e:
+        print(f"Failed to write obs theme: {e}")
 
 
     apply_system_changes(args.wallpaper)
