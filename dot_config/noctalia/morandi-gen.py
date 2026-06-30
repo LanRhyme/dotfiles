@@ -349,6 +349,13 @@ def write_obs(palette):
     --primary_dark: {rgb_str(palette['pine'])};
     --primary_darker: {rgb_str(palette['base'])};
 
+    --blue1: {rgb_str(palette['sky'])};
+    --blue2: {rgb_str(palette['foam'])};
+    --blue3: {rgb_str(palette['iris'])};
+    --blue4: {rgb_str(palette['pine'])};
+    --blue5: {rgb_str(palette['surface1'])};
+    --blue6: {rgb_str(palette['surface0'])};
+
     --bg_base: {rgb_str(palette['mantle'])};
     --bg_window: {rgb_str(palette['base'])};
     --bg_preview: {rgb_str(palette['mantle'])};
