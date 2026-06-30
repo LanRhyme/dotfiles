@@ -9,6 +9,16 @@ fi
 
 python3 ~/.config/noctalia/morandi-gen.py
 
+# Generate KDE color scheme for Qt/KDE apps (kdenlive, etc.)
+python3 ~/.config/noctalia/morandi-kde.py
+
+# Apply KDE color scheme to running apps via dbus
+export DISPLAY=:0
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+dbus-send --session --dest=org.kde.plasmashell --type=method_call /PlasmaShell org.kde.PlasmaShell.evaluateScript "string: var allDesktops = desktops(); for (var i=0; i<allDesktops.length; i++) { allDesktops[i].wallpaperPlugin = '' }" 2>/dev/null
+# Signal KDE apps to reload colors
+qdbus org.kde.KWin /KWin reconfigure 2>/dev/null
+
 # Reload niri config
 niri msg action load-config-file 2>/dev/null
 
