@@ -400,12 +400,12 @@ def write_obs(palette):
     --toolbutton_bg_disabled: {rgb_str(palette['mantle'])};
 }}
 """
-    (obs_theme_dir / "Morandi.ovt").write_text(content)
+    (obs_theme_dir / "Yami_Morandi.ovt").write_text(content)
     
     obs_config = Path.home() / ".config/obs-studio/global.ini"
     if obs_config.exists():
         conf = obs_config.read_text()
-        conf = re.sub(r"^CurrentTheme3=.*", "CurrentTheme3=Morandi", conf, flags=re.MULTILINE)
+        conf = re.sub(r"^CurrentTheme3=.*", "CurrentTheme3=Yami_Morandi", conf, flags=re.MULTILINE)
         obs_config.write_text(conf)
 
 
