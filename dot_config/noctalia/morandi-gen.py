@@ -309,7 +309,7 @@ bpy.ops.wm.save_userpref()
 
 def write_zrythm(palette):
     zrythm_css_src = Path("/usr/share/zrythm/themes/css/zrythm-theme.css")
-    zrythm_css_dest = Path.home() / ".config/zrythm/themes/css/morandi-theme.css"
+    zrythm_css_dest = Path.home() / ".local/share/zrythm/themes/css/morandi-theme.css"
     if not zrythm_css_src.exists(): return
     
     css = zrythm_css_src.read_text()
