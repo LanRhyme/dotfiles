@@ -307,41 +307,7 @@ bpy.ops.wm.save_userpref()
     subprocess.run(["blender", "-b", "-P", temp_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.remove(temp_path)
 
-def write_zrythm(palette):
-    zrythm_css_src = Path("/usr/share/zrythm/themes/css/zrythm-theme.css")
-    zrythm_css_dest = Path.home() / ".local/share/zrythm/themes/css/morandi-theme.css"
-    if not zrythm_css_src.exists(): return
-    
-    css = zrythm_css_src.read_text()
-    
-    # Conservatively override variables
-    mapping = {
-        "accent_color": palette["iris"],
-        "accent_bg_color": palette["rose"],
-        "window_bg_color": palette["base"],
-        "dialog_bg_color": palette["surface0"]
-    }
-    for key, new_color in mapping.items():
-        css = re.sub(rf"@define-color\s+{key}\s+#[a-fA-F0-9]+;", f"@define-color {key} {new_color};", css)
 
-    # Safely replace specific hardcoded colors without touching structure
-    hardcoded = {
-        "#F9CA1B": palette["gold"],
-        "#9D3955": palette["love"],
-        "#F79616": palette["rose"],
-        "#D68A0C": palette["iris"],
-        "#ED2939": palette["love"],
-        "#FF2400": palette["love"],
-        "#19664c": palette["pine"],
-        "#2eb398": palette["foam"],
-        "alpha(white,0.1)": palette["surface2"]
-    }
-    for old, new in hardcoded.items():
-        css = css.replace(old, new)
-        css = css.replace(old.lower(), new)
-
-    zrythm_css_dest.parent.mkdir(parents=True, exist_ok=True)
-    zrythm_css_dest.write_text(css)
 
 
 def apply_system_changes(wallpaper_path=None):
@@ -396,12 +362,7 @@ def main():
     except Exception as e:
         print(f"Failed to write blender theme: {e}")
         
-    try:
-        write_zrythm(palette)
-        # Apply zrythm theme
-        subprocess.run(["gsettings", "set", "org.zrythm.Zrythm.preferences.ui.general", "css-theme", "morandi-theme.css"], stderr=subprocess.DEVNULL)
-    except Exception as e:
-        print(f"Failed to apply zrythm theme: {e}")
+
 
     apply_system_changes(args.wallpaper)
     print("Morandi theme generated and system changes applied successfully.")
