@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- 柔和的卡片背景，使用应用的 BG_CARD 颜色 -->
+  <rect width="256" height="256" rx="56" fill="#2c2b26"/>
+  
+  <!-- 滑动条 1 -->
+  <rect x="52" y="72" width="152" height="16" rx="8" fill="#6c6a62"/>
+  <!-- 滑块 1 -->
+  <circle cx="168" cy="80" r="24" fill="#8d8768"/>
+  <circle cx="168" cy="80" r="8" fill="#2c2b26"/>
+  
+  <!-- 滑动条 2 -->
+  <rect x="52" y="120" width="152" height="16" rx="8" fill="#6c6a62"/>
+  <!-- 滑块 2 -->
+  <circle cx="88" cy="128" r="24" fill="#8d8768"/>
+  <circle cx="88" cy="128" r="8" fill="#2c2b26"/>
+  
+  <!-- 滑动条 3 -->
+  <rect x="52" y="168" width="152" height="16" rx="8" fill="#6c6a62"/>
+  <!-- 滑块 3 -->
+  <circle cx="140" cy="176" r="24" fill="#8d8768"/>
+  <circle cx="140" cy="176" r="8" fill="#2c2b26"/>
+</svg>

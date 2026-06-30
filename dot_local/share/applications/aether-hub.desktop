@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Aether Hub
+Name[zh_CN]=Aether 配置中心
+Comment=Aether 系统配置与应用管理中枢
+Exec=python3 /home/lanrhyme/.local/bin/aether-hub.py
+Icon=/home/lanrhyme/.local/share/icons/aether-hub.svg
+Terminal=false
+Type=Application
+Categories=System;Settings;
