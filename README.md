@@ -33,6 +33,7 @@
 | 信息展示 | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | 系统信息（chafa 头像 + 莫兰迪主题） |
 | 录屏 | [OBS Studio](https://obsproject.com/) | 录屏/直播 |
 | 录屏 | [gpu-screen-recorder](https://nowrep.github.io/gpu-screen-recorder/) | GPU 录屏 |
+| 视频编辑 | [Kdenlive](https://kdenlive.org/) | 视频编辑（自动应用 Morandi 暗色主题） |
 | 绘图 | [Krita](https://krita.org/) | 数字绘画 |
 | 开发 | [GitHub CLI](https://cli.github.com/) | GitHub 命令行工具 |
 | 开发 | [uv](https://github.com/astral-sh/uv) | Python 包管理器 |
@@ -56,7 +57,7 @@ chezmoi init --apply LanRhyme
 paru -S fish starship alacritty neovim micro \
         niri noctalia kando fcitx5-rime kvantum \
         btop cava superfile fastfetch chafa \
-        obs-studio gpu-screen-recorder krita \
+        obs-studio gpu-screen-recorder kdenlive krita \
         github-cli uv yay kdeconnect frpc
 ```
 
@@ -79,10 +80,14 @@ dotfiles/
     │   └── config.kdl          # 快捷键、工作区、窗口规则
     ├── noctalia/               # Noctalia 桌面栏
     │   ├── settings.json       # 主题、布局
+    │   ├── executable_apply-morandi.sh  # 莫兰迪主题同步脚本
+    │   ├── morandi-gen.py       # Niri 配色生成器
+    │   ├── morandi-kde.py       # KDE 色彩方案生成器
     │   └── plugins/            # 插件（GitHub Feed、翻译、截图等）
     ├── kando/                  # Kando 环形菜单
     ├── nvim/                   # Neovim 编辑器
     ├── micro/                  # Micro 编辑器
+    ├── kdenliverc              # Kdenlive 视频编辑器配置
     ├── fcitx5/                 # Fcitx5 输入法
     │   └── conf/rime.conf      # Rime 引擎配置
     ├── btop/                   # Btop 系统监控
@@ -98,10 +103,16 @@ dotfiles/
     ├── gtk-4.0/                # GTK4 主题
     ├── qt5ct/                  # Qt5 主题
     ├── environment.d/          # 环境变量
+    │   ├── 90-fcitx5.conf      # Fcitx5 环境变量
+    │   └── 95-kde-colors.conf  # KDE 色彩方案环境变量
     ├── autostart/              # 自启动应用
     ├── mimeapps.list            # 默认应用
     ├── user-dirs.dirs          # 用户目录
     └── yay/                    # Yay AUR 助手
+└── .local/
+    └── share/
+        └── color-schemes/      # KDE 色彩方案
+            └── Morandi-dark.colors  # 莫兰迪暗色主题
 ```
 
 ## 常用命令
@@ -164,6 +175,37 @@ chezmoi init --apply LanRhyme
 # 3. 安装软件依赖（见上方安装命令）
 
 # 4. 重启或重新登录
+```
+
+## 莫兰迪主题系统
+
+本配置使用自定义的莫兰迪（Morandi）配色方案，通过 Noctalia 壁纸颜色自动生成：
+
+### 工作原理
+
+1. **颜色生成**：Noctalia 根据壁纸颜色生成 `colors.json`
+2. **Niri 主题**：`morandi-gen.py` 将颜色转换为 Niri 窗口管理器配置
+3. **KDE 主题**：`morandi-kde.py` 生成 KDE 色彩方案，应用到 Kdenlive 等 Qt/KDE 应用
+4. **自动同步**：切换壁纸时自动更新所有应用主题
+
+### 核心配色
+
+| 用途 | 颜色 | 说明 |
+|------|------|------|
+| 背景 | `#21201c` | 深色主背景 |
+| 表面 | `#37362f` | 按钮、卡片背景 |
+| 主色 | `#dad8ce` | 暖米色，用于高亮 |
+| 错误 | `#fd4663` | 红色强调 |
+| 文字 | `#f3f3f2` | 浅色文字 |
+
+### 手动更新主题
+
+```bash
+# 重新生成所有主题配置
+~/.config/noctalia/apply-morandi.sh
+
+# 仅更新 KDE 色彩方案
+python3 ~/.config/noctalia/morandi-kde.py
 ```
 
 ## 添加新配置
