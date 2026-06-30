@@ -1,0 +1,134 @@
+[ColorEffects:Disabled]
+Color = 43,42,36
+ColorAmount = 0
+ColorEffect = 0
+ContrastAmount = 0.65
+ContrastEffect = 1
+IntensityAmount = 0.1
+IntensityEffect = 2
+
+[ColorEffects:Inactive]
+ChangeSelectionColor = false
+Color = 112,110,102
+ColorAmount = 0.025
+ColorEffect = 2
+ContrastAmount = 0.1
+ContrastEffect = 2
+Enable = false
+IntensityAmount = 0
+IntensityEffect = 0
+
+[Colors:Button]
+BackgroundAlternate = 44,43,38
+BackgroundNormal = 33,32,28
+DecorationFocus = 141,135,104
+DecorationHover = 141,135,104
+ForegroundActive = 141,135,104
+ForegroundInactive = 159,159,159
+ForegroundLink = 172,172,159
+ForegroundNegative = 253,70,99
+ForegroundNeutral = 189,183,154
+ForegroundNormal = 243,243,242
+ForegroundPositive = 168,171,160
+ForegroundVisited = 175,172,156
+
+[Colors:Complementary]
+BackgroundAlternate = 44,43,38
+BackgroundNormal = 33,32,28
+DecorationFocus = 141,135,104
+DecorationHover = 141,135,104
+ForegroundActive = 141,135,104
+ForegroundInactive = 159,159,159
+ForegroundLink = 172,172,159
+ForegroundNegative = 253,70,99
+ForegroundNeutral = 189,183,154
+ForegroundNormal = 243,243,242
+ForegroundPositive = 168,171,160
+ForegroundVisited = 175,172,156
+
+[Colors:Header]
+BackgroundAlternate = 44,43,38
+BackgroundNormal = 33,32,28
+DecorationFocus = 141,135,104
+DecorationHover = 141,135,104
+ForegroundActive = 141,135,104
+ForegroundInactive = 159,159,159
+ForegroundLink = 172,172,159
+ForegroundNegative = 253,70,99
+ForegroundNeutral = 189,183,154
+ForegroundNormal = 243,243,242
+ForegroundPositive = 168,171,160
+ForegroundVisited = 175,172,156
+
+[Colors:Selection]
+BackgroundAlternate = 141,135,104
+BackgroundNormal = 141,135,104
+DecorationFocus = 175,172,156
+DecorationHover = 175,172,156
+ForegroundActive = 33,32,28
+ForegroundInactive = 218,216,206
+ForegroundLink = 172,172,159
+ForegroundNegative = 253,70,99
+ForegroundNeutral = 189,183,154
+ForegroundNormal = 33,32,28
+ForegroundPositive = 168,171,160
+ForegroundVisited = 175,172,156
+
+[Colors:Tooltip]
+BackgroundAlternate = 44,43,38
+BackgroundNormal = 33,32,28
+DecorationFocus = 141,135,104
+DecorationHover = 141,135,104
+ForegroundActive = 141,135,104
+ForegroundInactive = 159,159,159
+ForegroundLink = 172,172,159
+ForegroundNegative = 253,70,99
+ForegroundNeutral = 189,183,154
+ForegroundNormal = 243,243,242
+ForegroundPositive = 168,171,160
+ForegroundVisited = 175,172,156
+
+[Colors:View]
+BackgroundAlternate = 44,43,38
+BackgroundNormal = 33,32,28
+DecorationFocus = 141,135,104
+DecorationHover = 141,135,104
+ForegroundActive = 141,135,104
+ForegroundInactive = 159,159,159
+ForegroundLink = 172,172,159
+ForegroundNegative = 253,70,99
+ForegroundNeutral = 189,183,154
+ForegroundNormal = 243,243,242
+ForegroundPositive = 168,171,160
+ForegroundVisited = 175,172,156
+
+[Colors:Window]
+BackgroundAlternate = 44,43,38
+BackgroundNormal = 33,32,28
+DecorationFocus = 141,135,104
+DecorationHover = 141,135,104
+ForegroundActive = 141,135,104
+ForegroundInactive = 159,159,159
+ForegroundLink = 172,172,159
+ForegroundNegative = 253,70,99
+ForegroundNeutral = 189,183,154
+ForegroundNormal = 243,243,242
+ForegroundPositive = 168,171,160
+ForegroundVisited = 175,172,156
+
+[General]
+ColorScheme = Noctalia
+Name = Noctalia
+shadeSortColumn = true
+
+[KDE]
+contrast = 4
+
+[WM]
+activeBackground = 33,32,28
+activeBlend = 218,216,206
+activeForeground = 243,243,242
+inactiveBackground = 44,43,38
+inactiveBlend = 112,110,102
+inactiveForeground = 159,159,159
+

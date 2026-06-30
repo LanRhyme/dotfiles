@@ -19,11 +19,11 @@ from krita import *
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QPalette
 
-highlight = "37362f"
+highlight = "8d8768"
 background = "21201c"
-alternate = "1a1a18"
-inactive_text_color = "706e66"
-active_text_color = "dad8ce"
+alternate = "2c2b26"
+inactive_text_color = "9f9f9f"
+active_text_color = "f3f3f2"
 
 small_tab_size = 14
 
@@ -48,7 +48,7 @@ nu_toolbox_style = f"""
             QAbstractButton {{
                 background-color: #aa{background};
                 border: none;
-                border-radius: 8px;
+                border-radius: 12px;
             }}
             
             QAbstractButton:checked {{
@@ -67,7 +67,7 @@ nu_toggle_button_style = f"""
         QToolButton {{
             background-color: #aa{background};
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
         }}
         
         QToolButton:hover {{
@@ -82,8 +82,8 @@ nu_toggle_button_style = f"""
 nu_tool_options_style = f"""
         #toolOptionsPad {{
             background-color: #{background};
-            border-radius: 12px;
-            border: 2px solid #{alternate};
+            border-radius: 18px;
+            border: 1px solid #{alternate};
         }}
         #toolOptionsPad > QWidget, #toolOptionsPad QScrollArea, #toolOptionsPad QScrollArea > QWidget {{
             background-color: transparent;
@@ -131,13 +131,51 @@ def buildFlatTheme():
         * > QSpinBox {{
             border: none;
             background-color: #{alternate};
-            border-radius: 8px;
-        }}    
+            border-radius: 12px;
+            padding: 4px;
+        }}
+        
+        KisZoomWidget QSlider::groove:horizontal {{
+            height: 6px;
+            border-radius: 3px;
+        }}
+        KisZoomWidget QSlider::handle:horizontal {{
+            width: 18px;
+            height: 18px;
+            margin: -6px 0;
+            border-radius: 9px;
+            background: #{highlight};
+        }}
     """
 
     flat_tab_base_style = f"""
-        QScrollBar:vertical {{ width: 0px; }}
-        QScrollBar:horizontal {{ height: 0px; }}
+        QScrollBar:vertical {{ 
+            width: 8px; 
+            background: transparent;
+            margin: 0px;
+        }}
+        QScrollBar::handle:vertical {{
+            background: #{alternate};
+            min-height: 20px;
+            border-radius: 4px;
+        }}
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+            height: 0px;
+        }}
+        
+        QScrollBar:horizontal {{ 
+            height: 8px; 
+            background: transparent;
+            margin: 0px;
+        }}
+        QScrollBar::handle:horizontal {{
+            background: #{alternate};
+            min-width: 20px;
+            border-radius: 4px;
+        }}
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+            width: 0px;
+        }}
 
         QTabBar {{
             background-color: #{alternate};
@@ -152,16 +190,16 @@ def buildFlatTheme():
             border-top: 2px solid #{alternate};
             margin-top: 2px;
             color: #{inactive_text_color};
-            padding: 2px 8px;
+            padding: 2px 12px;
         }}
 
         QTabBar::tab:selected {{
             background: #{background};
-            border-bottom: 2px solid #{background};
+            border-bottom: 2px solid #{highlight};
             border-top: 2px solid #{background};
             margin-top: 2px;
             color: #{active_text_color};
-            padding: 2px 8px;
+            padding: 2px 12px;
         }}
 
         QTabBar::tab:hover {{
@@ -169,15 +207,15 @@ def buildFlatTheme():
         }}
        """
     flat_tab_big_style = f"""QTabBar::tab {{
-            border-top-right-radius: 8px;
-            border-top-left-radius: 8px;
+            border-top-right-radius: 12px;
+            border-top-left-radius: 12px;
         }}"""
     flat_tab_small_style = f""" 
         QTabBar::tab {{
             border-top:0px;
             border-bottom: 0px;
-            border-top-right-radius: 8px;
-            border-top-left-radius: 8px;
+            border-top-right-radius: 12px;
+            border-top-left-radius: 12px;
             height: {small_tab_size}px;
         }}"""
 
@@ -188,28 +226,35 @@ def buildFlatTheme():
         
         QLineEdit {{
             background: #{alternate};
-            border-radius: 8px;
-            padding: 2px 6px;
+            border: none;
+            border-radius: 12px;
+            padding: 4px 12px;
+        }}
+        
+        QTabWidget::pane {{
+            border: none;
+            background: #{background};
+            border-radius: 16px;
         }}
 
         QSlider::groove:horizontal {{
             background: #{alternate};
-            height: 4px;
-            border-radius: 2px;
+            height: 6px;
+            border-radius: 3px;
         }}
         QSlider::handle:horizontal {{
-            background: #{inactive_text_color};
-            width: 12px;
-            height: 12px;
-            margin: -4px 0;
-            border-radius: 6px;
+            background: #{highlight};
+            width: 18px;
+            height: 18px;
+            margin: -6px 0;
+            border-radius: 9px;
         }}
         QSlider::handle:horizontal:hover {{
             background: #{active_text_color};
         }}
         QSlider::sub-page:horizontal {{
             background: #{highlight};
-            border-radius: 2px;
+            border-radius: 3px;
         }}
         QSlider::add-page:horizontal {{
             background: #{alternate};
@@ -233,17 +278,73 @@ def buildFlatTheme():
         KisDoubleSliderSpinBox {{
             background: #{alternate};
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
         }} 
         
         QStatusBar > QPushButton:hover {{
             background: #{highlight};
         }}
+        
+        QCheckBox, QRadioButton {{
+            color: #{active_text_color};
+            spacing: 6px;
+        }}
+        QCheckBox::indicator, QRadioButton::indicator {{
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            background-color: #{background};
+            border: 2px solid #{alternate};
+        }}
+        QRadioButton::indicator {{
+            border-radius: 8px;
+        }}
+        QCheckBox::indicator:hover, QRadioButton::indicator:hover {{
+            border: 2px solid #{highlight};
+        }}
+        QCheckBox::indicator:checked, QRadioButton::indicator:checked {{
+            background-color: #{highlight};
+            border: 2px solid #{highlight};
+        }}
+        QProgressBar {{
+            background-color: #{alternate};
+            border: none;
+            border-radius: 6px;
+            text-align: center;
+            color: #{background};
+        }}
+        QProgressBar::chunk {{
+            background-color: #{highlight};
+            border-radius: 6px;
+        }}
+        QGroupBox {{
+            border: 1px solid #{alternate};
+            border-radius: 12px;
+            margin-top: 14px;
+            padding-top: 10px;
+        }}
+        QGroupBox::title {{
+            subcontrol-origin: margin;
+            subcontrol-position: top left;
+            padding: 0 4px;
+            left: 10px;
+            color: #{inactive_text_color};
+        }}
+        
+        KisWelcomePageWidget {{
+            background-color: #{background};
+        }}
+        KisWelcomePageWidget QListView, QQuickWidget#welcomePage {{
+            background-color: #{alternate};
+            border-radius: 24px;
+            padding: 16px;
+            margin: 8px;
+        }}
         """
     flat_button_style = f"""QAbstractButton {{
             background: #{background};
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
         }}
 
         QAbstractButton:checked {{
@@ -263,8 +364,8 @@ def buildFlatTheme():
 
         QPushButton {{
             background: #{background};
-            border-radius: 8px;
-            border: 2px solid #{alternate};
+            border-radius: 12px;
+            border: 1px solid #{alternate};
         }}
         
         """
@@ -273,42 +374,51 @@ def buildFlatTheme():
         QAbstractScrollArea {{
             background: #{background};
             border: none;
+            border-radius: 12px;
         }}
     
         QDockWidget {{
             titlebar-close-icon: url(:/light_deletelayer.svg);
             titlebar-normal-icon: url(:/light_duplicatelayer.svg);
-            border-bottom-right-radius: 8px;
-            border-bottom-left-radius: 8px;
+            border-radius: 16px;
+            margin: 2px;
         }}
 
-        QDockWidget::close-button {{
+        QDockWidget::close-button, QDockWidget::float-button {{
             border: none;
-            margin: -1px;
+            border-radius: 6px;
+            background: transparent;
         }}
-
-        QDockWidget::float-button {{
-            border: none;
-            margin: 1px;
+        
+        QDockWidget::close-button:hover, QDockWidget::float-button:hover {{
+            background: #{alternate};
         }}
 
         QDockWidget > * {{
             background-color: #{background};
             border: none;
-            border-bottom-right-radius: 8px;
-            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 16px;
+            border-bottom-left-radius: 16px;
             titlebar-close-icon: url(/:16_dark_tab-close.svg);
         }}
 
         QDockWidget::title {{
             background-color: #{background};
             border: none;
-            padding: 5px;
-            margin-top: 2px;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            padding: 6px;
         }}"""
     flat_toolbar_style = f"""QToolBar {{
             background-color: #{background};
             border: none;
+            border-radius: 12px;
+            margin: 4px;
+            padding: 4px;
+        }}
+        QToolBar > QToolButton {{
+            border-radius: 8px;
+            padding: 4px;
         }}
         """
     flat_menu_bar_style = f"""QMenuBar {{
@@ -316,12 +426,12 @@ def buildFlatTheme():
         }}
         QMenu, QToolTip, .KisPopupPalette, QDialog {{
             background-color: #{background};
-            border: 2px solid #{alternate};
-            border-radius: 12px;
+            border: 1px solid #{alternate};
+            border-radius: 18px;
         }}
         QMenu::item {{
             padding: 4px 10px;
-            border-radius: 6px;
+            border-radius: 8px;
             margin: 2px 4px;
         }}
         QMenu::item:selected {{
@@ -329,22 +439,20 @@ def buildFlatTheme():
         }}
         """
     flat_combo_box_style = f"""QComboBox {{ 
-            background: #{background};
-            border-bottom: 2px solid #{inactive_text_color};
-            border-radius: 8px;
-            padding-left: 10px;
-            padding-right: 10px;
-            padding-bottom: 2px;
-            padding-top: 2px;
+            background: #{alternate};
+            border: none;
+            border-radius: 12px;
+            padding: 4px 12px;
         }}
 
         QComboBox:hover {{
-            background: #{alternate};
+            background: #{highlight};
+            color: #{background};
         }}
         
         QComboBox::drop-down {{
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
         }}
         
         QComboBox::down-arrow {{
@@ -355,7 +463,7 @@ def buildFlatTheme():
     flat_status_bar_style = f"""
         QStatusBar {{ 
             background-color: #{background}; 
-            max-height: 26px;
+            max-height: 28px;
             padding: 0px;
         }}
         QStatusBar QLabel, QStatusBar QPushButton, QStatusBar QToolButton {{
@@ -387,22 +495,23 @@ def buildFlatTheme():
     flat_tree_view_style = f"""QTreeView, QListView, KisResourceItemListView, QListWidget, QTableView, #WdgPresetChooser {{
         background-color: #{background}; 
         border: none;
-        padding: 5px;
-        border-radius: 8px;
+        padding: 8px;
+        border-radius: 16px;
         outline: none;
     }}
     KisResourceItemListView::item, QListView::item, QListWidget::item, QTableView::item {{
-        border-radius: 6px;
+        border-radius: 12px;
+        padding: 6px;
         margin: 2px;
-        border: 2px solid transparent;
+        border: 1px solid transparent;
         background-color: transparent;
     }}
     KisResourceItemListView::item:selected, QListView::item:selected, QListWidget::item:selected, QTableView::item:selected {{
         background-color: #{highlight} !important;
-        border: 2px solid #{highlight} !important;
+        border: 1px solid #{highlight} !important;
     }}
     KisResourceItemListView::item:hover, QListView::item:hover, QListWidget::item:hover, QTableView::item:hover {{
         background-color: #{alternate} !important;
-        border: 2px solid #{alternate} !important;
+        border: 1px solid #{alternate} !important;
     }}
     """
