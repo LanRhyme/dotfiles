@@ -20,6 +20,8 @@
 6. **KDE / Qt 生态 (如 Kdenlive)**: 自动生成 `Morandi-dark.colors` KDE 配色方案，并通过 DBus 自动刷新 Qt 应用
 7. **Blender**: 利用 Blender Python API 后台自动修改并保存 `userpref.blend`，使 3D 软件与系统 UI 无缝融合
 8. **Limine 引导加载器**: 将当前壁纸进行模糊化处理，设为引导菜单背景 (`limine_bg.png`)
+9. **Clash Verge Rev**: 注入全局 CSS 变量强制重写界面底色，并自动适配未选中及选中的节点卡片样式
+10. **FlClash**: 直接读写 `shared_preferences.json`，利用 Material 3 动态取色引擎将莫兰迪色彩无缝融入深色模式
 
 ## 如何新增支持的软件？
 
