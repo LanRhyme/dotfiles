@@ -307,13 +307,52 @@ bpy.ops.wm.save_userpref()
     subprocess.run(["blender", "-b", "-P", temp_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.remove(temp_path)
 
+def write_zrythm(palette):
+    zrythm_css_src = Path("/usr/share/zrythm/themes/css/zrythm-theme.css")
+    zrythm_css_dest = Path.home() / ".config/zrythm/themes/css/morandi-theme.css"
+    if not zrythm_css_src.exists(): return
+    
+    css = zrythm_css_src.read_text()
+    
+    mapping = {
+        "#D68A0C": palette["iris"],
+        "#F79616": palette["rose"],
+        "#202020": palette["base"],
+        "#262626": palette["surface0"],
+        "#2D2D2D": palette["surface1"],
+        "#1F1F1F": palette["mantle"],
+        "#121212": palette["mantle"],
+        "#444444": palette["surface2"],
+        "#F9CA1B": palette["gold"],
+        "#9D3955": palette["love"],
+        "#ED2939": palette["love"],
+        "#FF2400": palette["love"],
+        "#19664c": palette["pine"],
+        "#2eb398": palette["foam"],
+        "background-color: alpha(white,0.1)": f"background-color: {palette['surface2']}",
+    }
+    
+    for old_color, new_color in mapping.items():
+        css = css.replace(old_color, new_color)
+        css = css.replace(old_color.lower(), new_color)
+        
+    zrythm_css_dest.parent.mkdir(parents=True, exist_ok=True)
+    zrythm_css_dest.write_text(css)
+
+
 def apply_system_changes(wallpaper_path=None):
+    def run_ignore_missing(*args, **kwargs):
+        try:
+            subprocess.run(*args, **kwargs)
+        except FileNotFoundError:
+            pass
+
     env = os.environ.copy()
     env["DISPLAY"] = ":0"
     env["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
-    subprocess.run(["dbus-send", "--session", "--dest=org.kde.plasmashell", "--type=method_call", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", "string: var allDesktops = desktops(); for (var i=0; i<allDesktops.length; i++) { allDesktops[i].wallpaperPlugin = '' }"], env=env, stderr=subprocess.DEVNULL)
-    subprocess.run(["qdbus", "org.kde.KWin", "/KWin", "reconfigure"], env=env, stderr=subprocess.DEVNULL)
-    subprocess.run(["niri", "msg", "action", "load-config-file"], stderr=subprocess.DEVNULL)
+    run_ignore_missing(["dbus-send", "--session", "--dest=org.kde.plasmashell", "--type=method_call", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", "string: var allDesktops = desktops(); for (var i=0; i<allDesktops.length; i++) { allDesktops[i].wallpaperPlugin = '' }"], env=env, stderr=subprocess.DEVNULL)
+    run_ignore_missing(["qdbus", "org.kde.KWin", "/KWin", "reconfigure"], env=env, stderr=subprocess.DEVNULL)
+    run_ignore_missing(["niri", "msg", "action", "load-config-file"], stderr=subprocess.DEVNULL)
     
     if wallpaper_path and Path(wallpaper_path).exists():
         efi_dir = "/boot/efi"
@@ -352,6 +391,13 @@ def main():
         write_blender(palette)
     except Exception as e:
         print(f"Failed to write blender theme: {e}")
+        
+    try:
+        write_zrythm(palette)
+        # Apply zrythm theme
+        subprocess.run(["gsettings", "set", "org.zrythm.Zrythm.preferences.ui.general", "css-theme", "morandi-theme.css"], stderr=subprocess.DEVNULL)
+    except Exception as e:
+        print(f"Failed to apply zrythm theme: {e}")
 
     apply_system_changes(args.wallpaper)
     print("Morandi theme generated and system changes applied successfully.")

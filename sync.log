@@ -141,3 +141,21 @@ To https://github.com/LanRhyme/dotfiles.git
    3431e22..8ed00b1  master -> master
 chezmoi: .config/noctalia/morandi-gen.py: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/noctalia/executable_morandi-gen.py, /home/lanrhyme/.local/share/chezmoi/dot_config/noctalia/morandi-gen.py)
 chezmoi: .config/noctalia/morandi-gen.py: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/noctalia/executable_morandi-gen.py, /home/lanrhyme/.local/share/chezmoi/dot_config/noctalia/morandi-gen.py)
+[master face9ca] auto: 2026-06-30-20:19:18
+ 15 files changed, 433 insertions(+), 612 deletions(-)
+ create mode 100644 dot_config/Kvantum/kvantum.kvconfig
+ create mode 100644 dot_config/blender/5.1/config/platform_support.txt
+ create mode 100644 dot_config/blender/5.1/config/userpref.blend
+ create mode 100644 dot_config/btop/themes/noctalia.theme
+ create mode 100644 dot_config/fastfetch/executable_avatar.png
+ create mode 100644 dot_config/gtk-3.0/gtk.css
+ create mode 100644 dot_config/gtk-3.0/noctalia.css
+ create mode 100644 dot_config/gtk-4.0/gtk.css
+ create mode 100644 dot_config/gtk-4.0/noctalia.css
+ create mode 100644 dot_config/kando/electron-flags.conf
+ create mode 100644 dot_config/kando/menus.json
+ delete mode 100644 dot_config/noctalia/executable_morandi-gen.py
+ mode change 100755 => 100644 dot_config/noctalia/morandi-gen.py
+ create mode 100644 dot_config/private_gpu-screen-recorder/empty_restore_token
+To https://github.com/LanRhyme/dotfiles.git
+   8098efe..face9ca  master -> master

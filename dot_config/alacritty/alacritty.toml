@@ -41,7 +41,6 @@ blue = "#689bbe"
 magenta = "#af7dbd"
 cyan = "#6baebf"
 white = "#b1b6be"
-
 [colors.bright]
 black = "#515457"
 red = "#b17c57"
@@ -51,7 +50,6 @@ blue = "#4a6da7"
 magenta = "#a49fc9"
 cyan = "#6baebf"
 white = "#d2d2d2"
-
 [colors.cursor]
 text = "#1a1a18"
 cursor = "#afac9c"
