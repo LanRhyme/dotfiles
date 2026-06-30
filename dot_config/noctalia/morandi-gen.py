@@ -317,7 +317,7 @@ def write_zrythm(palette):
     # ONLY override the top variables, do NOT touch any other structural CSS colors
     mapping = {
         "accent_color": palette["iris"],
-        "accent_bg_color": palette["rose"]
+        "accent_bg_color": palette["iris"]
     }
     for key, new_color in mapping.items():
         css = re.sub(rf"@define-color\s+{key}\s+#[a-fA-F0-9]+;", f"@define-color {key} {new_color};", css)
