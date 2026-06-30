@@ -422,6 +422,23 @@ def write_obs(palette):
         conf = re.sub(r"^CurrentTheme3=.*", "CurrentTheme3=Yami_Morandi", conf, flags=re.MULTILINE)
         obs_config.write_text(conf)
 
+def write_clash_verge(palette):
+    config_path = Path.home() / ".local/share/io.github.clash-verge-rev.clash-verge-rev/verge.yaml"
+    if not config_path.exists():
+        return
+        
+    content = config_path.read_text()
+    theme_setting = f"theme_setting:\n  primary_color: '{palette['iris']}'\n  secondary_color: '{palette['foam']}'\n  info_color: '{palette['sky']}'\n  error_color: '{palette['love']}'\n  warning_color: '{palette['gold']}'\n  success_color: '{palette['pine']}'"
+    
+    if "theme_setting: null" in content:
+        content = re.sub(r"^theme_setting:\s*null", theme_setting, content, flags=re.MULTILINE)
+    elif re.search(r"^theme_setting:", content, flags=re.MULTILINE):
+        content = re.sub(r"^theme_setting:.*(\n\s+.*)*", theme_setting, content, flags=re.MULTILINE)
+    else:
+        content += "\n" + theme_setting + "\n"
+        
+    config_path.write_text(content)
+
 
 
 
@@ -487,6 +504,11 @@ def main():
         write_obs(palette)
     except Exception as e:
         print(f"Failed to write obs theme: {e}")
+
+    try:
+        write_clash_verge(palette)
+    except Exception as e:
+        print(f"Failed to write clash verge theme: {e}")
 
 
     apply_system_changes(args.wallpaper)
