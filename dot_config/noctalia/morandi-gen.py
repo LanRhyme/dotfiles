@@ -426,25 +426,36 @@ def write_clash_verge(palette):
     config_path = Path.home() / ".local/share/io.github.clash-verge-rev.clash-verge-rev/verge.yaml"
     if not config_path.exists():
         return
-        
+
     content = config_path.read_text()
 
     css = f""":root {{
-  --joy-palette-background-body: {palette['mantle']} !important;
-  --joy-palette-background-surface: {palette['base']} !important;
-  --joy-palette-background-level1: {palette['surface0']} !important;
-  --joy-palette-background-level2: {palette['surface1']} !important;
-  --joy-palette-background-level3: {palette['surface2']} !important;
+  --joy-palette-background-body: {palette['base']} !important;
+  --joy-palette-background-surface: {palette['surface0']} !important;
+  --joy-palette-background-level1: {palette['surface1']} !important;
+  --joy-palette-background-level2: {palette['surface2']} !important;
+  --joy-palette-background-level3: {palette['overlay0']} !important;
+  --mui-palette-background-default: {palette['base']} !important;
+  --mui-palette-background-paper: {palette['surface0']} !important;
+  --bg-base: {palette['base']} !important;
+  --bg-surface: {palette['surface0']} !important;
+  --mui-palette-primary-contrastText: #ffffff !important;
+  --joy-palette-primary-solidColor: #ffffff !important;
 }}
-body {{
-  background-color: {palette['mantle']} !important;
+body, #root, main, .MuiDrawer-paper, .MuiAppBar-root, .layout-content, .page, .page-content {{
+  background-color: {palette['base']} !important;
+  background-image: none !important;
   color: {palette['text']} !important;
 }}
-.MuiPaper-root, .MuiCard-root {{
-  background-color: {palette['base']} !important;
+.MuiPaper-root, .MuiCard-root, .MuiDialog-paper, .MuiPopover-paper {{
+  background-color: {palette['surface0']} !important;
+  background-image: none !important;
   border-radius: 12px !important;
-  border: 1px solid {palette['surface0']} !important;
+  border: 1px solid {palette['surface1']} !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+}}
+.Mui-selected, .Mui-selected *, .MuiButton-containedPrimary, .MuiButton-containedPrimary *, .clash-active {{
+  color: #ffffff !important;
 }}
 * {{
   transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
@@ -473,7 +484,6 @@ body {{
     else:
         content += "\n" + theme_setting + "\n"
         
-    # clean up the old root-level css_injection if it exists
     content = re.sub(r"^css_injection:.*(\n\s+.*)*", "", content, flags=re.MULTILINE).strip() + "\n"
         
     config_path.write_text(content)
@@ -508,6 +518,38 @@ def apply_system_changes(wallpaper_path=None):
         pass
     subprocess.Popen(["fcitx5"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
 
+def write_flclash(palette):
+    config_path = Path.home() / ".local/share/com.follow.clash/shared_preferences.json"
+    if not config_path.exists():
+        return
+        
+    try:
+        with open(config_path, "r") as f:
+            data = json.load(f)
+            
+        if "flutter.config" in data:
+            flutter_config = json.loads(data["flutter.config"])
+            
+            hex_color = palette['iris'].lstrip('#')
+            if len(hex_color) == 6:
+                argb_int = int("ff" + hex_color, 16)
+            else:
+                argb_int = int(hex_color, 16)
+                
+            if "themeProps" not in flutter_config:
+                flutter_config["themeProps"] = {}
+                
+            flutter_config["themeProps"]["primaryColor"] = argb_int
+            flutter_config["themeProps"]["pureBlack"] = False
+            flutter_config["themeProps"]["themeMode"] = "dark"
+            
+            data["flutter.config"] = json.dumps(flutter_config, separators=(',', ':'))
+            
+            with open(config_path, "w") as f:
+                json.dump(data, f, separators=(',', ':'))
+    except Exception as e:
+        print(f"Failed to write flclash theme: {e}")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wallpaper", help="Path to current wallpaper for limine sync")
@@ -527,6 +569,8 @@ def main():
     write_fastfetch(palette)
     write_alacritty()
     write_kde(colors)
+    write_clash_verge(palette)
+    write_flclash(palette)
     
     try:
         write_blender(palette)

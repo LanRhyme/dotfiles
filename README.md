@@ -38,6 +38,7 @@
 | **生产力** | [fcitx5](https://fcitx-im.org/) / [Kdenlive](https://kdenlive.org/) / [Godot](https://godotengine.org/) | Rime输入法框架、专业视频剪辑与开源游戏开发引擎 |
 | **系统监控** | [btop](https://github.com/aristocratos/btop) / [fastfetch](https://github.com/fastfetch-cli/fastfetch) | 终端资源监控与高度定制的系统信息打印 |
 | **录制推流** | OBS Studio / gpu-screen-recorder | 基于显卡的高效硬件录屏录影工具 |
+| **网络代理** | [FlClash](https://github.com/chen08209/FlClash) / [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev) | 全局网络代理与配置可视化客户端 |
 | **文件网络** | superfile / [KDE Connect](https://kdeconnect.kde.org/) / frp | TUI文件管理、移动端跨端协同、内网穿透工具 |
 | **包管理** | [uv](https://github.com/astral-sh/uv) / yay / GitHub CLI | Python依赖锁、AUR软件安装、Github高效开发链 |
 
@@ -62,7 +63,8 @@ paru -S fish starship alacritty neovim micro \
         niri noctalia kando fcitx5-rime kvantum \
         btop cava superfile fastfetch chafa \
         obs-studio gpu-screen-recorder kdenlive krita \
-        github-cli uv yay kdeconnect frpc
+        github-cli uv yay kdeconnect frpc \
+        flclash-bin clash-verge-rev-bin
 ```
 
 *(重启系统或重新登录后配置即可全部生效)*
