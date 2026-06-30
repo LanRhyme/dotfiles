@@ -4,3 +4,4 @@ dot_config/noctalia/plugins/github-feed/settings.json
 dot_config/noctalia/plugins/github-feed/cache/
 dot_config/opencode/node_modules/
 dot_config/opencode/opencode.json
+dot_config/frp/frpc.toml

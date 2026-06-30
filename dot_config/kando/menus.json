@@ -1,0 +1,225 @@
+{
+  "version": "2.3.1",
+  "menus": [
+    {
+      "root": {
+        "type": "submenu",
+        "name": "Krita",
+        "icon": "palette",
+        "iconTheme": "material-symbols-rounded",
+        "children": [
+          {
+            "type": "command",
+            "data": {
+              "command": "sleep 0.3 && ydotool key 48:1 48:0"
+            },
+            "name": "笔",
+            "icon": "stylus_pen",
+            "iconTheme": "material-symbols-rounded",
+            "quickSelectKey": "B",
+            "angle": 60
+          },
+          {
+            "type": "command",
+            "data": {
+              "command": "sleep 0.3 && ydotool key 18:1 18:0"
+            },
+            "name": "橡皮",
+            "icon": "eraser_size_4",
+            "iconTheme": "material-symbols-rounded",
+            "quickSelectKey": "E",
+            "angle": 90
+          },
+          {
+            "type": "command",
+            "data": {
+              "command": "sleep 0.3 && ydotool key 33:1 33:0"
+            },
+            "name": "油漆桶",
+            "icon": "format_color_fill",
+            "iconTheme": "material-symbols-rounded",
+            "quickSelectKey": "F",
+            "angle": 150
+          },
+          {
+            "type": "command",
+            "data": {
+              "command": "sleep 0.3 && ydotool key 17:1 17:0"
+            },
+            "name": "魔法棒",
+            "icon": "auto_awesome",
+            "iconTheme": "material-symbols-rounded",
+            "quickSelectKey": "W",
+            "angle": 180
+          },
+          {
+            "type": "command",
+            "data": {
+              "command": "sleep 0.3 && ydotool key 29:1 56:1 2:1 2:0 56:0 29:0"
+            },
+            "name": "柳叶笔",
+            "icon": "nest_eco_leaf",
+            "iconTheme": "material-symbols-rounded",
+            "quickSelectKey": "L",
+            "angle": 210
+          },
+          {
+            "type": "command",
+            "data": {
+              "command": "sleep 0.3 && ydotool key 56:1 22:1 22:0 56:0"
+            },
+            "name": "套索",
+            "icon": "draw",
+            "iconTheme": "material-symbols-rounded",
+            "quickSelectKey": "U",
+            "angle": 240
+          },
+          {
+            "type": "submenu",
+            "name": "更多工具",
+            "icon": "more_horiz",
+            "iconTheme": "material-symbols-rounded",
+            "children": [
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 42:1 31:1 31:0 42:0"
+                },
+                "name": "涂抹",
+                "icon": "water_drop",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "S",
+                "angle": 45
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 29:1 20:1 20:0 29:0"
+                },
+                "name": "变换",
+                "icon": "transform",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "T",
+                "angle": 75
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 25:1 25:0"
+                },
+                "name": "吸管",
+                "icon": "colorize",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "I",
+                "angle": 150
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 110:1 110:0"
+                },
+                "name": "新建图层",
+                "icon": "note_add",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "N",
+                "angle": 210
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 42:1 111:1 111:0 42:0"
+                },
+                "name": "删除图层",
+                "icon": "delete",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "D",
+                "angle": 240
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 29:1 18:1 18:0 29:0"
+                },
+                "name": "向下合并",
+                "icon": "arrow_downward_alt",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "M",
+                "angle": 270
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 29:1 56:1 38:1 38:0 56:0 29:0"
+                },
+                "name": "锁定不透明度",
+                "icon": "lock",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "O",
+                "angle": 330
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 29:1 42:1 34:1 34:0 42:0 29:0"
+                },
+                "name": "剪切蒙版",
+                "icon": "copy_all",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "C",
+                "angle": 360
+              }
+            ]
+          },
+          {
+            "type": "submenu",
+            "name": "视图",
+            "icon": "visibility",
+            "iconTheme": "material-symbols-rounded",
+            "children": [
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 50:1 50:0"
+                },
+                "name": "镜像画布",
+                "icon": "flip",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "X"
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 15:1 15:0"
+                },
+                "name": "切换面板",
+                "icon": "view_sidebar",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "Tab"
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 29:1 22:1 22:0 29:0"
+                },
+                "name": "色调调整",
+                "icon": "tune",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "H"
+              }
+            ]
+          }
+        ]
+      },
+      "shortcut": "Mod+Space",
+      "shortcutID": "krita-tools",
+      "centered": true,
+      "anchored": false,
+      "hoverMode": false,
+      "conditions": {
+        "appName": "org.kde.krita"
+      },
+      "tags": []
+    }
+  ],
+  "collections": []
+}
