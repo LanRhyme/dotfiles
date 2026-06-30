@@ -334,6 +334,13 @@ def write_obs(palette):
         r, g, b = hex_to_rgb(hex_c)
         return f"rgb({r},{g},{b})"
         
+    def darken(hex_c, amount=10):
+        return morandi(hex_c, 0, -amount, 0, 100)
+
+    obs_iris = darken(palette['iris'], 12)
+    obs_foam = darken(palette['foam'], 12)
+    obs_sky = darken(palette['sky'], 12)
+
     content = f"""@OBSThemeMeta {{
     name: 'Morandi';
     id: 'com.obsproject.Yami.Morandi';
@@ -343,15 +350,15 @@ def write_obs(palette):
 }}
 
 @OBSThemeVars {{
-    --primary: {rgb_str(palette['iris'])};
-    --primary_light: {rgb_str(palette['foam'])};
-    --primary_lighter: {rgb_str(palette['sky'])};
+    --primary: {rgb_str(obs_iris)};
+    --primary_light: {rgb_str(obs_foam)};
+    --primary_lighter: {rgb_str(obs_sky)};
     --primary_dark: {rgb_str(palette['pine'])};
     --primary_darker: {rgb_str(palette['base'])};
 
-    --blue1: {rgb_str(palette['sky'])};
-    --blue2: {rgb_str(palette['foam'])};
-    --blue3: {rgb_str(palette['iris'])};
+    --blue1: {rgb_str(obs_sky)};
+    --blue2: {rgb_str(obs_foam)};
+    --blue3: {rgb_str(obs_iris)};
     --blue4: {rgb_str(palette['pine'])};
     --blue5: {rgb_str(palette['surface1'])};
     --blue6: {rgb_str(palette['surface0'])};
@@ -370,8 +377,8 @@ def write_obs(palette):
     --list_item_bg_hover: {rgb_str(palette['surface1'])};
 
     --input_border: {rgb_str(palette['surface2'])};
-    --input_border_hover: {rgb_str(palette['iris'])};
-    --input_border_focus: {rgb_str(palette['iris'])};
+    --input_border_hover: {rgb_str(obs_iris)};
+    --input_border_focus: {rgb_str(obs_iris)};
 
     --button_bg: {rgb_str(palette['surface0'])};
     --button_bg_hover: {rgb_str(palette['surface1'])};
@@ -383,8 +390,8 @@ def write_obs(palette):
     --button_bg_red_down: {rgb_str(palette['love'])};
 
     --button_border: {rgb_str(palette['surface2'])};
-    --button_border_hover: {rgb_str(palette['iris'])};
-    --button_border_focus: {rgb_str(palette['iris'])};
+    --button_border_hover: {rgb_str(obs_iris)};
+    --button_border_focus: {rgb_str(obs_iris)};
 
     --tab_bg: {rgb_str(palette['surface0'])};
     --tab_bg_hover: {rgb_str(palette['surface1'])};
@@ -394,7 +401,7 @@ def write_obs(palette):
     --tab_border: {rgb_str(palette['surface0'])};
     --tab_border_hover: {rgb_str(palette['surface2'])};
     --tab_border_focus: {rgb_str(palette['surface2'])};
-    --tab_border_selected: {rgb_str(palette['iris'])};
+    --tab_border_selected: {rgb_str(obs_iris)};
 
     --scrollbar_handle: {rgb_str(palette['surface1'])};
     --scrollbar_hover: {rgb_str(palette['surface2'])};
