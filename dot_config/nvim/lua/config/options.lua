@@ -4,9 +4,6 @@
 
 vim.g.lazyvim_news_email = false
 
--- Line numbers
-vim.opt.number = true
-vim.opt.relativenumber = false
 
 -- Chinese locale for UI
 vim.opt.langmenu = "zh_CN.UTF-8"
