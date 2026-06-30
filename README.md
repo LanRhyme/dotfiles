@@ -1,58 +1,62 @@
 # CachyOS Dotfiles
 
-使用 [chezmoi](https://www.chezmoi.io/) 管理的 CachyOS 个人配置文件
+使用 [chezmoi](https://www.chezmoi.io/) 管理的个人 CachyOS 极简、高度自动化配置文件集合。
 
-## 截图
+## 📸 桌面截图
 
 ![桌面截图](.github/assets/screenshot.png)
 
-## 功能特性
+---
 
-- 自动同步：每 2 小时通过 cron 自动推送到 GitHub
-- 敏感文件保护：自动排除密钥、Token 等敏感信息
-- 跨机器恢复：一条命令恢复所有配置
-- 模块化管理：按应用分类，易于维护
+## 📌 核心特性
 
-## 软件依赖
+- **全局动态主题**：基于 Noctalia 实现桌面壁纸色彩抓取，自动生成莫兰迪 (Morandi) 风格主题并全自动覆盖系统所有组件。
+- **全自动同步**：配置每 2 小时通过定时任务 (Cron) 自动推送到 GitHub。
+- **敏感文件保护**：严格区分开源配置与个人私钥，避免 Token 等机密信息外泄。
+- **一键极速恢复**：只需一条命令，即可在新设备上完整复刻工作流。
+- **模块化结构**：按应用和用途解耦配置，高度可维护。
+
+---
+
+## 📜 自动化脚本与文档索引
+
+为了保持根目录整洁，各子系统的特定脚本均配备了独立的说明文档，点击下方链接深入了解：
+
+* **[全局色彩生成系统 (Morandi)](dot_config/noctalia/README.md)**: 包含了 `morandi-gen.py` 和 `apply-morandi.sh` 的架构说明，以及如何扩展新应用配色的开发指南。
+* **[个人本地脚本库 (Local Bin)](dot_local/bin/README.md)**: 介绍了存放于 `~/.local/bin` 的所有快捷指令与自动化包装器（如配置同步器 `dotfiles-sync.sh`、环形菜单适配器 `kando-niri.sh` 以及可视化设置中心 `aether-hub.py`）。
+
+---
+
+## 🖥 软件生态与依赖库
 
 | 分类 | 软件 | 用途 |
 |------|------|------|
-| Shell | [fish](https://fishshell.com/) | 交互式 Shell |
-| Shell | [starship](https://starship.rs/) | 终端提示符 |
-| 终端 | [alacritty](https://alacrittyty.org/) | GPU 加速终端 |
-| 编辑器 | [neovim](https://neovim.io/) | 现代 Vim |
-| 编辑器 | [micro](https://micro-editor.github.io/) | 简单终端编辑器 |
-| 窗口管理 | [niri](https://github.com/YaLTeR/niri) | 滚动式 Wayland 合成器 |
-| 桌面栏 | [noctalia](https://github.com/noctalia/noctalia-shell) | Noctalia 桌面栏 |
-| 菜单 | [kando](https://kando.menu/) | 环形快捷菜单 |
-| 输入法 | [fcitx5](https://fcitx-im.org/) | 输入法框架 |
-| 主题 | [Kvantum](https://tsujan.github.io/Kvantum/) | Qt 主题引擎 |
-| 监控 | [btop](https://github.com/aristocratos/btop) | 系统监控 |
-| 可视化 | [cava](https://github.com/karlstav/cava) | 音频可视化 |
-| 文件管理 | [superfile](https://github.com/MHN-SuperFile/superfile) | 终端文件管理器 |
-| 信息展示 | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | 系统信息（chafa 头像 + 莫兰迪主题） |
-| 录屏 | [OBS Studio](https://obsproject.com/) | 录屏/直播 |
-| 录屏 | [gpu-screen-recorder](https://nowrep.github.io/gpu-screen-recorder/) | GPU 录屏 |
-| 视频编辑 | [Kdenlive](https://kdenlive.org/) | 视频编辑（自动应用 Morandi 暗色主题） |
-| 绘图 | [Krita](https://krita.org/) | 数字绘画 |
-| 开发 | [GitHub CLI](https://cli.github.com/) | GitHub 命令行工具 |
-| 开发 | [uv](https://github.com/astral-sh/uv) | Python 包管理器 |
-| 网络 | [KDE Connect](https://kdeconnect.kde.org/) | 设备连接 |
-| 网络 | [frp](https://github.com/fatedier/frp) | 内网穿透 |
-| AUR | [yay](https://github.com/Jguer/yay) | AUR 助手 |
+| **基础环境** | [fish](https://fishshell.com/) / [starship](https://starship.rs/) | 交互式 Shell 及其终端提示符引擎 |
+| **窗口管理** | [niri](https://github.com/YaLTeR/niri) | 现代化的无限滚动式 Wayland 合成器 |
+| **桌面交互** | [noctalia](https://github.com/noctalia/noctalia-shell) / [kando](https://kando.menu/) | 桌面状态栏、全局环形快捷菜单 |
+| **终端与编辑**| [alacritty](https://alacritty.org/) / [neovim](https://neovim.io/) / [micro](https://micro-editor.github.io/)| GPU 加速终端及多层次文本编辑器矩阵 |
+| **生产力** | [fcitx5](https://fcitx-im.org/) / [Kdenlive](https://kdenlive.org/) / [Krita](https://krita.org/) | Rime输入法框架、专业视频剪辑与数字绘画工具 |
+| **系统监控** | [btop](https://github.com/aristocratos/btop) / [fastfetch](https://github.com/fastfetch-cli/fastfetch) | 终端资源监控与高度定制的系统信息打印 |
+| **录制推流** | OBS Studio / gpu-screen-recorder | 基于显卡的高效硬件录屏录影工具 |
+| **文件网络** | superfile / [KDE Connect](https://kdeconnect.kde.org/) / frp | TUI文件管理、移动端跨端协同、内网穿透工具 |
+| **包管理** | [uv](https://github.com/astral-sh/uv) / yay / GitHub CLI | Python依赖锁、AUR软件安装、Github高效开发链 |
 
-## 快速安装
+---
 
+## 🚀 极速部署与恢复
+
+在新机器上复刻本环境，请遵循以下流程：
+
+### 1. 基础环境初始化
 ```bash
-# 安装 chezmoi
-paru -S chezmoi
+# 安装包管理器与代码同步工具
+paru -S chezmoi git
 
-# 初始化并应用配置
+# 拉取远程配置并自动覆盖到本地
 chezmoi init --apply LanRhyme
 ```
 
-## 安装所有依赖
-
+### 2. 软件依赖一键安装
 ```bash
 paru -S fish starship alacritty neovim micro \
         niri noctalia kando fcitx5-rime kvantum \
@@ -61,185 +65,62 @@ paru -S fish starship alacritty neovim micro \
         github-cli uv yay kdeconnect frpc
 ```
 
-## 配置文件结构
+*(重启系统或重新登录后配置即可全部生效。)*
 
-```
+---
+
+## 📁 核心配置文件导航
+
+```text
 dotfiles/
-├── .chezmoiignore              # 排除规则
-├── .bashrc                     # Bash 配置
-├── .zshrc                      # Zsh 配置
-├── .gitconfig                  # Git 配置
+├── .chezmoiignore              # 排除敏感信息的黑名单规则
+├── .bashrc / .zshrc / .gitconfig # 终端基础配置
 └── .config/
-    ├── alacritty/              # Alacritty 终端
-    │   └── alacritty.toml      # 主题、字体、快捷键
-    ├── fish/                   # Fish Shell
-    │   ├── config.fish         # 主配置
-    │   └── conf.d/             # 环境变量加载
-    ├── starship.toml           # Starship 提示符
-    ├── niri/                   # Niri 窗口管理器
-    │   └── config.kdl          # 快捷键、工作区、窗口规则
-    ├── noctalia/               # Noctalia 桌面栏
-    │   ├── settings.json       # 主题、布局
-    │   ├── executable_apply-morandi.sh  # 莫兰迪主题同步脚本
-    │   ├── morandi-gen.py       # Niri 配色生成器
-    │   ├── morandi-kde.py       # KDE 色彩方案生成器
-    │   └── plugins/            # 插件（GitHub Feed、翻译、截图等）
-    ├── kando/                  # Kando 环形菜单
-    ├── nvim/                   # Neovim 编辑器
-    ├── micro/                  # Micro 编辑器
-    ├── kdenliverc              # Kdenlive 视频编辑器配置
-    ├── fcitx5/                 # Fcitx5 输入法
-    │   └── conf/rime.conf      # Rime 引擎配置
-    ├── btop/                   # Btop 系统监控
-    ├── cava/                   # Cava 音频可视化
-    ├── superfile/              # Superfile 文件管理器
-    ├── fastfetch/              # Fastfetch 系统信息 + 头像
-    ├── obs-studio/             # OBS 录屏
-    ├── krita/                  # Krita 绘图
-    ├── gh/                     # GitHub CLI
-    ├── kdeconnect/             # KDE Connect
-    ├── frp/                    # FRP 内网穿透
-    ├── gtk-3.0/                # GTK3 主题
-    ├── gtk-4.0/                # GTK4 主题
-    ├── qt5ct/                  # Qt5 主题
-    ├── environment.d/          # 环境变量
-    │   ├── 90-fcitx5.conf      # Fcitx5 环境变量
-    │   └── 95-kde-colors.conf  # KDE 色彩方案环境变量
-    ├── autostart/              # 自启动应用
-    ├── mimeapps.list            # 默认应用
-    ├── user-dirs.dirs          # 用户目录
-    └── yay/                    # Yay AUR 助手
+    ├── alacritty/              # 终端仿真器视觉与快捷键
+    ├── fish/                   # Shell 语法、插件、环境变量
+    ├── niri/                   # Niri 工作区、键位、窗口规则 (Wayland)
+    ├── noctalia/               # 桌面栏系统及 Morandi 主题引擎引擎
+    ├── fcitx5/                 # 输入法引擎配置与 Rime 用户字典
+    ├── superfile/              # 终端文件管理器偏好
+    ├── environment.d/          # 全局用户级环境变量 (Systemd)
+    └── autostart/              # 开机自动拉起的后台守护进程
 └── .local/
-    └── share/
-        └── color-schemes/      # KDE 色彩方案
-            └── Morandi-dark.colors  # 莫兰迪暗色主题
+    ├── bin/                    # 用户可执行脚本 (同步、快捷命令)
+    └── share/color-schemes/    # KDE / Qt 程序的动态映射色彩文件
 ```
 
-## 常用命令
+---
 
-### chezmoi 命令
+## 🛡️ 敏感文件隔离机制
 
-```bash
-chezmoi add ~/.config/newapp    # 添加新配置
-chezmoi diff                    # 查看本地与仓库差异
-chezmoi apply                   # 应用仓库配置到本地
-chezmoi update                  # 拉取远程更新并应用
-chezmoi cd                      # 进入源目录
-chezmoi managed | wc -l         # 查看管理文件数量
-```
+为防止意外提交隐私数据，以下文件路径被长期写入 `.chezmoiignore`：
 
-### 手动同步
-
-```bash
-# 手动运行同步脚本
-~/.local/bin/dotfiles-sync.sh
-
-# 查看 cron 任务
-crontab -l
-
-# 查看同步日志
-cat ~/.local/share/chezmoi/sync.log
-```
-
-## 自动同步
-
-配置每 2 小时通过 cron 自动同步：
-
-1. `chezmoi re-add` 检测本地配置变更
-2. `git add` 暂存变更
-3. `git commit` 提交变更
-4. `git push` 推送到 GitHub
-
-同步脚本位于 `~/.local/bin/dotfiles-sync.sh`。
-
-## 敏感文件保护
-
-以下文件已加入 `.chezmoiignore`，不会被提交：
-
-| 文件 | 原因 |
+| 文件路径 | 隔离原因 |
 |------|------|
-| `kdeconnect/privateKey.pem` | 设备私钥 |
-| `kdeconnect/certificate.pem` | 设备证书 |
-| `noctalia/plugins/github-feed/settings.json` | GitHub Token |
-| `noctalia/plugins/github-feed/cache/` | GitHub 缓存数据 |
+| `kdeconnect/*.pem` | 设备双向互联的非对称加密私钥与证书 |
+| `noctalia/plugins/github-feed/settings.json` | 包含 GitHub 账户私密 Token |
+| `noctalia/plugins/github-feed/cache/` | API 请求暂存缓存，避免提交垃圾文件 |
 
-## 新机器恢复
-
+如果您在二次开发时遇到新的密钥，务必执行：
 ```bash
-# 1. 安装必要工具
-paru -S chezmoi git
-
-# 2. 初始化并应用配置
-chezmoi init --apply LanRhyme
-
-# 3. 安装软件依赖（见上方安装命令）
-
-# 4. 重启或重新登录
+echo "dot_config/app/secret.json" >> ~/.local/share/chezmoi/.chezmoiignore
 ```
 
-## 莫兰迪主题系统
+---
 
-本配置使用自定义的莫兰迪（Morandi）配色方案，通过 Noctalia 壁纸颜色自动生成：
+## 🔄 配置同步指南
 
-### 工作原理
+目前系统已被配置为 **每 2 小时** 自动通过脚本 `~/.local/bin/dotfiles-sync.sh` 在后台无感同步。
 
-1. **颜色生成**：Noctalia 根据壁纸颜色生成 `colors.json`
-2. **Niri 主题**：`morandi-gen.py` 将颜色转换为 Niri 窗口管理器配置
-3. **KDE 主题**：`morandi-kde.py` 生成 KDE 色彩方案，应用到 Kdenlive 等 Qt/KDE 应用
-4. **自动同步**：切换壁纸时自动更新所有应用主题
-
-### 核心配色
-
-| 用途 | 颜色 | 说明 |
-|------|------|------|
-| 背景 | `#21201c` | 深色主背景 |
-| 表面 | `#37362f` | 按钮、卡片背景 |
-| 主色 | `#dad8ce` | 暖米色，用于高亮 |
-| 错误 | `#fd4663` | 红色强调 |
-| 文字 | `#f3f3f2` | 浅色文字 |
-
-### 手动更新主题
-
+若需手动操作，常用的 `chezmoi` 命令如下：
 ```bash
-# 重新生成所有主题配置
-~/.config/noctalia/apply-morandi.sh
-
-# 仅更新 KDE 色彩方案
-python3 ~/.config/noctalia/morandi-kde.py
-```
-
-## 添加新配置
-
-```bash
-# 添加单个配置文件
-chezmoi add ~/.config/newapp/config
-
-# 添加整个目录
-chezmoi add ~/.config/newapp
-
-# 提交并推送
-chezmoi cd
-git add -A
-git commit -m "feat: add newapp config"
-git push
-```
-
-## 排除敏感文件
-
-如果配置文件包含敏感信息（Token、密钥等），需要：
-
-1. 在 `.chezmoiignore` 中添加文件路径
-2. 使用 `git rm --cached` 从暂存区移除
-3. 提交排除规则
-
-示例：
-```bash
-cd ~/.local/share/chezmoi
-echo "dot_config/app/secret.json" >> .chezmoiignore
-git add .chezmoiignore
-git commit -m "chore: exclude secret file"
+chezmoi add ~/.config/newapp    # 追踪并托管新的软件配置
+chezmoi diff                    # 对比本地系统与源仓库的配置变化
+chezmoi apply                   # 强制用仓库配置覆盖本地配置
+chezmoi update                  # 拉取云端远程更新
+chezmoi cd                      # 一键进入源文件夹修改配置
 ```
 
 ## 许可证
 
-个人配置文件，仅供参考学习
+个人配置文件库，可自由复用与参考学习。
