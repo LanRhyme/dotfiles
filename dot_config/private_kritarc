@@ -1,13 +1,13 @@
 AntialiasSelectionOutline=false
 ArtColorSel.ColorSpace=0
 ArtColorSel.InversedSaturation=false
-ArtColorSel.Light=0
+ArtColorSel.Light=0.4698210539211617
 ArtColorSel.LightPieces=11
 ArtColorSel.NumRings=7
 ArtColorSel.RingPieces=12
-ArtColorSel.SelColorH=0
-ArtColorSel.SelColorS=0
-ArtColorSel.SelColorX=0
+ArtColorSel.SelColorH=0.552707063463607
+ArtColorSel.SelColorS=0.6292640188851873
+ArtColorSel.SelColorX=0.4698210539211617
 ArtColorSel.defaultHueSteps=12
 ArtColorSel.defaultSaturationSteps=7
 ArtColorSel.defaultValueScaleSteps=11
@@ -48,7 +48,7 @@ Krita/Ocio/UseOcio=false
 LastBackGroundColor=<!DOCTYPE LastBackGroundColor>\n<LastBackGroundColor>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastBackGroundColor>\n
 LastColorHistory=<!DOCTYPE LastColorHistory>\n<colors>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.274509817361832" g="0.313725501298904" r="0.403921574354172" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.345098048448563" g="0.407843142747879" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.407843142747879" g="0.545098066329956" r="0.317647069692612" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.360784322023392" g="0.647058844566345" r="0.490196079015732" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.7843137383461" g="0.82745099067688" r="0.803921580314636" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.588235318660736" g="0.666666686534882" r="0.627451002597809" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.301960796117783" g="0.431372553110123" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="1" g="1" r="1" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.0862745121121407" g="0.0862745121121407" r="0.0862745121121407" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</colors>\n
 LastEraser_0=a) Eraser Circle
-LastForeGroundColor=<!DOCTYPE LastForeGroundColor>\n<LastForeGroundColor>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastForeGroundColor>\n
+LastForeGroundColor=<!DOCTYPE LastForeGroundColor>\n<LastForeGroundColor>\n <RGB b="0.5686274766922" g="0.501960813999176" r="0.294117659330368" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastForeGroundColor>\n
 LastPreset_-1=b) Basic-6 Details
 LastPreset_0=b) Basic-5 Size Opacity
 LineSmoothingDelayDistance=50
@@ -457,7 +457,7 @@ yPosition=22
 [MainWindow][DockWidget KisLayerBox]
 DockArea=2
 Locked=false
-height=531
+height=560
 width=311
 xPosition=0
 yPosition=22
@@ -489,7 +489,7 @@ yPosition=0
 [MainWindow][DockWidget OverviewDocker]
 DockArea=2
 Locked=false
-height=311
+height=335
 width=311
 xPosition=0
 yPosition=22
