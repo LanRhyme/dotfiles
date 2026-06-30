@@ -35,7 +35,7 @@
 | **窗口管理** | [niri](https://github.com/YaLTeR/niri) | 现代化的无限滚动式 Wayland 合成器 |
 | **桌面交互** | [noctalia](https://github.com/noctalia/noctalia-shell) / [kando](https://kando.menu/) | 桌面状态栏、全局环形快捷菜单 |
 | **终端与编辑**| [alacritty](https://alacritty.org/) / [neovim](https://neovim.io/) / [micro](https://micro-editor.github.io/)| GPU 加速终端及多层次文本编辑器矩阵 |
-| **生产力** | [fcitx5](https://fcitx-im.org/) / [Kdenlive](https://kdenlive.org/) / [Krita](https://krita.org/) | Rime输入法框架、专业视频剪辑与数字绘画工具 |
+| **生产力** | [fcitx5](https://fcitx-im.org/) / [Kdenlive](https://kdenlive.org/) / [Godot](https://godotengine.org/) | Rime输入法框架、专业视频剪辑与开源游戏开发引擎 |
 | **系统监控** | [btop](https://github.com/aristocratos/btop) / [fastfetch](https://github.com/fastfetch-cli/fastfetch) | 终端资源监控与高度定制的系统信息打印 |
 | **录制推流** | OBS Studio / gpu-screen-recorder | 基于显卡的高效硬件录屏录影工具 |
 | **文件网络** | superfile / [KDE Connect](https://kdeconnect.kde.org/) / frp | TUI文件管理、移动端跨端协同、内网穿透工具 |
