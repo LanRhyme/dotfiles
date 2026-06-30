@@ -140,3 +140,4 @@ To https://github.com/LanRhyme/dotfiles.git
 To https://github.com/LanRhyme/dotfiles.git
    3431e22..8ed00b1  master -> master
 chezmoi: .config/noctalia/morandi-gen.py: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/noctalia/executable_morandi-gen.py, /home/lanrhyme/.local/share/chezmoi/dot_config/noctalia/morandi-gen.py)
+chezmoi: .config/noctalia/morandi-gen.py: inconsistent state (/home/lanrhyme/.local/share/chezmoi/dot_config/noctalia/executable_morandi-gen.py, /home/lanrhyme/.local/share/chezmoi/dot_config/noctalia/morandi-gen.py)

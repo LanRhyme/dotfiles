@@ -1,33 +1,33 @@
 # CachyOS Dotfiles
 
-使用 [chezmoi](https://www.chezmoi.io/) 管理的个人 CachyOS 极简、高度自动化配置文件集合。
+使用 [chezmoi](https://www.chezmoi.io/) 管理的个人 CachyOS 极简、高度自动化配置文件集合
 
-## 📸 桌面截图
+##  桌面截图
 
 ![桌面截图](.github/assets/screenshot.png)
 
 ---
 
-## 📌 核心特性
+##  核心特性
 
-- **全局动态主题**：基于 Noctalia 实现桌面壁纸色彩抓取，自动生成莫兰迪 (Morandi) 风格主题并全自动覆盖系统所有组件。
-- **全自动同步**：配置每 2 小时通过定时任务 (Cron) 自动推送到 GitHub。
-- **敏感文件保护**：严格区分开源配置与个人私钥，避免 Token 等机密信息外泄。
-- **一键极速恢复**：只需一条命令，即可在新设备上完整复刻工作流。
-- **模块化结构**：按应用和用途解耦配置，高度可维护。
+- **全局动态主题**：基于 Noctalia 实现桌面壁纸色彩抓取，自动生成莫兰迪 (Morandi) 风格主题并全自动覆盖系统所有组件
+- **全自动同步**：配置每 2 小时通过定时任务 (Cron) 自动推送到 GitHub
+- **敏感文件保护**：严格区分开源配置与个人私钥，避免 Token 等机密信息外泄
+- **一键极速恢复**：只需一条命令，即可在新设备上完整复刻工作流
+- **模块化结构**：按应用和用途解耦配置，高度可维护
 
 ---
 
-## 📜 自动化脚本与文档索引
+##  自动化脚本与文档索引
 
 为了保持根目录整洁，各子系统的特定脚本均配备了独立的说明文档，点击下方链接深入了解：
 
-* **[全局色彩生成系统 (Morandi)](dot_config/noctalia/README.md)**: 包含了 `morandi-gen.py` 和 `apply-morandi.sh` 的架构说明，以及如何扩展新应用配色的开发指南。
-* **[个人本地脚本库 (Local Bin)](dot_local/bin/README.md)**: 介绍了存放于 `~/.local/bin` 的所有快捷指令与自动化包装器（如配置同步器 `dotfiles-sync.sh`、环形菜单适配器 `kando-niri.sh` 以及可视化设置中心 `aether-hub.py`）。
+* **[全局色彩生成系统 (Morandi)](dot_config/noctalia/README.md)**: 包含了 `morandi-gen.py` 和 `apply-morandi.sh` 的架构说明，以及如何扩展新应用配色的开发指南
+* **[个人本地脚本库 (Local Bin)](dot_local/bin/README.md)**: 介绍了存放于 `~/.local/bin` 的所有快捷指令与自动化包装器（如配置同步器 `dotfiles-sync.sh`、环形菜单适配器 `kando-niri.sh` 以及可视化设置中心 `aether-hub.py`）
 
 ---
 
-## 🖥 软件生态与依赖库
+##  软件生态与依赖库
 
 | 分类 | 软件 | 用途 |
 |------|------|------|
@@ -43,7 +43,7 @@
 
 ---
 
-## 🚀 极速部署与恢复
+##  极速部署与恢复
 
 在新机器上复刻本环境，请遵循以下流程：
 
@@ -65,11 +65,11 @@ paru -S fish starship alacritty neovim micro \
         github-cli uv yay kdeconnect frpc
 ```
 
-*(重启系统或重新登录后配置即可全部生效。)*
+*(重启系统或重新登录后配置即可全部生效)*
 
 ---
 
-## 📁 核心配置文件导航
+##  核心配置文件导航
 
 ```text
 dotfiles/
@@ -91,7 +91,7 @@ dotfiles/
 
 ---
 
-## 🛡️ 敏感文件隔离机制
+##  敏感文件隔离机制
 
 为防止意外提交隐私数据，以下文件路径被长期写入 `.chezmoiignore`：
 
@@ -108,9 +108,9 @@ echo "dot_config/app/secret.json" >> ~/.local/share/chezmoi/.chezmoiignore
 
 ---
 
-## 🔄 配置同步指南
+##  配置同步指南
 
-目前系统已被配置为 **每 2 小时** 自动通过脚本 `~/.local/bin/dotfiles-sync.sh` 在后台无感同步。
+目前系统已被配置为 **每 2 小时** 自动通过脚本 `~/.local/bin/dotfiles-sync.sh` 在后台无感同步
 
 若需手动操作，常用的 `chezmoi` 命令如下：
 ```bash
@@ -123,4 +123,4 @@ chezmoi cd                      # 一键进入源文件夹修改配置
 
 ## 许可证
 
-个人配置文件库，可自由复用与参考学习。
+个人配置文件库，可自由复用与参考学习
