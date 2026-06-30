@@ -436,6 +436,45 @@ def write_clash_verge(palette):
         content = re.sub(r"^theme_setting:.*(\n\s+.*)*", theme_setting, content, flags=re.MULTILINE)
     else:
         content += "\n" + theme_setting + "\n"
+
+    css = f""":root {{
+  --joy-palette-background-body: {palette['mantle']} !important;
+  --joy-palette-background-surface: {palette['base']} !important;
+  --joy-palette-background-level1: {palette['surface0']} !important;
+  --joy-palette-background-level2: {palette['surface1']} !important;
+  --joy-palette-background-level3: {palette['surface2']} !important;
+}}
+body {{
+  background-color: {palette['mantle']} !important;
+  color: {palette['text']} !important;
+}}
+.MuiPaper-root, .MuiCard-root {{
+  background-color: {palette['base']} !important;
+  border-radius: 12px !important;
+  border: 1px solid {palette['surface0']} !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+}}
+* {{
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}}
+.MuiButtonBase-root:hover, .MuiMenuItem-root:hover, .clash-hover-effect:hover {{
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
+}}
+.MuiButtonBase-root:active, .MuiMenuItem-root:active, .clash-hover-effect:active {{
+  transform: translateY(1px) !important;
+  box-shadow: none !important;
+}}"""
+
+    css_indented = "\n  ".join(css.split("\n"))
+    css_injection_block = f"css_injection: |\n  {css_indented}"
+    
+    content = re.sub(r"^css_injection:.*(\n\s+.*)*", "", content, flags=re.MULTILINE)
+    content = content.strip() + "\n" + css_injection_block + "\n"
         
     config_path.write_text(content)
 
