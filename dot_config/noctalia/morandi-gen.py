@@ -307,23 +307,7 @@ bpy.ops.wm.save_userpref()
     subprocess.run(["blender", "-b", "-P", temp_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.remove(temp_path)
 
-def write_zrythm(palette):
-    zrythm_css_src = Path("/usr/share/zrythm/themes/css/zrythm-theme.css")
-    zrythm_css_dest = Path.home() / ".local/share/zrythm/themes/css/morandi-theme.css"
-    if not zrythm_css_src.exists(): return
-    
-    css = zrythm_css_src.read_text()
-    
-    # ONLY override the top variables, do NOT touch any other structural CSS colors
-    mapping = {
-        "accent_color": palette["iris"],
-        "accent_bg_color": palette["iris"]
-    }
-    for key, new_color in mapping.items():
-        css = re.sub(rf"@define-color\s+{key}\s+#[a-fA-F0-9]+;", f"@define-color {key} {new_color};", css)
 
-    zrythm_css_dest.parent.mkdir(parents=True, exist_ok=True)
-    zrythm_css_dest.write_text(css)
 
 
 
@@ -381,11 +365,7 @@ def main():
     except Exception as e:
         print(f"Failed to write blender theme: {e}")
         
-    try:
-        write_zrythm(palette)
-        subprocess.run(["gsettings", "set", "org.zrythm.Zrythm.preferences.ui.general", "css-theme", "morandi-theme.css"], stderr=subprocess.DEVNULL)
-    except Exception as e:
-        print(f"Failed to apply zrythm theme: {e}")
+
         
 
 
