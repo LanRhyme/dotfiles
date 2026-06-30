@@ -428,14 +428,6 @@ def write_clash_verge(palette):
         return
         
     content = config_path.read_text()
-    theme_setting = f"theme_setting:\n  primary_color: '{palette['iris']}'\n  secondary_color: '{palette['foam']}'\n  info_color: '{palette['sky']}'\n  error_color: '{palette['love']}'\n  warning_color: '{palette['gold']}'\n  success_color: '{palette['pine']}'"
-    
-    if "theme_setting: null" in content:
-        content = re.sub(r"^theme_setting:\s*null", theme_setting, content, flags=re.MULTILINE)
-    elif re.search(r"^theme_setting:", content, flags=re.MULTILINE):
-        content = re.sub(r"^theme_setting:.*(\n\s+.*)*", theme_setting, content, flags=re.MULTILINE)
-    else:
-        content += "\n" + theme_setting + "\n"
 
     css = f""":root {{
   --joy-palette-background-body: {palette['mantle']} !important;
@@ -470,11 +462,19 @@ body {{
   box-shadow: none !important;
 }}"""
 
-    css_indented = "\n  ".join(css.split("\n"))
-    css_injection_block = f"css_injection: |\n  {css_indented}"
+    css_indented = "\n    ".join(css.split("\n"))
     
-    content = re.sub(r"^css_injection:.*(\n\s+.*)*", "", content, flags=re.MULTILINE)
-    content = content.strip() + "\n" + css_injection_block + "\n"
+    theme_setting = f"theme_setting:\n  primary_color: '{palette['iris']}'\n  secondary_color: '{palette['foam']}'\n  info_color: '{palette['sky']}'\n  error_color: '{palette['love']}'\n  warning_color: '{palette['gold']}'\n  success_color: '{palette['pine']}'\n  css_injection: |\n    {css_indented}"
+    
+    if "theme_setting: null" in content:
+        content = re.sub(r"^theme_setting:\s*null", theme_setting, content, flags=re.MULTILINE)
+    elif re.search(r"^theme_setting:", content, flags=re.MULTILINE):
+        content = re.sub(r"^theme_setting:.*(\n\s+.*)*", theme_setting, content, flags=re.MULTILINE)
+    else:
+        content += "\n" + theme_setting + "\n"
+        
+    # clean up the old root-level css_injection if it exists
+    content = re.sub(r"^css_injection:.*(\n\s+.*)*", "", content, flags=re.MULTILINE).strip() + "\n"
         
     config_path.write_text(content)
 
