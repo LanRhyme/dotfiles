@@ -307,6 +307,26 @@ bpy.ops.wm.save_userpref()
     subprocess.run(["blender", "-b", "-P", temp_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     os.remove(temp_path)
 
+def write_godot(palette):
+    godot_settings = list(Path.home().glob(".config/godot/editor_settings-*.tres"))
+    if not godot_settings: return
+    
+    def hex_to_color(hex_str):
+        hex_str = hex_str.lstrip('#')
+        r, g, b = (int(hex_str[i:i+2], 16)/255.0 for i in (0, 2, 4))
+        return f"Color({r:.3f}, {g:.3f}, {b:.3f}, 1)"
+        
+    base_color = hex_to_color(palette["base"])
+    accent_color = hex_to_color(palette["iris"])
+    
+    for path in godot_settings:
+        content = path.read_text()
+        content = re.sub(r'interface/theme/base_color\s*=\s*Color\([^)]+\)', f'interface/theme/base_color = {base_color}', content)
+        content = re.sub(r'interface/theme/accent_color\s*=\s*Color\([^)]+\)', f'interface/theme/accent_color = {accent_color}', content)
+        content = re.sub(r'interface/theme/color_preset\s*=\s*".*"', 'interface/theme/color_preset = "Custom"', content)
+        path.write_text(content)
+
+
 
 
 
@@ -364,6 +384,11 @@ def main():
         write_blender(palette)
     except Exception as e:
         print(f"Failed to write blender theme: {e}")
+        
+    try:
+        write_godot(palette)
+    except Exception as e:
+        print(f"Failed to write godot theme: {e}")
         
 
         
