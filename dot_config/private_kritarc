@@ -1,13 +1,13 @@
 AntialiasSelectionOutline=false
 ArtColorSel.ColorSpace=0
 ArtColorSel.InversedSaturation=false
-ArtColorSel.Light=0.4698210539211617
+ArtColorSel.Light=0
 ArtColorSel.LightPieces=11
 ArtColorSel.NumRings=7
 ArtColorSel.RingPieces=12
-ArtColorSel.SelColorH=0.552707063463607
-ArtColorSel.SelColorS=0.6292640188851873
-ArtColorSel.SelColorX=0.4698210539211617
+ArtColorSel.SelColorH=0
+ArtColorSel.SelColorS=0
+ArtColorSel.SelColorX=0
 ArtColorSel.defaultHueSteps=12
 ArtColorSel.defaultSaturationSteps=7
 ArtColorSel.defaultValueScaleSteps=11
@@ -46,10 +46,10 @@ Krita/Ocio/OcioLockColorVisualRepresentation=false
 Krita/Ocio/OcioLutPath=
 Krita/Ocio/UseOcio=false
 LastBackGroundColor=<!DOCTYPE LastBackGroundColor>\n<LastBackGroundColor>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastBackGroundColor>\n
-LastColorHistory=<!DOCTYPE LastColorHistory>\n<colors>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.274509817361832" g="0.313725501298904" r="0.403921574354172" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.345098048448563" g="0.407843142747879" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.407843142747879" g="0.545098066329956" r="0.317647069692612" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.360784322023392" g="0.647058844566345" r="0.490196079015732" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.7843137383461" g="0.82745099067688" r="0.803921580314636" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.588235318660736" g="0.666666686534882" r="0.627451002597809" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.301960796117783" g="0.431372553110123" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="1" g="1" r="1" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.0862745121121407" g="0.0862745121121407" r="0.0862745121121407" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</colors>\n
+LastColorHistory=<!DOCTYPE LastColorHistory>\n<colors>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="1" g="1" r="1" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.5686274766922" g="0.501960813999176" r="0.294117659330368" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.274509817361832" g="0.313725501298904" r="0.403921574354172" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.345098048448563" g="0.407843142747879" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.407843142747879" g="0.545098066329956" r="0.317647069692612" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.360784322023392" g="0.647058844566345" r="0.490196079015732" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.7843137383461" g="0.82745099067688" r="0.803921580314636" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.588235318660736" g="0.666666686534882" r="0.627451002597809" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.301960796117783" g="0.431372553110123" r="0.364705890417099" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="1" g="1" r="1" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.372549027204514" g="0.780392169952393" r="0.572549045085907" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0.0862745121121407" g="0.0862745121121407" r="0.0862745121121407" space="sRGB-elle-V2-srgbtrc.icc"/>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</colors>\n
 LastEraser_0=a) Eraser Circle
-LastForeGroundColor=<!DOCTYPE LastForeGroundColor>\n<LastForeGroundColor>\n <RGB b="0.5686274766922" g="0.501960813999176" r="0.294117659330368" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastForeGroundColor>\n
-LastPreset_-1=b) Basic-6 Details
+LastForeGroundColor=<!DOCTYPE LastForeGroundColor>\n<LastForeGroundColor>\n <RGB b="0" g="0" r="0" space="sRGB-elle-V2-srgbtrc.icc"/>\n</LastForeGroundColor>\n
+LastPreset_-1=b) Basic-5 Size Opacity
 LastPreset_0=b) Basic-5 Size Opacity
 LineSmoothingDelayDistance=50
 LineSmoothingDistanceKeepAspectRatio=true
@@ -247,7 +247,7 @@ popuppalette/usevisualcolorselector=true
 presetChooserViewMode=1
 presetIconSize=40
 presetStripVisible=true
-presethistory=01. DRAFTER - TOMBOFNULL,04. LINER SOFT - TOMBOFNULL,08. COLOR - TOMBOFNULL,07. MAG-TOMBOFNULL,11. GRIME STAMP - TOMBOFNULL,06. 9RL TX - TOMBOFNULL,b) Basic-5 Size Opacity,b) Basic-6 Details,f) Bristles-1 Details,f) Bristles-2 Flat Rough
+presethistory=b) Basic-5 Size,y) Texture Reptile,h) Chalk Soft,j) Watercolor Fringe,j) Watercolor Texture,a) Eraser Small,j) Waterpaint Soft Edges,j) Waterpaint Hard Edges,k) Blender Textured Soft,b) Basic-5 Size Opacity
 renameDuplicatedLayers=true
 renameMergedLayers=true
 renamePastedLayers=true
@@ -270,7 +270,7 @@ speedValueSmoothing=3
 swaplocation=/tmp
 switchSelectionCtrlAlt=false
 tabletPressureCurve=0,0;1,1;
-tenbrushes=t) Shapes Fill,None,None,None,None,None,None,None,None,None
+tenbrushes=t) Shapes Fill,a) Eraser Small,None,None,None,None,None,None,None,None
 tenbrushesActivatePrev2ndPress=True
 tenbrushesAutoBrushOnPress=False
 tenbrushesShowMessage=True
@@ -684,8 +684,10 @@ pinControls=true
 [RecentFiles]
 File1[$e]=$HOME/图片/headportrait.png
 File2[$e]=$HOME/图片/krita/1.kra
+File3[$e]=$HOME/图片/krita/2.kra
 Name1=headportrait.png
 Name2=1.kra
+Name3=2.kra
 maxRecentFileItems=100
 
 [Redesign]
