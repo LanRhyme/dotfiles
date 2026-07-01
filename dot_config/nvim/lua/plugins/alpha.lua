@@ -2,9 +2,8 @@ return {
   {
     "goolord/alpha-nvim",
     event = "VimEnter",
-    opts = require("alpha.themes.dashboard"),
-    config = function(_, dashboard)
-      local alpha = require("alpha")
+    opts = function()
+      local dashboard = require("alpha.themes.dashboard")
       
       dashboard.section.header.val = {
         "                                                     ",
@@ -41,12 +40,18 @@ return {
       
       dashboard.opts.opts.noautocmd = true
       
+      return dashboard
+    end,
+    config = function(_, dashboard)
+      local alpha = require("alpha")
       alpha.setup(dashboard.opts)
       
       vim.api.nvim_create_autocmd("User", {
         pattern = "LazyVimStarted",
         callback = function()
-          dashboard.section.footer.val = footer()
+          local total_plugins = #require("lazy").plugins()
+          local datetime = os.date(" %Y-%m-%d   %H:%M:%S")
+          dashboard.section.footer.val = "   " .. total_plugins .. " plugins loaded" .. datetime
           pcall(vim.cmd.AlphaRedraw)
         end,
       })
