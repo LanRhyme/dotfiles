@@ -19,9 +19,6 @@ export QT_IM_MODULE=fcitx
 # GTK_IM_MODULE is handled via settings.ini instead of environment variables to avoid breaking Wayland GTK apps.
 # export GTK_IM_MODULE=fcitx
 
-# Force Electron apps (VSCode etc.) to XWayland for niri opacity compat
-export ELECTRON_OZONE_PLATFORM_HINT=x11
-
 
 
 # Added by Antigravity CLI installer
