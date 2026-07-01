@@ -240,246 +240,608 @@ def hex_to_rgb(hex_color):
     h = hex_color.lstrip("#")
     return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
 
+def _replace_jsonc_block(content, key, new_block):
+    """Replace a top-level key's value block in JSONC, handling nested braces/brackets.
+    If the key doesn't exist, insert it before the final closing brace of the root object."""
+    pattern = re.compile(r'(\s*"' + re.escape(key) + r'"\s*:\s*)')
+    m = pattern.search(content)
+    if m:
+        # Find the opening brace or bracket after the key
+        opener_pos = m.end()
+        while opener_pos < len(content) and content[opener_pos] in " \t\n\r":
+            opener_pos += 1
+        if opener_pos >= len(content):
+            return content
+        opener = content[opener_pos]
+        closer = "}" if opener == "{" else "]"
+        depth, end = 0, opener_pos
+        for i in range(opener_pos, len(content)):
+            if content[i] == opener:
+                depth += 1
+            elif content[i] == closer:
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        if isinstance(new_block, list):
+            new_json = json.dumps(new_block, indent=4)
+        else:
+            new_json = json.dumps(new_block, indent=4)
+        new_json = re.sub(r"\n", "\n    ", new_json)
+        return content[:m.start()] + f'\n    "{key}": {new_json}' + content[end:]
+    else:
+        # Insert before the last closing brace of the root object
+        if isinstance(new_block, list):
+            new_json = json.dumps(new_block, indent=4)
+        else:
+            new_json = json.dumps(new_block, indent=4)
+        new_json = re.sub(r"\n", "\n    ", new_json)
+        insert_block = f'    "{key}": {new_json}'
+        last_brace = content.rfind("}")
+        if last_brace != -1:
+            before = content[:last_brace].rstrip()
+            if before and not before.endswith(","):
+                before += ","
+            return before + "\n" + insert_block + "\n" + content[last_brace:]
+        return content
+
+
 def write_vscode(palette):
     if not VSCODE_SETTINGS.exists():
         return
 
     p = palette
-    morandi_colors = {
-        "activityBar.background": p["mantle"],
-        "activityBar.foreground": p["iris"],
-        "activityBar.activeBorder": p["iris"],
-        "activityBarBadge.background": p["iris"],
-        "activityBarBadge.foreground": p["base"],
-
-        "sideBar.background": p["base"],
-        "sideBar.foreground": p["text"],
-        "sideBar.border": p["surface1"],
-        "sideBarTitle.foreground": p["text"],
-        "sideBarSectionHeader.background": p["surface0"],
-        "sideBarSectionHeader.foreground": p["subtext1"],
-
-        "list.activeSelectionBackground": p["surface2"],
-        "list.activeSelectionForeground": p["text"],
-        "list.inactiveSelectionBackground": p["surface1"],
-        "list.inactiveSelectionForeground": p["text"],
-        "list.hoverBackground": p["surface1"],
-        "list.hoverForeground": p["text"],
-        "list.focusBackground": p["surface0"],
-        "list.highlightForeground": p["iris"],
-
-        "editor.background": p["mantle"],
-        "editor.foreground": p["text"],
-        "editor.lineHighlightBackground": p["surface0"] + "40",
-        "editor.selectionBackground": p["surface2"] + "60",
-        "editor.selectionHighlightBackground": p["surface1"] + "40",
-        "editor.wordHighlightBackground": p["surface1"] + "40",
-        "editor.findMatchBackground": p["iris"] + "50",
-        "editor.findMatchHighlightBackground": p["gold"] + "30",
-        "editorCursor.foreground": p["iris"],
-        "editorLineNumber.foreground": p["overlay0"],
-        "editorLineNumber.activeForeground": p["subtext1"],
-        "editorIndentGuide.background1": p["surface1"],
-        "editorIndentGuide.activeBackground1": p["overlay0"],
-        "editor.selectionBackground": p["surface2"] + "60",
-        "editorWidget.background": p["surface0"],
-        "editorWidget.foreground": p["text"],
-        "editorSuggestWidget.background": p["surface0"],
-        "editorSuggestWidget.border": p["surface1"],
-        "editorSuggestWidget.selectedBackground": p["surface1"],
-        "editorHoverWidget.background": p["surface0"],
-        "editorHoverWidget.border": p["surface1"],
-        "editorGroupHeader.tabsBackground": p["base"],
-        "editorGroupHeader.tabsBorder": p["surface1"],
-        "editorGroupHeader.noTabsBackground": p["base"],
-        "editorGroupHeader.border": p["surface1"],
-
-        "tab.activeBackground": p["mantle"],
-        "tab.activeForeground": p["text"],
-        "tab.activeBorderTop": p["iris"],
-        "tab.inactiveBackground": p["base"],
-        "tab.inactiveForeground": p["subtext0"],
-        "tab.border": p["surface0"],
-        "tab.hoverBackground": p["surface0"],
-        "tab.hoverBorder": p["iris"],
-        "tab.unfocusedActiveBackground": p["base"],
-        "tab.unfocusedActiveForeground": p["subtext1"],
-        "tab.unfocusedInactiveBackground": p["base"],
-        "tab.unfocusedInactiveForeground": p["subtext0"],
-
-        "terminal.background": p["mantle"],
-        "terminal.foreground": p["text"],
-        "terminal.ansiBlack": p["mantle"],
-        "terminal.ansiRed": p["love"],
-        "terminal.ansiGreen": p["pine"],
-        "terminal.ansiYellow": p["gold"],
-        "terminal.ansiBlue": p["iris"],
-        "terminal.ansiMagenta": p["rose"],
-        "terminal.ansiCyan": p["sky"],
-        "terminal.ansiWhite": p["text"],
-        "terminal.ansiBrightBlack": p["surface1"],
-        "terminal.ansiBrightRed": p["love"],
-        "terminal.ansiBrightGreen": p["pine"],
-        "terminal.ansiBrightYellow": p["gold"],
-        "terminal.ansiBrightBlue": p["iris"],
-        "terminal.ansiBrightMagenta": p["rose"],
-        "terminal.ansiBrightCyan": p["sky"],
-        "terminal.ansiBrightWhite": p["text"],
-
-        "statusBar.background": p["mantle"],
-        "statusBar.foreground": p["subtext1"],
-        "statusBar.border": p["surface1"],
-        "statusBar.debuggingBackground": p["gold"],
-        "statusBar.debuggingForeground": p["mantle"],
-        "statusBar.noFolderBackground": p["surface0"],
-        "statusBar.noFolderForeground": p["subtext1"],
-
-        "panel.background": p["base"],
-        "panel.border": p["surface1"],
-        "panelTitle.activeBorder": p["iris"],
-        "panelTitle.activeForeground": p["text"],
-        "panelTitle.inactiveForeground": p["subtext0"],
-
-        "titleBar.activeBackground": p["mantle"],
-        "titleBar.activeForeground": p["subtext1"],
-        "titleBar.border": p["surface1"],
-        "titleBar.inactiveBackground": p["mantle"],
-        "titleBar.inactiveForeground": p["subtext0"],
-
-        "menu.background": p["surface0"],
-        "menu.foreground": p["text"],
-        "menu.selectionBackground": p["surface1"],
-        "menu.selectionForeground": p["text"],
-        "menu.separatorBackground": p["surface1"],
-        "menu.border": p["surface1"],
-
-        "input.background": p["surface0"],
-        "input.foreground": p["text"],
-        "input.border": p["surface1"],
-        "input.placeholderForeground": p["overlay1"],
-        "inputOption.activeBorder": p["iris"],
-        "inputOption.activeBackground": p["iris"] + "30",
-
-        "button.background": p["iris"],
-        "button.foreground": p["base"],
-        "button.hoverBackground": p["foam"],
-        "button.secondaryBackground": p["surface1"],
-        "button.secondaryForeground": p["text"],
-        "button.secondaryHoverBackground": p["surface2"],
-
-        "dropdown.background": p["surface0"],
-        "dropdown.foreground": p["text"],
-        "dropdown.border": p["surface1"],
-
-        "scrollbar.shadow": "#00000040",
-        "scrollbarSlider.background": p["surface1"] + "80",
-        "scrollbarSlider.hoverBackground": p["surface2"],
-        "scrollbarSlider.activeBackground": p["overlay0"],
-
-        "badge.background": p["iris"],
-        "badge.foreground": p["base"],
-
-        "progressBar.background": p["iris"],
-
-        "breadcrumb.foreground": p["subtext0"],
-        "breadcrumb.focusForeground": p["text"],
-        "breadcrumb.activeSelectionForeground": p["iris"],
-        "breadcrumbPicker.background": p["surface0"],
-
-        "gitDecoration.modifiedResourceForeground": p["gold"],
-        "gitDecoration.deletedResourceForeground": p["love"],
-        "gitDecoration.untrackedResourceForeground": p["pine"],
-        "gitDecoration.ignoredResourceForeground": p["subtext0"],
-        "gitDecoration.conflictingResourceForeground": p["rose"],
-        "gitDecoration.stageModifiedResourceForeground": p["gold"],
-        "gitDecoration.stageDeletedResourceForeground": p["love"],
-
-        "minimap.background": p["mantle"],
-        "minimapGutter.addedBackground": p["pine"],
-        "minimapGutter.modifiedBackground": p["gold"],
-        "minimapGutter.deletedBackground": p["love"],
-        "minimap.findMatchHighlight": p["iris"] + "50",
-
-        "peekView.border": p["iris"],
-        "peekViewEditor.background": p["surface0"],
-        "peekViewResult.background": p["mantle"],
-        "peekViewTitle.background": p["surface0"],
-        "peekViewResult.selectionBackground": p["surface1"],
-        "peekViewEditor.matchHighlightBackground": p["iris"] + "40",
-
-        "focusBorder": p["iris"] + "80",
-        "contrastBorder": "#00000000",
-        "contrastActiveBorder": "#00000000",
-
-        "quickInput.background": p["surface0"],
-        "quickInput.foreground": p["text"],
-        "quickInputList.focusBackground": p["surface1"],
-        "quickInputList.focusForeground": p["text"],
-
-        "keybindingLabel.background": p["surface0"],
-        "keybindingLabel.foreground": p["text"],
-        "keybindingLabel.border": p["surface1"],
-        "keybindingLabel.bottomBorder": p["overlay0"],
-
-        "commandCenter.foreground": p["subtext1"],
-        "commandCenter.activeForeground": p["text"],
-        "commandCenter.background": p["surface0"],
-        "commandCenter.activeBackground": p["surface1"],
-        "commandCenter.border": p["surface1"],
-        "commandCenter.activeBorder": p["iris"],
-
-        "settings.headerForeground": p["text"],
-        "settings.modifiedItemIndicator": p["iris"],
-        "settings.focusedRowBackground": p["surface0"],
-        "settings.focusedRowBorder": p["iris"],
-
-        "welcomePage.background": p["base"],
-        "walkThrough.embeddedEditorBackground": p["surface0"],
-
-        "diffEditor.insertedTextBackground": p["pine"] + "20",
-        "diffEditor.removedTextBackground": p["love"] + "20",
-        "diffEditor.border": p["surface1"],
+    # Morandi-adjusted syntax palette — warmer, more saturated than raw palette
+    # Comments stay muted; keywords/accents get a visible warm hue
+    _m = morandi  # alias
+    syntax = {
+        "comment":              p["overlay1"],
+        "keyword":              "#c09a7c",
+        "keyword.control":      "#c09a7c",
+        "keyword.operator":     p["text"],
+        "storage":              "#c09a7c",
+        "storage.type":         "#9aafc0",
+        "entity.name.function": "#b8c4a8",
+        "entity.name.type":     "#9aafc0",
+        "entity.name.class":    "#9aafc0",
+        "entity.name.tag":      "#c09a7c",
+        "entity.other":         p["text"],
+        "variable":             p["text"],
+        "variable.parameter":   "#c4a088",
+        "variable.language":    "#9aafc0",
+        "string":               "#b0c4a0",
+        "string.regexp":        "#c48888",
+        "string.escape":        "#c4b488",
+        "constant.numeric":     "#c4b488",
+        "constant.language":    "#9aafc0",
+        "support.type":         "#9aafc0",
+        "support.function":     "#b8c4a8",
+        "entity.other.attribute": "#b8c4a8",
+        "punctuation":          p["overlay0"],
+        "punctuation.definition": p["overlay1"],
+        "meta.decorator":       "#c4a088",
+        "markup.heading":       "#c09a7c",
+        "markup.italic":        "#c4a088",
+        "markup.bold":          p["text"],
+        "markup.inline.raw":    "#b0c4a0",
+        "markup.deleted":       p["love"],
+        "markup.inserted":      "#b0c4a0",
+        "markup.changed":       "#c4b488",
     }
 
-    existing_transparency = {
-        "minimap.background": "#00000066",
-        "editorGroupHeader.tabsBackground": "#00000000",
-        "editorGroupHeader.noTabsBackground": "#00000000",
-        "editorGutter.background": "#00000000",
-        "panel.background": "#00000000",
-        "tab.activeBackground": "#00000000",
-        "tab.unfocusedActiveBackground": "#00000000",
-        "sideBar.background": "#00000000",
-        "activityBar.background": "#00000000",
-        "editor.background": "#00000000",
-        "tab.inactiveBackground": "#00000000",
-        "tab.unfocusedInactiveBackground": "#00000000",
+    colors = {
+        # Activity bar
+        "activityBar.background":                            "#00000000",
+        "activityBar.foreground":                            p["iris"],
+        "activityBar.activeBorder":                          p["iris"],
+        "activityBarBadge.background":                       p["iris"],
+        "activityBarBadge.foreground":                       p["mantle"],
+        "activityBar.activeBackground":                      p["surface0"] + "80",
+        "activityBar.border":                                p["surface1"],
+
+        # Side bar
+        "sideBar.background":                                "#00000000",
+        "sideBar.foreground":                                p["text"],
+        "sideBar.border":                                    p["surface1"],
+        "sideBarTitle.foreground":                           p["text"],
+        "sideBarSectionHeader.background":                   p["surface0"],
+        "sideBarSectionHeader.foreground":                   p["subtext1"],
+        "sideBarSectionHeader.border":                       p["surface1"],
+
+        # Lists / tree
+        "list.activeSelectionBackground":                    p["surface2"],
+        "list.activeSelectionForeground":                    p["text"],
+        "list.activeSelectionBorder":                        p["iris"],
+        "list.inactiveSelectionBackground":                  p["surface1"],
+        "list.inactiveSelectionForeground":                  p["text"],
+        "list.hoverBackground":                              p["surface1"],
+        "list.hoverForeground":                              p["text"],
+        "list.focusBackground":                              p["surface0"],
+        "list.focusForeground":                              p["text"],
+        "list.focusBorder":                                  p["iris"] + "80",
+        "list.highlightForeground":                          p["iris"],
+        "list.errorForeground":                              p["love"],
+        "list.warningForeground":                            "#c4b488",
+        "listFilterWidget.background":                       p["surface0"],
+        "listFilterWidget.outline":                          p["iris"],
+        "listFilterWidget.noMatchesOutline":                 p["love"],
+        "tree.indentGuidesStroke":                           p["surface1"],
+        "tree.tableColumnsBorder":                           p["surface1"],
+
+        # Editor
+        "editor.background":                                 "#00000000",
+        "editor.foreground":                                 p["text"],
+        "editorLineNumber.foreground":                       p["overlay0"],
+        "editorLineNumber.activeForeground":                 p["subtext1"],
+        "editor.lineHighlightBackground":                    p["surface0"] + "40",
+        "editor.lineHighlightBorder":                        "#00000000",
+        "editor.selectionBackground":                        p["surface2"] + "80",
+        "editor.selectionHighlightBackground":               p["surface1"] + "40",
+        "editor.selectionHighlightBorder":                   p["surface1"] + "60",
+        "editor.wordHighlightBackground":                    p["surface1"] + "40",
+        "editor.wordHighlightBorder":                        p["surface1"] + "60",
+        "editor.wordHighlightStrongBackground":              p["surface2"] + "50",
+        "editor.findMatchBackground":                        p["iris"] + "60",
+        "editor.findMatchBorder":                            p["iris"],
+        "editor.findMatchHighlightBackground":               "#c4b48830",
+        "editor.findMatchHighlightBorder":                   "#c4b48850",
+        "editor.findRangeHighlightBackground":               p["surface1"] + "30",
+        "editor.rangeHighlightBackground":                   p["surface0"] + "30",
+        "editor.hoverHighlightBackground":                   p["surface1"] + "40",
+        "editorCursor.foreground":                           p["iris"],
+        "editorCursor.background":                           p["mantle"],
+        "editorIndentGuide.background1":                     p["surface1"] + "80",
+        "editorIndentGuide.background2":                     p["surface1"] + "40",
+        "editorIndentGuide.activeBackground1":               p["overlay0"],
+        "editorIndentGuide.activeBackground2":               p["overlay1"],
+        "editorRuler.foreground":                            p["surface1"],
+        "editorBracketMatch.background":                     p["surface2"] + "40",
+        "editorBracketMatch.border":                         p["iris"] + "80",
+        "editorBracketHighlight.foreground1":                 p["iris"],
+        "editorBracketHighlight.foreground2":                 p["foam"],
+        "editorBracketHighlight.foreground3":                 "#c4a088",
+        "editorBracketHighlight.foreground4":                 "#9aafc0",
+        "editorBracketHighlight.foreground5":                 p["rose"],
+        "editorBracketHighlight.foreground6":                 "#b0c4a0",
+        "editorGutter.background":                           "#00000000",
+        "editorOverviewRuler.border":                        "#00000000",
+        "editorError.foreground":                            p["love"],
+        "editorWarning.foreground":                          "#c4b488",
+        "editorInfo.foreground":                             "#9aafc0",
+        "editorHint.foreground":                             "#b0c4a0",
+        "editorWidget.background":                           p["surface0"],
+        "editorWidget.foreground":                           p["text"],
+        "editorWidget.border":                               p["surface1"],
+        "editorWidget.resizeBorder":                         p["iris"],
+        "editorSuggestWidget.background":                    p["surface0"],
+        "editorSuggestWidget.border":                        p["surface1"],
+        "editorSuggestWidget.foreground":                    p["text"],
+        "editorSuggestWidget.highlightForeground":            p["iris"],
+        "editorSuggestWidget.selectedBackground":             p["surface2"],
+        "editorSuggestWidget.selectedForeground":             p["text"],
+        "editorSuggestWidget.focusHighlightForeground":       p["iris"],
+        "editorSuggestWidget.highlightForeground":            p["iris"],
+        "editorHoverWidget.background":                      p["surface0"],
+        "editorHoverWidget.border":                          p["surface1"],
+        "editorHoverWidget.foreground":                      p["text"],
+        "editorHoverWidget.highlightForeground":              p["iris"],
+        "editorHoverWidget.statusBarBackground":              p["surface0"],
+        "editorStickyScroll.background":                     p["surface0"],
+        "editorStickyScroll.hoverBackground":                p["surface1"],
+        "editorStickyScroll.border":                         p["surface1"],
+        "editorInlayHint.background":                        p["surface0"] + "C0",
+        "editorInlayHint.foreground":                        p["overlay1"],
+        "editorInlayHint.typeForeground":                    "#9aafc0",
+        "editorInlayHint.parameterForeground":               "#c4a088",
+        "editorInlayHint.textForeground":                    p["overlay1"],
+        "editorGhostText.background":                        p["surface0"] + "80",
+        "editorGhostText.foreground":                        p["overlay1"],
+        "editorGhostText.border":                            p["surface1"],
+        "editor.foldBackground":                             p["surface0"] + "40",
+
+        # Editor groups & tabs
+        "editorGroupHeader.tabsBackground":                  "#00000000",
+        "editorGroupHeader.tabsBorder":                      p["surface1"],
+        "editorGroupHeader.noTabsBackground":                "#00000000",
+        "editorGroupHeader.border":                          p["surface1"],
+        "editorGroupHeader.tabsBorder":                      p["surface1"],
+        "editorGroup.border":                                p["surface1"],
+        "editorGroup.dropBackground":                        p["iris"] + "20",
+
+        "tab.activeBackground":                              "#00000000",
+        "tab.activeForeground":                              p["text"],
+        "tab.activeBorderTop":                               p["iris"],
+        "tab.activeBorder":                                  "#00000000",
+        "tab.inactiveBackground":                            "#00000000",
+        "tab.inactiveForeground":                            p["subtext0"],
+        "tab.border":                                        p["surface0"],
+        "tab.hoverBackground":                               p["surface0"],
+        "tab.hoverBorder":                                   p["iris"],
+        "tab.unfocusedActiveBackground":                     "#00000000",
+        "tab.unfocusedActiveForeground":                     p["subtext1"],
+        "tab.unfocusedInactiveBackground":                   "#00000000",
+        "tab.unfocusedInactiveForeground":                   p["subtext0"],
+        "tab.lastPinnedBorder":                              p["iris"] + "80",
+        "tab.lastPinnedBorderActive":                        p["iris"],
+        "tab.activeModifiedBorder":                          "#c4b488",
+        "tab.inactiveModifiedBorder":                        "#c4b488" + "80",
+
+        # Terminal
+        "terminal.background":                               p["mantle"],
+        "terminal.foreground":                               p["text"],
+        "terminal.border":                                   p["surface1"],
+        "terminal.ansiBlack":                                p["mantle"],
+        "terminal.ansiRed":                                  p["love"],
+        "terminal.ansiGreen":                                "#b0c4a0",
+        "terminal.ansiYellow":                               "#c4b488",
+        "terminal.ansiBlue":                                 p["iris"],
+        "terminal.ansiMagenta":                              p["rose"],
+        "terminal.ansiCyan":                                 p["sky"],
+        "terminal.ansiWhite":                                p["text"],
+        "terminal.ansiBrightBlack":                          p["surface1"],
+        "terminal.ansiBrightRed":                            p["love"],
+        "terminal.ansiBrightGreen":                          "#b0c4a0",
+        "terminal.ansiBrightYellow":                         "#c4b488",
+        "terminal.ansiBrightBlue":                           p["iris"],
+        "terminal.ansiBrightMagenta":                        p["rose"],
+        "terminal.ansiBrightCyan":                           p["sky"],
+        "terminal.ansiBrightWhite":                          p["text"],
+        "terminal.tab.activeBorder":                         p["iris"],
+        "terminal.overviewRulerBorder":                      "#00000000",
+        "terminalCommandDecoration.defaultBackground":        p["surface1"],
+        "terminalCommandDecoration.successBackground":        "#b0c4a0" + "40",
+        "terminalCommandDecoration.errorBackground":          p["love"] + "40",
+        "terminalCommandDecoration.warningBackground":        "#c4b488" + "40",
+        "terminal.selectionBackground":                       p["surface2"] + "80",
+        "terminalCursor.foreground":                          p["iris"],
+
+        # Status bar
+        "statusBar.background":                              p["mantle"],
+        "statusBar.foreground":                              p["subtext1"],
+        "statusBar.border":                                  p["surface1"],
+        "statusBar.debuggingBackground":                     "#c4b488",
+        "statusBar.debuggingForeground":                     p["mantle"],
+        "statusBar.debuggingBorder":                         "#c4b488",
+        "statusBar.noFolderBackground":                      p["surface0"],
+        "statusBar.noFolderForeground":                      p["subtext1"],
+        "statusBar.noFolderBorder":                          p["surface1"],
+        "statusBar.itemsWarningForeground":                  "#c4b488",
+        "statusBar.remoteBackground":                        p["iris"],
+        "statusBar.remoteForeground":                        p["mantle"],
+        "statusBar.remoteBorder":                            p["iris"],
+
+        # Panel
+        "panel.background":                                  "#00000000",
+        "panel.border":                                      p["surface1"],
+        "panelTitle.activeBorder":                           p["iris"],
+        "panelTitle.activeForeground":                       p["text"],
+        "panelTitle.inactiveForeground":                     p["subtext0"],
+        "panelTitle.border":                                 "#00000000",
+        "panel.dropBorder":                                  p["iris"],
+        "panelInput.border":                                 p["surface1"],
+
+        # Title bar
+        "titleBar.activeBackground":                         p["mantle"],
+        "titleBar.activeForeground":                         p["subtext1"],
+        "titleBar.border":                                   "#00000000",
+        "titleBar.inactiveBackground":                       p["mantle"],
+        "titleBar.inactiveForeground":                       p["subtext0"],
+
+        # Menu
+        "menu.background":                                   p["surface0"],
+        "menu.foreground":                                   p["text"],
+        "menu.selectionBackground":                          p["surface2"],
+        "menu.selectionForeground":                          p["text"],
+        "menu.selectionBorder":                              p["iris"],
+        "menu.separatorBackground":                          p["surface1"],
+        "menu.border":                                       p["surface1"],
+        "menubar.selectionBackground":                       p["surface1"],
+        "menubar.selectionForeground":                       p["text"],
+        "menubar.selectionBorder":                           p["iris"],
+
+        # Input
+        "input.background":                                  p["surface0"],
+        "input.foreground":                                  p["text"],
+        "input.border":                                      p["surface1"],
+        "input.placeholderForeground":                       p["overlay1"],
+        "inputOption.activeBorder":                          p["iris"],
+        "inputOption.activeBackground":                      p["iris"] + "20",
+        "inputOption.activeForeground":                      p["text"],
+        "inputOption.hoverBackground":                       p["surface1"],
+        "inputValidation.background":                        p["surface0"],
+        "inputValidation.errorBackground":                   p["love"] + "30",
+        "inputValidation.errorBorder":                       p["love"],
+        "inputValidation.warningBackground":                 "#c4b48830",
+        "inputValidation.warningBorder":                     "#c4b488",
+
+        # Button
+        "button.background":                                 p["iris"],
+        "button.foreground":                                 p["mantle"],
+        "button.hoverBackground":                            p["foam"],
+        "button.secondaryBackground":                        p["surface1"],
+        "button.secondaryForeground":                        p["text"],
+        "button.secondaryHoverBackground":                   p["surface2"],
+        "button.separator":                                  "#00000030",
+
+        # Dropdown
+        "dropdown.background":                               p["surface0"],
+        "dropdown.foreground":                               p["text"],
+        "dropdown.border":                                   p["surface1"],
+
+        # Scrollbar
+        "scrollbar.shadow":                                  "#00000030",
+        "scrollbarSlider.background":                        p["surface1"] + "80",
+        "scrollbarSlider.hoverBackground":                   p["surface2"],
+        "scrollbarSlider.activeBackground":                  p["overlay0"],
+        "scrollbarSlider.border":                            "transparent",
+
+        # Badge
+        "badge.background":                                  p["iris"],
+        "badge.foreground":                                  p["mantle"],
+        "badge.badgeForeground":                             p["text"],
+
+        # Progress bar
+        "progressBar.background":                            p["iris"],
+
+        # Breadcrumb
+        "breadcrumb.foreground":                             p["subtext0"],
+        "breadcrumb.focusForeground":                        p["text"],
+        "breadcrumb.activeSelectionForeground":               p["iris"],
+        "breadcrumbPicker.background":                       p["surface0"],
+        "breadcrumbPicker.border":                           p["surface1"],
+        "breadcrumb.focusBorder":                            p["iris"] + "80",
+
+        # Git decorations
+        "gitDecoration.modifiedResourceForeground":           "#c4b488",
+        "gitDecoration.deletedResourceForeground":            p["love"],
+        "gitDecoration.untrackedResourceForeground":           "#b0c4a0",
+        "gitDecoration.ignoredResourceForeground":            p["subtext0"],
+        "gitDecoration.conflictingResourceForeground":         p["rose"],
+        "gitDecoration.stageModifiedResourceForeground":       "#c4b488",
+        "gitDecoration.stageDeletedResourceForeground":        p["love"],
+        "gitDecoration.renamedResourceForeground":            p["foam"],
+        "gitDecoration.stageRenamedResourceForeground":        p["foam"],
+        "gitDecoration.worktreeModifiedResourceForeground":    "#c4b488",
+        "gitDecoration.worktreeDeletedResourceForeground":     p["love"],
+        "gitDecoration.worktreeUntrackedResourceForeground":   "#b0c4a0",
+
+        # Minimap
+        "minimap.background":                                "#00000066",
+        "minimap.foregroundOpacity":                         "0.7",
+        "minimap.selectionHighlight":                         p["iris"] + "60",
+        "minimap.selectionHighlightBorder":                   p["iris"],
+        "minimap.findMatchHighlight":                         p["iris"] + "50",
+        "minimap.errorHighlight":                             p["love"] + "60",
+        "minimapGutter.addedBackground":                      "#b0c4a0",
+        "minimapGutter.modifiedBackground":                   "#c4b488",
+        "minimapGutter.deletedBackground":                    p["love"],
+
+        # Peek view
+        "peekView.border":                                   p["iris"],
+        "peekViewEditor.background":                         p["surface0"],
+        "peekViewEditor.gutterBackground":                   p["surface0"],
+        "peekViewResult.background":                         p["mantle"],
+        "peekViewResult.fileForeground":                     p["text"],
+        "peekViewResult.lineForeground":                     p["subtext0"],
+        "peekViewResult.selectionBackground":                p["surface2"],
+        "peekViewResult.selectionForeground":                p["text"],
+        "peekViewResult.matchHighlightBackground":            p["iris"] + "40",
+        "peekViewResult.matchHighlightForeground":            p["text"],
+        "peekViewResult.wordHighlightBackground":             p["surface1"] + "40",
+        "peekViewResult.wordHighlightForeground":             p["text"],
+        "peekViewTitle.background":                          p["surface0"],
+        "peekViewTitle.label.foreground":                    p["text"],
+        "peekViewTitle.description.foreground":               p["subtext0"],
+        "peekViewEditor.matchHighlightBackground":            p["iris"] + "40",
+        "peekViewEditor.matchHighlightForeground":            p["text"],
+        "peekViewEditor.wordHighlightBackground":             p["surface1"] + "40",
+        "peekViewEditor.wordHighlightForeground":             p["text"],
+        "peekViewEditorCursor.foreground":                    p["iris"],
+
+        # Focus & borders
+        "focusBorder":                                       p["iris"] + "80",
+        "contrastBorder":                                    "#00000000",
+        "contrastActiveBorder":                              "#00000000",
+        "widget.shadow":                                     "#00000040",
+        "widget.border":                                     p["surface1"],
+
+        # Quick input / command palette
+        "quickInput.background":                              p["surface0"],
+        "quickInput.foreground":                              p["text"],
+        "quickInputList.focusBackground":                     p["surface1"],
+        "quickInputList.focusForeground":                     p["text"],
+        "quickInputList.focusBorder":                         p["iris"] + "80",
+        "quickInputTitle.background":                         p["surface0"],
+
+        # Keybinding label
+        "keybindingLabel.background":                         p["surface0"],
+        "keybindingLabel.foreground":                         p["text"],
+        "keybindingLabel.border":                             p["surface1"],
+        "keybindingLabel.bottomBorder":                       p["overlay0"],
+        "keybindingLabel.activeBackground":                   p["surface1"],
+        "keybindingLabel.activeForeground":                   p["text"],
+        "keybindingLabel.activeBorder":                       p["iris"],
+        "keybindingLabel.activeBottomBorder":                 p["iris"],
+        "keybindingLabel.hoverBackground":                    p["surface1"],
+        "keybindingLabel.hoverForeground":                    p["text"],
+        "keybindingLabel.hoverBorder":                        p["iris"],
+        "keybindingLabel.hoverBottomBorder":                  p["iris"],
+
+        # Command center (title bar)
+        "commandCenter.foreground":                           p["subtext1"],
+        "commandCenter.activeForeground":                     p["text"],
+        "commandCenter.background":                           p["surface0"],
+        "commandCenter.activeBackground":                     p["surface1"],
+        "commandCenter.border":                               p["surface1"],
+        "commandCenter.activeBorder":                         p["iris"],
+        "commandCenter.hoverBackground":                      p["surface1"],
+        "commandCenter.hoverForeground":                      p["text"],
+        "commandCenter.hoverBorder":                          p["iris"],
+        "commandCenter.foregroundBorder":                     p["surface1"],
+        "commandCenter.activeForegroundBorder":               p["iris"],
+
+        # Settings
+        "settings.headerForeground":                          p["text"],
+        "settings.modifiedItemIndicator":                      p["iris"],
+        "settings.focusedRowBackground":                       p["surface0"],
+        "settings.focusedRowBorder":                           p["iris"],
+        "settings.headerBorder":                              p["surface1"],
+        "settings.tabHoverBackground":                         p["surface1"],
+        "settings.checkboxBackground":                          p["surface0"],
+        "settings.checkboxForeground":                          p["text"],
+        "settings.checkboxBorder":                              p["surface1"],
+        "settings.focusedRowBorder":                           p["iris"],
+        "settings.rowHoverBackground":                          p["surface1"],
+        "settings.textLinkForeground":                          p["iris"],
+
+        # Welcome page
+        "welcomePage.background":                              p["base"],
+        "walkThrough.embeddedEditorBackground":                p["surface0"],
+        "welcomePage.tileBackground":                          p["surface0"],
+        "welcomePage.tileBorder":                              p["surface1"],
+        "welcomePage.progress.foreground":                     p["iris"],
+        "walkThrough.embeddedEditorBackground":                p["surface0"],
+        "walkThrough.embeddedEditorBorder":                    p["surface1"],
+
+        # Diff editor
+        "diffEditor.insertedTextBackground":                   "#b0c4a020",
+        "diffEditor.insertedTextBorder":                       "#b0c4a040",
+        "diffEditor.removedTextBackground":                    p["love"] + "20",
+        "diffEditor.removedTextBorder":                        p["love"] + "40",
+        "diffEditor.border":                                   p["surface1"],
+        "diffEditor.insertedLineBackground":                   "#b0c4a015",
+        "diffEditor.removedLineBackground":                    p["love"] + "15",
+        "diffEditorGutter.insertedLineBackground":             "#b0c4a015",
+        "diffEditorGutter.removedLineBackground":              p["love"] + "15",
+        "diffEditor.diagnostic.deletedBackground":              p["love"],
+        "diffEditor.diagnostic.modifiedBackground":             "#c4b488",
+
+        # Debug toolbar & exception widget
+        "debugToolBar.background":                             p["surface0"],
+        "debugToolBar.border":                                 p["surface1"],
+        "debugIcon.breakpointForeground":                       p["love"],
+        "debugIcon.startForeground":                            "#b0c4a0",
+        "debugIcon.pauseForeground":                            p["iris"],
+        "debugIcon.stopForeground":                             p["love"],
+        "debugIcon.restartForeground":                          "#b0c4a0",
+        "debugIcon.stepOverForeground":                         p["iris"],
+        "debugIcon.stepIntoForeground":                         p["iris"],
+        "debugIcon.stepOutForeground":                          p["iris"],
+        "debugIcon.stepBackForeground":                         p["iris"],
+        "debugIcon.continueForeground":                         "#b0c4a0",
+        "debugIcon.disconnectForeground":                       p["love"],
+        "debugExceptionWidget.background":                      p["surface0"],
+        "debugExceptionWidget.foreground":                      p["text"],
+        "debugExceptionWidget.border":                          p["love"],
+
+        # Notifications
+        "notificationCenter.border":                           p["surface1"],
+        "notificationCenterHeader.background":                  p["surface0"],
+        "notificationCenterHeader.foreground":                  p["text"],
+        "notifications.background":                             p["surface0"],
+        "notifications.foreground":                             p["text"],
+        "notifications.border":                                 p["surface1"],
+        "notifications.border":                                 p["surface1"],
+        "notificationLink.foreground":                          p["iris"],
+        "notificationsErrorIcon.foreground":                     p["love"],
+        "notificationsWarningIcon.foreground":                   "#c4b488",
+        "notificationsInfoIcon.foreground":                      "#9aafc0",
+        "notificationToast.border":                             p["surface1"],
+
+        # Command palette search match
+        "searchEditor.findMatchBackground":                     p["iris"] + "30",
+        "searchEditor.findMatchBorder":                         p["iris"] + "60",
+        "search.resultsInfoForeground":                         p["subtext0"],
+
+        # Sticky scroll
+        "editorStickyScroll.background":                       p["surface0"],
+        "editorStickyScrollHover.background":                   p["surface1"],
+        "editorStickyScroll.border":                            p["surface1"],
+
+        # Editor overview ruler
+        "editorOverviewRuler.findMatchForeground":               p["iris"] + "80",
+        "editorOverviewRuler.findMatchHighlightForeground":       "#c4b48860",
+        "editorOverviewRuler.errorForeground":                    p["love"],
+        "editorOverviewRuler.warningForeground":                  "#c4b488",
+        "editorOverviewRuler.infoForeground":                     "#9aafc0",
+        "editorOverviewRuler.bracketMatchForeground":             p["iris"] + "80",
+        "editorOverviewRuler.selectionHighlightForeground":       p["surface2"],
+        "editorOverviewRuler.wordHighlightForeground":            p["surface1"],
+        "editorOverviewRuler.wordHighlightStrongForeground":      p["surface2"],
+        "editorOverviewRuler.addedForeground":                    "#b0c4a080",
+        "editorOverviewRuler.modifiedForeground":                 "#c4b48880",
+        "editorOverviewRuler.deletedForeground":                  p["love"] + "80",
+
+        # Breadcrumb
+        "breadcrumb.activeSelectionForeground":                   p["iris"],
+
+        # Toolbar
+        "toolbar.hoverBackground":                               p["surface1"],
+        "toolbar.activeBackground":                              p["surface2"],
     }
+
+    token_colors = [
+        {"scope": ["comment", "punctuation.definition.comment"], "settings": {"foreground": syntax["comment"], "fontStyle": "italic"}},
+        {"scope": ["keyword", "keyword.control", "keyword.operator.new", "keyword.operator.expression"], "settings": {"foreground": syntax["keyword"], "fontStyle": "bold"}},
+        {"scope": ["keyword.operator"], "settings": {"foreground": syntax["keyword.operator"], "fontStyle": ""}},
+        {"scope": ["storage", "storage.type", "storage.modifier"], "settings": {"foreground": syntax["storage"], "fontStyle": "bold"}},
+        {"scope": ["entity.name.function", "support.function", "meta.function-call"], "settings": {"foreground": syntax["entity.name.function"]}},
+        {"scope": ["entity.name.type", "entity.name.class", "support.type", "support.class", "entity.other.inherited-class"], "settings": {"foreground": syntax["entity.name.type"], "fontStyle": "bold"}},
+        {"scope": ["entity.name.tag", "punctuation.definition.tag"], "settings": {"foreground": syntax["entity.name.tag"]}},
+        {"scope": ["entity.other.attribute-name"], "settings": {"foreground": syntax["entity.other.attribute"]}},
+        {"scope": ["variable", "variable.other", "variable.other.readwrite", "variable.other.object"], "settings": {"foreground": syntax["variable"]}},
+        {"scope": ["variable.parameter", "variable.other.readwrite", "meta.parameter"], "settings": {"foreground": syntax["variable.parameter"]}},
+        {"scope": ["variable.language", "variable.language.this", "variable.language.super"], "settings": {"foreground": syntax["variable.language"]}},
+        {"scope": ["string", "string.quoted", "string.template"], "settings": {"foreground": syntax["string"]}},
+        {"scope": ["string.regexp"], "settings": {"foreground": syntax["string.regexp"]}},
+        {"scope": ["constant.character.escape"], "settings": {"foreground": syntax["string.escape"]}},
+        {"scope": ["constant.numeric", "constant.numeric.float", "constant.numeric.hex", "constant.numeric.integer"], "settings": {"foreground": syntax["constant.numeric"]}},
+        {"scope": ["constant.language", "constant.language.null", "constant.language.boolean"], "settings": {"foreground": syntax["constant.language"]}},
+        {"scope": ["support.type", "support.type.primitive"], "settings": {"foreground": syntax["support.type"]}},
+        {"scope": ["punctuation", "punctuation.definition", "punctuation.separator", "punctuation.terminator", "punctuation.brackets", "punctuation.definition.variable", "punctuation.definition.parameters", "punctuation.definition.entity"], "settings": {"foreground": syntax["punctuation"]}},
+        {"scope": ["meta.decorator", "punctuation.decorator"], "settings": {"foreground": syntax["meta.decorator"]}},
+        {"scope": ["markup.heading", "entity.name.section"], "settings": {"foreground": syntax["markup.heading"], "fontStyle": "bold"}},
+        {"scope": ["markup.italic"], "settings": {"fontStyle": "italic", "foreground": syntax["markup.italic"]}},
+        {"scope": ["markup.bold"], "settings": {"fontStyle": "bold", "foreground": syntax["markup.bold"]}},
+        {"scope": ["markup.inline.raw", "markup.fenced_code"], "settings": {"foreground": syntax["markup.inline.raw"]}},
+        {"scope": ["markup.deleted"], "settings": {"foreground": syntax["markup.deleted"]}},
+        {"scope": ["markup.inserted"], "settings": {"foreground": syntax["markup.inserted"]}},
+        {"scope": ["markup.changed"], "settings": {"foreground": syntax["markup.changed"]}},
+        {"scope": ["entity.name.label", "entity.name.namespace", "entity.name.module"], "settings": {"foreground": p["text"]}},
+        {"scope": ["entity.name.namespace", "entity.name.module"], "settings": {"foreground": p["iris"]}},
+        {"scope": ["punctuation.definition.block", "punctuation.definition.parameters.begin", "punctuation.definition.parameters.end"], "settings": {"foreground": p["overlay0"]}},
+        # Python
+        {"scope": ["keyword.control.flow.python", "keyword.control.import.python", "keyword.control.from.python"], "settings": {"foreground": syntax["keyword"]}},
+        {"scope": ["variable.parameter.function.language.python", "meta.function-call.arguments.python"], "settings": {"foreground": syntax["variable.parameter"]}},
+        {"scope": ["string.quoted.docstring", "string.quoted.docstring.python"], "settings": {"foreground": syntax["comment"], "fontStyle": "italic"}},
+        {"scope": ["support.function.builtin.python"], "settings": {"foreground": syntax["support.function"]}},
+        {"scope": ["entity.name.function.decorator.python", "meta.function.decorator.python"], "settings": {"foreground": syntax["meta.decorator"]}},
+        # JavaScript / TypeScript
+        {"scope": ["entity.name.type.numeric.ts", "entity.name.type.numeric.tsx"], "settings": {"foreground": syntax["constant.numeric"]}},
+        {"scope": ["variable.parameter.ts", "variable.parameter.tsx", "meta.parameter.ts", "meta.parameter.tsx"], "settings": {"foreground": syntax["variable.parameter"]}},
+        {"scope": ["support.type.primitive.ts", "support.type.primitive.tsx", "support.type.builtin.ts", "support.type.builtin.tsx"], "settings": {"foreground": syntax["support.type"]}},
+        {"scope": ["variable.other.constant.ts", "variable.other.constant.tsx", "variable.other.readwrite.alias.ts", "variable.other.readwrite.alias.tsx"], "settings": {"foreground": syntax["variable"]}},
+        {"scope": ["entity.name.function.tagged-template", "support.function.property-access"], "settings": {"foreground": syntax["support.function"]}},
+        # C / C++
+        {"scope": ["entity.name.function.c", "entity.name.function.cpp"], "settings": {"foreground": syntax["entity.name.function"]}},
+        {"scope": ["support.type.sys-types.c", "support.type.sys-types.cpp"], "settings": {"foreground": syntax["support.type"]}},
+        # CSS
+        {"scope": ["entity.name.tag.css", "entity.other.attribute-name.class.css", "entity.other.attribute-name.id.css"], "settings": {"foreground": syntax["entity.name.tag"]}},
+        {"scope": ["support.type.property-name.css"], "settings": {"foreground": syntax["entity.other.attribute"]}},
+        # Rust
+        {"scope": ["entity.name.lifetime.rust"], "settings": {"foreground": syntax["variable.language"]}},
+        {"scope": ["storage.modifier.lifetime.rust", "punctuation.definition.lifetime.rust"], "settings": {"foreground": syntax["variable.language"]}},
+        # Go
+        {"scope": ["storage.type.other.go", "storage.type.builtin.go"], "settings": {"foreground": syntax["support.type"]}},
+        # Lua
+        {"scope": ["keyword.operator.logical.lua"], "settings": {"foreground": syntax["keyword"]}},
+        # Git
+        {"scope": ["comment.line.double-slash.jsdoc", "comment.block.documentation"], "settings": {"foreground": syntax["comment"], "fontStyle": "italic"}},
+    ]
 
     content = VSCODE_SETTINGS.read_text()
-
-    for key, val in existing_transparency.items():
-        if key in morandi_colors:
-            morandi_colors[key] = val
-
-    new_block = json.dumps(morandi_colors, indent=4)
-    new_block_lines = new_block.split("\n")
-    new_block_lines = ["    " + line for line in new_block_lines]
-    new_block = "\n".join(new_block_lines)
-
-    content, _ = re.subn(
-        r'"workbench\.colorCustomizations"\s*:\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}',
-        f'"workbench.colorCustomizations": {new_block}',
-        content,
-        count=1,
-    )
-
-    if "workbench.colorCustomizations" not in content:
-        content = content.rstrip()
-        if content.endswith("}"):
-            content = content[:-1].rstrip()
-            content += f',\n    "workbench.colorCustomizations": {new_block}\n}}\n'
-
+    content = _replace_jsonc_block(content, "workbench.colorCustomizations", colors)
+    content = _replace_jsonc_block(content, "editor.tokenColorCustomizations", token_colors)
     VSCODE_SETTINGS.write_text(content)
 
 def write_kde(colors):
