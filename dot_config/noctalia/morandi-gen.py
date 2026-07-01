@@ -17,6 +17,7 @@ FCITX5_THEME = Path.home() / ".local/share/fcitx5/themes/morandi/theme.conf"
 FASTFETCH_CONFIG = Path.home() / ".config/fastfetch/config.jsonc"
 ALACRITTY_TOML = Path.home() / ".config/alacritty/alacritty.toml"
 KDE_OUTPUT = Path.home() / ".local/share/color-schemes/Morandi-dark.colors"
+VSCODE_SETTINGS = Path.home() / ".config/Code/User/settings.json"
 
 def hex_to_hsl(hex_color):
     r = int(hex_color[1:3], 16) / 255
@@ -238,6 +239,248 @@ def write_alacritty():
 def hex_to_rgb(hex_color):
     h = hex_color.lstrip("#")
     return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+
+def write_vscode(palette):
+    if not VSCODE_SETTINGS.exists():
+        return
+
+    p = palette
+    morandi_colors = {
+        "activityBar.background": p["mantle"],
+        "activityBar.foreground": p["iris"],
+        "activityBar.activeBorder": p["iris"],
+        "activityBarBadge.background": p["iris"],
+        "activityBarBadge.foreground": p["base"],
+
+        "sideBar.background": p["base"],
+        "sideBar.foreground": p["text"],
+        "sideBar.border": p["surface1"],
+        "sideBarTitle.foreground": p["text"],
+        "sideBarSectionHeader.background": p["surface0"],
+        "sideBarSectionHeader.foreground": p["subtext1"],
+
+        "list.activeSelectionBackground": p["surface2"],
+        "list.activeSelectionForeground": p["text"],
+        "list.inactiveSelectionBackground": p["surface1"],
+        "list.inactiveSelectionForeground": p["text"],
+        "list.hoverBackground": p["surface1"],
+        "list.hoverForeground": p["text"],
+        "list.focusBackground": p["surface0"],
+        "list.highlightForeground": p["iris"],
+
+        "editor.background": p["mantle"],
+        "editor.foreground": p["text"],
+        "editor.lineHighlightBackground": p["surface0"] + "40",
+        "editor.selectionBackground": p["surface2"] + "60",
+        "editor.selectionHighlightBackground": p["surface1"] + "40",
+        "editor.wordHighlightBackground": p["surface1"] + "40",
+        "editor.findMatchBackground": p["iris"] + "50",
+        "editor.findMatchHighlightBackground": p["gold"] + "30",
+        "editorCursor.foreground": p["iris"],
+        "editorLineNumber.foreground": p["overlay0"],
+        "editorLineNumber.activeForeground": p["subtext1"],
+        "editorIndentGuide.background1": p["surface1"],
+        "editorIndentGuide.activeBackground1": p["overlay0"],
+        "editor.selectionBackground": p["surface2"] + "60",
+        "editorWidget.background": p["surface0"],
+        "editorWidget.foreground": p["text"],
+        "editorSuggestWidget.background": p["surface0"],
+        "editorSuggestWidget.border": p["surface1"],
+        "editorSuggestWidget.selectedBackground": p["surface1"],
+        "editorHoverWidget.background": p["surface0"],
+        "editorHoverWidget.border": p["surface1"],
+        "editorGroupHeader.tabsBackground": p["base"],
+        "editorGroupHeader.tabsBorder": p["surface1"],
+        "editorGroupHeader.noTabsBackground": p["base"],
+        "editorGroupHeader.border": p["surface1"],
+
+        "tab.activeBackground": p["mantle"],
+        "tab.activeForeground": p["text"],
+        "tab.activeBorderTop": p["iris"],
+        "tab.inactiveBackground": p["base"],
+        "tab.inactiveForeground": p["subtext0"],
+        "tab.border": p["surface0"],
+        "tab.hoverBackground": p["surface0"],
+        "tab.hoverBorder": p["iris"],
+        "tab.unfocusedActiveBackground": p["base"],
+        "tab.unfocusedActiveForeground": p["subtext1"],
+        "tab.unfocusedInactiveBackground": p["base"],
+        "tab.unfocusedInactiveForeground": p["subtext0"],
+
+        "terminal.background": p["mantle"],
+        "terminal.foreground": p["text"],
+        "terminal.ansiBlack": p["mantle"],
+        "terminal.ansiRed": p["love"],
+        "terminal.ansiGreen": p["pine"],
+        "terminal.ansiYellow": p["gold"],
+        "terminal.ansiBlue": p["iris"],
+        "terminal.ansiMagenta": p["rose"],
+        "terminal.ansiCyan": p["sky"],
+        "terminal.ansiWhite": p["text"],
+        "terminal.ansiBrightBlack": p["surface1"],
+        "terminal.ansiBrightRed": p["love"],
+        "terminal.ansiBrightGreen": p["pine"],
+        "terminal.ansiBrightYellow": p["gold"],
+        "terminal.ansiBrightBlue": p["iris"],
+        "terminal.ansiBrightMagenta": p["rose"],
+        "terminal.ansiBrightCyan": p["sky"],
+        "terminal.ansiBrightWhite": p["text"],
+
+        "statusBar.background": p["mantle"],
+        "statusBar.foreground": p["subtext1"],
+        "statusBar.border": p["surface1"],
+        "statusBar.debuggingBackground": p["gold"],
+        "statusBar.debuggingForeground": p["mantle"],
+        "statusBar.noFolderBackground": p["surface0"],
+        "statusBar.noFolderForeground": p["subtext1"],
+
+        "panel.background": p["base"],
+        "panel.border": p["surface1"],
+        "panelTitle.activeBorder": p["iris"],
+        "panelTitle.activeForeground": p["text"],
+        "panelTitle.inactiveForeground": p["subtext0"],
+
+        "titleBar.activeBackground": p["mantle"],
+        "titleBar.activeForeground": p["subtext1"],
+        "titleBar.border": p["surface1"],
+        "titleBar.inactiveBackground": p["mantle"],
+        "titleBar.inactiveForeground": p["subtext0"],
+
+        "menu.background": p["surface0"],
+        "menu.foreground": p["text"],
+        "menu.selectionBackground": p["surface1"],
+        "menu.selectionForeground": p["text"],
+        "menu.separatorBackground": p["surface1"],
+        "menu.border": p["surface1"],
+
+        "input.background": p["surface0"],
+        "input.foreground": p["text"],
+        "input.border": p["surface1"],
+        "input.placeholderForeground": p["overlay1"],
+        "inputOption.activeBorder": p["iris"],
+        "inputOption.activeBackground": p["iris"] + "30",
+
+        "button.background": p["iris"],
+        "button.foreground": p["base"],
+        "button.hoverBackground": p["foam"],
+        "button.secondaryBackground": p["surface1"],
+        "button.secondaryForeground": p["text"],
+        "button.secondaryHoverBackground": p["surface2"],
+
+        "dropdown.background": p["surface0"],
+        "dropdown.foreground": p["text"],
+        "dropdown.border": p["surface1"],
+
+        "scrollbar.shadow": "#00000040",
+        "scrollbarSlider.background": p["surface1"] + "80",
+        "scrollbarSlider.hoverBackground": p["surface2"],
+        "scrollbarSlider.activeBackground": p["overlay0"],
+
+        "badge.background": p["iris"],
+        "badge.foreground": p["base"],
+
+        "progressBar.background": p["iris"],
+
+        "breadcrumb.foreground": p["subtext0"],
+        "breadcrumb.focusForeground": p["text"],
+        "breadcrumb.activeSelectionForeground": p["iris"],
+        "breadcrumbPicker.background": p["surface0"],
+
+        "gitDecoration.modifiedResourceForeground": p["gold"],
+        "gitDecoration.deletedResourceForeground": p["love"],
+        "gitDecoration.untrackedResourceForeground": p["pine"],
+        "gitDecoration.ignoredResourceForeground": p["subtext0"],
+        "gitDecoration.conflictingResourceForeground": p["rose"],
+        "gitDecoration.stageModifiedResourceForeground": p["gold"],
+        "gitDecoration.stageDeletedResourceForeground": p["love"],
+
+        "minimap.background": p["mantle"],
+        "minimapGutter.addedBackground": p["pine"],
+        "minimapGutter.modifiedBackground": p["gold"],
+        "minimapGutter.deletedBackground": p["love"],
+        "minimap.findMatchHighlight": p["iris"] + "50",
+
+        "peekView.border": p["iris"],
+        "peekViewEditor.background": p["surface0"],
+        "peekViewResult.background": p["mantle"],
+        "peekViewTitle.background": p["surface0"],
+        "peekViewResult.selectionBackground": p["surface1"],
+        "peekViewEditor.matchHighlightBackground": p["iris"] + "40",
+
+        "focusBorder": p["iris"] + "80",
+        "contrastBorder": "#00000000",
+        "contrastActiveBorder": "#00000000",
+
+        "quickInput.background": p["surface0"],
+        "quickInput.foreground": p["text"],
+        "quickInputList.focusBackground": p["surface1"],
+        "quickInputList.focusForeground": p["text"],
+
+        "keybindingLabel.background": p["surface0"],
+        "keybindingLabel.foreground": p["text"],
+        "keybindingLabel.border": p["surface1"],
+        "keybindingLabel.bottomBorder": p["overlay0"],
+
+        "commandCenter.foreground": p["subtext1"],
+        "commandCenter.activeForeground": p["text"],
+        "commandCenter.background": p["surface0"],
+        "commandCenter.activeBackground": p["surface1"],
+        "commandCenter.border": p["surface1"],
+        "commandCenter.activeBorder": p["iris"],
+
+        "settings.headerForeground": p["text"],
+        "settings.modifiedItemIndicator": p["iris"],
+        "settings.focusedRowBackground": p["surface0"],
+        "settings.focusedRowBorder": p["iris"],
+
+        "welcomePage.background": p["base"],
+        "walkThrough.embeddedEditorBackground": p["surface0"],
+
+        "diffEditor.insertedTextBackground": p["pine"] + "20",
+        "diffEditor.removedTextBackground": p["love"] + "20",
+        "diffEditor.border": p["surface1"],
+    }
+
+    existing_transparency = {
+        "minimap.background": "#00000066",
+        "editorGroupHeader.tabsBackground": "#00000000",
+        "editorGroupHeader.noTabsBackground": "#00000000",
+        "editorGutter.background": "#00000000",
+        "panel.background": "#00000000",
+        "tab.activeBackground": "#00000000",
+        "tab.unfocusedActiveBackground": "#00000000",
+        "sideBar.background": "#00000000",
+        "activityBar.background": "#00000000",
+        "editor.background": "#00000000",
+        "tab.inactiveBackground": "#00000000",
+        "tab.unfocusedInactiveBackground": "#00000000",
+    }
+
+    content = VSCODE_SETTINGS.read_text()
+
+    for key, val in existing_transparency.items():
+        if key in morandi_colors:
+            morandi_colors[key] = val
+
+    new_block = json.dumps(morandi_colors, indent=4)
+    new_block_lines = new_block.split("\n")
+    new_block_lines = ["    " + line for line in new_block_lines]
+    new_block = "\n".join(new_block_lines)
+
+    content, _ = re.subn(
+        r'"workbench\.colorCustomizations"\s*:\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}',
+        f'"workbench.colorCustomizations": {new_block}',
+        content,
+        count=1,
+    )
+
+    if "workbench.colorCustomizations" not in content:
+        content = content.rstrip()
+        if content.endswith("}"):
+            content = content[:-1].rstrip()
+            content += f',\n    "workbench.colorCustomizations": {new_block}\n}}\n'
+
+    VSCODE_SETTINGS.write_text(content)
 
 def write_kde(colors):
     def rgb_str(c): return f"{c[0]},{c[1]},{c[2]}"
@@ -571,6 +814,7 @@ def main():
     write_kde(colors)
     write_clash_verge(palette)
     write_flclash(palette)
+    write_vscode(palette)
     
     try:
         write_blender(palette)

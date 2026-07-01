@@ -1,6 +1,15 @@
 [user]
 	name = lanrhyme
 	email = xiao_ren233@foxmail.com
+	signingkey = ~/.ssh/id_ed25519
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	allowedSignersFile = ~/.ssh/allowed_signers
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
 [core]
 	autocrlf = input
 [safe]

@@ -1,1 +1,5 @@
-{}
+github.com:
+    git_protocol: ssh
+    users:
+        LanRhyme:
+    user: LanRhyme
