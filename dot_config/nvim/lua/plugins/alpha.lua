@@ -2,13 +2,9 @@ return {
   {
     "goolord/alpha-nvim",
     event = "VimEnter",
-    opts = {
-      button = function(...) return { opts = {} } end,
-      section = { buttons = { val = {} } },
-    },
-    config = function()
+    opts = require("alpha.themes.dashboard"),
+    config = function(_, dashboard)
       local alpha = require("alpha")
-      local dashboard = require("alpha.themes.dashboard")
       
       dashboard.section.header.val = {
         "                                                     ",
