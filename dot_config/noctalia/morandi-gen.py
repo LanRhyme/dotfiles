@@ -324,7 +324,7 @@ def write_vscode(palette):
         "markup.inline.raw":    "#c0c3b8",
         "markup.deleted":       "#d06a7a",
         "markup.inserted":      "#c0c3b8",
-        "markup.changed":       "#d4907e",
+        "markup.changed":       "#d4907e"
     }
 
     colors = {
@@ -414,7 +414,6 @@ def write_vscode(palette):
         "editorSuggestWidget.background":                    p["surface0"],
         "editorSuggestWidget.border":                        p["surface1"],
         "editorSuggestWidget.foreground":                    p["text"],
-        "editorSuggestWidget.highlightForeground":            p["iris"],
         "editorSuggestWidget.selectedBackground":             p["surface2"],
         "editorSuggestWidget.selectedForeground":             p["text"],
         "editorSuggestWidget.focusHighlightForeground":       p["iris"],
@@ -424,9 +423,7 @@ def write_vscode(palette):
         "editorHoverWidget.foreground":                      p["text"],
         "editorHoverWidget.highlightForeground":              p["iris"],
         "editorHoverWidget.statusBarBackground":              p["surface0"],
-        "editorStickyScroll.background":                     p["surface0"],
         "editorStickyScroll.hoverBackground":                p["surface1"],
-        "editorStickyScroll.border":                         p["surface1"],
         "editorInlayHint.background":                        p["surface0"] + "C0",
         "editorInlayHint.foreground":                        p["overlay1"],
         "editorInlayHint.typeForeground":                    "#d5cfb2",
@@ -439,7 +436,6 @@ def write_vscode(palette):
 
         # Editor groups & tabs
         "editorGroupHeader.tabsBackground":                  "#00000000",
-        "editorGroupHeader.tabsBorder":                      p["surface1"],
         "editorGroupHeader.noTabsBackground":                "#00000000",
         "editorGroupHeader.border":                          p["surface1"],
         "editorGroupHeader.tabsBorder":                      p["surface1"],
@@ -584,7 +580,6 @@ def write_vscode(palette):
         # Breadcrumb
         "breadcrumb.foreground":                             p["subtext0"],
         "breadcrumb.focusForeground":                        p["text"],
-        "breadcrumb.activeSelectionForeground":               p["iris"],
         "breadcrumbPicker.background":                       p["surface0"],
         "breadcrumbPicker.border":                           p["surface1"],
         "breadcrumb.focusBorder":                            p["iris"] + "80",
@@ -682,7 +677,6 @@ def write_vscode(palette):
         "settings.headerForeground":                          p["text"],
         "settings.modifiedItemIndicator":                      p["iris"],
         "settings.focusedRowBackground":                       p["surface0"],
-        "settings.focusedRowBorder":                           p["iris"],
         "settings.headerBorder":                              p["surface1"],
         "settings.tabHoverBackground":                         p["surface1"],
         "settings.checkboxBackground":                          p["surface0"],
@@ -694,7 +688,6 @@ def write_vscode(palette):
 
         # Welcome page
         "welcomePage.background":                              p["base"],
-        "walkThrough.embeddedEditorBackground":                p["surface0"],
         "welcomePage.tileBackground":                          p["surface0"],
         "welcomePage.tileBorder":                              p["surface1"],
         "welcomePage.progress.foreground":                     p["iris"],
@@ -739,7 +732,6 @@ def write_vscode(palette):
         "notifications.background":                             p["surface0"],
         "notifications.foreground":                             p["text"],
         "notifications.border":                                 p["surface1"],
-        "notifications.border":                                 p["surface1"],
         "notificationLink.foreground":                          p["iris"],
         "notificationsErrorIcon.foreground":                     p["love"],
         "notificationsWarningIcon.foreground":                   "#d4907e",
@@ -775,7 +767,7 @@ def write_vscode(palette):
 
         # Toolbar
         "toolbar.hoverBackground":                               p["surface1"],
-        "toolbar.activeBackground":                              p["surface2"],
+        "toolbar.activeBackground":                              p["surface2"]
     }
 
     token_colors = [
@@ -834,7 +826,7 @@ def write_vscode(palette):
         # Lua
         {"scope": ["keyword.operator.logical.lua"], "settings": {"foreground": syntax["keyword"]}},
         # Git
-        {"scope": ["comment.line.double-slash.jsdoc", "comment.block.documentation"], "settings": {"foreground": syntax["comment"], "fontStyle": "italic"}},
+        {"scope": ["comment.line.double-slash.jsdoc", "comment.block.documentation"], "settings": {"foreground": syntax["comment"], "fontStyle": "italic"}}
     ]
 
     content = VSCODE_SETTINGS.read_text()
