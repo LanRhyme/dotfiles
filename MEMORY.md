@@ -4,7 +4,8 @@ This file serves as a live context buffer for AI agents. It tracks the current s
 
 ## Current Setup State
 - **Theming**: Handled globally by `~/.config/noctalia/morandi-gen.py` (Morandi colors). Avoid breaking structural CSS in UI-heavy apps
-- **Niri Animations**: Tuned to a slower, zero-bounce gentle glide (stiffness=180-220, damping-ratio=1.0) in `~/.config/niri/cfg/animation.kdl` to maximize smooth transitions
+- **Niri Animations**: Tuned to a slower, springy gentle glide (stiffness=180-220, damping-ratio=0.8) in `~/.config/niri/cfg/animation.kdl` to ensure fluid transition feel
+
 
 
 
