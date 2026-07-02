@@ -627,12 +627,6 @@ def main():
     except Exception as e:
         print(f"Failed to write obs theme: {e}")
 
-    try:
-        write_clash_verge(palette)
-    except Exception as e:
-        print(f"Failed to write clash verge theme: {e}")
-
-
     apply_system_changes(args.wallpaper)
     print("Morandi theme generated and system changes applied successfully.")
 
