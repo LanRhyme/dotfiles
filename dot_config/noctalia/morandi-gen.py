@@ -226,10 +226,9 @@ def write_fastfetch(palette):
     )
 
     if '"disk"' not in content:
-        content = re.sub(
-            r'(\{\s*"type"\s*:\s*"memory"[^}]*\})',
-            r'\1, { "type": "disk", "key": " \uf0a0 Disk" }',
-            content,
+        content = content.replace(
+            '{ "type": "memory", "key": " \uf0e4 Memory" }',
+            '{ "type": "memory", "key": " \uf0e4 Memory" }, { "type": "disk", "key": " \uf0a0 Disk" }',
         )
 
     FASTFETCH_CONFIG.write_text(content)
