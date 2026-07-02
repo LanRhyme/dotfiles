@@ -215,13 +215,24 @@ BorderWidth=0
         classicui.write_text(content)
 
 def write_fastfetch(palette):
-    config = f"""{{
-    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
-    "logo": {{ "type": "chafa", "source": "{Path.home()}/.config/fastfetch/avatar.png", "width": 40, "height": 19, "padding": {{ "top": 2, "right": 2 }} }},
-    "display": {{ "separator": "  ", "disableLinewrap": true, "color": {{ "keys": "{palette['iris']}", "title": "{palette['text']}" }} }},
-    "modules": [ "title", "separator", {{ "type": "os", "key": " \uf30e OS" }}, {{ "type": "kernel", "key": " \uf331 Kernel" }}, {{ "type": "uptime", "key": " \uf017 Uptime" }}, {{ "type": "packages", "key": " \uf2dc Packages" }}, {{ "type": "shell", "key": " \uf489 Shell" }}, {{ "type": "terminal", "key": " \uf120 Terminal" }}, {{ "type": "de", "key": " \uf35e DE" }}, {{ "type": "wm", "key": " \uf2d2 WM" }}, "separator", {{ "type": "host", "key": " \uf2db Host" }}, {{ "type": "cpu", "key": " \uf2db CPU" }}, {{ "type": "gpu", "key": " \uf26c GPU" }}, {{ "type": "memory", "key": " \uf0e4 Memory" }}, "colors" ]
-}}"""
-    FASTFETCH_CONFIG.write_text(config)
+    if not FASTFETCH_CONFIG.exists():
+        return
+    content = FASTFETCH_CONFIG.read_text()
+
+    content = re.sub(
+        r'"color"\s*:\s*\{[^}]*\}',
+        f'"color": {{ "keys": "{palette["iris"]}", "title": "{palette["text"]}" }}',
+        content,
+    )
+
+    if '"disk"' not in content:
+        content = re.sub(
+            r'(\{\s*"type"\s*:\s*"memory"[^}]*\})',
+            r'\1, { "type": "disk", "key": " \uf0a0 Disk" }',
+            content,
+        )
+
+    FASTFETCH_CONFIG.write_text(content)
 
 ALACRITTY_ORIGINAL_NORMAL = {"black": "#1c1c1c", "red": "#ff6c6b", "green": "#98be65", "yellow": "#ecbe7b", "blue": "#51afef", "magenta": "#c678dd", "cyan": "#46d9ff", "white": "#bbc2cf"}
 ALACRITTY_ORIGINAL_BRIGHT = {"black": "#5b6268", "red": "#da8548", "green": "#4db5bd", "yellow": "#ecbe7b", "blue": "#3071db", "magenta": "#a9a1e1", "cyan": "#46d9ff", "white": "#dfdfdf"}
