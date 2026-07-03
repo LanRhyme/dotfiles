@@ -769,8 +769,16 @@ def write_reaper(palette):
         rt_content = re.sub(r'(saturnalpha[a-zA-Z_0-9]*\s+.*\s+)255 1 255', r'\g<1>0 1 255', rt_content)
             
         rtconfig_path.write_text(rt_content)
+        
+    # Zip the theme to force Reaper to reload it without caching old images
+    zip_path = theme_dir / "Morandi.ReaperThemeZip"
+    subprocess.run(["zip", "-r", "-q", str(zip_path), "Morandi.ReaperTheme", "Morandi/"], cwd=str(theme_dir))
+    
+    # Remove the loose ReaperTheme file so Reaper doesn't show duplicate themes
+    (theme_dir / "Morandi.ReaperTheme").unlink(missing_ok=True)
+    
     # We no longer override color_theme here so the user can choose freely. 
-    # But if they choose Morandi.ReaperTheme, it will now inherit from Reapertips Theme!
+    # But if they choose Morandi.ReaperThemeZip, it will now inherit from Reapertips Theme!
     
     reaper_ini.write_text(content)
 
