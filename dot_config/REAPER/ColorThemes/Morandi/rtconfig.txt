@@ -1559,11 +1559,11 @@ endmacro
                   set mcp.custom.labeladjustfilter mcp.label
 
                      set mcp.custom.labeladjust.color mcp_solid_color##lttype=3 [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255] [0]
-                     set mcp.custom.labeladjustfilter.color mcp_solid_color##lttype=3 [0 0 0 0 30 30 30 150] [0]
+                     set mcp.custom.labeladjustfilter.color mcp_solid_color##lttype=3 [0 0 0 0 26 26 24 150] [0]
 
                      set mcp.custom.labelbg mcp.label
                      set colorlimiter saturnalphamcp##lttype<100 100 saturnalphamcp##lttype
-                     set mcp.custom.labelbg.color mcp_solid_color##lttype=2 [0 0 0 255 30 30 30 255] mcp_solid_color##lttype=3 [0 0 0 255 30 30 30 colorlimiter] [0 0 0 255 trackcolor_r trackcolor_g trackcolor_b 60] 
+                     set mcp.custom.labelbg.color mcp_solid_color##lttype=2 [0 0 0 255 26 26 24 255] mcp_solid_color##lttype=3 [0 0 0 255 26 26 24 colorlimiter] [0 0 0 255 trackcolor_r trackcolor_g trackcolor_b 60] 
                      set mcp.custom.labelbground mcp.label
 
                   set mcp.mute  + mcp_column_anchor                * scale h<expandlogic{0} [-26 226 20 18 0 1 0 1] [-26 186 20 18 0 1 0 1]

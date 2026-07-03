@@ -722,11 +722,11 @@ def write_reaper(palette):
             "tcp_fxparm_bg.png": bg_alt_rgb,
             "tcp_fxparm_empty.png": bg_alt_rgb,
             "tcp_fxparm_fx_empty.png": bg_alt_rgb,
-            "mcp_fxlist_bg.png": bg_alt_rgb,
-            "mcp_fxlist_empty.png": bg_alt_rgb,
+            "mcp_fxlist_bg.png": bg_rgb,
+            "mcp_fxlist_empty.png": bg_rgb,
             "mcp_fxparm_bg.png": bg_alt_rgb,
-            "mcp_sendlist_bg.png": bg_alt_rgb,
-            "mcp_sendlist_empty.png": bg_alt_rgb,
+            "mcp_sendlist_bg.png": bg_rgb,
+            "mcp_sendlist_empty.png": bg_rgb,
             "track_fx_empty.png": bg_alt_rgb,
             "track_fx_empty_v.png": bg_alt_rgb,
             "track_fx_in_empty.png": bg_alt_rgb,
@@ -750,10 +750,10 @@ def write_reaper(palette):
             "genlist_bg.png": bg_rgb,
             "gloss.png": bg_rgb,
             "gloss_bg.png": bg_rgb,
-            "scrollbar.png": bg_dark_rgb,
-            "scrollbar_2.png": bg_dark_rgb,
-            "midi_inline_scrollbar.png": bg_dark_rgb,
-            "midi_inline_scroll.png": bg_dark_rgb,
+            "scrollbar.png": bg_alt_rgb,
+            "scrollbar_2.png": bg_alt_rgb,
+            "midi_inline_scrollbar.png": bg_alt_rgb,
+            "midi_inline_scroll.png": bg_alt_rgb,
         }
         
         for filename, new_color in tint_map.items():
@@ -799,14 +799,19 @@ def write_reaper(palette):
     if rtconfig_path.exists():
         rt_content = rtconfig_path.read_text()
         
-        # Replace 65 65 65, 50 50 50, 45 45 45, 35 35 35, 25 25 25 with the dynamic bg_rgb
-        for grey_val in ["65 65 65", "50 50 50", "45 45 45", "35 35 35", "25 25 25"]:
-            pattern = r"\[0 0 0 0 " + grey_val + r" (\S+)\]"
-            replacement = f"[0 0 0 0 {bg_rgb[0]} {bg_rgb[1]} {bg_rgb[2]} \\1]"
+        # Replace 65 65 65, 50 50 50, 45 45 45, 35 35 35, 25 25 25, 30 30 30 with the dynamic bg_rgb
+        for grey_val in ["65 65 65", "50 50 50", "45 45 45", "35 35 35", "25 25 25", "30 30 30", "41 41 41"]:
+            pattern = r"\[0 0 0 (0|255) " + grey_val + r" (\S+)\]"
+            replacement = f"[0 0 0 \\1 {bg_rgb[0]} {bg_rgb[1]} {bg_rgb[2]} \\2]"
             rt_content = re.sub(pattern, replacement, rt_content)
             
         # Forcefully disable the bright saturationbg overlays by setting saturnalpha to 0
         rt_content = re.sub(r'(saturnalpha[a-zA-Z_0-9]*\s+.*\s+)255 1 255', r'\g<1>0 1 255', rt_content)
+        
+        # Also replace standalone instances of these greys that might be used for drawing
+        for grey_val in ["30 30 30", "41 41 41", "47 47 47", "31 31 31"]:
+            rt_content = rt_content.replace(f"[{grey_val}", f"[{bg_rgb[0]} {bg_rgb[1]} {bg_rgb[2]}")
+            rt_content = rt_content.replace(f" {grey_val} ", f" {bg_rgb[0]} {bg_rgb[1]} {bg_rgb[2]} ")
             
         rtconfig_path.write_text(rt_content)
         
