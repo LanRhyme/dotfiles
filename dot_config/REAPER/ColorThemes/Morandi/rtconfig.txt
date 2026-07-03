@@ -1,0 +1,2127 @@
+Flat Madness v5 theme DARK
+
+      you can contact me for any questions and bug report: gapalil001@gmail.com
+
+      created by Dmytro Hapochka.
+
+      special thanks for inspiring : BlankFiles and Albert-C
+      thanks for technical support and solve some issues: FeedTheCat, Lucas LCS
+      thanks Justin for solve issues/implementing requests from REAPER side
+      thanks White Tie for tips, explanations and consulting
+      thanks to users for improvement requests and for using my theme!
+
+      so... let's get started 
+
+      version 7
+
+HEADER   
+      fmversion 5.1.1
+      use_pngs 1
+      use_overlays 1
+      peaksedges 1
+      tcp_folderindent 0
+      tcp_folderstart 0
+      tcp_folderend 0
+      tcp_showborders 0
+      mcp_showborders 0
+      transport_showborders 1
+      tcp_vupeakwidth 1
+      mcp_vupeakheight 1
+      mcp_mastervupeakheight 1
+      mcp_altmeterpos 1
+      mcp_vol_zeroline 85000000
+      tcp_vol_zeroline 25252525
+      tcp_pan_zeroline 85000000
+      tcp_width_zeroline 85000000
+
+      tcp_meterv 0
+      mcp_meterv 0
+
+      misc_dpi_translate   134 150
+      misc_dpi_translate   174 200
+   
+      mcp_pan_zeroline 85000000 
+      mcp_width_zeroline 85000000
+      trans_speed_zeroline 85000000
+      gen_vol_zeroline 99505050
+      gen_pan_zeroline FF000000asdsasddsa123
+      item_volknobfg FF000000 FF000000 FF000000
+      tcp_voltext_flags 1
+      tcp_master_voltext_flags 4
+      mcp_voltext_flags 5 5
+      mcp_master_voltext_flags 5 
+      vertfont_topdown 1
+      tcp_heights 0 18 39 65
+      envcp_min_height 18
+      tcp_master_minheight 62
+      peaksedges 0 1
+      tcp_voltext_flags flag maxlen 2
+      tcp_iconsize 100 
+      mcp_min_height 300
+      trans_showborders 0 
+      tinttcp  0
+      adjuster_script FM_4.0_theme_adjuster.lua
+
+      set bright 0
+
+THEME ADJUSTER CONTROLS  
+
+LAYOUT A (DEFAULT)
+
+      define_parameter hideall 'DOES FLAT MADNESS BEST THEME EVER? NO/YES' 2 1 2               df mn mx
+      define_parameter meter_positionmd_A       'A TCP meter position'                           1 1 4        id 1
+      define_parameter lnstatemd_A              'A switching to longname for TCP'                0 0 1        id 2
+      define_parameter min_fxlist_A             'A TCP FX SLOT minimal width'                    65 30 100    id 3
+      define_parameter embed_position_A         'A show TCP FX embedded UI instead of FXList'    0 0 1        id 4
+      define_parameter tcp_folder_recarms_A     'A TCP folder Record stuff'                      0 0 1        id 5
+      define_parameter mcp_folder_recarms_A     'A MCP folder Record stuff'                      0 0 1        id 6
+      define_parameter dbscales_A               'A TCP show db Scales'                           0 0 1        id 7
+      define_parameter mcpdbscales_A            'A MCP show db Scales'                           1 0 1        id 8
+      define_parameter trans_position           'Transport orientation'                          1 1 3        id 9
+      define_parameter tcp_solid_colorad_A      'A TCP Solid backgrounds'                        3 1 3        id 10
+      define_parameter mcp_solid_color_A        'A MCP Solid backgrounds'                        3 1 3        id 11
+      define_parameter mixer_folderindent_A     'A enable folder indentification for mixer'      2 1 2        id 12
+      define_parameter saturnc_A                'A background brighness'                         80 80 200    id 13    ; dark - 110 80 bright - 180 100
+      define_parameter saturnalpha_A            'A background saturation'                        255 1 255    id 14
+      define_parameter tcp_saturn_ident_A       'A selected track brightness'                    10 0 30      id 15
+      define_parameter saturncmcp_A             'A MCP background brighness'                     80 80 200    id 16    ; dark - 110 80 bright - 180 100
+      define_parameter saturnalphamcp_A         'A MCP background saturation'                    255 1 255    id 17
+      define_parameter tcp_saturn_identmcp_A    'A MCP selected track brightness'                10 0 30      id 18
+      define_parameter gencoloring_A            'tinttcp adjust'                                 2 1 250      id 19
+      define_parameter foldermargin_A           'A Center text label in folder/longname'         1 0 1        id 20
+      define_parameter envioswap                'swap send and envelope buttons'                 1 0 1        id 21
+      define_parameter tcplabelbrightness_A     'A tcp label brightness'                         120 120 200  id 22
+      define_parameter actionlist               ' tcp show quick actions'                       0 0 1         id 23
+      define_parameter    trans_mixer           ' show mixer button in transport'               1 0 1         id 24
+      define_parameter    trans_navigator       ' show navigator button in transport'           1 0 1         id 25
+      define_parameter    trans_mediainfolder   ' show mediainfolder button in transport'       1 0 1         id 26
+      define_parameter    trans_video           ' show video button in transport'               1 0 1         id 27
+      define_parameter    trans_regionman       ' show regionman button in transport'           1 0 1         id 28
+      define_parameter    trans_folder          ' show folder button in transport'              1 0 1         id 29
+      define_parameter    trans_explorer        ' show explorer button in transport'            1 0 1         id 30
+      define_parameter    dockheight            ' dock height adjustment'                       40 40 80      id 31
+      define_parameter    saturnfolder_A        'A background folder saturation'               120 1 255    id 32
+      define_parameter    fxsidead_A            'A TCP FX list side position'                  1 0 1        id 33
+      define_parameter    gloss                 'A enable gloss effect'                        1 0 1        id 34
+      define_parameter    tinymode_A            'A TCP tiny mode elements grouping layout'     1 1 3        id 35
+      define_parameter    mcpsaturnfolder_A     'A mcp background folder saturation'           120  1 255   id 36
+      define_parameter    dividercolor          'A TCP divider line transparation'             0 0 255      id 37
+      define_parameter    sendlist_A            'A separated list for sends'                   1 0 1        id 38
+      define_parameter    min_fxlist_sep_A      'A TCP FX separated SLOT minimal width'        65 30 100    id 39
+      define_parameter    mcppanslider_A        'A MCP PAN KNOB/SLIDER'                        0 0 1        ID 40
+      define_parameter    fxheight_A            'A TCP FXSLOT HEIGHT'                          16 16 20     id 41
+      define_parameter    fader_r_A             'A fader color red'                            120 1 255    id 42  
+      define_parameter    fader_g_A             'A fader color green'                          120 1 255    id 43  
+      define_parameter    fader_b_A             'A fader color blue'                           120 1 255    id 44  
+      define_parameter    fader_a_A             'A fader color alpha'                          150 1 255    id 45  
+      define_parameter    volumeadj_A           'show MCP volume microshift'                   1 0 1        id 46
+
+LAYOUT B
+
+      define_parameter meter_positionmd_B     'B TCP meter position'                           1 1 4        id 47
+      define_parameter lnstatemd_B            'B test switching to longname for TCP'           0 0 1        id 48
+      define_parameter min_fxlist_B           'B TCP FX SLOT minimal width'                    65 30 100    id 49
+      define_parameter embed_position_B       'B show TCP FX embedded UI instead of FXList'    0 0 1        id 50
+      define_parameter tcp_folder_recarms_B   'B TCP folder Record stuff'                      0 0 1        id 51
+      define_parameter mcp_folder_recarms_B   'B MCP folder Record stuff'                      0 0 1        id 52
+      define_parameter dbscales_B             'B TCP show db Scales'                           0 0 1        id 53
+      define_parameter mcpdbscales_B          'B MCP show db Scales'                           1 0 1        id 54
+      define_parameter tcp_solid_colorad_B    'B TCP Solid backgrounds'                        3 1 3        id 55
+      define_parameter mcp_solid_color_B      'B MCP Solid backgrounds'                        3 1 3        id 56
+      define_parameter saturnc_B              'B background brighness'                         80 80 200    id 57
+      define_parameter saturnalpha_B          'B background saturation'                        255 1 255    id 58
+      define_parameter tcp_saturn_ident_B     'B selected track brightness'                    10 0 30      id 59
+      define_parameter saturncmcp_B           'B MCP background brighness'                     80 80 200    id 60
+      define_parameter saturnalphamcp_B       'B MCP background saturation'                    255 1 255    id 61
+      define_parameter tcp_saturn_identmcp_B  'B MCP selected track brightness'                10 0 30      id 62
+      define_parameter foldermargin_B         'B Center text label in folder/longname'         1 0 1        id 63
+      define_parameter tcplabelbrightness_B   'B tcp label brightness'                         120 120 200  id 64
+      define_parameter actionlist_B           'B tcp show quick actions'                       0 0 1        id 65
+      define_parameter saturnfolder_B        'B background folder saturation'                  120 1 255    id 66
+      define_parameter fxsidead_B            'B TCP FX list side position'                     1 0 1        id 67
+      define_parameter tinymode_B            'B TCP tiny mode elements grouping layout'        1 1 3        id 68
+      define_parameter mcpsaturnfolder_B     'B mcp background folder saturation'              120 1 255    id 69
+      define_parameter sendlist_B            'B separated list for sends'                      1 0 1        id 70
+      define_parameter min_fxlist_sep_B      'B TCP FX separated SLOT minimal width'           65 30 100    id 71
+      define_parameter mcppanslider_B        'B MCP PAN KNOB/SLIDER'                           0 0 1        ID 72
+      define_parameter fxheight_B            'B TCP FXSLOT HEIGHT'                             16 16 20     id 73
+      define_parameter fader_r_B             'B fader color red'                               120 1 255    id 74 
+      define_parameter fader_g_B             'B fader color green'                             120 1 255    id 75  
+      define_parameter fader_b_B             'B fader color blue'                              120 1 255    id 76  
+      define_parameter fader_a_B             'B fader color alpha'                             150 1 255    id 77 
+      define_parameter volumeadj_B           'show MCP volume microshift'                      1 0 1        id 78 
+
+LAYOUT C
+
+      define_parameter meter_positionmd_C     'C TCP meter position'                           1 1 4        id 79
+      define_parameter lnstatemd_C            'C test switching to longname for TCP'           0 0 1        id 80
+      define_parameter min_fxlist_C           'C TCP FX SLOT minimal width'                    65 30 100    id 81
+      define_parameter embed_position_C       'C show TCP FX embedded UI instead of FXList'    0 0 1        id 82
+      define_parameter tcp_folder_recarms_c   'C TCP folder Record stuff'                      0 0 1        id 83
+      define_parameter mcp_folder_recarms_c   'C MCP folder Record stuff'                      0 0 1        id 84
+      define_parameter dbscales_C             'C TCP show db Scales'                           0 0 1        id 85
+      define_parameter mcpdbscales_C          'C MCP show db Scales'                           1 0 1        id 86
+      define_parameter tcp_solid_colorad_C    'C TCP Solid backgrounds'                        3 1 3        id 87
+      define_parameter mcp_solid_color_C      'C MCP Solid backgrounds'                        3 1 3        id 88
+      define_parameter saturnc_C              'C background brighness'                         80 80 200    id 89
+      define_parameter saturnalpha_C          'C background saturation'                        255 1 255    id 90
+      define_parameter tcp_saturn_ident_C     'C selected track brightness'                    10 0 30      id 91
+      define_parameter saturncmcp_C           'C MCP background brighness'                     80 80 200    id 92
+      define_parameter saturnalphamcp_C       'C MCP background saturation'                    255 1 255    id 93
+      define_parameter tcp_saturn_identmcp_C  'C MCP selected track brightness'                10 0 30      id 94
+      define_parameter foldermargin_C         'C Center text label in folder/longname'         1 0 1        id 95
+      define_parameter tcplabelbrightness_C   'C tcp label brightness'                         120 120 200  id 96
+      define_parameter actionlist_C           'C tcp show quick actions'                       0 0 1        id 97
+      define_parameter saturnfolder_C        'C background folder saturation'                  120 1 255    id 98
+      define_parameter fxsidead_C            'C TCP FX list side position'                     1 0 1        id 99
+      define_parameter tinymode_C            'C TCP tiny mode elements grouping layout'        1 1 3        id 100
+      define_parameter mcpsaturnfolder_C     'C mcp background folder saturation'              120 1 255    id 101
+      define_parameter sendlist_C            'C separated list for sends'                      1 0 1        id 102
+      define_parameter min_fxlist_sep_C      'C TCP FX separated SLOT minimal width'           65 30 100    id 103
+      define_parameter mcppanslider_C        'C MCP PAN KNOB/SLIDER'                           0 0 1        id 104
+      define_parameter fxheight_C            'C TCP FXSLOT HEIGHT'                             16 16 20     id 105
+      define_parameter fader_r_C             'C fader color red'                               120 1 255    id 106  
+      define_parameter fader_g_C             'C fader color green'                             120 1 255    id 107  
+      define_parameter fader_b_C             'C fader color blue'                              120 1 255    id 108  
+      define_parameter fader_a_C             'C fader color alpha'                             150 1 255    id 109  
+      define_parameter volumeadj_C           'C show MCP volume microshift'                    1 0 1        id 110
+
+      --- TCP MASTER METER 
+
+      define_parameter meter_positionmd_M    'A MTCP meter position'                           1 1 2        id 111
+      define_parameter    fxsidead_M         'A TCP FX list side position'                     1 0 1        id 112
+      define_parameter fxheight_M            'Master TCP FXSLOT HEIGHT'                        16 16 20     id 113
+      define_parameter sendlist_M            'separated list for MTCP sends'                   1 0 1        id 114
+      define_parameter dbscales_M            'A MTCP show db Scales'                           0 0 1        id 115
+      define_parameter tcp_folderindent      'TCP folder indentification factor'               10 0 20      id 116
+
+            --- START COPYPASTE HERE
+
+TRACK CONTROL PANEL
+
+clear tcp.*
+      macro DrawTCP scale fontsize meterbridge pan_type meter_position lttype
+      
+      customs
+
+            custom tcp.custom.fixlanes                    " " 42430 "enable fixed lanes"  fixed_lanes
+            custom tcp.custom.fixlanes.enabled            " " 42430 "disable fixed lanes" fixed_lanes_on
+            custom tcp.custom.fixlanes.playonly           " " 42638 "show/play the only fixed lane"  fixed_lanes_single
+            custom tcp.custom.fixlanes.playall            " " 42799 "play all fixed lanes"           fixed_lanes_all
+            custom tcp.custom.fixlanes.hidebuttons        " " 42610 "hide fixed lanes buttons"       fixed_lanes_hidebuttons
+            custom tcp.custom.fixlanes.moveup             " " 42938 "Move items up if possible to minimize lane usage" fixed_lanes_moveup
+            custom tcp.custom.palette                     " " 40357 "Set Track To Custom Color..."    tcp_palette 
+            custom tcp.custom.palettenorm                 " " 40357 "Set Track To Custom Color..."    tcp_color_palette
+            custom tcp.custom.embedded.frame              " " none  " "                              tcp_embedded_frame
+
+            custom tcp.custom.folderlabel         " " 0 " "      'tcp_idxbg'
+            custom tcp.custom.folderlabelsel " " 0 " "      'tcp_idxbg'
+            custom tcp.custom.foldercompbg   " " 0 " "      'tcp_recinput'
+            custom tcp.custom.lanesbg        " " 0 " "      'lanesbg'
+
+            custom tcp.custom.colorbg        " " 0 " "      'tcp_color_bg'
+            custom tcp.custom.colorbgsel     " " 0 " "      'tcp_color_bgsel'
+
+            custom tcp.custom.greybg         " " 0 " "      'tcp_grey_bg'
+            custom tcp.custom.greybgsel      " " 0 " "      'tcp_grey_bgsel'
+
+            custom tcp.custom.adjustbg              " " 0 " "      'tcp_adjust_bg'
+            custom tcp.custom.adjustbgsel           " " 0 " "      'tcp_adjust_bgsel'
+            custom tcp.custom.glossbg               " " 0 " "      'gloss_bg'
+            custom tcp.custom.gloss                 " " 0 " "      'gloss'
+            custom tcp.custom.glossfx               " " 0 " "      'gloss'
+            custom tcp.custom.glosspan              " " 0 " "      'gloss'
+            custom tcp.custom.glosswid              " " 0 " "      'gloss'
+            custom tcp.custom.glossms               " " 0 " "      'gloss'
+            custom tcp.custom.glossvol              " " 0 " "      'gloss'
+            custom tcp.custom.glossall              " " 0 " "      'gloss'
+            custom tcp.custom.glossenv              " " 0 " "      'gloss'
+            custom tcp.custom.glosspank             " " 0 " "      'gloss'
+            custom tcp.custom.glosswidk             " " 0 " "      'gloss'
+
+            custom tcp.custom.saturationbg          " " 0 " "
+            custom tcp.custom.panbg                 " " 0 " "      'tcp_pan_labelbg'
+            custom tcp.custom.widbg                 " " 0 " "      'tcp_pan_labelbg'
+            custom tcp.custom.actionsbg             " " 0 " "
+            custom tcp.custom.actionsbgl            " " 0 " "      'tcp_recinput'
+            custom tcp.custom.fxsidefill            " " 0 " "
+            custom master.tcp.custom.fxsidefill     " " 0 " "
+            custom tcp.custom.upperdivider          " " 0 " "
+            custom tcp.custom.lowerdivider          " " 0 " "
+            custom tcp.custom.fulldivider           " " 0 " "
+            custom tcp.custom.dividerbg             " " 0 " "
+            custom tcp.custom.volumebg              " " 0 " "
+            custom tcp.custom.volumebgc             " " 0 " "
+            custom tcp.custom.volol                 " " 0 " "      'tcp_volknob_overlay'
+            custom tcp.custom.findent               " " 0 " "
+
+            --- WOW! YOU FOUND MY SECRET FEATURE! open script "Default 7.0 theme adjuster" and set parameter "tcp show quick actions" to 2. Then, find your desired custom ID's and paste them in dedicated places below instead "(number)_actionID" writing
+
+            custom tcp.custom.action1        " " 1_actionID "run custom action 1"    tcp_customaction
+            custom tcp.custom.action2        " " 2_actionID "run custom action 2"    tcp_customaction
+            custom tcp.custom.action3        " " 3_actionID "run custom action 3"    tcp_customaction
+            custom tcp.custom.action4        " " 4_actionID "run custom action 4"    tcp_customaction
+            custom tcp.custom.action5        " " action " "    tcp_customaction
+            custom tcp.custom.action6        " " action " "    tcp_customaction
+            custom tcp.custom.action7        " " action " "    tcp_customaction
+            custom tcp.custom.action8        " " action " "    tcp_customaction
+
+            front set tcp.custom.actionsbg tcp.custom.actionsbgl tcp.custom.action1 tcp.custom.action2 tcp.custom.action3 tcp.custom.action4 \
+                       tcp.custom.action5 tcp.custom.action6 tcp.custom.action7 tcp.custom.action8 tcp.custom.saturationbg tcp.custom.glossall \
+                       tcp.custom.colorbg tcp.custom.colorbgsel tcp.custom.greybg tcp.custom.greybgsel tcp.custom.adjustbg tcp.custom.adjustbgsel \
+                       tcp.custom.fxsidefill tcp.custom.embedded.frame tcp.custom.foldercompbg tcp.custom.lanesbg tcp.custom.actionsbg \
+                       tcp.custom.actionsbgl tcp.custom.folderlabel tcp.custom.folderlabelsel tcp.trackidx tcp.custom.glossbg tcp.io tcp.env \
+                       tcp.label tcp.folder tcp.folder.start tcp.foldercomp tcp.recarm tcp.recmon tcp.solo tcp.mute tcp.recmode \
+                       tcp.custom.fixlanes.playonly tcp.custom.fixlanes.playall tcp.custom.fixlanes.hidebuttons \
+                       tcp.custom.fixlanes.moveup tcp.phase tcp.recinput tcp.custom.panbg tcp.pan tcp.pan.label tcp.custom.volumebgc \
+                       tcp.custom.volumebg tcp.volume tcp.custom.volol tcp.volume.label tcp.custom.widbg tcp.width tcp.width.label \
+                       tcp.fxin tcp.folder.indent tcp.meter tcp.custom.fixlanes tcp.fx tcp.fxlist tcp.fxbyp tcp.fxparm \
+                       tcp.custom.fixlanes.enabled tcp.custom.fixlanes tcp.custom.action1 tcp.custom.action2 tcp.custom.action3 \
+                       tcp.custom.action4 tcp.custom.palettenorm tcp.custom.glossfx tcp.custom.gloss  tcp.custom.glosspan tcp.custom.glosswid \
+                       tcp.custom.glossms tcp.custom.glossvol tcp.custom.upperdivider  tcp.custom.lowerdivider tcp.custom.glossenv  tcp.custom.glosspank tcp.custom.glosswidk   tcp.custom.findent  
+
+                                       25 30 38 45 60 70 80 90 
+            set breakpoint_h  * scale [25 30 38 45 60 70 80 90] 
+            set labelBP_w     * scale [440 380 300] 
+            set recarmsBP     * scale [38 45 70 90 100 25]
+            set LongmameBP_h  * scale [25 38 45]
+            set trackidxBP    * scale [38 440 380 30]   
+
+            set lnstate_tm tinymode##lttype<3 0 1 
+            set mpos_tiny  h<breakpoint_h{2} 2 meter_positionmd##lttype
+              
+            set lnstate  h<breakpoint_h{2} lnstate_tm trackidx=0 0 lnstatemd##lttype
+            set meter_position meterbridge=1 2 tinymode##lttype=2 mpos_tiny meter_positionmd##lttype
+
+            set heights_nofxlistLN [42 48 60 70 82 92 114] 
+            set heights_nofxlist  lnstate=1 heights_nofxlistLN folderstate=0  [20 26 38 48 60 70 92] folderstate>0 [42 48 60 70 82 92 114] folderstate<0 [20 26 38 48 60 70 92]                                                            0  1  2  3  4  5  6
+            set FXIOBP_h      * scale tcp_fxparms=0 heights_nofxlist  [25 25 38 48 60 70 90] 
+            set FXIOBP_h_high * scale                                 [25 25 38 48 60 70 90] 
+            set FXIOBP_w      * scale h<=FXIOBP_h{0} [440 380] folderstate=1 [440 380] lnstate=1 [440 380] tcp_fxparms=0 [360 320] [440 380]
+            set NoFXBP_w      * scale [314 400]
+
+            set MSBP * scale [18 23 25 45 68 70 80 100]
+            
+            set tcp.dragdropinfo [0 3]
+            
+            set tcp_solid_color trackidx=0 [3] trackidx>0 tcp_solid_colorad##lttype tcp_solid_colorad##lttype
+      
+            set fxside_enabled tcp_fxparms=0 [0] tcp_fxembed=0 [0] lnstate=1 [0] fxsidead##lttype
+            set fxsidefold tcp_folder_recarms##lttype=1 [0] lnstate=1 [0] tcp_fxparms=0 [0] meter_position=2 [0] fxsidead##lttype 
+            set fxside h<=breakpoint_h{2} [0] folderstate=1 fxsidefold lnstate=1 [0] tcp_fxparms=0 [0] meter_position=2 [0] fxsidead##lttype ;
+                                                lnstate=1 [0] tcp_fxparms=0 [0] tcp_fxembed=0 [0] meter_position=2 [0] fxsidead##lttype
+
+            set quickactions  track_selected=1 actionlist=1 [50 0 52 0] [0] 
+            set recarm_shift             tcp_solid_color=3  [10] [0]
+            set recarm_shift_collapse    tcp_solid_color=3  [10 0 -10 0] [0]
+            set tcp_size_shift           tcp_solid_color=3  [0 0 10 0]
+            set tcp_folderspace          folderstate=1 [0 26 0 -26]  lnstate=1 [0 26 0 -26]  [0 0 0 0]  
+            set nofx_adjust h<breakpoint_h{2} 0 72
+            set nofx_expandfldr          tcp_fxparms>0 [0 0 0 0] tcp_fxembed>0 [0 0 0 0] [0 0 nofx_adjust{0} 0] 
+            set nofx_expand              folderstate=1 nofx_expandfldr lnstate=1 nofx_expandfldr  tcp_fxparms>0 [0 0 0 0] tcp_fxembed>0 [0 0 0 0] [0 0 0 0] ; tcp_fxembed=1 [0 0 0 0] meter_position=2 [0 0 0 0] tcp_fxparms=1 [0 0 0 0]     
+            set nofx_shift [nofx_expand{2} 0 0 0]
+            set lgswtch tcp_solid_color=3 [-118] [-128]   
+
+            -- track panel size
+
+            set tcp.size  * scale + quickactions trackfixedlanes>0 + tcp_size_shift [386 122 260 0]  tcp_iconsize>1 + tcp_size_shift [386 122 260 0] + tcp_size_shift [370 122 244 0] 
+
+            set fixedlanes_trigger trackfixedlanes>0 [-16] [0]
+            set tcp.custom.actionsbg track_selected=1 * scale actionlist=1 + + [fixedlanes_trigger{0} 0 0 0] [-50 0 0 0] [tcp.size{0} 0 50 tcp.size{1} 1 0 1 1] [0]
+            set tcp.custom.actionsbg.color bright=1 [0 0 0 0 65 65 65 255] [0 0 0 0 50 50 50 255]
+            set tcp.custom.actionsbgl track_selected=1 + tcp.custom.actionsbg * scale [0 3 -6 -6] [0]
+            set tcp.custom.lanesbg * scale  trackfixedlanes>0 + [quickactions{0} 0 0 0] [370 0 18 122 1 0 1 1] tcp_iconsize>1  + [quickactions{0} 0 0 0] [370 0 18 122 1 0 1 1] [0]
+            
+            ---- experimental custom actions menu
+
+            def actonbutton 20 20
+
+            set tcp.custom.action1  track_selected=1 actionlist=1  + [tcp.custom.actionsbgl{0} tcp.custom.actionsbgl{1} 0 0] [2 2 18 18 1 0 1 0] [0]
+            set tcp.custom.action2    + tcp.custom.action1 [22 0 0 0] 
+            set tcp.custom.action3    + tcp.custom.action1 [0 22 0 0]   
+            set tcp.custom.action4    + tcp.custom.action3 [22 0 0 0]    
+            set tcp.custom.action5        
+            set tcp.custom.action6        
+            set tcp.custom.action7       
+            set tcp.custom.action8  
+            set fdepth * folderdepth tcp_folderindent
+            set tcp.margin * scale hideall=1 [3700 0 0 0]  h<FXIOBP_h{3} [fdepth 0 0 0] dividercolor=0 [fdepth 0 0 0]  [fdepth 2 0 0]     
+
+            --------- FOLDER BUTTONS
+
+            set folderBP_h * scale [90 80 45 23]
+
+            set folderstate_recarm_anchor h<breakpoint_h{7} [0]  [34 72 64 18]   
+            set folder_column h<breakpoint_h{6} [0]  + recarm_shift [34 58 64 18]  
+
+            set tcp.folder * scale folderstate=1 + folder_column [-4 -5 0 0] h<=folderBP_h{2} [0]  + recarm_shift [6 103 14 14 0 1 0 1]
+            set tcp.foldercomp * scale h<=breakpoint_h{0}  + recarm_shift [4 2 14 14] h<=breakpoint_h{1}  + recarm_shift [8 8 14 14]  + recarm_shift [8 8 14 14]
+            set lnstatecover  folderstate=1 + tcp.foldercomp * scale [-4 -4 8 6]  + tcp.foldercomp * scale [-4 -4 20 6]
+            set tcp.custom.foldercompbg folderstate=0 [0] folderstate>1 [0] h<=breakpoint_h{0} tcp.foldercomp lnstate=1 lnstatecover + tcp.foldercomp * scale [-4 -4 8 6] [0]
+
+            ---------- LABEL / TRACK NAME
+            --perhaps tiny mode
+            set labelcompress w>labelBP_w{0} + recarm_shift_collapse [25 4 96 20 0 0 1 0]  \
+                              w>labelBP_w{1} + recarm_shift_collapse [25 4 144 20 0 0 1 0] + recarm_shift_collapse [25 4 215 20 0 0 1 0]
+            --perhaps tight mode
+            set labelcompress_micro w>labelBP_w{0}  + recarm_shift_collapse [120 2 14 14 0 0 1 0]  \
+                                    w>labelBP_w{1}  + recarm_shift_collapse [120 2 54 14 0 0 1 0]  + recarm_shift_collapse [120 2 112 14 0 0 1 0]
+            --fx right side mode switcher for color layouts for folders
+            set fxsdlgs tcp_solid_color=3 [108]  [98]
+            set label_folder_fxside fxside=1 [25 4 fxsdlgs{0} 20 0 0 0 0] [25 4 225 20 0 0 1 0]
+            set label_folder  h<=breakpoint_h{0} + labelcompress_micro  [-16 0 32 0]  \
+                              h<=breakpoint_h{0} + labelcompress  [0 0 24 0] \
+                              h<=breakpoint_h{2} + labelcompress  [0 0 10 0]  + + nofx_expand recarm_shift_collapse label_folder_fxside
+            -- main label default non-foldered track                  
+            set tcp_label_main folderstate=1 label_folder  lnstate=1  label_folder   h<breakpoint_h{0} + recarm_shift [20 2 80 16] \
+                                                                          h<=breakpoint_h{1} + recarm_shift [20 5 80 16] \
+                                                                          h<=breakpoint_h{3} + recarm_shift [20 5 80 16] + recarm_shift [5 4 116 16]
+            -- i don't actually remember what the fuck is that sorry
+            set tcp_lnshift tcp_label_main{3}=20 [-24 0 24 0]
+            set tcp_label_lnmod folderstate=1 tcp_label_main tcp_lnshift
+
+            -- main tcp label container
+            set tcp_label  folderstate=1 + tcp_label_main [0 0 0 0] lnstate=1 + + tcp_label_main tcp_label_lnmod [0 0 0 0]  meter_position<3 + tcp_label_main [0 0 0 0] meter_position>2 + tcp_label_main [0 0 0 0] 
+            set tcp.label * scale tcp_label
+            set tcp.custom.findent * scale [-500 -10 500 200 0 0 0 1]
+            set tcp.custom.findent.color   [0 0 0 0 25 25 25 255]
+
+            -------- TRACK IDX
+
+            set trackidx_folder                                  h<=breakpoint_h{0} + recarm_shift [18 tcp_label{1} 120 tcp_label{3} 0 0 0 0] h<=breakpoint_h{2} [tcp_label{0} tcp_label{1} 30 tcp_label{3} 0 0 0 0] + recarm_shift [1 26 122 92 0 0 0 1]   
+            set trackidx_longname folderstate=1 trackidx_folder  h<=breakpoint_h{0} + recarm_shift [0 tcp_label{1} 120 tcp_label{3} 0 0 0 0] h<=breakpoint_h{2} [tcp_label{0} tcp_label{1} 30 tcp_label{3} 0 0 0 0] + recarm_shift [1 26 122 92 0 0 0 1]   
+            set tackidx_norm      h<=breakpoint_h{0}   [0 2 122 118 0 0 0 1]  [1 4 120 114 0 0 0 1]
+            set tcp.trackidx      * scale  folderstate=1   trackidx_folder  lnstate=1  trackidx_longname + recarm_shift  tackidx_norm
+
+            set tcp.trackidx.color          track_selected=1 [255 255 255] [100 100 100 255] 
+            set tcp_idx_margin             - / h * scale 2 19
+            set tcp.trackidx.margin     * scale  [7 tcp_idx_margin 4 tcp_idx_margin 0]
+
+            set lnheightswitch  h<=breakpoint_h{0} [4 0 4 0 0.2]  h<=breakpoint_h{3} [114 0 4 0 0.2]
+            set idxlmrgin trackidx>1000 [30] [24]
+            set lnspecific              lnstate=1 lnheightswitch [idxlmrgin{0} 0 22 0 0.2]
+
+            set tcp_recin_lnfolder   h<=recarmsBP{4} [0] tcp_folder_recarms##lttype=1 [30 74 64 20] [0] 
+            set tcp_recin_lnnorm     h<=breakpoint_h{7} [0] [30 46 64 20]  
+
+            set recin_longname      folderstate=1 tcp_recin_lnfolder h<breakpoint_h{6} [0] [30 52 64 20] 
+
+            set tcp.recinput      * scale folderstate=1  + recarm_shift recin_longname lnstate=1  + recarm_shift recin_longname h<=recarmsBP{3} [0]  + recarm_shift [30 64 64 20] 
+            set tcp.recinput.color bright=1 [120 120 120] [80 80 80] 
+            set tcp.recinput.margin * scale [12 0 2 0 0]
+
+            set tcp.fxin         + tcp.recinput * scale [0 0 -54 0] 
+
+            ------------- MUTE SOLO PHASE ANCHORS 
+
+                  set side_meter_mutes     h<=MSBP{0}   [330 -2 18 20 1 0 1 0] \
+                                           h<=MSBP{1}   [330 0 18 20 1 0 1 0]  \
+                                           h<=MSBP{2}   [330 2 18 20 1 0 1 0]  \
+                                           h<=MSBP{3}   [330 4 18 20 1 0 1 0] [347 4 20 18 1 0 1 0]    
+
+                  set side_meter_solos    h<=MSBP{0}   [348 -2 18 20 1 0 1 0] \
+                                          h<=MSBP{1}   [348 0 18 20 1 0 1 0]  \
+                                          h<=MSBP{2}   [348 2 18 20 1 0 1 0]  \
+                                          h<=MSBP{3}   [348 4 18 20 1 0 1 0] [347 22 20 18 1 0 1 0]    
+
+                  set side_meter_phase    h<=MSBP{5} [0] [349 100 17 17 1 1 1 1]       
+
+                  set tcp.mute  * scale  meter_position=3 + side_meter_mutes [0 0 0 0] \
+                                          h<=MSBP{0} [330 -2 18 20 1 0 1 0] \
+                                          h<=MSBP{1} [330 0 18 20 1 0 1 0] \
+                                          h<=MSBP{3} [330 4 18 20 1 0 1 0] [330 4 20 18 1 0 1 0] 
+
+                  set tcp.solo  * scale  meter_position=3 + side_meter_solos [0 0 0 0] \
+                                          h<=MSBP{0} [348 -2 18 20 1 0 1 0] \
+                                          h<=MSBP{1} [348 0 18 20 1 0 1 0]  \
+                                          h<=MSBP{3} [348 4 18 20 1 0 1 0] [330 22 20 18 1 0 1 0]  
+
+                  set tcp.phase * scale  meter_position=3 + side_meter_phase [0 0 0 0] h<=MSBP{4} [0]  [332 101 17 17 1 1 1 1]     
+               
+            --------- FX IO 
+
+            ---- FXBUTTONS NORMAL
+
+                  set fx_tiny                w>FXIOBP_w{0}  [134 4 22 20 1 0 1 0]  w>FXIOBP_w{1}  [182 4 22 20 1 0 1 0] [0]
+                  set fx_tight               w>FXIOBP_w{0}  [154 2 20 14 1 0 1 0]  w>FXIOBP_w{1}  [194 2 20 14 1 0 1 0] [0]
+
+            ---------- FX BUTTONS NO FXLIST
+
+                  set fxnofx [126 4 22 20]
+                  set fxnofx_fldr h<FXIOBP_h{1} [0] folderstate>0 + recarm_shift [126 26 22 20] lnstate=1 + recarm_shift [126 26 22 20] + recarm_shift  [126 4 22 20]
+
+            ---------- SUM
+                  set lgswtchfx tcp_solid_color=3 [136] [126]
+                  set tcp.fx * scale      h<=FXIOBP_h_high{1} fx_tight \
+                                          h<=FXIOBP_h_high{2} fx_tiny \
+                                          
+                                          tcp_fxparms>0 fxside=1 [lgswtchfx{0} 4 22 20 0 0 0 0] [254 4 22 20 1 0 1 0] \
+                                          tcp_fxembed>0 fxside=1 [lgswtchfx{0} 4 22 20 0 0 0 0] [254 4 22 20 1 0 1 0] \
+                                          meter_position=2 [254 4 22 20 1 0 1 0] \
+                                          tcp_fxparms=0  \
+                                          tcp_fxembed=0 fxnofx_fldr 
+
+                  set tcp.fxbyp        h<=FXIOBP_h_high{1}  + tcp.fx  * scale [19 0 -6 0] + tcp.fx * scale [22 0 -4 0]  
+                  set envfolderbp      * scale 54
+                  set env_column       h<=envfolderbp{0} [0]  + recarm_shift [30 30 64 20] 
+                  set envio_right      h<=FXIOBP_h_high{1}  + tcp.fx  * scale [25 0 10 0]  + tcp.fx * scale [20 0 26 0]
+                  set envio_left       * scale folderstate=1  env_column  lnstate=1 env_column h<recarmsBP{0} [0] h<recarmsBP{1}  + recarm_shift  [80 18 20 14] h<recarmsBP{2} [0]  + recarm_shift [30 42 64 20]
+                  --- delete ; if you want to activate swap then delete two stribgs below
+                  ; set tcp.io         envioswap=0 envio_left  envioswap=1 envio_right
+                  ; set tcp.env        envioswap=0 envio_right envioswap=1 envio_left 
+                   set tcp.io          envio_right
+                   set tcp.env         envio_left 
+
+            ---------------- VOLUME SLIDER
+
+                  set VolBP * scale [20 70 80]
+
+                  def tcpvol_t 68 10
+                  def tcpvol_l 68 20
+
+                  set tcp.volume.fadermode [1]
+                  set tcp_volume_main                       h<=FXIOBP_h{1} [254 4 tcpvol_t 1 0 1 0]  \
+                                                            h<=FXIOBP_h{2} [254 4 tcpvol_t 1 0 1 0]  \
+                                                            h<=FXIOBP_h{4} [254 26 tcpvol_t 1 0 1 0]  [254 26 tcpvol_l 1 0 1 0] 
+
+                  set tcp_volume_tighttrack                 h<=FXIOBP_h_high{1} [254 4 tcpvol_t 1 0 1 0]  \
+                                                            h<=FXIOBP_h_high{2} [254 4 tcpvol_l 1 0 1 0] 
+
+                                                            set vlsw * scale + recarm_shift 314
+
+                  set tcp_vol_nofx                            h<=FXIOBP_h{2} tcp_volume_main w>vlsw{0}  [198 4 tcpvol_l] - tcp_volume_main [128 0 0 0 1 0 1 0]
+                  set tcpvol_nofx_folderstate folderstate>0 + tcp_vol_nofx [0 22 0 0] lnstate=1 + tcp_vol_nofx [0 22 0 0] tcp_vol_nofx
+
+                  set tcp_volume_fxside         h<=FXIOBP_h_high{2} tcp_volume_tighttrack  \
+                                                tcp_fxparms>0 tcp_volume_main \
+                                                meter_position=2 tcp_volume_main \
+                                                tcp_fxparms=0 tcpvol_nofx_folderstate{4}=0 + recarm_shift tcpvol_nofx_folderstate tcpvol_nofx_folderstate \
+                                                tcp_fxembed=0 + recarm_shift tcpvol_nofx_folderstate  
+                                
+                  set tcp.volume   * scale fxside=1 + tcp_volume_fxside [lgswtch{0} 0 0 0 -1 0 -1 0] fxside=0 tcp_volume_fxside
+
+                  set tcp.custom.volumebg + tcp.volume * scale [3 3 -6 -6]
+                  set tcp.custom.volumebg.color fader_a##lttype=0 [0] [0 0 0 0 fader_r##lttype fader_g##lttype fader_b##lttype fader_a##lttype]
+                  set tcp.custom.volumebgc tcp.custom.volumebg
+                  set tcp.custom.volumebgc.color [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255]
+
+            ---------------- VOLUME LABEL 
+
+                  set tcp.volume.label           tcp.volume{h}=VolBP{0}  tcp.volume [0]
+                  set tcp.volume.label.color [255 255 255 140]
+
+                  set vollabelIND * scale [5]
+                  set tcp.volume.label.margin  * scale [5]
+
+            ============== PAN WIDTH ANCHORS 
+
+            -------------------- T C P    P A N
+
+            def sliderhugel 68 20
+            def sliderhuge  68 10
+            def slidertightl 33 10
+            def slidertight 33 10
+            def panwknob 20 21
+            def panwknobl 20 20
+            def fittoright 1 0 1 0
+
+            set tcp.pan.fadermode [1] 
+            set tcp.width.fadermode [1] 
+
+            set panbase_tcp   [254 0 0 0 1 0 1 0]
+
+            set ptype_switch pan_type=1 [33 10 212] [20 21 230]
+
+            set tcp_panknob_resize     w>FXIOBP_w{0}  [215 4 33 11 1 0 1 0] [0]
+            set tcp_pan_resize         w>FXIOBP_w{0}  [ptype_switch{2} 4 ptype_switch{0} ptype_switch{1} 1 0 1 0] [0]
+
+            -- P A N   F X L I S T
+
+                  set panslider_norm            h<=FXIOBP_h{3}     [0] \
+                                                h<=FXIOBP_h{4}     [254 38 sliderhuge fittoright] \
+                                                h<=FXIOBP_h{5}     [254 48 sliderhuge fittoright] \
+                                                                  [254 48 sliderhugel fittoright]
+
+                  set panslider_width           h<=FXIOBP_h{3}     [0] \
+                                                h<=FXIOBP_h{4}     [254 38 slidertight fittoright] \
+                                                h<=FXIOBP_h{5}     [254 48 slidertight fittoright] \
+                                                h<=FXIOBP_h{6}     [254 48 slidertightl fittoright] \
+                                                                  [254 48 sliderhugel fittoright]
+
+                  set panknob_norm              h<=FXIOBP_h{3}     [0] \
+                                                h<=FXIOBP_h{4}     [254 38 sliderhuge fittoright] \
+                                                h<=FXIOBP_h{5}     [254 48 sliderhuge fittoright] \
+                                                                  [254 48 panwknobl fittoright]
+
+                  set panknob_width             h<=FXIOBP_h{3}     [0] \
+                                                h<=FXIOBP_h{4}     [254 38 slidertight fittoright] \
+                                                h<=FXIOBP_h{5}     [254 48 slidertight fittoright] \
+                                                h<=FXIOBP_h{6}     [254 48 sliderhuge fittoright] \
+                                                                  [254 48 panwknobl fittoright]
+            -- P A N  F X L I S T  B E H A V I O R
+
+                  set panslider_huge      h<=FXIOBP_h{1} tcp_pan_resize [126 26 68 10]
+                  set panknob_huge        h<=FXIOBP_h{1} tcp_pan_resize [126 26 20 20]
+
+                  set panslider_fxlist    trackpanmode<4  panslider_norm   \
+                                          trackpanmode>4  panslider_width [0]
+
+                  set panknob_fxlist      trackpanmode<4  panknob_norm  \
+                                          trackpanmode>4  panknob_width [0]
+
+                  set pan_nofxkn_h        h<=FXIOBP_h{2}  [0] \
+                                          h<=FXIOBP_h{3}  [126 26 sliderhuge] \
+                                                         [126 26 20 20]
+
+                  set pan_nofxsl_h        h<=FXIOBP_h{2}  [0] \
+                                          h<=FXIOBP_h{3}  [126 26 sliderhuge] \
+                                                         [126 26 sliderhugel]
+
+                  set pan_nofxlist_knob     w<NoFXBP_w{0} + panknob_fxlist   [-128 0 0 0 -1 0 -1 0]  pan_nofxkn_h 
+                  set pan_nofxlist_slider   w<NoFXBP_w{0} + panslider_fxlist [-128 0 0 0 -1 0 -1 0]  pan_nofxsl_h 
+
+            -- P A N   S U M M I N G
+
+                  set panslider_nofxlist  trackpanmode<4 + recarm_shift  pan_nofxlist_slider  \
+                                          trackpanmode>4 + recarm_shift  pan_nofxlist_slider [0]    
+
+                  set panknob_nofxlist    trackpanmode<4 + recarm_shift  pan_nofxlist_knob  \
+                                          trackpanmode>4 + recarm_shift  pan_nofxlist_knob [0]
+               
+                set fxlist_mode     pan_type=1  panslider_fxlist  pan_type=2 panknob_fxlist   [0]
+                set nofxlist_mode   pan_type=1  panslider_nofxlist  pan_type=2 panknob_nofxlist [0]
+                set nofxlist_folderstate folderstate>0 + nofxlist_mode [0 22 0 0] lnstate=1 + nofxlist_mode [0 22 0 0] nofxlist_mode
+
+
+            -- P A N   W I D T H
+                       
+            set tcp.pan             h<=FXIOBP_h_high{1} tcp_panknob_resize  \
+                                    h<=FXIOBP_h_high{2} tcp_pan_resize  \
+                                    meter_position=2 fxlist_mode \
+                                    tcp_fxparms>0 fxlist_mode  \
+                                    tcp_fxembed>0 fxlist_mode \
+                                    tcp_fxparms=0 nofxlist_folderstate \
+                                    tcp_fxembed=0 nofxlist_folderstate 
+
+            set panside_legacy      tcp_solid_color=3 [-118 0 0 0 -1 0 -1 0] [-128 0 0 0 -1 0 -1 0] 
+            set tcp.pan  * scale    fxside=1 tcp_fxparms>0 + panside_legacy tcp.pan fxside=0 tcp.pan
+
+            -- W I D T H
+
+            set fxsideswitch_wids fxside=1 [136 48 sliderhugel 0 0 0 0] [254 48 sliderhugel fittoright]
+            set fxsideswitch_widk fxside=1 [136 48 panwknobl 0 0 0 0] [254 48 panwknobl fittoright]
+
+                  set widslider     h<=FXIOBP_h{3}     [0] \
+                                    h<=FXIOBP_h{4}     [289 38 slidertight fittoright] \
+                                    h<=FXIOBP_h{5}     [289 48 slidertight fittoright] \
+                                    h<=FXIOBP_h{6}     [289 48 slidertightl fittoright] \
+                                                       [254 70 sliderhugel fittoright]
+
+                  set widknob       h<FXIOBP_h{3}     [0] \
+                                    h<FXIOBP_h{4}     [289 38 slidertight fittoright] \
+                                    h<FXIOBP_h{5}     [289 48 slidertight fittoright] \
+                                    h<FXIOBP_h{6}     [254 60 sliderhuge fittoright] \
+                                                      [302 70 panwknobl fittoright]
+
+                  set wid_sum_eco   pan_type=1 widslider pan_type=2 widknob 
+
+                  set widknob_wide        h<=FXIOBP_h{2}  [0] \
+                                          h<=FXIOBP_h{3}  [198 26 sliderhuge] \
+                                                         [246 26 20 20]
+
+                  set widslider_wide      h<=FXIOBP_h{2}  [0] \
+                                          h<=FXIOBP_h{3}  [198 26 sliderhuge] \
+                                                         [198 26 sliderhugel]
+                                                         
+                  set widknob_nofxlist    w<NoFXBP_w{0} + wid_sum_eco  [-128 0 0 0 -1 0 -1 0] \
+                                          w>NoFXBP_w{0} + widknob_wide [0 0 0 0]
+
+                  set widslider_nofxlist  w<NoFXBP_w{0} + wid_sum_eco    [-128 0 0 0 -1 0 -1 0] \
+                                          w>NoFXBP_w{0} widslider_wide 
+
+                  set widknoborslider  pan_type=1 widslider_nofxlist pan_type=2 widknob_nofxlist
+
+                  set widnofxfolder    folderstate>0 + widknoborslider [0 22 0 0] lnstate=1 + widknoborslider [0 22 0 0] widknoborslider
+
+                  set nofxlist_mode_wid   trackpanmode<4 [0] \
+                                          trackpanmode>4 widnofxfolder
+
+                  set tcp.width.fadermode [1]
+                  set widmain             trackpanmode<4 [0] \
+                                          trackpanmode>4 wid_sum_eco
+
+                  set ptype_switchw pan_type=1 [0]  + tcp_pan_resize  [-24 0 0 0]
+
+                  set tcp.width         h<=FXIOBP_h_high{1} [0] \
+                                        h<=FXIOBP_h_high{2} ptype_switchw \
+                                        meter_position=2 widmain \
+                                        tcp_fxparms>0 widmain \
+                                        tcp_fxparms=0 + recarm_shift nofxlist_mode_wid \
+                                        tcp_fxembed>0 widmain \ 
+                                        tcp_fxembed=0 + recarm_shift nofxlist_mode_wid 
+                  set tcp.width  * scale    fxside=1 tcp_fxparms>0 + [lgswtch{0} 0 0 0 -1 0 -1 0] tcp.width fxside=0 tcp.width
+                                        
+            -- P A N  W I D T H  L A B E L
+
+                  set PMswitch pan_type=1 [0 0 0] [22 -48 26]
+
+                  set labelscaleguide * scale [10 20]
+   
+                  set tcp.pan.label    tcp.pan{h}=labelscaleguide{0}   [0] tcp.pan{h}=labelscaleguide{1}   + tcp.pan   * scale  [PMswitch{0} 0 PMswitch{2} 0] [0]
+                  set tcp.width.label  tcp.width{h}=labelscaleguide{0} [0] tcp.width{h}=labelscaleguide{1} + tcp.width * scale  [PMswitch{1} 0 PMswitch{2} 0] [0]
+
+                  set tcp.pan.label.color   pan_type=1 [255 255 255 120] [120 120 120] 
+                  set tcp.pan.label.margin   * scale tcp.pan{h}=labelscaleguide{0} [0 8 0 0 0.3] [0 0 0 0 0.3] 
+                  set tcp.width.label.margin * scale tcp.pan{h}=labelscaleguide{0} [0 8 0 0 0.3] [0 0 0 0 0.3] 
+                  set tcp.width.label.color   tcp.pan.label.color
+
+                  set tcp.custom.glosspank  gloss=1 tcp.pan [0]
+                  set tcp.custom.glosswidk  gloss=1 tcp.width [0]
+
+            -- M E T E R
+
+               set meterBP_w * scale [440 380 280]
+               set meterBP_h * scale [25 25 45 35]
+               set MFOLDERTIGHT  trackidx>100  [56 4 64 10 0 0 0 0] \
+                                 trackidx>1000 [50 4 70 10 0 0 0 0] \
+                                               [46 4 74 10 0 0 0 0]
+
+                  set meter_width    w>meterBP_w{0}      [102 4 47 114 0 0 1 1] \
+                                     w>meterBP_w{1}      [102 4 86 114 0 0 1 1]  [102 4 144 114 0 0 1 1]
+
+                  set mwidth_nofx_sidemeter           folderstate>0 [0]  w>FXIOBP_w{0}      [124 6 5 110 0 0 1 1] \
+                                                                         w>FXIOBP_w{1}      [124 6 53 110 0 0 1 1]  [104 6 145 110 0 0 1 1]
+
+                  set mwidth_nofx  folderstate>0 [0] meter_position=1 mwidth_nofx_sidemeter w>FXIOBP_w{0}      [104 6 25 110 0 0 1 1] \
+                                                                                            w>FXIOBP_w{1}      [104 6 73 110 0 0 1 1]  [104 6 145 110 0 0 1 1]
+                  set mdef h<meterBP_h{2} [100 6 20 110 0 0 0 1] [100 22 18 94 0 0 0 1] 
+                  set meter_default  folderstate>0    + recarm_shift   [100 28 20 88 0 0 0 1] lnstate=1   + recarm_shift   [106 28 17 88 0 0 0 1]  \
+                                                         h<1 [0]   + recarm_shift mdef 
+
+                  set tcp_meterbridge_fxsize    folderstate>0       [104 28 144 88 0 0 1 1] lnstate=1 [104 19 137 103 0 0 1 1] \
+                                                         h<1 [0]   [104 6 144 110 0 0 1 1] 
+                  set tcp_meterbridge fxside=1 + [100 0 -26 0] tcp_meterbridge_fxsize tcp_meterbridge_fxsize
+                       
+                  set side_meter_column  h<meterBP_h{0} [0]  h<=meterBP_h{2} [0]  [322 2 20 118 1 0 1 1] 
+                  set side_meter folderstate>0 side_meter_column lnstate=1 side_meter_column  h<1 [0] h<=meterBP_h{0}     [104 2 140 118 0 0 1 1] \ 
+                                                                                     h<meterBP_h{2} [0] [322 2 20 118 1 0 1 1] 
+                  set side_meter_edge_column h<=breakpoint_h{0} [0] \
+                                             h<=breakpoint_h{0} + meter_width [0 0 0 0] \
+                                             h<=breakpoint_h{3} [0] [352 2 15 118 1 0 1 1] 
+
+                  set side_meter_edge folderstate>0  side_meter_edge_column lnstate=1  side_meter_edge_column h<1 [0] h<breakpoint_h{0}     [104 2 140 118 0 0 1 1] \
+                                                                                               h<breakpoint_h{3} [0] [352 2 15 118 1 0 1 1] 
+
+                  set meterwidth_modes meter_position<3 + meter_width [0 0 0 0] meter_position>2 + meter_width   [18 0 -18 0]
+
+                  set meter_width_nofx meter_position=2 + recarm_shift_collapse mwidth_nofx meter_default 
+
+                  set meter_modes               meter_position=1  meter_default \
+                                                meter_position=2  + recarm_shift_collapse tcp_meterbridge   \
+                                                meter_position=3  + side_meter_edge [-22 0 -2 0] \
+                                                meter_position=4  + side_meter_edge [2 0 -2 0]
+
+                  set metermiddle            + + recarm_shift [6 2 0 -4] [tcp_label{2} tcp_label{1} 16 tcp_label{3} 1 0 1 0] 
+
+                  set meter_genfold folderstate>0 MFOLDERTIGHT meterwidth_modes 
+                  set bgsgrjhtd folderstate=1 metermiddle meter_width_nofx
+                                                                           
+                  set tcp_meter                 h<=breakpoint_h{0} + recarm_shift_collapse meter_genfold   \
+                                                h<=breakpoint_h{2} bgsgrjhtd \
+                                                h<=breakpoint_h{3}  meter_width_nofx meter_modes
+
+                  ---- meter longname state
+
+                        set lnrecarmswitch  tcp_folder_recarms##lttype=1 [70 22 84 26] [20 70 22 50]
+                        set lnmetertightfolder   + [lnrecarmswitch{0} 0 lnrecarmswitch{1} 0]   [trackidx_longname{0} 4 0 10 0 0 0 0]        
+                        set lnmetertightnorm     + [70 0 20 0] [trackidx_longname{0} 4 0 10 0 0 0 0]
+                        set lnmeterswitch_sml    folderstate=1 lnmetertightfolder  lnmetertightnorm 
+                        set lnmeterswitch_mid    folderstate=1 + [lnrecarmswitch{2} 0 lnrecarmswitch{3} 0]  [trackidx_longname{0} 6 0 16 0 0 0 0] + [84 0 26 0] [trackidx_longname{0} 6 0 16 0 0 0 0]
+
+                        set tcp_meter_ln  h<10 [0]   h<=breakpoint_h{0}  + recarm_shift lnmeterswitch_sml  h<=breakpoint_h{2}  + recarm_shift lnmeterswitch_mid \
+                                                      meter_position=1   + recarm_shift  [104 28 17 88 0 0 0 1] \
+                                                      meter_position=2   + recarm_shift_collapse [104 28 144 88 0 0 1 1] \
+                                                      meter_position=3   + side_meter_edge [-22 0 -2 0]  \
+                                                      meter_position=4   + side_meter_edge [2 0 -2 0] 
+
+                  set tcp.meter h<10 [0] * scale lnstate=1 tcp_meter_ln tcp_meter
+                                                           
+                  set tcp.meter.readout.color [100 100 100 255 255 255 255 180] 
+                  set tcp.meter.readout.margin [3 0 3 0 0.5] 
+
+                  set tcp.meter.scale.color.unlit.top    dbscales##lttype=1 [120 120 120 200] [0 0 0 0]
+                  set tcp.meter.scale.color.unlit.bottom dbscales##lttype=1 [120 120 120 200] [0 0 0 0]
+                  set tcp.meter.scale.color.lit.top      dbscales##lttype=1 [255 255 255 120] [0 0 0 0]
+                  set tcp.meter.scale.color.lit.bottom   dbscales##lttype=1 [255 255 255 120] [0 0 0 0]
+                 
+                  set tcp.meter.vu.div [1 0]
+
+                  ---- R E C A R M S
+
+                              set recarm_foldertiny w<labelBP_w{2} [0] h<=recarmsBP{0} + [-50 0 0 0] [tcp_meter{0} 6 16 16 1 0 1 0] [200 6 16 16 1 0 1 0] 
+            set recarm_adjuster tcp_folder_recarms##lttype=0 [0] h<=recarmsBP{5} [0] tcp_folder_recarms##lttype=1 + nofx_shift recarm_foldertiny [0]
+
+                              set tcp_recarm_ln      folderstate=1 + recarm_adjuster [0 0 0 0]  h<=breakpoint_h{0} [30 2 14 14] h<=breakpoint_h{2} [31 6 20 20] + nofx_shift [200 6 16 16 1 0 1 0]
+                              set tcp_recmode_ln     folderstate=1 + recarm_adjuster [14 0 0 0] h<=breakpoint_h{0} [44 2 14 14] h<=breakpoint_h{2} [46 6 20 20] + nofx_shift [214 6 16 16 1 0 1 0]
+                              set tcp_recmon_ln      folderstate=1 + recarm_adjuster [30 0 1 0] h<=breakpoint_h{0} [60 2 15 14] h<=breakpoint_h{2} [70 6 21 20] + nofx_shift [230 6 17 16 1 0 1 0]
+
+            set tcp_recarm     folderstate=1 tcp_recarm_ln  lnstate=1  tcp_recarm_ln   h<breakpoint_h{2} [0]  h<breakpoint_h{3}  + recarm_shift  [30 18 14 14]   + recarm_shift  [30 22 20 20]
+            set tcp_recmode    folderstate=1 tcp_recmode_ln lnstate=1  tcp_recmode_ln  h<breakpoint_h{2} [0]  h<breakpoint_h{3}  + recarm_shift  [44 18 14 14]   + recarm_shift  [50 22 20 20]
+            set tcp_recmon     folderstate=1 tcp_recmon_ln  lnstate=1  tcp_recmon_ln   h<breakpoint_h{2} [0]  h<breakpoint_h{3}  + recarm_shift  [62 18 15 14]   + recarm_shift  [72 22 22 20]
+
+                                    set LongmameBP_h * scale [25 38 45]
+                        ; set LongnameBP_w * scale [380 440]
+                  
+                        set ln_recarm_main    h<=LongmameBP_h{0} + + recarm_shift [20 0 0 0] [trackidx_longname{0} 2 14 14] h<=LongmameBP_h{1} + + recarm_shift [24 0 0 0]  [trackidx_longname{0} 6 16 16] tcp_recarm_ln
+                        set ln_recmode_main   h<=LongmameBP_h{0} + + recarm_shift [34 0 0 0] [trackidx_longname{0} 2 14 14] h<=LongmameBP_h{1} + + recarm_shift [40 0 0 0]  [trackidx_longname{0} 6 16 16] tcp_recmode_ln
+                        set ln_recmon_main    h<=LongmameBP_h{0} + + recarm_shift [50 0 0 0] [trackidx_longname{0} 2 15 14] h<=LongmameBP_h{1} + + recarm_shift [60 0 0 0]  [trackidx_longname{0} 6 18 16] tcp_recmon_ln
+
+                        set lnfolder_recarm   tcp_folder_recarms##lttype=1 ln_recarm_main   [0]
+                        set lnfolder_recmode  tcp_folder_recarms##lttype=1 ln_recmode_main  [0]
+                        set lnfolder_recmon   tcp_folder_recarms##lttype=1 ln_recmon_main   [0]
+
+                        set tcp_recarm_ln           folderstate=1 lnfolder_recarm   ln_recarm_main 
+                        set tcp_recmode_ln          folderstate=1 lnfolder_recmode  ln_recmode_main
+                        set tcp_recmon_ln           folderstate=1 lnfolder_recmon   ln_recmon_main
+
+            set tcp.recarm    * scale lnstate=1 tcp_recarm_ln  tcp_recarm
+            set tcp.recmode   * scale lnstate=1 tcp_recmode_ln tcp_recmode
+            set tcp.recmon    * scale lnstate=1 tcp_recmon_ln  tcp_recmon
+
+            ---- F X  L I S T 
+
+                              set fxside_ad fxside=1 [78 0 -4 0] [0 0 0 0]
+                              set fxlistBP_w * scale [265 370 380 440 290]
+                              set fxlistBP_h * scale [23 35 70 21]        
+                              set tcp_fxlist_default_fxside fxside=1 [126 3 119 120 0 0 1 1]  [126 26 119 96 0 0 1 1]              
+                                    set tcp_fxlist_default w<fxlistBP_w{0} [0]  meterbridge=1 [0] \
+                                                                              folderstate=1 + recarm_shift_collapse tcp_fxlist_default_fxside \
+                                                                              lnstate=1 + recarm_shift_collapse [126 26 119 96 0 0 1 1] \
+                                                                              h<=fxlistBP_h{0} [0] \
+                                                                              h<=fxlistBP_h{2} + recarm_shift_collapse [124 3 119 120 0 0 1 1] + recarm_shift_collapse [124 3 119 120 0 0 1 1] 
+                                    set fxlist_compact_fxside trackpanmode>4 [254 92 68 20 1 0 1 1] [254 70 68 44 1 0 1 1]
+                                    set fxlist_compact  fxside=1 + [lgswtch{0} 0 0 0 -1 0 -1 0] fxlist_compact_fxside  fxlist_compact_fxside
+
+                                    set embfolder folderstate=1 + recarm_shift [128 26 100 100 0 0 0 1] lnstate=1 + recarm_shift [128 26 100 100 0 0 0 1] + recarm_shift [128 3 100 120 0 0 0 1]
+                                    set tcp_fxlist_default_emb                w<fxlistBP_w{0} fxlist_compact \
+                                                                              w>fxlistBP_w{1} + embfolder [0 0 0 0] \
+                                                                              folderstate=1 + recarm_shift_collapse [128 26 115 100 0 0 1 1] \
+                                                                              lnstate=1    + recarm_shift_collapse [128 26 115 100 0 0 1 1] \
+                                                                              h<=fxlistBP_h{0} [0] \
+                                                                              h<=fxlistBP_h{2}  + recarm_shift_collapse [128 3 115 120 0 0 1 1] + recarm_shift_collapse [128 3 115 120 0 0 1 1] 
+
+                                    set fxlist_noembed tcp_fxembed=0 + tcp_fxlist_default [0 0 0 0] tcp_fxembed>0 + tcp_fxlist_default_emb [0 0 0 0]
+
+                                    set fxembed_switch tcp_fxembed>0 + fxlist_compact [-2 0 -4 0] meter_position=2 + fxlist_compact [-2 0 -4 0] tcp_fxembed=0 + + fxside_ad fxlist_noembed [0 0 0 0]
+                                    set fxlist_embed embed_position##lttype=0 + + fxside_ad fxlist_noembed [0 0 0 0]  embed_position##lttype=1 + fxembed_switch [0 0 0 0]
+                                    set fxlist_comb tcp_fxembed>0 [0] tcp_fxembed=0 + fxlist_noembed [0 0 0 0]
+                                    set resize_fxlist     w>fxlistBP_w{3} + fxlist_embed [0 0 -120 0]  w>fxlistBP_w{2} + fxlist_embed [0 0 -72 0] + fxlist_embed [0 0 0 0]
+
+                                    set tcp_fxdef        h<=fxlistBP_h{1} + resize_fxlist  [0 0 6 -4] + fxlist_embed [0 0 6 -4]
+
+                                    set tcp_fxparm    * scale  w<fxlistBP_w{4}  fxlist_compact meter_position=2  fxlist_compact  FXlistpos=1 + tcp_fxdef [72 0 0 0] tcp_fxdef 
+                                    set fxfont             * scale [fxheight##lttype 100] 
+                                    set tcp.fxparm.margin  scale=2 [40 5 20 10 1] [10 5 5 10 0.5] 
+                                    set tcp.fxparm.fx.norm.alpha [25]
+                                    set tcp.fxparm sendlist##lttype tcp_fxparm
+                                    
+                                    set fxlistswitch sendlist##lttype=1 [-1 -1 0] [0 0 0]
+                                    set fxlistembedflag embed_position##lttype=0 fxlistswitch embed_position##lttype=1 [0 0 0]
+                                    set tcp.fxparm.visflags w<fxlistBP_w{4}  [0 0 0] meter_position=2  [0 0 0] tcp_fxembed=1 fxlistembedflag sendlist##lttype=1 [-1 -1 0] sendlist##lttype=0 [0 0 0]
+                                    set tcp.fxparm sendlist##lttype=1 * scale fxlist_compact sendlist##lttype=0 tcp_fxparm
+                                    set fxlistsep_embed embed_position##lttype=0 tcp_fxparm [0]
+                                    set tcp.fxlist tcp_fxparms=0 [0] w<fxlistBP_w{4}  [0] meter_position=2 [0] sendlist##lttype=1 tcp_fxembed=1 fxlistsep_embed tcp_fxparm sendlist##lttype=0 [0] 
+                                    set tcp.fxlist.margin  scale=2 [40 5 20 10 0.2] [10 5 5 10 0.2] 
+
+            -- E M B E D D E D  U I
+
+                  set embed_main_fxside folderstate=1 + recarm_shift_collapse [240 30 4 84 0 0 1 1]  lnstate=1  + recarm_shift_collapse [240 30 4 84 0 0 1 1] + recarm_shift_collapse [240 8 4 106 0 0 1 1]
+                  set embed_main fxside=1 + embed_main_fxside [78 0 -6 0] embed_main_fxside
+                  set embed_norm embed_main  
+                  set embed_side embed_main  
+                  set embed_main                        meter_position>2  embed_side  embed_norm  
+                  set embed_sublevel2                   embed_position##lttype=1 + embed_main [-110 0 112 0] embed_main 
+                  set embed_level2                      tcp_fxembed>0 embed_sublevel2 
+                  set embed_sum                         h<=fxlistBP_h{1} [0] meter_position=2 [0]   embed_level2 
+
+                  set tcp.fxembed  * scale meter_position=2 [0] h<=FXIOBP_h_high{2} [0] tcp_fxlist_enabled=0 + embed_main [-110 0 112 0] tcp_fxlist_enabled>0 embed_sum 
+                  set tcp.fxembedheader.color [100 100 100]
+
+            ---- C U S T O M    F I X L A N E S
+
+            set fixlanesmeter meter_position=3 [350 82 17 17 1 1 1 1] [332 82 17 17 1 1 1 1]
+
+            set tcp.custom.fixlanes            * scale  trackfixedlanes>0 [0]  h<=MSBP{6} [0]  fixlanesmeter
+            set tcp.custom.fixlanes.enabled    * scale  trackfixedlanes=0 [0]  h<=MSBP{6} [0]  fixlanesmeter 
+
+            set tcp.custom.fixlanes.moveup       * scale trackfixedlanes=0 [0] h<=MSBP{6} [0] + [quickactions{0} 0 0 0]  [374 60 16 16 1 1 1 1] 
+            set tcp.custom.fixlanes.playonly     * scale trackfixedlanes=0 [0] h<=MSBP{4} [0] + [quickactions{0} 0 0 0]  [374 80 16 16 1 1 1 1] 
+            set tcp.custom.fixlanes.playall      * scale trackfixedlanes=0 [0] h<=MSBP{3} [0] + [quickactions{0} 0 0 0]  [374 100 16 16 1 1 1 1] 
+            
+            set tcp.custom.fixlanes.hidebuttons  * scale trackfixedlanes=0 [0]  + [quickactions{0} 0 0 0] [367 5 16 16 1 0 1 0] 
+            set fxsidespec fxside=1 [-128 0 0 0 -1 0 -1 0] [0 0 0 0]
+            set tcp.custom.palettenorm           * scale         h=<MSBP{4} [0] tcp_solid_color=3 [0] + fxsidespec [314 110 12 12 1 1 1 1]
+            set tcp.custom.palette               * scale tcp_solid_color=3 [0 0 10 122 0 0 0 1]  [0]
+            set tcp.custom.embedded.frame tcp_fxembed=0 [0] h<=labelBP_h{3} [0] + tcp.fxembed   [0 0 0 0]  
+            set tcp.custom.fxsidefill            * scale fxside=0 [0]  [220 0 150 130 0 0 1 1]
+            set tcp.custom.fxsidefill.color    bright=1 [0 0 0 0 65 65 65 255] [0 0 0 0 50 50 50 255]
+            
+            set glossw + + +  tcp.recarm{2} tcp.recmode{2} tcp.recmon{2} * scale [2]
+            set glossh  h<FXIOBP_h{3} + tcp.recarm{3} [0] + +  tcp.recarm{3} tcp.env{3} [0]
+            set tcp.custom.glossbg  folderstate=1 [0] lnstate=1 [0]  [tcp.recarm{0} tcp.recarm{1} glossw{0} glossh{0}]
+            set tcp.custom.gloss gloss=1 tcp.custom.glossbg
+
+            ---- C U S T O M S
+
+            set tcp.custom.saturationbg * scale tcp_solid_color=3 [10 0 360 122 0 0 1 1] [0]
+            set folderselected track_selected=1 + [0 0 0 0 tcp_saturn_ident##lttype tcp_saturn_ident##lttype tcp_saturn_ident##lttype 0] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype saturnfolder##lttype] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype saturnfolder##lttype]
+            set tcp.custom.saturationbg.color folderstate=1 folderselected track_selected=1 + [0 0 0 0 tcp_saturn_ident##lttype tcp_saturn_ident##lttype tcp_saturn_ident##lttype 0] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype saturnalpha##lttype] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype saturnalpha##lttype]
+
+            set labellockout                h<=LongmameBP_h{1} [0] tcp.label
+
+            set tcp_labelbg_gen             track_selected=0 labellockout track_selected=1 [0]
+            set tcp.custom.folderlabel      lnstate=1 tcp.label  folderstate=1 tcp.label [0] 
+
+            set fxside_input                tcp_solid_color=3 [0 0 370 122 0 0 1 1] [0 0 370 122 0 0 1 1]
+            set fxside_legacy               tcp_solid_color=3 [0 0 -118 0 0 0 -1 0] [0 0 -128 0 0 0 -1 0]
+            set custombg_position  * scale  fxside=1 + fxside_legacy fxside_input fxside_input
+
+            set custombg_main               track_selected=0 custombg_position   [0]
+            set custombgbg_mainsel          track_selected=1 custombg_position   [0]
+
+            set tcp.custom.colorbg          tcp_solid_color=1 custombg_main      [0]
+            set tcp.custom.colorbgsel       tcp_solid_color=1 custombgbg_mainsel [0]  
+
+            set tcp.custom.greybg           tcp_solid_color=2 custombg_main      [0]
+            set tcp.custom.greybgsel        tcp_solid_color=2 custombgbg_mainsel [0]  
+
+            set tcp.custom.adjustbg         tcp_solid_color=3 custombg_main      [0]
+            set tcp.custom.adjustbgsel      tcp_solid_color=3 custombgbg_mainsel [0]  
+            set tcp.custom.panbg            tcp.pan.label
+            set tcp.custom.widbg            tcp.width.label
+            
+            set tcp.custom.upperdivider  dividercolor=0 [0] * scale [0 -4 2000 4 0 0 0 0] 
+            set tcp.custom.upperdivider.color [0 0 0 0 35 35 35 dividercolor]      
+            set tcp.custom.dividerbg tcp.custom.upperdivider
+            set tcp.custom.dividerbg.color bright=1 [0 0 0 0 65 65 65 255] [0 0 0 0 45 45 45 255]
+
+           ; set tcp.custom.lowerdivider * scale [tcp.custom.upperdivider{0} 111 1000 10 0 1 0 1]
+            ; set tcp.custom.lowerdivider.color  tcp.custom.upperdivider.color    
+
+            set tcp.custom.glossfx       gloss=1  + [0 0 tcp.fxbyp{2} 0] tcp.fx [0]
+            set tcp.custom.glosspan      gloss=1  tcp.pan.label [0]
+            set tcp.custom.glosswid      gloss=1  tcp.width.label [0]
+            set tcp.custom.glossms       gloss=1 h<breakpoint_h{3} + [0 0 tcp.solo{2} 0] tcp.mute  + [0 0 0 tcp.solo{3}] tcp.mute
+            set tcp.custom.glossvol      gloss=1 tcp.volume
+            set tcp.custom.glossall      gloss=1 custombg_position
+            set tcp.custom.glossenv      gloss=0 [0] folderstate=1 tcp.env 
+
+            -- F O N T S
+
+                  set fxwidth * scale min_fxlist##lttype
+                  set fxwidthsep * scale min_fxlist_sep##lttype
+
+                  set tcp.fxembed.label.font + fontsize [5]
+                  set tcpfont         + fontsize [1 5]
+                  set tcp.label.font             [tcpfont{0}]
+                  set tcp.trackidx.font          [tcpfont{1}]
+                  set tcp.pan.label.font         [tcpfont{1}]
+                  set tcp.width.label.font       [tcpfont{1}]
+                  set tcp.volume.label.font      [tcpfont{1}]
+                  set tcp.recinput.font          [tcpfont{1}]
+                  set tcp.fxparm.font            [tcpfont{1} fxfont{0} fxwidth fxfont{1} 1]
+                  set tcp.fxlist.font            [tcpfont{1} fxfont{0} fxwidthsep fxfont{1} 1]
+
+                              set marginswitch  foldermargin##lttype=0 [0] foldermargin##lttype=1 [0.2]
+
+                              set folder_meterspace  h<=breakpoint_h{0} [0] h<=breakpoint_h{2} + tcp_meter{2} [4] [0]
+
+                              set foldermargsizeswitch h<=breakpoint_h{0} [10] h<=breakpoint_h{2} [26] [4]
+                              set foldermargins tcp_folder_recarms##lttype=1 + + + + [4 0 tcp_recarm{2} 0] [4 0 tcp_recmode{2} 0] [4 0 tcp_recmon{2} 0] [4 0 folder_meterspace{0} 0] [folder_meterspace{0} 0 4 0 marginswitch{0}] \
+                                                                          + [4 0 4 0]  [foldermargsizeswitch{0} 0 folder_meterspace{0} 0 marginswitch{0}]
+                              
+                              set lnrecarms     h<=breakpoint_h{0} [20 0 4 0 marginswitch{0}] h<=breakpoint_h{2} [124 0 4 0 marginswitch{0}]  + + + [0 0 tcp_recarm{2} 0] [0 0 tcp_recmode{2} 0] [0 0 tcp_recmon{2} 0] [8 0 4 0 marginswitch{0}]
+                              set lnnorecarms   h<=breakpoint_h{0} [20 0 4 0 marginswitch{0}] h<=breakpoint_h{2} [86 0 4 0 marginswitch{0}]   [8 0 4 0 marginswitch{0}]
+                              set lnnorm        h<=breakpoint_h{0} [0 0 4 0 marginswitch{0}]  h<=breakpoint_h{2} [126 0 4 0 marginswitch{0}]  [8 0 54 0 marginswitch{0}]
+
+                              set lnfolder tcp_folder_recarms##lttype=1 lnrecarms tcp_folder_recarms##lttype=0 lnnorecarms
+                              set lnmargin folderstate=1 lnfolder lnnorm
+
+                              set tcp.label.margin * scale lnstate=1 lnmargin folderstate=1 foldermargins [4 0 4 0 0.2] 
+
+                  set colorbright [trackcolor_r trackcolor_g trackcolor_b]
+                  set label_foldercolor  track_selected=1 [255 255 255] + colorbright [100 100 100]
+                  set tcp.label.color  ?recarm [255 100 100] track_selected=1 [255 255 255] [tcplabelbrightness##lttype tcplabelbrightness##lttype tcplabelbrightness##lttype 0]
+            endmacro
+
+      TCP layouts   
+
+            T C P  DPI TRANSLATION LAYOUTS 
+
+                  layout "PAN_SLIDER A" "PANSLIDER" 
+                       DrawTCP 1 0 0 1 meter_position _A 
+                  endlayout
+
+                  layout "PAN_SLIDER A 200" "200/PANSLIDER"
+                        DrawTCP 2 2 0 1 meter_position _A 
+                  endlayout
+
+                  layout "PAN_SLIDER A 150" "150/PANSLIDER"
+                        DrawTCP 1.5 1 0 1 meter_position _A
+                  endlayout
+             
+            -- LAYOUT B
+
+                  layout "PAN_SLIDER B" "PANSLIDER" 
+                       DrawTCP 1 0 0 1 meter_position _B 
+                  endlayout
+
+                  layout "PAN_SLIDER B 200" "200/PANSLIDER"
+                        DrawTCP 2 2 0 1 meter_position _B 
+                  endlayout
+
+                  layout "PAN_SLIDER B 150" "150/PANSLIDER"
+                        DrawTCP 1.5 1 0 1 meter_position _B
+                  endlayout
+
+                  layout "SEPARATOR" "SEPARATOR"
+                    separator 1 0
+                  endlayout
+
+            -- LAYOUT C
+
+                  layout "PAN_SLIDER C" "PANSLIDER" 
+                       DrawTCP 1 0 0 1 meter_position _C
+                  endlayout
+
+                  layout "PAN_SLIDER C 200" "200/PANSLIDER"
+                        DrawTCP 2 2 0 1 meter_position _C
+                  endlayout
+
+                  layout "PAN_SLIDER C 150" "150/PANSLIDER"
+                        DrawTCP 1.5 1 0 1 meter_position _C
+                  endlayout
+
+                  macro separator scale fontsize
+                        clear tcp.*
+                        clear mcp.*
+
+                        front set tcp.idxbg tcp.label
+                        set tcp.size  [100 100 10 10]
+                        set mcp.size  * scale  [40 500]
+                        set mcp.extmixer.mode [1]
+                        set mcp.extmixer.position [1 1 5 5]
+
+                        set tcp.trackidx [0 0 100 100 0 0 1 1]
+                        set tcp.trackidx.color track_selected=1 [50 50 50 255] [50 50 50 255]
+                       
+                        set tcp.label [0 0 100 98 0 0 1 1]
+                        set tcp.label.margin [10 0 10 0 0.5]
+                        set tcp.label.font + fontsize [1]
+                        set solidcolormain [trackcolor_r trackcolor_g trackcolor_b]
+                        set solidcolorpress / solidcolormain [2 2 2]
+                        set tcp.label.color track_selected=1 + solidcolorpress [160 160 160]  + solidcolorpress [120 120 120]
+                                                set tcp.size  [100 100 10 10]
+                        set mcp.label  * scale [0 0 40 500 1 1 0 0]
+                        set mcp.label.font + fontsize [14]
+                        set mcp.label.color track_selected=1 + solidcolorpress [160 160 160]  + solidcolorpress [120 120 120]
+                  endmacro
+      
+TRACK MASTER
+
+            custom master.tcp.custom.bgm    " " none " " tcp_adjust_bg
+            custom master.tcp.custom.bgselm " " none " " tcp_adjust_bgsel
+
+      clear master.tcp.*
+
+      macro DrawMTCP scale fontsize tcp_solid_color lttype
+
+            custom master.tcp.custom.panbg                 " " 0 " "      'tcp_pan_labelbg'
+            custom master.tcp.custom.colorbg               " " 0 " "      'tcp_color_bg'
+            custom master.tcp.custom.colorbgsel            " " 0 " "      'tcp_color_bgsel'
+            custom master.tcp.custom.palettenorm                  " " 40357   "Set Track To Custom Color..."    tcp_color_palette
+            custom master.tcp.custom.idxbgm                " " 0 " "      tcp_idxbg 
+            custom master.tcp.custom.gloss                 " " 0 " "      'gloss'
+            custom master.tcp.custom.glossfx               " " 0 " "      'gloss'
+            custom master.tcp.custom.glosspan              " " 0 " "      'gloss'
+            custom master.tcp.custom.glosswid              " " 0 " "      'gloss'
+            custom master.tcp.custom.glossms               " " 0 " "      'gloss'
+            custom master.tcp.custom.saturationbg          " " 0 " "
+            custom master.tcp.custom.idxbgm                " " none " " tcp_idxbg ; just a copy of tcp_idxbg 
+            custom master.tcp.custom.mbtoggle              " " _RS5da21d81b23af8939f02ec7afb5f3077d0ba845d "enable meterbridge mode" tcp_meterbridge
+            custom master.tcp.custom.fxsidetoggle          " " _RSaa4d72e35741958815b0ff5359ec75a4b31cc9d7 "move effects to the 3rd column" tcp_fxside
+            custom master.tcp.custom.showdbscales          " " _RSf40239aca127bafd8a8d21711c307fe41e85c1c8 "enable db scales" tcp_dbscales                                                
+
+
+            front master.tcp.custom.colorbg master.tcp.custom.colorbgsel master.tcp.custom.idxbgm master.tcp.custom.mbtoggle master.tcp.custom.showdbscales master.tcp.custom.fxsidetoggle master.tcp.solo master.tcp.mute master.tcp.fx \
+                  master.tcp.fxparm master.tcp.label \
+                  master.tcp.pan.label master.tcp.pan master.tcp.width.label master.tcp.width master.tcp.volume master.tcp.volume.label \
+                  master.tcp.env master.tcp.mono master.tcp.io master.tcp.fx master.tcp.fxbyp \
+                  master.tcp.custom.panbg master.tcp.pan.label master.tcp.custom.gloss master.tcp.custom.glossfx master.tcp.custom.glosspan master.tcp.custom.glosswid master.tcp.custom.glossms master.tcp.fxlist  master.tcp.custom.palettenorm 
+            set tcp_solid_color [3]
+            set meter_position meter_positionmd##lttype=1 [1] meter_positionmd##lttype>1 [2]
+            set recarm_shift   [0]
+
+            set master.tcp.margin [0 0 0 0]
+
+            set master.tcp.custom.idxbgm * scale h<meterBP_h{0} [1 2 124 118 0 0 0 1] [1 4 124 114 0 0 0 1]
+            set mastcpsizes 244
+
+            set mfxside_input                [0 0 370 122 0 0 1 1] 
+            set mfxside_legacy               [0 0 -118 0 0 0 -1 0] 
+            set custombg_position  * scale  fxside=1 + mfxside_legacy mfxside_input mfxside_input
+
+            set mcustombg_main               track_selected=0 custombg_position   [0]
+            set mcustombgbg_mainsel          track_selected=1 custombg_position   [0]
+
+            set master.tcp.custom.colorbg          mcustombg_main     
+            set master.tcp.custom.colorbgsel       mcustombgbg_mainsel 
+
+            set mfxsidespec fxside=1 [-128 0 0 0 -1 0 -1 0] [0 0 0 0]
+            set master.tcp.custom.palettenorm           * scale         h=<MSBP{4} [0] + mfxsidespec [324 110 12 12 1 1 1 1]
+
+            set master.tcp.size * scale  [370 122 mastcpsizes{0} 0] 
+            set master.tcp.label * scale  [40 4 120 16]
+
+            set fxside_inputm                [0 0 370 122 0 0 1 1]
+            set custombg_positionm  * scale  fxside=1 + [0 0 -118 0 0 0 -1 0] fxside_inputm fxside_inputm
+
+            set master.tcp.custom.fxsidefill tcp.custom.fxsidefill
+            set master.tcp.custom.fxsidefill.color tcp.custom.fxsidefill.color
+            set master.tcp.custom.mbtoggle      * scale [330 100 20 20 1 1 1 1]
+            set master.tcp.custom.fxsidetoggle  * scale h<=MSBP{8} [0] [330 56 20 20 1 1 1 1]
+            set master.tcp.custom.showdbscales  * scale h<=MSBP{6} [0] [330 78 20 20 1 1 1 1]
+
+            
+            set master.tcp.custom.saturationbg * scale tcp_solid_colorad##lttype=3 [0 0 360 132 0 0 1 1] [0]
+            set master.tcp.custom.saturationbg.color track_selected=1 + [0 0 0 0 tcp_saturn_ident##lttype tcp_saturn_ident##lttype tcp_saturn_ident##lttype 0] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype 255] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype 255]
+
+            set master.tcp.label.color  [120 120 120 255]
+            set master.tcp.label.font   + fontsize [1]
+            set master.tcp.label.margin [0 0 0 0 0]
+            set mastertcpBP * scale [30 55 70 44]
+
+            set master.tcp.solo tcp.solo
+            set master.tcp.mute tcp.mute
+            set master.tcp.mono * scale h<mastertcpBP{2} [0] [32 42 64 18]
+
+            set mas_env_area * scale h<mastertcpBP{3} [0] [32 20 64 20]  
+            set mas_io_area  h<=FXIOBP_h_high{1}  + tcp.fx  * scale [25 0 10 0]  + tcp.fx * scale [20 0 26 0]
+
+            set master.tcp.env   envioswap=0 mas_io_area envioswap=1 mas_env_area [0]
+            set master.tcp.io    envioswap=0 mas_env_area envioswap=1 mas_io_area [0]
+            set master.tcp.fx   tcp.fx
+            set master.tcp.fxbyp tcp.fxbyp
+
+            set master.tcp.volume.fadermode [1]
+            set master.tcp.volume tcp.volume
+
+            set master.tcp.pan.fadermode [1] 
+            set master.tcp.pan tcp.pan
+                        set master.tcp.pan.label tcp.pan.label
+                        set master.tcp.pan.label.margin tcp.pan.label.margin
+                        set master.tcp.pan.label.color  tcp.pan.label.color
+                        set master.tcp.pan.label.font  tcp.pan.label.font
+
+                        set master.tcp.custom.panbg master.tcp.pan.label
+
+            set master.tcp.width.fadermode [1] 
+            set master.tcp.width tcp.width
+                        set master.tcp.width.label tcp.width.label
+                        set master.tcp.width.label.margin tcp.width.label.margin
+                        set master.tcp.width.label.color  tcp.pan.label.color
+
+            set master.tcp.volume.label.color [255 255 255 200]
+            set master.tcp.volume.label.font  tcp.volume.label.font 
+            set master.tcp.volume.label  tcp.volume.label
+            set master.tcp.volume.label.color  tcp.volume.label.color
+
+            set master.tcp.volume.label.margin * scale [5]
+
+            set master.tcp.meter  meter_positionmd##lttype=1 * scale [100 6 30 110 0 0 0 1]  meter_positionmd##lttype>1 * scale [104 6 144 110 0 0 1 1]
+
+            set mfxfont             * scale [18 100] 
+            set mtcpfont         + fontsize [1 5] 
+
+            set master.tcp.fxparm tcp.fxparm
+            set master.tcp.fxembed  tcp.fxembed 
+            set master.tcp.fxparm.visflags tcp.fxparm.visflags
+            set master.tcp.fxparm.margin tcp.fxparm.margin
+            set master.tcp.fxparm.font   [mtcpfont{1} mfxfont{0} min_fxlist_A mfxfont{1} 1]
+            set master.tcp.fxembedheader.color tcp.fxembedheader.color
+            set master.tcp.fxlist tcp.fxlist
+            set master.tcp.fxlist.font [mtcpfont{1} mfxfont{0} min_fxlist_A mfxfont{1} 1]
+            set master.tcp.fxlist.margin tcp.fxlist.margin 
+
+            set master.tcp.meter.readout.color [255 255 255 160 255 255 255 220] 
+            set master.tcp.meter.rmsreadout.color  [255 255 255 180 255 255 255 255] 
+            
+            set master.tcp.meter.scale.color.lit.top      dbscales##lttype=1 [255 255 255 220] [0 0 0 0]
+            set master.tcp.meter.scale.color.lit.bottom   dbscales##lttype=1 [255 255 255 220] [0 0 0 0]
+            set master.tcp.meter.scale.color.unlit.top    dbscales##lttype=1 [255 255 255 160] [0 0 0 0]
+            set master.tcp.meter.scale.color.unlit.bottom dbscales##lttype=1 [255 255 255 160] [0 0 0 0]
+
+            set master.tcp.custom.gloss                 gloss=1 master.tcp.env 
+            set master.tcp.custom.glossfx               gloss=1 tcp.custom.glossfx
+            set master.tcp.custom.glosspan              gloss=1 tcp.custom.glosspan
+            set master.tcp.custom.glosswid              gloss=1 tcp.custom.glosswid
+            set master.tcp.custom.glossms               gloss=1 tcp.custom.glossms
+
+            endmacro
+
+--  M I X E R
+
+
+ macro drawMCP scale fontsize hugestate meterbridge lttype
+
+            custom mcp.custom.foldertoggle      " " 1041 "disable folder state (non-undoable from here)" track_folder_on
+            custom mcp.custom.colorbg           " " none " " mcp_color_bg 
+            custom mcp.custom.greybg            " " none " " mcp_grey_bg
+            custom mcp.custom.greybgsel         " " none " " mcp_grey_bgsel
+            custom mcp.custom.adjustbg              " " none " " mcp_adjust_bg
+            custom mcp.custom.adjustbgsel           " " none " " mcp_adjust_bgsel
+            custom mcp.custom.bracket               " " none " " mcp_folder_bracket
+            custom mcp.custom.buttonghost1          " " none " " mcp_buttonghost
+            custom mcp.custom.buttonghost2          " " none " " mcp_buttonghost 
+            custom mcp.custom.trackcolor            " " 40357 "Set track to custom color... " focusring
+            custom mcp.custom.saturationbg          " " none " "
+            custom mcp.custom.panbg                 " " 0 " "      'tcp_pan_labelbg'
+            custom mcp.custom.glossrec              " " 0 " "      'gloss'
+            custom mcp.custom.glossmon              " " 0 " "      'gloss'
+            custom mcp.custom.glossfx               " " 0 " "      'gloss'
+            custom mcp.custom.glosspan              " " 0 " "      'gloss'
+            custom mcp.custom.glosspank             " " 0 " "      'gloss'
+            custom mcp.custom.glossenv              " " 0 " "      'gloss'
+            custom mcp.custom.glossms               " " 0 " "      'gloss'
+            custom mcp.custom.glossio               " " 0 " "      'gloss'
+            custom mcp.custom.glossvollabl          " " 0 " "      'gloss'
+
+            custom mcp.custom.colrcover             " " 0 " "                       
+            custom mcp.custom.volumecolor           " " 0 " "                                              ; color background for volume, duplicates tcp.custom.volumebg.color
+            custom mcp.custom.trackvolcolor         " " 0 " "                                              ; original track color translator for volume fader
+            custom mcp.custom.volgrad               " " 0 " "       'mcp_vol_gradient'                     ; gradient for volume fader (static)
+            custom mcp.custom.vlbg                  " " 0 " "                                              ; color background for volume label
+            custom mcp.custom.vlbgtop               " " 0 " "                                              ; dark overlay for upper one
+            custom mcp.custom.vlbgrnd               " " 0 " "       'mcp_label_bground'                    ; rounded overlay for volume label
+            custom mcp.custom.volol                 " " 0 " "       'mcp_volknob_overlay'
+            custom mcp.custom.generalbg             " " 0 " "                                              ; tis background appears when height is too small
+            custom mcp.custom.volumeup              " " _RSe755d4a13a6cd190bb80932c99a722101f1cb7db " "  mcp_volumeup
+            custom mcp.custom.volumedown            " " _RSffb5b8753499f668d8b6e413a3e18681117251eb " "  mcp_volumedown
+
+
+      front set mcp.custom.generalbg mcp.custom.trackvolcolor mcp.custom.volumecolor mcp.custom.volgrad mcp.volume mcp.custom.volol  mcp.custom.colrcover mcp.custom.saturationbg mcp.custom.colorbg mcp.custom.greybg mcp.custom.adjustbg mcp.custom.adjustbgsel mcp.custom.greybgsel mcp.label mcp.custom.buttonghost1 mcp.custom.buttonghost2 mcp.recinput mcp.env mcp.trackidx mcp.custom.fadercover mcp.custom.vlbg mcp.custom.vlbgtop mcp.custom.vlbgrnd mcp.volume.label mcp.trackidx mcp.foldercomp mcp.folder mcp.recmode mcp.recarm mcp.recmon mcp.mute mcp.phase mcp.solo mcp.io mcp.custom.bracket mcp.custom.trackcolor mcp.custom.panbg mcp.pan mcp.width mcp.fx mcp.fxin mcp.fxbyp mcp.pan.label mcp.width.label custom mcp.custom.foldertoggle mcp.custom.glossrec mcp.custom.glossmon mcp.custom.glossfx mcp.custom.glosspan mcp.custom.glossenv mcp.custom.glossms mcp.custom.adjustbgsel mcp.extmixer mcp.custom.volumeup mcp.custom.volumedown mcp.custom.glossio mcp.custom.glossvollabl mcp.custom.glosspank 
+
+
+      set folferdepth_preadjust  * 4 folderdepth 
+      set folderdepth_multi mixer_folderindent##lttype=1 0 mixer_folderindent##lttype=2 folferdepth_preadjust
+
+      set folderincreasestate    + 320 folderdepth_multi 
+      set folderincreasefolders mixer_folderindent##lttype=1 320 mixer_folderindent##lttype=2  + 4 folderincreasestate
+      set folderincrease folderstate=1 folderincreasefolders mixer_folderindent##lttype=1 320 mixer_folderindent##lttype=2 folderincreasestate 
+      set mcp_minheight  + 228 folderdepth_multi 
+      
+      set mcp_width hideall=1 [0 0]        mcp_fxembed>=1 [114 folderincrease 0 mcp_minheight 112 100] \
+                                           tracknch>7     [114 folderincrease 0 mcp_minheight 112 100] \
+                                           tracknch>3     [94 folderincrease 0 mcp_minheight 92 80] \
+                                           hugestate=1    [114 folderincrease 0 mcp_minheight 112 100]  [80 folderincrease 0 mcp_minheight 78 60] 
+
+      set mb_folderincrease + 200 folderincrease 
+      set mcp.size * scale meterbridge=1 [50 518 0 300 450]  [mcp_width{0} 320 0 mcp_minheight mcp_width{4} mcp_width{5}] 
+
+      set mspwidBP   * scale [80 94 114]
+      set mcp_flipBP * scale + folderdepth_multi [250 0 0]
+      set foldershift folderstate=1 [1 0] folderstate=-1 [0 2] [0 0]
+      set mcpmarginfolder + [0 0 0 folderdepth_multi{0}] [0 0 0 4]
+      set pupupu mixer_folderindent##lttype=1 [0] mixer_folderindent##lttype=2 [4]
+      set mcp.margin * scale folderstate=1 + [0 0 0 pupupu{0}] mcpmarginfolder mcpmarginfolder
+
+                set mcp.custom.colrcover * scale [0 0 300 160]
+                set mcp.custom.colrcover.color [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255]
+
+            set mcp.custom.trackcolor  * scale + [0 0 -8 0] mcp_solid_color##lttype=3 [3 152 mcp.size{0} 8] [3 148 mcp.size{0} 9]
+            set mcpsize fxside=1 [0 0 mcp.size{0} mcp.size{1} 0 0 0 1] [0 0 mcp.size{0} mcp.size{1} 0 0 0 1]
+
+            set mcp_greybg_main          mcpsize
+            set mcp.custom.greybg       mcp_solid_color##lttype=2 mcp_greybg_main  [0]
+            
+            set mcp_greybg_mainsel      track_selected=1 mcpsize  [0]
+            set mcp.custom.greybgsel    mcp_solid_color##lttype<=2 mcp_greybg_mainsel   [0]  
+
+            set mcp_colorbg_main        mcpsize
+            set mcp.custom.colorbg      mcp_solid_color##lttype=1 mcp_colorbg_main   [0]
+
+            set mcp.custom.adjustbg      mcp_solid_color##lttype=3 mcpsize [0] 
+
+            set mcp_adjustbg_mainsel     track_selected=1 mcpsize [0]
+            set mcp.custom.adjustbgsel   mcp_solid_color##lttype=3 mcp_adjustbg_mainsel  [0]
+
+            set mcp.custom.buttonghost1 * scale [8 8 38 20] 
+            set mcp.custom.buttonghost2 * scale [50 8 22 20] 
+
+            set mcp.custom.generalbg mcpsize
+            set mcp.custom.generalbg.color [0 0 0 0 65 65 65 255]
+
+            set mcp.custom.foldertoggle   * scale  folderstate=1 [8 54 64 18] meterbridge=1 [0] [0]
+            set minussuka - 2 [mcp.size{0} 0 0]
+            set mcp.custom.bracket   * scale folderstate=0 [0] folderstate=1 [0 6 2 304 0 0 0 1] [mcp_width{4} 6 2 304 0 0 0 1]  meterbridge=1 [0] ;  folderstate=2 [0] meterbridge=1 [0] [0]
+
+            set mcp.custom.saturationbg * scale mcp_solid_color##lttype=3 [0 0 mcp.size{0} 150 0 0 0 0] [0]
+            set mcp.custom.saturationbg.color folderstate=1 [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype mcpsaturnfolder##lttype] track_selected=1 + [0 0 0 0 tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype 0] [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype saturnalphamcp##lttype] track_selected=0 [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype saturnalphamcp##lttype]
+
+      set collapseBP_fa  + folderdepth_multi [80 94 114]
+      set collapseBP * scale collapseBP_fa
+
+      set mcp_indent_s   mcp_indent
+      set mcp_trackidx_orig w=mspwidBP{2} [28 300 65 19 0 1 0 1] w=mspwidBP{1} [28 300 45 19 0 1 0 1]  [28 300 31 19 0 1 0 1]
+
+      set mcp.trackidx * scale  [0 300 mcp_width{0} 20 0 1 0 1] 
+
+      set mcp.trackidx.margin   [-10 0 0 0 0.5]
+      set mcp.trackidx.color ?recarm [255 128 64] ?track_selected [255 255 255] [160 160 160] 
+
+      set mcp_folder_ancor w=mspwidBP{2} [100 302 14 20 0 1 0 1] w=mspwidBP{1} [80 302 14 20 0 1 0 1] [66 302 14 20 0 1 0 1]
+
+      set mcp_folder_all  folderstate<1 mcp_folder_ancor [0 302 14 19 0 1 0 1] + folderend_last [0 0 0 0] [0 302 14 19 0 1 0 1]
+      set mcp.folder * scale folderstate<1 mcp_folder_ancor [0 302 14 20 0 1 0 1]
+
+      set mcp.foldercomp [60 302 14 19 0 1 0 1]
+
+      set labelpoints * scale [78 18]
+      set mcp.label            [0 labelpoints{0} mcp.size{0} labelpoints{1}]
+      
+      set labmarg * scale 7mv
+      set mcp.label.margin    [labmarg{0} 0 labmarg{0} 0 0.5]
+      set mcp_volume_label_color track_selected=1 [255 255 255]
+
+      set mcp.label.font + fontsize [1]
+
+      set mcp.meter.margin [1 1]
+      set mcp_column_anchor w=mspwidBP{2} [86 102] w=mspwidBP{1} [66 102] [52 102]
+
+      set mcp.mute * scale h<mcp_flipBP{0}  + mcp_column_anchor [-14 64 18 20] + mcp_column_anchor [3 64 20 18]
+      set mcp.solo * scale h<mcp_flipBP{0}  + mcp_column_anchor [4 64 18 20] + mcp_column_anchor [3 82 20 18]
+
+      set recmon_adjust   mcp_folder_recarms##lttype=1  [50 8 22 20] [0]
+      set recmode_adjust  mcp_folder_recarms##lttype=1  [26 8 20 20] [0]
+      set recarm_adjust   mcp_folder_recarms##lttype=1  [8 8 20 20]  [0]
+      set recinput_adjust mcp_folder_recarms##lttype=1  [8 8 20 20]  [0]
+
+      set mcp.recmon   * scale folderstate=1  recmon_adjust  [50 8 22 20]
+      set mcp.recmode  * scale folderstate=1  recmode_adjust [26 8 20 20]
+      set mcp.recarm   * scale folderstate=1  recarm_adjust  [8 8 20 20]
+
+      set mcp.recinput * scale folderstate=1 + recinput_adjust [0 0 0 0] [8 54 64 20]
+      set mcp.recinput.margin [3 0 3 0 0.5]
+      set mcp.recinput.color tcp.recinput.color
+
+      set mcp.env  * scale  [8 31 64 20]
+      set mcp.phase  * scale + mcp_column_anchor h<315 [0] [6 112 17 17 0 1 0 1]
+      set mcp_meter_main h<mcp_flipBP{0}  [6 156 30 30 0 0 0 0] w=mspwidBP{2} [5 158 55 118 0 0 0 1] w=mspwidBP{1} [5 158 35 118 0 0 0 1] [8 156 18 118 0 0 0 1] 
+
+      set mcp.meter.vu.div [1 0]
+
+      set mcp.meter * scale  + mcp_meter_main [0 10 0 -10] 
+      set mcp.meter.readout.color [160 160 160 255 255 255 255 255] 
+
+      set mcp.meter.scale.color.unlit.bottom   mcpdbscales##lttype=1   [100 100 100 255] [0 0 0 0]
+      set mcp.meter.scale.color.lit.top        mcpdbscales##lttype=1   [255 255 255 255] [0 0 0 0]
+      set mcp.meter.scale.color.lit.bottom     mcpdbscales##lttype=1   [255 255 255 120] [0 0 0 0]
+      set mcp.meter.scale.color.unlit.top      mcpdbscales##lttype=1   [100 100 100 120] [0 0 0 0]
+
+      set mixer_volume_margin [32 173 7 120]
+      set mcp.volume.fadermode h<mcp_flipBP{0} [1] [-1]
+      set mcpvol_main w=mspwidBP{2} [66 168 19 106 0 0 0 1] w=mspwidBP{1} [46 168 19 106 0 0 0 1] [30 168 19 106 0 0 0 1]
+
+      set mcp.volume * scale h<mcp_flipBP{0} [6 276 68 20 0 1 0 1] mcpvol_main 
+                               folderstate=1 + mcpvol_foldertrack [0 10 0 -16] \
+                               folderstate=2 + mcpvol_foldered [0 10 0 -16] \
+                               folderstate<=-1 + mcpvol_foldered [-2 10 0 -16] mcpvol_main ; + mcpvol_foldered [0 10 0 -16] 
+
+            set mcp.volume.margin * scale [0 10 0 10]
+
+
+        set mcp.custom.volumeup   * scale h<mcp_flipBP{0} [0]  volumeadj##lttype=1 + [2 0 0 0] [mcpvol_main{0} mcpvol_main{1} 15 10 0 0 0 0] [0]
+        set mcp.custom.volumedown * scale h<mcp_flipBP{0} [0]  volumeadj##lttype=1 + [2 0 0 0] [mcpvol_main{0} 264 15 10 0 1 0 1] [0]
+
+      set mcp.custom.volol h<mcp_flipBP{0} [0] mcp.volume
+
+      set mcpvol_label_main w=mspwidBP{2} [40 280 44 18 0 1 0 1] w=mspwidBP{1} [20 280 44 18 0 1 0 1] [6 279 44 18 0 1 0 1] 
+
+      set mcp.custom.volumecolor mcp.volume
+      set mcp.custom.volumecolor.color tcp.custom.volumebg.color
+      set mcp.custom.trackvolcolor h<mcp_flipBP{0} + mcp.volume * scale [3 3 -6 -6] mcp.volume
+      set mcp.custom.trackvolcolor.color [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255]
+
+      set mcp.volume.label  * scale h<mcp_flipBP{0} mcp.volume mcpvol_label_main 
+      set mcp.volume.label.font + fontsize [5]
+      set mcp.volume.label.margin h<mcp_flipBP{0}  [5 2 0 0 0] [0 3 0 0 0.1]
+      set mcp.volume.label.color  h<mcp_flipBP{0}  [255 255 255 200] + [50 50 50 0] [trackcolor_r trackcolor_g trackcolor_b 200]
+      set mcp.custom.volgrad mcp.volume
+      set mcp.custom.vlbgrnd mcp.volume.label
+      set mcp.custom.glossvollabl gloss=1 mcp.volume.label [0]
+
+      set mcp.custom.vlbg mcp.volume.label
+      set mcp.custom.vlbg.color [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255]
+      set mcp.custom.vlbgtop mcp.volume.label
+      set mcp.custom.vlbgtop.color [0 0 0 0 25 25 25 235]
+
+      set mcppanswitch mcppanslider##lttype=1 [6 126 68 20] [7 124 20 20]
+      set mcp.pan * scale trackpanmode<4 mcppanswitch [6 124 68 10]
+      
+      set labelmcpswitch mcppanslider##lttype=1 mcp.pan * scale [29 124 44 20] 
+      set mcp.pan.label   trackpanmode>3 [0] labelmcpswitch 
+
+      set mcp.pan.label.margin * scale trackpanmode>3 [2 20 0 0 0.3] [0 0 0 0 0.3]
+
+      set mcpphaseBP * scale + folderdepth_multi [270 250]
+      set mcp.phase * scale h<mcpphaseBP{0} [0] + mcp_column_anchor [5 154 17 17 0 1 0 1] 
+      set mcp.width.color [193 47 34 255 255 255 255 255] [0 0 0 0 255 0 0 1]
+
+      set mixwidthlabel [6 130 68 20]                                        
+      set mcp.width.label [0]                                               
+      set mcp.width.label.color                                             
+      set mcp.width.label.margin [0 2*scale 2*scale 0 1]                    
+      set mcp.pan.label.color mcppanslider##lttype=1 [255 255 255 120] [120 120 120] 
+      set mcp.width.label.color [180 180 180]                               
+      set mcp.custom.panbg meterbridge=1 [0] mcp.pan.label                  
+
+      set mcp.pan.fadermode [1]
+
+      set mcp.width.fadermode [1]
+      set mixerwidth  [6 136 68 10] 
+      set mcp.width * scale  trackpanmode<4 [0] trackpanmode>4 + mixerwidth [0 0 0 0]
+
+      set mcp.io  * scale  h<mcpphaseBP{1} [0] + mcp_column_anchor [3 177 20 18 0 1 0 1]
+      set mcp.custom.glossio gloss=1 mcp.io [0]
+
+      set mcp.fxbyp     * scale [28 102 18 20]
+      set mcp.fx        * scale [6 102 22 20]
+      set mcp.fxin      * scale [46 102 27 20]
+
+      set mcp.extmixer.mode [-1]
+      set mcp.extmixer.custom.sat mcp.extmixer.position
+      set mcp.extmixer.custom.sat.color [255 0 0 255 255 0 0 255]
+
+      set fxlistmcpMRG * scale [16]
+      set fxparmheight * scale [24]
+      set mcpfont1 + fontsize [5]
+      set mcpfont2 + fontsize [1]
+
+      set mcp.fxlist.font [mcpfont1{0} fxlistmcpMRG{0}]
+      set mcp.fxlist.margin * scale [10 0 5 15 5]
+
+      set mcp.sendlist.font [mcpfont1{0} fxlistmcpMRG{0}]
+      set mcp.sendlist.margin * scale [5 0 5 5 5]
+
+      set mcp.recinput.font     [mcpfont1{0}]
+      set mcp.pan.label.font    [mcpfont1{0}]
+      set mcp.width.label.font  [mcpfont1{0}]
+      set mcp.volume.label.font [mcpfont2{0}]
+      set mcp.trackidx.font     [mcpfont2{0}] 
+
+      set colormain [trackcolor_r trackcolor_g trackcolor_b 150]
+      set colorpress / colormain [2 2 2]
+
+      set mcpselcolor mcp_solid_color##lttype=3 [220 220 220] [65 65 65]
+      set mcp.label.color track_selected=1 mcpselcolor + colorpress [80 80 80]
+      set mcp.fxparm.font [mcpfont1{0} fxparmheight{0}]
+      set mcp.fxparm.margin [0 .5]
+
+            set mcp.custom.glossrec              gloss=1 + + mcp.recarm [0 0 mcp.recmode{2} 0] * scale [0 0 -2 0]
+            set mcp.custom.glossmon              gloss=1 mcp.recmon
+            set mcp.custom.glossfx               gloss=1 + [0 0 mcp.fxbyp{2} 0] mcp.fx
+            set mcp.custom.glosspan              gloss=1 mcp.pan.label
+            set mcp.custom.glosspank             gloss=1 mcp.pan
+            set mcp.custom.glossenv              gloss=1 mcp.env
+            set mcp.custom.glossms               gloss=1 + [0 0 0 mcp.solo{3}] mcp.mute
+
+endmacro
+
+            macro MCPMeterbridge scale lttype
+
+            custom mcp.custom.labelbg
+            custom mcp.custom.labelbground          "" none ""       mcp_label_bground
+            custom mcp.custom.labeladjust           "" none ""
+            custom mcp.custom.labeladjustfilter     "" none ""
+
+              front set  mcp.custom.generalbg mcp.custom.trackvolcolor mcp.custom.volumecolor mcp.custom.volgrad mcp.volume mcp.custom.volol mcp.custom.colrcover mcp.custom.saturationbg mcp.custom.colorbg mcp.custom.greybg mcp.custom.adjustbg mcp.custom.greybgsel mcp.custom.adjustbgsel mcp.label mcp.custom.buttonghost1 mcp.custom.buttonghost2  mcp.custom.extmixersat mcp.recinput mcp.env mcp.trackidx mcp.custom.fadercover mcp.custom.vlbg mcp.custom.vlbgtop mcp.custom.vlbgrnd mcp.volume.label mcp.trackidx mcp.foldercomp mcp.folder mcp.recmode mcp.recarm mcp.recmon mcp.mute mcp.phase mcp.solo mcp.io mcp.custom.bracket mcp.custom.trackcolor mcp.custom.panbg mcp.pan mcp.width mcp.fx mcp.fxin mcp.fxbyp mcp.pan.label mcp.width.label custom mcp.custom.foldertoggle mcp.sendlist##lttype mcp.fxlist mcp.custom.glossrec mcp.custom.glossmon mcp.custom.glossfx mcp.custom.glosspan mcp.custom.glossenv mcp.custom.glossms  mcp.extmixer.custom.sat mcp.custom.adjustbgsel mcp.extmixer mcp.custom.labeladjust mcp.custom.labeladjustfilter mcp.custom.labelbg mcp.custom.labelbground mcp.label mcp.custom.volumeup mcp.custom.volumedown mcp.custom.glosspan
+                  
+                  set mcp.margin + mcp.margin * scale [0 0 0 2]
+
+                  set mcp.custom.saturationbg * scale mcp_solid_color##lttype=3 [0 16 150 60 0 0 0 0] [0]
+                  set mcp.custom.saturationbg.color track_selected=1 + [0 0 0 0 tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype 0] [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype saturnalphamcp##lttype] track_selected=0 [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype saturnalphamcp##lttype]
+
+                  set mcp.custom.colrcover + mcp.custom.colrcover * scale [0 0 0 -100]
+                  set mcp.custom.trackcolor  * scale  [4 8 38 8]
+
+                  set mcp.custom.greybgsel [0]
+                  set mcp.custom.adjustbgsel track_selected=1 mcpsize
+
+                  set mcp.custom.buttonghost1 [0]
+                  set mcp.custom.buttonghost2 [0]
+
+                  set mcp.custom.foldertoggle [0]
+
+                  set mcp.custom.glosspan mcp.custom.glosspan
+
+                  set mcp.custom.bracket   * scale folderstate=0 [0] folderstate=1 [0 8 2 500 0 0 0 1] [48 8 2 500 0 0 0 1]  ;  folderstate=2 [0] meterbridge=1 [0] [0]
+
+                  set expandlogic       * scale 420
+
+                  set metervolstretch   * scale [0 50 50 450 0 0 1 1]
+
+                  set mcp_folder_ancor w=mspwidBP{2} [56 500 14 19 0 1 0 1] \
+                                       w=mspwidBP{1} [46 500 14 19 0 1 0 1] [36 500 14 19 0 1 0 1]
+             
+                  set mcp.trackidx      + mcp.trackidx * scale [0 199 -26 0]
+                  set mcp.trackidx.margin [0 0 0 0 0.2]
+
+                  set mcp.folder        folderstate<1   + mcp.folder * scale [-30 200 0 0] \
+                                                        + mcp.folder * scale [0 200 0 0]    ; * scale  folderstate<1 + mcp_folder_ancor [0 0 0 0] [0 500 14 19 0 1 0 1]
+
+                  set mcp.foldercomp    + mcp.foldercomp * scale [-14 199 2 0]
+                  set mcp_column_anchor * scale [50 103]
+
+                  set collapsemain     [0 0 0 0] 
+                  set collapse_level  folderstate=1 folderdepth<1 + collapsemain [0 0 0 4]
+
+                  set mcp.trackidx      * scale  =  [0 500 50 20 0 1 0 1]
+                  set mcp.trackidx.margin [0 0 0 0 0.2]
+                  
+
+                  set mcp.width         * scale trackpanmode<4 [0]  [8 38 33 10]
+                  set mcp.width.label   * scale trackpanmode<4 [0] [0 68 50 10] 
+                  set mcp.width.label.margin [0 0 0 0 0.3]
+                  set mcp.width.label.color track_selected=1 [255 255 255] [255 255 255 150]
+
+                  set mcp.pan           * scale trackpanmode>4 [8 22 33 10] mcp_solid_color##lttype=3 [10 22 30 30] [10 20 30 30] 
+                  set mcp.pan.label     * scale trackpanmode>4 [0 58 50 10] [0 64 50 10] 
+                  set mcp.pan.label.margin      [0 0 0 0 0.3]
+                  set mcp.pan.label.color track_selected=1 [255 255 255] track_selected=0 [150 150 150]
+
+                  set mcp.fx    [0]
+                  set mcp.fxbyp [0]
+                  set mcp.fxin  [0]
+
+                  set mcp.recarm  [0]
+                  set mcp.recmode [0]
+                  set mcp.recmon  [0]
+
+                  set mcp.env                   [0]
+                  set mcp.recinput              [0]
+                  
+                  set meterbvol                    [4 330 19 147 0 1 0 1]  
+                  set mcp_volume           h<expandlogic{0} + meterbvol [0 0 0 0] + meterbvol [0 -40 0 40 0 1 0 1]
+                  set mcp.volume  * scale mcp_volume
+
+                  set mcp.custom.volumeup   * scale h<mcp_flipBP{0} [0]  volumeadj##lttype=1 + [2 0 0 0] [mcp_volume{0} mcp_volume{1} 15 10 0 1 0 1] [0]
+                  set mcp.custom.volumedown * scale h<mcp_flipBP{0} [0]  volumeadj##lttype=1 + [2 0 0 0] [mcp_volume{0} 468 15 10 0 1 0 1] [0]
+                  set mcp.custom.trackvolcolor mcp.volume 
+                  set mcp.custom.trackvolcolor.color mcp.custom.trackvolcolor.color
+                  set mcp.custom.volumecolor mcp.volume
+                  set mcp.custom.volumecolor.color [0 0 0 0 fader_r##lttype fader_g##lttype fader_b##lttype fader_a##lttype]
+                  set mcp.custom.volgrad mcp.volume
+
+                  set mcp.custom.volol h<mcp_flipBP{0} [0] mcp.volume
+
+                  set mcp.custom.trackvolcolor h<mcp_flipBP{0} + mcp.volume * scale [3 3 -6 -6] mcp.volume
+                  set mcp.custom.trackvolcolor.color [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255]
+             
+                  set mcp.volume.label  * scale   [6 481 38 18 0 1 0 1]  
+
+                  set mcp.custom.volgrad mcp.volume
+                  set mcp.custom.vlbgrnd mcp.volume.label
+
+                  set mcp.custom.vlbg mcp.volume.label
+                  set mcp.custom.vlbg.color [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255]
+                  set mcp.custom.vlbgtop mcp.volume.label
+                  set mcp.custom.vlbgtop.color [0 0 0 0 25 25 25 235]
+
+                  set labelfonttrick   - [saturnalphamcp##lttype saturnalphamco saturnalphamcp##lttype] [255 255 255 255]
+                  set labelfontadjust  saturnalphamcp##lttype<50 [255 255 255] saturnalphamcp##lttype<100 + [80 80 80] [trackcolor_r trackcolor_g trackcolor_b]  + [50 50 50] [trackcolor_r trackcolor_g trackcolor_b]
+
+                  set labelad  - 256 saturnalphamcp##lttype
+
+                  set mbcolor  mcp_solid_color##lttype=3 + labelad  [trackcolor_r trackcolor_g trackcolor_b 255] [trackcolor_r trackcolor_g trackcolor_b] ; set mbcolor  mcp_solid_color##lttype=3 labelfontadjust + [50 50 50] [trackcolor_r trackcolor_g trackcolor_b]
+                  
+                  set mcp.label.color track_selected=1 [255 255 255] mbcolor
+                  set mcp.volume.label.margin * scale [2 0 2 0 0.3]
+
+                  set mcpmetersel   h<expandlogic{0} [3 80 44 240 0 0 0 1] [3 80 44 200 0 0 0 1]
+                  set mcpmeternosel h<expandlogic{0} [2 80 46 240 0 0 0 1] [2 80 46 200 0 0 0 1]
+                  set mcp.meter    * scale track_selected=1 mcpmetersel mcpmeternosel
+
+                  set ioBP    * scale [350 315]
+                  set mcp.label + mcp.volume * scale [20 40 1 -64]
+                  set mcp.label.margin * scale  [4 4 4 4 0.2]
+
+                  set mcp.custom.labeladjust mcp.label
+                  set mcp.custom.labeladjustfilter mcp.label
+
+                     set mcp.custom.labeladjust.color mcp_solid_color##lttype=3 [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255] [0]
+                     set mcp.custom.labeladjustfilter.color mcp_solid_color##lttype=3 [0 0 0 0 30 30 30 150] [0]
+
+                     set mcp.custom.labelbg mcp.label
+                     set colorlimiter saturnalphamcp##lttype<100 100 saturnalphamcp##lttype
+                     set mcp.custom.labelbg.color mcp_solid_color##lttype=2 [0 0 0 255 30 30 30 255] mcp_solid_color##lttype=3 [0 0 0 255 30 30 30 colorlimiter] [0 0 0 255 trackcolor_r trackcolor_g trackcolor_b 60] 
+                     set mcp.custom.labelbground mcp.label
+
+                  set mcp.mute  + mcp_column_anchor                * scale h<expandlogic{0} [-26 226 20 18 0 1 0 1] [-26 186 20 18 0 1 0 1]
+                  set mcp.solo  + mcp_column_anchor                * scale h<expandlogic{0} [-26  244 20 18 0 1 0 1] [-26 204 20 18 0 1 0 1]
+
+                  set mcp.io    * scale    [24 458 20 20 0 1 0 1] 
+
+                  set mcp.custom.glossrec              gloss=1 + + mcp.recarm [0 0 mcp.recmode{2} 0] * scale [0 0 -2 0]
+            set mcp.custom.glossmon              gloss=1 mcp.recmon
+            set mcp.custom.glossfx               gloss=1 + [0 0 mcp.fxbyp{2} 0] mcp.fx
+            set mcp.custom.glosspan              gloss=1 mcp.label
+            set mcp.custom.glossenv              gloss=1 mcp.io
+            set mcp.custom.glossms               gloss=1 + [0 0 0 mcp.solo{3}] mcp.mute
+
+            endmacro
+MIXER MASTER
+    
+   clear master.mcp.*
+
+macro drawMasMCP scale fontsize
+
+      custom master.mcp.custom.saturationbg          " " none " "
+      custom master.mcp.custom.bg                    " " none " "    mcp_custom_mainbg
+      custom master.mcp.custom.bgsel                 " " none " "    mcp_custom_mainbgsel
+      custom master.mcp.custom.panbg                 " " 0 " "      'tcp_pan_labelbg'
+      custom master.mcp.custom.glossrec              " " 0 " "      'gloss'
+      custom master.mcp.custom.glossmon              " " 0 " "      'gloss'
+      custom master.mcp.custom.glossfx               " " 0 " "      'gloss'
+      custom master.mcp.custom.glosspan              " " 0 " "      'gloss'
+      custom master.mcp.custom.glossenv              " " 0 " "      'gloss'
+      custom master.mcp.custom.glossms               " " 0 " "      'gloss'
+      custom master.mcp.custom.glossvollabl          " " 0 " "      'gloss' 
+      custom master.mcp.custom.volol                 " " 0 " "      'mcp_volknob_overlay'
+      custom master.mcp.custom.vollabelbg            " " 0 " "      'tcp_recinput'
+
+
+      front set master.mcp.custom.trackvolcolor master.mcp.custom.volumecolor master.mcp.custom.volgrad master.mcp.volume master.mcp.custom.volol master.mcp.custom.saturationbg master.mcp.custom.bg master.mcp.custom.bgsel master.mcp.custom.panbg master.mcp.pan.label master.mcp.fx master.mcp.fxbyp master.mcp.env master.mcp.mono master.mcp.io master.mcp.mute master.mcp.solo master.mcp.pan \
+                master.mcp.menubutton master.mcp.ext master.mcp.extmixer master.mcp.custom.glossfx master.mcp.custom.glosspan master.mcp.custom.glossenv master.mcp.custom.glossms master.mcp.custom.vollabelbg master.mcp.volume.label master.mcp.custom.glossvollabl 
+
+      set master.mcp.custom.fadercover * scale track_selected=1 [12 300 10 20 1 1 1 1] [0]
+      set master.mcp.custom.fadercover.color [0 0 0 0 213 213 213 255]
+
+      set master.mcp.custom.saturationbg * scale [0 0 200 94 0 0 0 0]
+      set master.mcp.custom.saturationbg.color + [0 0 0 0 0 0 0 255] mcp.custom.saturationbg.color
+
+      set master.mcp.size  hideall=1 [0 0] * scale [121 319 100 300 300]
+
+      set master.mcp.custom.bg * scale track_selected=0 [0 0 121 319 0 0 0 1] [0]
+      set master.mcp.custom.bgsel * scale track_selected=1 [0 0 121 319 0 0 0 1] [0]
+
+      set master.mcp.extmixer.mode [0]
+      set master.mcp.extmixer.position * scale [3 20 73 325 0 0 0 1]
+
+      set fxlistmcpMRG * scale [16]
+      set mcpfont1 + fontsize [5]
+
+      set master.mcp.fxlist.font [mcpfont1{0} fxlistmcpMRG{0}]
+      set master.mcp.fxlist.margin * scale [6 0 4 0 0]
+
+      set master.mcp.sendlist.font [mcpfont1{0} fxlistmcpMRG{0}]
+      set master.mcp.sendlist.margin * scale [3]
+      set master.mcp.menubutton * scale [64 42 27 20]
+      set master_mcp_column_anchor  * scale trackpanmode<5 [94 78] [94 88]
+      set master.mcp.fx       * scale  [27 42 22 20] 
+      set master.mcp.fxbyp    * scale  [47 42 17 20] 
+      set master.mcp.env      * scale  [27 8 64 20]
+      set master.mcp.mono     * scale  [95 220 20 50 0 1 0 1] 
+
+      set master.mcp.volume   * scale  [8 104 19 190 0 0 0 1]
+      set master.mcp.volume.color [200 200 200]
+
+      set master.mcp.custom.volol  master.mcp.volume 
+
+      set master.mcp.volume.label  * scale [36 278 48 18 0 1 0 1]
+      set master.mcp.volume.label.color [160 160 160]
+      set master.mcp.volume.label.font + fontsize [5]
+      set master.mcp.custom.vollabelbg master.mcp.volume.label
+      set master.mcp.custom.glossvollabl master.mcp.volume.label
+
+      set master.mcp.volume.label.margin  [0 0 0 0 0.3]
+      set master.mcp.meter                * scale  [36 101 50 170 0 0 0 1]
+
+      set master.mcp.meter.vu.div [1 -1] 
+      set master.mcp.meter.vu.rmsdiv [6]
+
+      set master.mcp.meter.readout.color        [120 120 120 255 255 255 255 255] 
+      set master.mcp.meter.rmsreadout.color     [200 200 200 255 255 255 255 255] 
+
+      set master.mcp.meter.scale.color.unlit.bottom   mcp.meter.scale.color.unlit.bottom 
+      set master.mcp.meter.scale.color.lit.top        mcp.meter.scale.color.lit.top   
+      set master.mcp.meter.scale.color.lit.bottom     mcp.meter.scale.color.lit.bottom   
+      set master.mcp.meter.scale.color.unlit.top      mcp.meter.scale.color.unlit.top 
+
+      set master.mcp.pan * scale [27 66 20 20]
+      set master.mcp.pan.fadermode [1]
+      set master.mcp.pan.color [200 200 200]
+      set master.mcp.pan.label  * scale [50 66 41 20]
+      set master.mcp.pan.label.color [150 150 150]
+      set master.mcp.pan.label.margin [0 0 0 0 0.2]
+      set master.mcp.pan.label.font + fontsize [5]
+
+      set master.mcp.custom.panbg master.mcp.pan.label
+
+      set master.mcp.width [0]
+
+      set master.mcp.meter.vu.div [2 -1] 
+      set master.mcp.meter.vu.rmsdiv [2 -2]
+
+      set master.mcp.io  * scale [95 274 20 22 0 1 0 1]
+
+      set master.mcp.mute + master_mcp_column_anchor  * scale [1 22 20 18]
+      set master.mcp.solo + master_mcp_column_anchor  * scale [1 40 20 18]
+
+            set master.mcp.custom.glossfx               gloss=1 + [0 0 master.mcp.fxbyp{2} 0] master.mcp.fx
+            set master.mcp.custom.glosspan              gloss=1 master.mcp.pan.label 
+            set master.mcp.custom.glossenv              gloss=1 master.mcp.env
+            set master.mcp.custom.glossms               gloss=1 + + [0 0 0 master.mcp.solo{2}] * scale [0 0 0 -2] master.mcp.mute
+
+endmacro
+            -- drawMCP scale fontsize hugestate meterbridge lttype
+            --  macro MCPMeterbridge scale lttype
+
+  ---- E N V E L O P E
+
+      clear envcp.*
+
+      macro DrawEnv scale fontsize
+
+            custom envcp.custom.valuebg   " " 0 " "      'value_bg'
+            custom envcp.custom.bg        " " 0 " "      'envcp_bg_custom'
+            custom envcp.custom.bgsel     " " 0 " "      'envcp_bgsel_custom'
+            custom envcp.custom.trackcolor  " " 40357 "Set Track To Custom Color..."    env_palette
+            custom envcp.custom.colorbg
+            custom envcp.custom.env       " " 0 " " 'envcp_env'
+            custom envcp.custom.fx        " " 0 " " 'envcp_fx'
+            custom envcp.custom.bypblur   
+            custom envcp.custom.findent               " " 0 " "
+
+            front set envcp.custom.colorbg  envcp.custom.bg envcp.custom.bgsel envcp.custom.valuebg  envcp.hide \
+                                            envcp.mod envcp.arm envcp.label envcp.label.color envcp.learn envcp.fader \
+                                            envcp.value envcp.custom.trackcolor envcp.custom.env envcp.custom.fx envcp.custom.bypblur envcp.bypass envcp.custom.findent 
+       
+            set envcp.label.color [255 255 255]
+            set envcp.label.font + fontsize [1]
+            set envcp.size                                                       * scale [282 122 266]
+
+            set envcp.custom.findent * scale [-1000 -10 1000 200 0 0 0 1]
+            set envcp.custom.findent.color [0 0 0 0 25 25 25 255]
+     
+            set envcp.margin  * scale * [folderdepth 0 0 0 0] [tcp_folderindent 0 0 0 0.5]
+            set envBP * scale  [10 46 49 24]
+            set envcp.arm   * scale  h<envBP{3} [20 1 16 16]       h>envBP{0}   [16 4 20 20]     
+            set envcp.label * scale  h<envBP{3} [60 1 84 16] \
+                                     h<envBP{1} [64 4 80 20]   [70 26 90 20 0 0 1 0]
+            set envcp.label.margin * scale                                               [5 1 15 0 0.3]
+            set envcp.label.color   ?envcparm                                     [94 23 13] [140 140 140]   
+              
+            set envcp.learn             * scale h<envBP{1} [0]                           [14 26 20 20]
+            set envcp.mod               * scale h<envBP{1} [0]                           [36 26 20 20]
+            set envcp.hide                                                       * scale h<envBP{3} [34 1 16 16]   [36 4 20 20]
+            set envcp.bypass                                                     * scale h<envBP{3} [242 1 16 16 1 0 1 0] [242 3 20 20 1 0 1 0]
+
+            set envcp.fader        * scale + [10 0 -10 0] h<envBP{3} [144 6 16 6 0 0 1 0]  h<envBP{1} [144 8 20 10 0 0 1 0]    [60 8 100 10 0 0 1 0]
+            set envcp.value        * scale  h<envBP{3} [166 2 70 14 1 0 1 0] w>envBP{2} [170 4 64 18 1 0 1 0]    [166 2 70 14 1 0 1 0]
+             
+            set envcp.value.margin [0 0 0 0 0.5]
+            set envcp.value.color envcp_type=4 [120 120 120 255] [trackcolor_r trackcolor_g trackcolor_b 160] 
+            set envcp.value.font + fontsize [1]
+            set envcp.custom.valuebg envcp.value
+
+            set envcp.custom.bg       env_selected=0  + * scale [10 0 -10 0] [0 0 envcp.size{0} envcp.size{1} 0 0 1 1]
+            set envcp.custom.bgsel    env_selected=1  + * scale [10 0 -10 0] [0 0 envcp.size{0} envcp.size{1} 0 0 1 1]
+            
+            set envcp.custom.colorbg  [0 0 envcp.size{0} envcp.size{1} 0 0 1 1]
+            set envcp.custom.colorbg.color [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255]
+
+            set envcp.custom.trackcolor * scale [0 0 10 122 0 0 0 1]
+
+            set envcp.custom.env     envcp_type<4       * scale h>envBP{2} [212 100 20 16 1 1 1 1]  [0] 
+            set envcp.custom.fx      envcp_type=4       * scale h>envBP{2} [212 100 20 16 1 1 1 1]  [0]
+            set envcp.custom.bypblur envcp_bypass=1 [0 0 envcp.size{0} envcp.size{1} 0 0 1 1] [0]
+            set envcp.custom.bypblur.color [0 0 0 0 50 50 50 200]
+            
+            endmacro
+
+DrawEnv 1 0
+
+TRANSPORT
+
+      clear trans.*
+macro DrawTRans scale fontsize lttype
+
+      custom trans.custom.optionsbg " " none " "   transport_options_bg
+      custom trans.custom.unsoloall "unsoloall" 40340 "unsolo all tracks"   transport_unsolo_all
+      custom trans.custom.unmuteall "unmuteall" 40339 "unmute all tracks"   transport_unmute_all
+      custom trans.custom.dock      "toggle"    40260 "dock/undock transport window" transport_dock
+      custom trans.custom.dockdis   "toggle"    40260 "dock/undock transport window" transport_dock_dis
+      custom trans.custom.showmixer "mixer"     40078 "show/hide mixer"     transport_toggle_mixer
+      custom trans.custom.adjuster  "adjuster"  _RS2c55127d35db096776b03b0e06f17b4d83347bec  "show theme settings" transport_adjuster      
+
+      -- T O O L S
+
+      custom trans.custom.mixer              " " 40078 "toggle show mixer"                           trans_mixer
+      custom trans.custom.navigator          " " 40268 "toggle show project navigator"               trans_navigator
+      custom trans.custom.mediainfolder      " " 42411 "open selected item in explorer/finder"       trans_mediainfolder
+      custom trans.custom.video              " " 50125 "toggle show video window"                    trans_video
+      custom trans.custom.regionman          " " 40326 "toggle show region/marker manager"           trans_regionman
+      custom trans.custom.folder             " " _S&M_OPEN_PRJ_PATH "open project directory in explorer/finder"   trans_folder
+      custom trans.custom.explorer           " " 50124 "toggle show media explorer"                  trans_explorer 
+      custom trans.custom.toolsbg            " " 0 " "  trans_tools_bg
+      custom trans.custom.gap                ""  0 " "  
+
+            custom trans.custom.glossplayback         " " 0 " "      'gloss'
+            custom trans.custom.glossbpm               " " 0 " "      'gloss'
+            custom trans.custom.glossrate              " " 0 " "      'gloss'
+            custom trans.custom.glosssel              " " 0 " "      'gloss'
+            custom trans.custom.glossenv               " " 0 " "      'gloss'
+            custom trans.custom.glosstools             " " 0 " "      'gloss'
+            custom trans.custom.glossmute                " " 0 " "      'gloss'
+            custom trans.custom.glosssolo                " " 0 " "      'gloss'
+
+      front set trans.custom.optionsbg trans.custom.unsoloall trans.custom.unmuteall trans.custom.showmixer trans.custom.dock trans.rate.fader trans.rate trans.custom.mixer trans.custom.gap   \
+               trans.bpm trans.custom.glossbpm trans.custom.glosstools trans.custom.glosssel trans.custom.glossrate trans.custom.glossplayback trans.custom.glossenv trans.custom.glossmute trans.custom.glosssolo 
+
+      set twidth * scale [1000 900 780 650]
+      set trans_center w<twidth{0} [464] + [-10] / w * scale 2 
+
+      set trans.rate.fader.fadermode [0]
+      set trans.size              * scale [1051 85]
+      set trans.size.minmax       * scale [476 40 1300 77]
+      set trans.size.dockedheight * scale trans_docked=1 dockheight [40]
+      set gapsize * scale + dockheight [-36] ; + + / h 2 6
+      set trans.custom.gap trans_docked=0 [0] trans_docked=1 [0 0 w gapsize{0} 0 0 1 1]
+      set trans.custom.gap.color [0 0 0 255 0 0 0 255]
+
+      set gapshiftpre + dockheight [-40]
+      set gapshift trans_docked=0 [0] [0 gapshiftpre{0} 0 0]
+
+      set trans.margin * scale hideall=1 [0 90 0 0] [0 0 0 0]
+
+      set transBP_w    * scale [610 800 850 950 1020 1000 1100 1200]
+      set transBP_wsub * scale [1300 1250 1600 560 555]
+      set transBP_h    * scale [70]
+    
+      set playback_left + gapshift w<transBP_w{0} [24 0 0 0] w<transBP_w{5} [78 0 0 0] [90 0 0 0]
+      set playback_center + gapshift  [trans_center{0} 0 0 0]
+      set playback_right  + gapshift w<transBP_w{0} [835 0 0 0 1 0 1 0] w<transBP_w{7} [783 0 0 0 1 0 1 0] [770 0 0 0 1 0 1 0]
+
+      set trans_controls_anchor * scale trans_docked=0 playback_left trans_position=1 + playback_left [0 0 0 0] trans_position=2 + playback_center [-380 0 0 0] trans_position=3 + playback_right [0 0 0 0]
+      set trans.rew    + trans_controls_anchor    * scale [0 5 30 30]
+      set trans.fwd    + trans_controls_anchor    * scale [30 5 30 30]
+      set trans.play   + trans_controls_anchor    * scale [60 5 30 30]
+      set trans.pause  + trans_controls_anchor    * scale [90 5 30 30]
+      set trans.stop   + trans_controls_anchor    * scale [120 5 30 30]
+      set trans.rec    + trans_controls_anchor    * scale [150 5 30 30]
+      set trans.repeat + trans_controls_anchor    * scale [180 5 30 30]
+
+      -- A U T O M O D E
+      
+      set evdis                    h<=transBP_h{0} [0] [6 42 48 30]
+      set automode_left            w<transBP_w{0} evdis  [26 5 48 30]
+      set automode_middle          [26 5 48 30]
+      set automode_right           w<transBP_w{0} [997 40 48 30 1 0 1 0]    [997 5 48 30 1 0 1 0]
+      set trans.automode   * scale + gapshift trans_docked=0 automode_left trans_position=1 + automode_left [0 0 0 0] trans_position=2 + automode_middle [0 0 0 0] trans_position=3 + automode_right [0 0 0 0]
+
+      -- S T A T U S
+
+      set ebal_ya_status        w<transBP_w{0} [115 43 357 30] w<transBP_w{4} [5 43 337 30]                   [585 5 337 30] 
+      set ebal_ya_status_snizu  w<transBP_w{0} [624 40 337 30 1 0 1 0] w<transBP_w{3} [708 40 337 30 1 0 1 0]  w<transBP_w{6} [203 5 337 30 1 0 1 0] [135 5 337 30 1 0 1 0]
+      set status_left           h>transBP_h{0} + ebal_ya_status [0 0 0 0] w<transBP_w{2} [0] w<transBP_w{5}    [700 5 337 30 1 0 1 0] [585 5 337 30] 
+      set status_middle         w<twidth{3} [0] + [trans_center{0} 0 0 0] [-160 5 337 30]                                 ; h>transBP_h{0}    [125 43 330 30] w<transBP_w{1} [0] w<transBP_wsub{0} [465 5 337 30 1 0 1 0] [685 5 337 30]     
+      set status_right          h>transBP_h{0} + ebal_ya_status_snizu [0 0 0 0] \
+                                w<transBP_w{0} [595 40 337 30 1 0 1 0] \
+                                w<transBP_w{1} [708 40 337 30 1 0 1 0] \
+                                w<transBP_w{7} [203 5 337 30 1 0 1 0] [135 5 337 30 1 0 1 0]
+
+      set trans_status_gen trans_docked=0 status_left trans_position=1 + status_left [0 0 0 0] trans_position=2 + status_middle [0 0 0 0] trans_position=3 + status_right [0 0 0 0]  
+      set trans.status       * scale + gapshift + trans_status_gen [44 0 -44 0]
+      set trans.status.margin   * scale  [5 2 10 0] 
+
+      ----- U N M U T E   U N S O L O   A L L   
+
+      set trans.custom.optionsbg * scale + gapshift trans_status_gen{0}=0 [0] [trans_status_gen{0} trans_status_gen{1} 44 30 trans_status_gen{4} trans_status_gen{5} trans_status_gen{6} trans_status_gen{7}]
+
+      set tooltipsguide trans_status_gen{0}=0 [0] [trans_status_gen{0} trans_status_gen{1} 18 18 trans_status_gen{4} trans_status_gen{5} trans_status_gen{6} trans_status_gen{7}]
+
+      set trans.custom.unsoloall   * scale + gapshift + [26 6 0 0]  tooltipsguide
+      set trans.custom.unmuteall   * scale + gapshift + [6 6 0 0]   tooltipsguide
+      set trans.custom.adjuster    * scale + gapshift   [5 20 16 15] 
+      set trans.custom.dock        * scale + gapshift  trans_docked=0 [5 5 16 15] [0]
+      set trans.custom.dockdis     * scale + gapshift  trans_docked=1 [5 5 16 15] [0]
+      set trans.custom.glossmute   gloss=1  trans.custom.unmuteall [0]
+      set trans.custom.glosssolo   gloss=1  trans.custom.unsoloall [0]
+      -- B P M 
+
+      set trans_bpmup_anchor      w<transBP_w{0} [3 2 0 0] w<transBP_wsub{0} [590 2 0 0 1 0 1 0] [840 2  0 0]
+      set trans_bpmdown_anchor    w<transBP_w{1} [3 2 0 0] w<transBP_wsub{0} [250 2 0 0 1 0 1 0] [450 2  0 0]
+      set bpm_left    w<transBP_w{0} [242 8 35 24] w<transBP_w{5} [295 8 35 24] [320 8 35 24]
+      set bpm_middle  trans_docked=0 bpm_left w<twidth{2} [0] [trans_center{0} 8 35 24]
+      set bpm_right   w<transBP_w{0}  [710 8 35 24 1 0 1 0]  w<transBP_w{7} [658 8 35 24 1 0 1 0] [626 8 35 24 1 0 1 0]
+      set trans.bpm.tap   * scale + gapshift trans_docked=0 bpm_left trans_position=1 + bpm_left [0 0 0 0] trans_position=2 + bpm_middle [190 0 0 0] trans_position=3 + bpm_right [0 0 0 0]   
+      set trans.bpm.tap.margin  * scale [0 -500 0 0]
+      set zerobpmfix bpm_middle=0 [0] + trans.bpm.tap * scale [-3 -3 45 6] 
+      set trans.bpm.edit trans_position=2 zerobpmfix + trans.bpm.tap * scale [-3 -3 45 6] 
+      set trans.bpm.edit.margin * scale [20 2 0 0 0.2]
+
+      -- T I M E   S I G N A T U R E
+
+      set timesign_left                               * scale    + gapshift   w<transBP_w{0} [412 5 41 30] w<transBP_w{5} [465 5 41 30] [500 5 41 30] 
+      set timesign_middle                             * scale    + gapshift   w<transBP_w{0} + trans_bpmdown_anchor [217 3 41 30] \
+                                                           w>transBP_wsub{0}  + trans_bpmup_anchor [195 3 41 30]  + trans_bpmup_anchor [217 3 41 30] 
+      set timesign_right                              * scale       w<transBP_w{0} [703 5 41 30 1 0 1 0] w<transBP_w{7} [653 5 41 30 1 0 1 0]  [615 5 41 30 1 0 1 0]
+      set trans.curtimesig   + trans.bpm.edit * scale  [80 0 -40 0] trans_docked=0 timesign_left trans_position=1 timesign_left trans_position=2 timesign_middle  trans_position=3 timesign_right 
+
+      -- R A T E
+
+      set rate_left   w<transBP_w{0} [370 21 99 11] w<transBP_w{5} [420 21 99 11] [460 21 99 11] 
+      set rate_docked h>transBP_h{0} + trans_bpmdown_anchor [350 19 99 11] W>transBP_wsub{0} + trans_bpmup_anchor [345 19 99 11] + trans_bpmup_anchor [350 19 99 11] 
+      set rate_middle  w<twidth{1} {0} [trans_center{0} 21 99 11]
+      set rate_right  w<transBP_w{0} [597 21 99 11 1 0 1 0] w<transBP_w{7} [547 21 99 11 1 0 1 0] [495 21 99 11 1 0 1 0]
+
+      set trans.rate.fader  * scale + gapshift trans_docked=0 rate_left trans_position=1 + rate_left [0 0 0 0] trans_position=2 + rate_middle [320 0 0 0] trans_position=3 + rate_right  * scale [0 0 0 0]
+      set trans.rate   + trans.rate.fader * scale [0 -14 0 3] 
+
+      set selup_anchor    [710 3 -3 -1]
+      set seldown_anchor trans_docked=1 [710 0 232 -40] [950 0 -10 -2]
+
+      -- S E L E C T E D 
+
+      set sel_rigt_collapse  w>transBP_wsub{3} [5 5 100 65] [0]
+
+      set selected_left    h>transBP_h{0} + seldown_anchor   w<transBP_wsub{3} [0] [0 5 100 70 1 0 1 0] + selup_anchor w<transBP_wsub{1} [0] [0 2 335 30 1 0 1 0]
+      set selected_middle  h>transBP_h{0} + seldown_anchor   w<transBP_wsub{4} [0] [0 5 100 70 1 0 1 0] + selup_anchor w<transBP_wsub{2} [0] [0 2 335 30 1 0 1 0]
+      set selected_right   h>transBP_h{0} + sel_rigt_collapse [0 0 0 0] w<transBP_wsub{1} [0] [26 5 335 30]
+
+      set trans.sel  * scale + gapshift trans_docked=0 selected_left trans_position=1 + selected_left [0 0 0 0] trans_position=2 + selected_middle [0 0 0 0] trans_position=3 + selected_right [0 0 0 0]
+      set trans.sel.margin * scale [10 0 10 0 0.3]
+
+      ----- TOOLS
+
+      def transquare    trans.play{2} trans.play{2}
+
+      set toolsall          *  trans.play{2} + + + + + + + trans_mixer trans_navigator trans_mediainfolder trans_video trans_regionman trans_folder trans_explorer 0
+
+      set toolsrght      + -  [trans.sel{0} trans.sel{1} transquare trans.sel{4} trans.sel{5} trans.sel{6} trans.sel{7}] [toolsall 0 0 0] * scale [-40 0 0 0] 
+      set toolsleft       +   [trans.sel{0} trans.sel{1} transquare trans.sel{4} trans.sel{5} trans.sel{6} trans.sel{7}] [trans.sel{2} 0 0 0] * scale [-50 0 0 0] 
+      set toolscen        +   [trans.automode{0} trans.status{1} transquare 0 0 0 0] * scale [30 0 0 0]            
+
+      set toolbox_start   trans_position=1    toolsrght   trans_position=2    toolscen   trans_position=3 toolsleft
+
+      set toolbox_bps * scale + gapshift trans_position=2 [1370] [1500]
+      def toolbox w<toolbox_bps{0} [0] trans_docked=0 [0]  + + + + + + + + + +  toolbox_start \
+                                      [trans.custom.mixer{2} 0 0 0] \
+                                      [trans.custom.navigator{2} 0 0 0] \
+                                      [trans.custom.mediainfolder{2} 0 0 0] \
+                                      [trans.custom.video{2} 0 0 0] \
+                                      [trans.custom.regionman{2} 0 0 0] \
+                                      [trans.custom.folder{2} 0 0 0] \
+                                      [trans.custom.explorer{2} 0 0 0] [trans.play{2} 0 0 0]
+
+      set trans.custom.mixer            trans_mixer=1         toolbox [0]
+      set trans.custom.navigator        trans_navigator=1     toolbox [0]
+      set trans.custom.mediainfolder    trans_mediainfolder=1 toolbox [0]
+      set trans.custom.video            trans_video=1         toolbox [0]        
+      set trans.custom.regionman        trans_regionman=1     toolbox [0]
+      set trans.custom.folder           trans_folder=1        toolbox [0]     
+      set trans.custom.explorer         trans_explorer=1      toolbox [0]     
+
+        set trans.custom.toolsbg  w<toolbox_bps{0} [0] trans_docked=0 [0] + [trans.play{2} 0 0 0] [toolbox_start{0} toolbox_start{1} toolsall trans.play{2} toolbox_start{4} toolbox_start{5} toolbox_start{6} ttoolbox_start{7}]  
+      
+            set trans.custom.glossplayback         gloss=1 + trans.rew * scale [0 0 180 0]
+            set trans.custom.glossbpm              gloss=1 + [0 0 trans.curtimesig{2} 0] trans.bpm.edit
+            set trans.custom.glossrate             gloss=1  + trans.rate * scale [-2 -2 4 16]
+            set trans.custom.glosssel              gloss=1   trans.sel
+            set trans.custom.glossenv              gloss=1   trans.automode
+            set trans.custom.glosstools            gloss=1  trans.custom.toolsbg
+
+     ---------- FONTS
+
+      set trans.curtimesig.font + fontsize [10]
+      set trans.bpm.edit.font   + fontsize [10]
+      set trans.bpm.tap.font    + fontsize [1]
+      set trans.rate.font       + fontsize [1]
+      set trans.sel.font        + fontsize [10]
+
+      ---------- COLORS
+
+      set trans.curtimesig.color bright=1 [120 120 120] [80 80 80]
+      set trans.bpm.edit.color   [25 25 25]
+      set trans.bpm.tap.color    [0 0 0 0]
+      set trans.rate.color       bright=1 [120 120 120] [80 80 80]
+      set trans.sel.color        bright=1 [120 120 120] [65 65 65]
+
+endmacro
+
+      layout ""
+              DrawTCP 1 0 0 2 meter_position _M
+              DrawMTCP 1 0 3 _M
+              DrawTCP 1 0 0 2 meter_position _A
+              drawMCP 1 0 0 0 _A
+              drawMasMCP 1 0 
+              DrawEnv 1 0
+              DrawTRans 1 0 _A
+      endlayout
+
+      layout "A"
+              DrawTCP 1 0 0 2 meter_position _A
+              drawMCP 1 0 0 0 _A
+      endlayout
+
+      layout "B" 
+              DrawTCP 1 0 0 2 meter_position _B
+              drawMCP 1 0 0 0 _B
+      endlayout
+
+      layout "C"
+              DrawTCP 1 0 0 2 meter_position _C
+              drawMCP 1 0 0 0 _C
+      endlayout
+
+      layout "SEPARATOR" "SEPARATOR"
+      separator 1 0
+      endlayout
+
+      layout "separator 150" "150/SEPARATOR"
+      separator 1.5 1
+      endlayout
+
+      layout "separator 200" "200/SEPARATOR"
+      separator 2 2
+      endlayout
+
+            layout "METERBRIDGE A" "METERBRIDGE"
+                  drawMCP 1 0 0 1 _A
+                  MCPMeterbridge 1 _A
+            endlayout
+
+            layout "METERBRIDGE A 200" "200/METERBRIDGE"
+                  drawMCP 2 2 0 1 _A
+                  MCPMeterbridge 2 _A
+            endlayout
+
+            layout "METERBRIDGE A 150" "150/METERBRIDGE"
+                  drawMCP 1.5 2 0 1 _A
+                  MCPMeterbridge 1.5 _A
+            endlayout
+
+            layout "METERBRIDGE B" "METERBRIDGE"
+                  drawMCP 1 0 0 1 _B
+                  MCPMeterbridge 1 _B
+            endlayout
+
+            layout "METERBRIDGE B 200" "200/METERBRIDGE"
+                  drawMCP 2 2 0 1 _B
+                  MCPMeterbridge 2 _B
+            endlayout
+
+            layout "METERBRIDGE B 150" "150/METERBRIDGE"
+                  drawMCP 1.5 2 0 1 _B
+                  MCPMeterbridge 1.5 _B
+            endlayout
+
+            layout "METERBRIDGE C" "METERBRIDGE"
+                  drawMCP 1 0 0 1 _C
+                  MCPMeterbridge 1 _C
+            endlayout
+
+            layout "METERBRIDGE C 200" "200/METERBRIDGE"
+                  drawMCP 2 2 0 1 _C
+                  MCPMeterbridge 2 _C
+            endlayout
+
+            layout "METERBRIDGE C 150" "150/METERBRIDGE"
+                  drawMCP 1.5 2 0 1 _C
+                  MCPMeterbridge 1.5 _C
+            endlayout
+
+      -- A B C MCP TCP LAYOUTS
+
+            layout "B 200" "200"
+                   DrawTCP 2 2 0 2 meter_position _B 
+                   TCPlabelmargins 0 2
+                   drawMCP 2 2 0 0 _B
+            endlayout
+
+            layout "C 200" "200"
+                   DrawTCP 2 2 0 2 meter_position _C
+                   TCPlabelmargins 0 2
+                   drawMCP 2 2 0 0 _C
+            endlayout
+
+            layout "B 150" "150"
+                   DrawTCP 1.5 1 0 2 meter_position _B 
+                   drawMCP 1.5 1 0 0 _B
+            endlayout
+
+            layout "C 150" "150"
+                   DrawTCP 1.5 1 0 2 meter_position _C 
+                   drawMCP 1.5 1 0 0 _C
+            endlayout
+
+      layout "A 200" "200"
+            DrawTCP 2 2 0 2 meter_position _M                 
+            DrawMTCP 2 2 3 _M
+            DrawTCP 2 2 0 2 meter_position _A 
+            drawMCP 2 2 0 0 _A
+            drawMasMCP 2 2 _A
+            DrawEnv 2 2
+            DrawTRans 2 2 _A
+      endlayout 
+
+      layout "A 150" "150"
+              DrawTCP 1.5 1 0 2 meter_position _M
+              DrawMTCP 1.5 1 3 _M
+              DrawTCP 1.5 1 0 2 meter_position _A
+              drawMCP 1.5 1 0 0 _A
+              drawMasMCP 1.5 1 
+              DrawEnv 1.5 1
+              DrawTRans 1.5 1
+      endlayout 
+
+      layout_dpi_translate 'SEPARATOR' 2.0 'SEPARATOR 200'
+      layout_dpi_translate 'SEPARATOR' 1.5 'SEPARATOR 150'
+
+DEFAULT DPI TRANSLATE 
+
+      layout_dpi_translate 'A' 2.0 'A 200'
+      layout_dpi_translate 'A' 1.5 'A 150'
+
+      layout_dpi_translate '' 2.0 'A 200'
+      layout_dpi_translate '' 1.5 'A 150'
+
+Mixer DPI translate
+
+      layout_dpi_translate 'B'  1.5 'B 150'
+      layout_dpi_translate 'C'  1.5 'C 150'
+      layout_dpi_translate 'B'  2.0 'B 200'
+      layout_dpi_translate 'C'  2.0 'C 200'
+
+      layout_dpi_translate 'PAN_SLIDER A'  1.5 'PAN_SLIDER A 150'
+      layout_dpi_translate 'PAN_SLIDER B'  1.5 'PAN_SLIDER B 150'
+      layout_dpi_translate 'PAN_SLIDER C'  1.5 'PAN_SLIDER C 150'
+     
+      layout_dpi_translate 'PAN_SLIDER A'  2.0 'PAN_SLIDER A 200'
+      layout_dpi_translate 'PAN_SLIDER B'  2.0 'PAN_SLIDER B 200'
+      layout_dpi_translate 'PAN_SLIDER C'  2.0 'PAN_SLIDER C 200'
+
+      layout_dpi_translate 'METERBRIDGE A'      2.0 'METERBRIDGE A 200'
+      layout_dpi_translate 'METERBRIDGE A'      1.5 'METERBRIDGE A 150'
+
+      layout_dpi_translate 'METERBRIDGE B'      2.0 'METERBRIDGE B 200'
+      layout_dpi_translate 'METERBRIDGE B'      1.5 'METERBRIDGE B 150'
+
+      layout_dpi_translate 'METERBRIDGE C'      2.0 'METERBRIDGE C 200'
+      layout_dpi_translate 'METERBRIDGE C'      1.5 'METERBRIDGE C 150'
+
+      layout_dpi_translate 'PAN_SLIDER'  2.0  'PAN_SLIDER 200'
+      layout_dpi_translate 'PAN_SLIDER'  1.5  'PAN_SLIDER 150'
+
+      layout_dpi_translate 'HUGE'         1.5 'HUGE 150'
+      layout_dpi_translate 'HUGE'         2.0 'HUGE 200'

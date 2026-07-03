@@ -637,6 +637,79 @@ def write_reaper(palette):
         theme_content = re.sub(rf"^{k}=.*", f"{k}={v}", theme_content, flags=re.MULTILINE)
 
     (theme_dir / "Morandi.ReaperTheme").write_text(theme_content, encoding='utf-8')
+    
+    # --- TINT THE PNG IMAGE FILES ---
+    # Flat Madness heavily relies on PNG images rather than ReaperTheme hex codes.
+    try:
+        from PIL import Image
+        def rgb_from_hex(h):
+            h = h.lstrip('#')
+            return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+            
+        bg_rgb = rgb_from_hex(palette['base'])
+        surface1_rgb = rgb_from_hex(palette['surface1'])
+        
+        morandi_img_dir = theme_dir / "Morandi"
+        
+        tint_map = {
+            "tcp_bg.png": bg_rgb,
+            "tcp_bgsel.png": surface1_rgb,
+            "mcp_bg.png": bg_rgb,
+            "mcp_bgsel.png": surface1_rgb,
+            "envcp_bg.png": bg_rgb,
+            "envcp_bgsel.png": surface1_rgb,
+            "item_bg.png": bg_rgb,
+            "item_bg_sel.png": surface1_rgb,
+            "item_bgsel.png": surface1_rgb,
+            "tcp_mainbg.png": bg_rgb,
+            "tcp_mainbgsel.png": surface1_rgb,
+            "mcp_mainbg.png": bg_rgb,
+            "mcp_mainbgsel.png": surface1_rgb,
+            "mcp_custom_mainbg.png": bg_rgb,
+            "mcp_custom_mainbgsel.png": surface1_rgb,
+            "mcp_grey_bg.png": bg_rgb,
+            "mcp_grey_bgsel.png": surface1_rgb,
+            "tcp_grey_bg.png": bg_rgb,
+            "tcp_grey_bgsel.png": surface1_rgb,
+            "tcp_adjust_bg.png": bg_rgb,
+            "tcp_adjust_bgsel.png": surface1_rgb,
+            "mcp_adjust_bg.png": bg_rgb,
+            "mcp_adjust_bgsel.png": surface1_rgb,
+            "tcp_color_bg.png": bg_rgb,
+            "tcp_color_bgsel.png": surface1_rgb,
+            "mcp_color_bg.png": bg_rgb,
+            "envcp_bg_custom.png": bg_rgb,
+            "envcp_bgsel_custom.png": surface1_rgb,
+            "tcp_pan_labelbg.png": bg_rgb,
+            "mcp_label_bground.png": bg_rgb,
+        }
+        
+        for filename, new_color in tint_map.items():
+            filepath = morandi_img_dir / filename
+            if not filepath.exists():
+                continue
+                
+            try:
+                img = Image.open(filepath).convert("RGBA")
+                pixels = img.load()
+                width, height = img.size
+                modified = False
+                
+                for y in range(height):
+                    for x in range(width):
+                        r, g, b, a = pixels[x, y]
+                        if a == 0: continue
+                        if (r, g, b) == (255, 0, 255) or (r, g, b) == (255, 255, 0): continue
+                        
+                        pixels[x, y] = (new_color[0], new_color[1], new_color[2], a)
+                        modified = True
+                        
+                if modified:
+                    img.save(filepath)
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"Failed to tint reaper PNGs: {e}")
 
     reaper_ini = Path.home() / ".config/REAPER/reaper.ini"
     if not reaper_ini.exists():
