@@ -611,11 +611,13 @@ def write_reaper(palette):
     primary = hex_to_reaper(palette['iris'])
     grid = hex_to_reaper(grid_hex)
     
+    theme_dir = Path.home() / ".config/REAPER/ColorThemes"
     base_theme_path = Path.home() / ".config/noctalia/Base.ReaperTheme"
-    if not base_theme_path.exists():
-        return
+    if not base_theme_path.exists() or 'Flat Madness' in base_theme_path.read_text(encoding='utf-8', errors='ignore'):
+        # Fallback to creating one from Reapertips if missing or if it's the old Flat Madness one
+        subprocess.run(["unzip", "-p", str(theme_dir / "Reapertips Theme.ReaperThemeZip"), "Reapertips Theme.ReaperTheme"], stdout=open(base_theme_path, 'wb'))
         
-    theme_content = base_theme_path.read_text(encoding='utf-8')
+    theme_content = base_theme_path.read_text(encoding='utf-8', errors='ignore')
     
     # Update image folder to Morandi
     theme_content = re.sub(r"^ui_img=.*", "ui_img=Morandi", theme_content, flags=re.MULTILINE)
@@ -641,10 +643,10 @@ def write_reaper(palette):
         "col_trackbg2": bg,
         "col_tr1_bg": bg,
         "col_tr2_bg": bg,
-        "col_mixerbg": bg_dark,
+        "col_mixerbg": bg,
         "col_arrangebg": bg,
-        "col_trans_bg": bg_dark,
-        "col_tracklistbg": bg_dark,
+        "col_trans_bg": bg,
+        "col_tracklistbg": bg,
         "col_tl_bg": 0,
         "col_tl_bgsel": bg,
         "col_tl_bgsel2": bg,
@@ -665,7 +667,6 @@ def write_reaper(palette):
     (theme_dir / "Morandi.ReaperTheme").write_text(theme_content, encoding='utf-8')
     
     # --- TINT THE PNG IMAGE FILES ---
-    # Flat Madness heavily relies on PNG images rather than ReaperTheme hex codes.
     try:
         import shutil
         import tempfile
@@ -673,8 +674,8 @@ def write_reaper(palette):
         if morandi_img_dir.exists():
             shutil.rmtree(morandi_img_dir)
         with tempfile.TemporaryDirectory() as tmpdirname:
-            subprocess.run(["unzip", "-q", str(theme_dir / "Flat Madness 5.2.3 Dark C.ReaperThemeZip"), "-d", tmpdirname])
-            fm_dirs = list(Path(tmpdirname).glob("FM*"))
+            subprocess.run(["unzip", "-q", str(theme_dir / "Reapertips Theme.ReaperThemeZip"), "-d", tmpdirname])
+            fm_dirs = [d for d in Path(tmpdirname).glob("Reapertips*") if d.is_dir()]
             if fm_dirs:
                 shutil.copytree(fm_dirs[0], morandi_img_dir)
 
@@ -758,41 +759,10 @@ def write_reaper(palette):
             "midi_inline_scroll.png": bg_dark_rgb,
         }
         
-        rounded_map = {
-            "tcp_bg.png": bg_rgb,
-            "tcp_bgsel.png": sel_bg_rgb,
-            "mcp_bg.png": bg_rgb,
-            "mcp_bgsel.png": sel_bg_rgb,
-            "envcp_bg.png": bg_rgb,
-            "envcp_bgsel.png": sel_bg_rgb,
-            "transport_bg.png": bg_rgb,
-        }
-        
         for filename, new_color in tint_map.items():
-            for img_path in morandi_img_dir.rglob(filename):
-                if filename in rounded_map:
-                    from PIL import ImageDraw
-                    size = 128
-                    radius = 8
-                    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-                    draw = ImageDraw.Draw(img)
-                    draw.rounded_rectangle([(1, 1), (size-2, size-2)], radius=radius, fill=rounded_map[filename] + (255,))
-                    
-                    pink = (255, 0, 255, 255)
-                    stretch_s = radius + 2
-                    stretch_e = size - radius - 3
-                    
-                    for i in range(stretch_s, stretch_e):
-                        img.putpixel((i, 0), pink)
-                        img.putpixel((0, i), pink)
-                        img.putpixel((i, size-1), pink)
-                        img.putpixel((size-1, i), pink)
-                    
-                    img.save(img_path)
-                    continue
-
+            for filepath in morandi_img_dir.rglob(filename):
                 try:
-                    img = Image.open(img_path).convert("RGBA")
+                    img = Image.open(filepath).convert("RGBA")
                     pixels = img.load()
                     width, height = img.size
                     modified = False
@@ -807,7 +777,7 @@ def write_reaper(palette):
                             modified = True
                             
                     if modified:
-                        img.save(img_path)
+                        img.save(filepath)
                 except Exception:
                     pass
     except Exception as e:
