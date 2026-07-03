@@ -632,14 +632,14 @@ col_mcp_text={fg}
     content = reaper_ini.read_text()
     
     if "langpack=" in content:
-        content = re.sub(r"^langpack=.*", "langpack=zh_CN.ReaperLangPack", content, flags=re.MULTILINE)
+        content = re.sub(r"^langpack=.*", "langpack=/home/lanrhyme/.config/REAPER/LangPack/zh_CN.ReaperLangPack", content, flags=re.MULTILINE)
     else:
-        content = content.replace("[reaper]", "[reaper]\nlangpack=zh_CN.ReaperLangPack")
+        content = content.replace("[reaper]", "[reaper]\nlangpack=/home/lanrhyme/.config/REAPER/LangPack/zh_CN.ReaperLangPack")
         
     if "color_theme=" in content:
-        content = re.sub(r"^color_theme=.*", "color_theme=Morandi.ReaperTheme", content, flags=re.MULTILINE)
+        content = re.sub(r"^color_theme=.*", "color_theme=/home/lanrhyme/.config/REAPER/ColorThemes/Morandi.ReaperTheme", content, flags=re.MULTILINE)
     else:
-        content = content.replace("[reaper]", "[reaper]\ncolor_theme=Morandi.ReaperTheme")
+        content = content.replace("[reaper]", "[reaper]\ncolor_theme=/home/lanrhyme/.config/REAPER/ColorThemes/Morandi.ReaperTheme")
         
     reaper_ini.write_text(content)
 
