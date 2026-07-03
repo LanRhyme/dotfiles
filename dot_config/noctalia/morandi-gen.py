@@ -685,11 +685,6 @@ def write_reaper(palette):
             "tcp_adjust_bgsel.png": sel_bg_rgb,
             "mcp_adjust_bg.png": bg_rgb,
             "mcp_adjust_bgsel.png": sel_bg_rgb,
-            "tcp_color_bg.png": bg_rgb,
-            "tcp_color_bgsel.png": sel_bg_rgb,
-            "mcp_color_bg.png": bg_rgb,
-            "envcp_bg_custom.png": bg_rgb,
-            "envcp_bgsel_custom.png": sel_bg_rgb,
             "tcp_pan_labelbg.png": bg_alt_rgb,
             "mcp_label_bground.png": bg_alt_rgb,
         }
