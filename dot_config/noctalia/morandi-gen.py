@@ -584,6 +584,65 @@ gradient_color_8 = '{palette['love']}'
 """
     theme_path.write_text(content)
 
+def write_reaper(palette):
+    def hex_to_reaper(hex_c):
+        hex_c = hex_c.lstrip('#')
+        r, g, b = int(hex_c[0:2], 16), int(hex_c[2:4], 16), int(hex_c[4:6], 16)
+        return r + g * 256 + b * 65536
+
+    theme_dir = Path.home() / ".config/REAPER/ColorThemes"
+    theme_dir.mkdir(parents=True, exist_ok=True)
+    
+    bg = hex_to_reaper(palette['base'])
+    bg_alt = hex_to_reaper(palette['surface0'])
+    fg = hex_to_reaper(palette['text'])
+    sel_bg = hex_to_reaper(palette['surface1'])
+    primary = hex_to_reaper(palette['iris'])
+    grid = hex_to_reaper(palette['surface0'])
+    
+    theme_content = f"""[color theme]
+col_main_bg2={bg}
+col_main_text2={fg}
+col_main_text={fg}
+col_main_bg={bg}
+col_main_editbk={bg_alt}
+col_transport_editbk={bg_alt}
+col_toolbar_text={fg}
+col_toolbar_text_on={primary}
+genlist_bg={bg}
+genlist_fg={fg}
+genlist_grid={grid}
+genlist_selbg={sel_bg}
+genlist_selfg={primary}
+col_seltrack={sel_bg}
+col_trackbg1={bg}
+col_trackbg2={bg_alt}
+col_mixerbg={bg}
+col_arrangebg={bg}
+col_tcp_text={fg}
+col_mcp_text={fg}
+"""
+    (theme_dir / "Morandi.ReaperTheme").write_text(theme_content)
+
+    reaper_ini = Path.home() / ".config/REAPER/reaper.ini"
+    if not reaper_ini.exists():
+        reaper_ini.parent.mkdir(parents=True, exist_ok=True)
+        reaper_ini.write_text("[reaper]\n")
+        
+    content = reaper_ini.read_text()
+    
+    if "langpack=" in content:
+        content = re.sub(r"^langpack=.*", "langpack=zh_CN.ReaperLangPack", content, flags=re.MULTILINE)
+    else:
+        content = content.replace("[reaper]", "[reaper]\nlangpack=zh_CN.ReaperLangPack")
+        
+    if "color_theme=" in content:
+        content = re.sub(r"^color_theme=.*", "color_theme=Morandi.ReaperTheme", content, flags=re.MULTILINE)
+    else:
+        content = content.replace("[reaper]", "[reaper]\ncolor_theme=Morandi.ReaperTheme")
+        
+    reaper_ini.write_text(content)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wallpaper", help="Path to current wallpaper for limine sync")
@@ -605,6 +664,10 @@ def main():
     write_kde(colors)
     write_clash_verge(palette)
     write_flclash(palette)
+    try:
+        write_reaper(palette)
+    except Exception as e:
+        print(f"Failed to write reaper theme: {e}")
     
     try:
         write_cava(palette)
