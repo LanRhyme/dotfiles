@@ -598,11 +598,13 @@ def write_reaper(palette):
     bh, bs, bl = hex_to_hsl(base_hex)
     
     bg_alt_hex = hsl_to_hex(bh, bs, min(bl + 2, 100))
+    bg_dark_hex = morandi(base_hex, 0, -3)
     sel_bg_hex = hsl_to_hex(bh, bs, min(bl + 4, 100))
     grid_hex = hsl_to_hex(bh, bs, min(bl + 3, 100))
     
     bg = hex_to_reaper(base_hex)
     bg_alt = hex_to_reaper(bg_alt_hex)
+    bg_dark = hex_to_reaper(bg_dark_hex)
     fg = hex_to_reaper(palette['text'])
     sel_bg = hex_to_reaper(sel_bg_hex)
     primary = hex_to_reaper(palette['iris'])
@@ -642,9 +644,9 @@ def write_reaper(palette):
         "col_arrangebg": bg,
         "col_trans_bg": bg,
         "col_tracklistbg": bg,
-        "col_tl_bg": bg,
-        "col_tl_bgsel": sel_bg,
-        "col_tl_bgsel2": sel_bg,
+        "col_tl_bg": bg_dark,
+        "col_tl_bgsel": bg,
+        "col_tl_bgsel2": bg,
         "col_mi_bg": bg,
         "col_mi_bg2": bg,
         "selcol_tr1_bg": sel_bg,
@@ -676,13 +678,14 @@ def write_reaper(palette):
                 shutil.copytree(fm_dirs[0], morandi_img_dir)
 
         from PIL import Image
-        def rgb_from_hex(h):
+        def hex_to_rgb(h):
             h = h.lstrip('#')
             return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
             
-        bg_rgb = rgb_from_hex(base_hex)
-        bg_alt_rgb = rgb_from_hex(bg_alt_hex)
-        sel_bg_rgb = rgb_from_hex(sel_bg_hex)
+        bg_rgb = hex_to_rgb(base_hex)
+        bg_alt_rgb = hex_to_rgb(bg_alt_hex)
+        bg_dark_rgb = hex_to_rgb(bg_dark_hex)
+        sel_bg_rgb = hex_to_rgb(sel_bg_hex)
         
         tint_map = {
             "tcp_bg.png": bg_rgb,
@@ -716,19 +719,19 @@ def write_reaper(palette):
             "tcp_master_bgsel.png": sel_bg_rgb,
             "tcp_custom_bg.png": bg_rgb,
             "tcp_custom_bgsel.png": sel_bg_rgb,
-            "tcp_fxparm_bg.png": bg_rgb,
-            "tcp_fxparm_empty.png": bg_rgb,
-            "tcp_fxparm_fx_empty.png": bg_rgb,
-            "mcp_fxlist_bg.png": bg_rgb,
-            "mcp_fxlist_empty.png": bg_rgb,
-            "mcp_fxparm_bg.png": bg_rgb,
-            "mcp_sendlist_bg.png": bg_rgb,
-            "mcp_sendlist_empty.png": bg_rgb,
-            "track_fx_empty.png": bg_rgb,
-            "track_fx_empty_v.png": bg_rgb,
-            "track_fx_in_empty.png": bg_rgb,
-            "track_fxempty_h.png": bg_rgb,
-            "track_fxempty_v.png": bg_rgb,
+            "tcp_fxparm_bg.png": bg_alt_rgb,
+            "tcp_fxparm_empty.png": bg_alt_rgb,
+            "tcp_fxparm_fx_empty.png": bg_alt_rgb,
+            "mcp_fxlist_bg.png": bg_alt_rgb,
+            "mcp_fxlist_empty.png": bg_alt_rgb,
+            "mcp_fxparm_bg.png": bg_alt_rgb,
+            "mcp_sendlist_bg.png": bg_alt_rgb,
+            "mcp_sendlist_empty.png": bg_alt_rgb,
+            "track_fx_empty.png": bg_alt_rgb,
+            "track_fx_empty_v.png": bg_alt_rgb,
+            "track_fx_in_empty.png": bg_alt_rgb,
+            "track_fxempty_h.png": bg_alt_rgb,
+            "track_fxempty_v.png": bg_alt_rgb,
             "tcp_pan_labelbg.png": bg_alt_rgb,
             "mcp_label_bground.png": bg_alt_rgb,
             "toolbar_bg.png": bg_rgb,
@@ -745,6 +748,12 @@ def write_reaper(palette):
             "trans_tools_bg.png": bg_alt_rgb,
             "value_bg.png": bg_alt_rgb,
             "genlist_bg.png": bg_rgb,
+            "gloss.png": bg_rgb,
+            "gloss_bg.png": bg_rgb,
+            "scrollbar.png": bg_dark_rgb,
+            "scrollbar_2.png": bg_dark_rgb,
+            "midi_inline_scrollbar.png": bg_dark_rgb,
+            "midi_inline_scroll.png": bg_dark_rgb,
         }
         
         for filename, new_color in tint_map.items():
