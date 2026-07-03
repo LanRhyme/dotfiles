@@ -641,10 +641,10 @@ def write_reaper(palette):
         "col_trackbg2": bg,
         "col_tr1_bg": bg,
         "col_tr2_bg": bg,
-        "col_mixerbg": bg,
+        "col_mixerbg": bg_dark,
         "col_arrangebg": bg,
-        "col_trans_bg": bg,
-        "col_tracklistbg": bg,
+        "col_trans_bg": bg_dark,
+        "col_tracklistbg": bg_dark,
         "col_tl_bg": 0,
         "col_tl_bgsel": bg,
         "col_tl_bgsel2": bg,
@@ -758,10 +758,41 @@ def write_reaper(palette):
             "midi_inline_scroll.png": bg_dark_rgb,
         }
         
+        rounded_map = {
+            "tcp_bg.png": bg_rgb,
+            "tcp_bgsel.png": sel_bg_rgb,
+            "mcp_bg.png": bg_rgb,
+            "mcp_bgsel.png": sel_bg_rgb,
+            "envcp_bg.png": bg_rgb,
+            "envcp_bgsel.png": sel_bg_rgb,
+            "transport_bg.png": bg_rgb,
+        }
+        
         for filename, new_color in tint_map.items():
-            for filepath in morandi_img_dir.rglob(filename):
+            for img_path in morandi_img_dir.rglob(filename):
+                if filename in rounded_map:
+                    from PIL import ImageDraw
+                    size = 128
+                    radius = 8
+                    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+                    draw = ImageDraw.Draw(img)
+                    draw.rounded_rectangle([(1, 1), (size-2, size-2)], radius=radius, fill=rounded_map[filename] + (255,))
+                    
+                    pink = (255, 0, 255, 255)
+                    stretch_s = radius + 2
+                    stretch_e = size - radius - 3
+                    
+                    for i in range(stretch_s, stretch_e):
+                        img.putpixel((i, 0), pink)
+                        img.putpixel((0, i), pink)
+                        img.putpixel((i, size-1), pink)
+                        img.putpixel((size-1, i), pink)
+                    
+                    img.save(img_path)
+                    continue
+
                 try:
-                    img = Image.open(filepath).convert("RGBA")
+                    img = Image.open(img_path).convert("RGBA")
                     pixels = img.load()
                     width, height = img.size
                     modified = False
@@ -776,7 +807,7 @@ def write_reaper(palette):
                             modified = True
                             
                     if modified:
-                        img.save(filepath)
+                        img.save(img_path)
                 except Exception:
                     pass
     except Exception as e:
