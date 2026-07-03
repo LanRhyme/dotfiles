@@ -813,6 +813,34 @@ def write_reaper(palette):
     
     reaper_ini.write_text(content)
 
+def write_libswell(palette):
+    swell_conf = Path.home() / ".config/REAPER/libSwell-user.colortheme"
+    if not swell_conf.exists(): return
+    content = swell_conf.read_text()
+    
+    bg = palette["base"]
+    bg_alt = palette["mantle"]
+    bg_dark = morandi(palette["base"], 0, -3)
+    text = palette["text"]
+    text_dim = palette["subtext0"]
+    accent = palette["iris"]
+    
+    replacements = {
+        "#333333": bg, "#2e2e2e": bg_alt, "#282828": bg_alt, "#2a2a2a": bg_alt,
+        "#303030": bg, "#2f2f2f": bg_alt, "#292929": bg_alt, "#242424": bg_dark,
+        "#202020": bg_dark, "#353535": bg_dark, "#2c2c2c": bg_dark,
+        "#d1a660": accent, "#d1d1d1": text, "#c3c3c3": text_dim,
+        "#9a9a9a": text_dim, "#7a7a7a": text_dim, "#777777": text_dim,
+        "#676767": text_dim, "#585858": text_dim, "#050505": bg_dark,
+        "#1a1a1a": bg_alt, "#e6e6e6": text, "#1A1A1A": bg_alt, "#E6E6E6": text
+    }
+    
+    content = re.sub(r"#[0-9a-fA-F]{6}", lambda m: replacements.get(m.group(0), m.group(0).lower()), content)
+    # also try lower casing for the map
+    content = re.sub(r"#[0-9a-fA-F]{6}", lambda m: replacements.get(m.group(0).lower(), m.group(0)), content)
+    
+    swell_conf.write_text(content)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wallpaper", help="Path to current wallpaper for limine sync")
@@ -832,17 +860,14 @@ def main():
     write_fastfetch(palette)
     write_alacritty()
     write_kde(colors)
+    write_obs(palette)
     write_clash_verge(palette)
+    write_cava(palette)
     write_flclash(palette)
-    try:
-        write_reaper(palette)
-    except Exception as e:
-        print(f"Failed to write reaper theme: {e}")
+    write_reaper(palette)
+    write_libswell(palette)
     
-    try:
-        write_cava(palette)
-    except Exception as e:
-        print(f"Failed to write cava theme: {e}")
+    apply_system_changes(args.wallpaper)
     
     try:
         write_blender(palette)
