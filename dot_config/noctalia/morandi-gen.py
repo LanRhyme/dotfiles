@@ -593,12 +593,20 @@ def write_reaper(palette):
     theme_dir = Path.home() / ".config/REAPER/ColorThemes"
     theme_dir.mkdir(parents=True, exist_ok=True)
     
-    bg = hex_to_reaper(palette['base'])
-    bg_alt = hex_to_reaper(palette['surface0'])
+    # For a unified, flat look like Cakewalk Next, use very subtle variations from base
+    base_hex = palette['base']
+    bh, bs, bl = hex_to_hsl(base_hex)
+    
+    bg_alt_hex = hsl_to_hex(bh, bs, min(bl + 2, 100))
+    sel_bg_hex = hsl_to_hex(bh, bs, min(bl + 4, 100))
+    grid_hex = hsl_to_hex(bh, bs, min(bl + 3, 100))
+    
+    bg = hex_to_reaper(base_hex)
+    bg_alt = hex_to_reaper(bg_alt_hex)
     fg = hex_to_reaper(palette['text'])
-    sel_bg = hex_to_reaper(palette['surface1'])
+    sel_bg = hex_to_reaper(sel_bg_hex)
     primary = hex_to_reaper(palette['iris'])
-    grid = hex_to_reaper(palette['surface0'])
+    grid = hex_to_reaper(grid_hex)
     
     base_theme_path = Path.home() / ".config/noctalia/Base.ReaperTheme"
     if not base_theme_path.exists():
@@ -610,6 +618,7 @@ def write_reaper(palette):
     theme_content = re.sub(r"^ui_img=.*", "ui_img=Morandi", theme_content, flags=re.MULTILINE)
     
     # Map of keys to their new values
+    # We set both track backgrounds to bg to remove zebra striping
     replacements = {
         "col_main_bg2": bg,
         "col_main_text2": fg,
@@ -626,7 +635,7 @@ def write_reaper(palette):
         "genlist_selfg": primary,
         "col_seltrack": sel_bg,
         "col_trackbg1": bg,
-        "col_trackbg2": bg_alt,
+        "col_trackbg2": bg,
         "col_mixerbg": bg,
         "col_arrangebg": bg,
         "col_tcp_text": fg,
@@ -646,42 +655,43 @@ def write_reaper(palette):
             h = h.lstrip('#')
             return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
             
-        bg_rgb = rgb_from_hex(palette['base'])
-        surface1_rgb = rgb_from_hex(palette['surface1'])
+        bg_rgb = rgb_from_hex(base_hex)
+        bg_alt_rgb = rgb_from_hex(bg_alt_hex)
+        sel_bg_rgb = rgb_from_hex(sel_bg_hex)
         
         morandi_img_dir = theme_dir / "Morandi"
         
         tint_map = {
             "tcp_bg.png": bg_rgb,
-            "tcp_bgsel.png": surface1_rgb,
+            "tcp_bgsel.png": sel_bg_rgb,
             "mcp_bg.png": bg_rgb,
-            "mcp_bgsel.png": surface1_rgb,
+            "mcp_bgsel.png": sel_bg_rgb,
             "envcp_bg.png": bg_rgb,
-            "envcp_bgsel.png": surface1_rgb,
+            "envcp_bgsel.png": sel_bg_rgb,
             "item_bg.png": bg_rgb,
-            "item_bg_sel.png": surface1_rgb,
-            "item_bgsel.png": surface1_rgb,
+            "item_bg_sel.png": sel_bg_rgb,
+            "item_bgsel.png": sel_bg_rgb,
             "tcp_mainbg.png": bg_rgb,
-            "tcp_mainbgsel.png": surface1_rgb,
+            "tcp_mainbgsel.png": sel_bg_rgb,
             "mcp_mainbg.png": bg_rgb,
-            "mcp_mainbgsel.png": surface1_rgb,
+            "mcp_mainbgsel.png": sel_bg_rgb,
             "mcp_custom_mainbg.png": bg_rgb,
-            "mcp_custom_mainbgsel.png": surface1_rgb,
+            "mcp_custom_mainbgsel.png": sel_bg_rgb,
             "mcp_grey_bg.png": bg_rgb,
-            "mcp_grey_bgsel.png": surface1_rgb,
+            "mcp_grey_bgsel.png": sel_bg_rgb,
             "tcp_grey_bg.png": bg_rgb,
-            "tcp_grey_bgsel.png": surface1_rgb,
+            "tcp_grey_bgsel.png": sel_bg_rgb,
             "tcp_adjust_bg.png": bg_rgb,
-            "tcp_adjust_bgsel.png": surface1_rgb,
+            "tcp_adjust_bgsel.png": sel_bg_rgb,
             "mcp_adjust_bg.png": bg_rgb,
-            "mcp_adjust_bgsel.png": surface1_rgb,
+            "mcp_adjust_bgsel.png": sel_bg_rgb,
             "tcp_color_bg.png": bg_rgb,
-            "tcp_color_bgsel.png": surface1_rgb,
+            "tcp_color_bgsel.png": sel_bg_rgb,
             "mcp_color_bg.png": bg_rgb,
             "envcp_bg_custom.png": bg_rgb,
-            "envcp_bgsel_custom.png": surface1_rgb,
-            "tcp_pan_labelbg.png": bg_rgb,
-            "mcp_label_bground.png": bg_rgb,
+            "envcp_bgsel_custom.png": sel_bg_rgb,
+            "tcp_pan_labelbg.png": bg_alt_rgb,
+            "mcp_label_bground.png": bg_alt_rgb,
         }
         
         for filename, new_color in tint_map.items():
