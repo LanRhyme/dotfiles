@@ -59,7 +59,7 @@ HEADER
       tcp_iconsize 100 
       mcp_min_height 300
       trans_showborders 0 
-      tinttcp  2
+      tinttcp  250
       adjuster_script FM_4.0_theme_adjuster.lua
 
       set bright 0

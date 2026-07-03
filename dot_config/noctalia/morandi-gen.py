@@ -664,6 +664,17 @@ def write_reaper(palette):
     # --- TINT THE PNG IMAGE FILES ---
     # Flat Madness heavily relies on PNG images rather than ReaperTheme hex codes.
     try:
+        import shutil
+        import tempfile
+        morandi_img_dir = theme_dir / "Morandi"
+        if morandi_img_dir.exists():
+            shutil.rmtree(morandi_img_dir)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            subprocess.run(["unzip", "-q", str(theme_dir / "Flat Madness 5.2.3 Dark C.ReaperThemeZip"), "-d", tmpdirname])
+            fm_dirs = list(Path(tmpdirname).glob("FM*"))
+            if fm_dirs:
+                shutil.copytree(fm_dirs[0], morandi_img_dir)
+
         from PIL import Image
         def rgb_from_hex(h):
             h = h.lstrip('#')
@@ -672,8 +683,6 @@ def write_reaper(palette):
         bg_rgb = rgb_from_hex(base_hex)
         bg_alt_rgb = rgb_from_hex(bg_alt_hex)
         sel_bg_rgb = rgb_from_hex(sel_bg_hex)
-        
-        morandi_img_dir = theme_dir / "Morandi"
         
         tint_map = {
             "tcp_bg.png": bg_rgb,
