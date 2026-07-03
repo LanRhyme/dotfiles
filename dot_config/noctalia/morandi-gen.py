@@ -687,6 +687,16 @@ def write_reaper(palette):
             "mcp_adjust_bgsel.png": sel_bg_rgb,
             "tcp_pan_labelbg.png": bg_alt_rgb,
             "mcp_label_bground.png": bg_alt_rgb,
+            "toolbar_bg.png": bg_rgb,
+            "transport_bg.png": bg_rgb,
+            "Transport_bpm_bg.png": bg_alt_rgb,
+            "Transport_edit_bg.png": bg_alt_rgb,
+            "Transport_group_bg.png": bg_alt_rgb,
+            "transport_options_bg.png": bg_alt_rgb,
+            "Transport_status_bg.png": bg_alt_rgb,
+            "trans_tools_bg.png": bg_alt_rgb,
+            "value_bg.png": bg_alt_rgb,
+            "genlist_bg.png": bg_rgb,
         }
         
         for filename, new_color in tint_map.items():
