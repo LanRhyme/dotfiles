@@ -601,6 +601,7 @@ def write_reaper(palette):
     grid = hex_to_reaper(palette['surface0'])
     
     theme_content = f"""[color theme]
+ui_img=Reapertips Theme
 col_main_bg2={bg}
 col_main_text2={fg}
 col_main_text={fg}
@@ -635,12 +636,10 @@ col_mcp_text={fg}
         content = re.sub(r"^langpack=.*", "langpack=/home/lanrhyme/.config/REAPER/LangPack/zh_CN.ReaperLangPack", content, flags=re.MULTILINE)
     else:
         content = content.replace("[reaper]", "[reaper]\nlangpack=/home/lanrhyme/.config/REAPER/LangPack/zh_CN.ReaperLangPack")
-        
-    if "color_theme=" in content:
-        content = re.sub(r"^color_theme=.*", "color_theme=/home/lanrhyme/.config/REAPER/ColorThemes/Morandi.ReaperTheme", content, flags=re.MULTILINE)
-    else:
-        content = content.replace("[reaper]", "[reaper]\ncolor_theme=/home/lanrhyme/.config/REAPER/ColorThemes/Morandi.ReaperTheme")
-        
+    
+    # We no longer override color_theme here so the user can choose freely. 
+    # But if they choose Morandi.ReaperTheme, it will now inherit from Reapertips Theme!
+    
     reaper_ini.write_text(content)
 
 def main():
