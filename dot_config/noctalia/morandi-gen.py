@@ -601,7 +601,7 @@ def write_reaper(palette):
     grid = hex_to_reaper(palette['surface0'])
     
     theme_content = f"""[color theme]
-ui_img=Flat Madness 5.2.3 Dark C
+ui_img=Morandi
 col_main_bg2={bg}
 col_main_text2={fg}
 col_main_text={fg}
