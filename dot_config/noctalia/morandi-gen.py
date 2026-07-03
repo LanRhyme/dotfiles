@@ -702,6 +702,7 @@ def write_reaper(palette):
             "tcp_pan_labelbg.png": bg_alt_rgb,
             "mcp_label_bground.png": bg_alt_rgb,
             "toolbar_bg.png": bg_rgb,
+            "toolbar_blank.png": bg_rgb,
             "transport_bg.png": bg_rgb,
             "Transport_bpm_bg.png": bg_alt_rgb,
             "Transport_edit_bg.png": bg_alt_rgb,
