@@ -600,30 +600,43 @@ def write_reaper(palette):
     primary = hex_to_reaper(palette['iris'])
     grid = hex_to_reaper(palette['surface0'])
     
-    theme_content = f"""[color theme]
-ui_img=Morandi
-col_main_bg2={bg}
-col_main_text2={fg}
-col_main_text={fg}
-col_main_bg={bg}
-col_main_editbk={bg_alt}
-col_transport_editbk={bg_alt}
-col_toolbar_text={fg}
-col_toolbar_text_on={primary}
-genlist_bg={bg}
-genlist_fg={fg}
-genlist_grid={grid}
-genlist_selbg={sel_bg}
-genlist_selfg={primary}
-col_seltrack={sel_bg}
-col_trackbg1={bg}
-col_trackbg2={bg_alt}
-col_mixerbg={bg}
-col_arrangebg={bg}
-col_tcp_text={fg}
-col_mcp_text={fg}
-"""
-    (theme_dir / "Morandi.ReaperTheme").write_text(theme_content)
+    base_theme_path = Path.home() / ".config/noctalia/Base.ReaperTheme"
+    if not base_theme_path.exists():
+        return
+        
+    theme_content = base_theme_path.read_text(encoding='utf-8')
+    
+    # Update image folder to Morandi
+    theme_content = re.sub(r"^ui_img=.*", "ui_img=Morandi", theme_content, flags=re.MULTILINE)
+    
+    # Map of keys to their new values
+    replacements = {
+        "col_main_bg2": bg,
+        "col_main_text2": fg,
+        "col_main_text": fg,
+        "col_main_bg": bg,
+        "col_main_editbk": bg_alt,
+        "col_transport_editbk": bg_alt,
+        "col_toolbar_text": fg,
+        "col_toolbar_text_on": primary,
+        "genlist_bg": bg,
+        "genlist_fg": fg,
+        "genlist_grid": grid,
+        "genlist_selbg": sel_bg,
+        "genlist_selfg": primary,
+        "col_seltrack": sel_bg,
+        "col_trackbg1": bg,
+        "col_trackbg2": bg_alt,
+        "col_mixerbg": bg,
+        "col_arrangebg": bg,
+        "col_tcp_text": fg,
+        "col_mcp_text": fg
+    }
+    
+    for k, v in replacements.items():
+        theme_content = re.sub(rf"^{k}=.*", f"{k}={v}", theme_content, flags=re.MULTILINE)
+
+    (theme_dir / "Morandi.ReaperTheme").write_text(theme_content, encoding='utf-8')
 
     reaper_ini = Path.home() / ".config/REAPER/reaper.ini"
     if not reaper_ini.exists():
