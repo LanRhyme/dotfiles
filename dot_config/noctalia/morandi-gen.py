@@ -749,9 +749,9 @@ def write_reaper(palette):
     content = reaper_ini.read_text()
     
     if "langpack=" in content:
-        content = re.sub(r"^langpack=.*", "langpack=/home/lanrhyme/.config/REAPER/LangPack/zh_CN.ReaperLangPack", content, flags=re.MULTILINE)
+        content = re.sub(r"^langpack=.*", "langpack=/home/lanrhyme/.config/REAPER/LangPack/Chinese-Simplified_v7.60_Universal_PlainText.ReaperLangPack", content, flags=re.MULTILINE)
     else:
-        content = content.replace("[reaper]", "[reaper]\nlangpack=/home/lanrhyme/.config/REAPER/LangPack/zh_CN.ReaperLangPack")
+        content = content.replace("[reaper]", "[reaper]\nlangpack=/home/lanrhyme/.config/REAPER/LangPack/Chinese-Simplified_v7.60_Universal_PlainText.ReaperLangPack")
     
     reaper_ini.write_text(content)
     
