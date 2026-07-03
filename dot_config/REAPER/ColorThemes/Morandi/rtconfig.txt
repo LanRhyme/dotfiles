@@ -874,8 +874,8 @@ clear tcp.*
             ---- C U S T O M S
 
             set tcp.custom.saturationbg * scale tcp_solid_color=3 [10 0 360 122 0 0 1 1] [0]
-            set folderselected track_selected=1 + [0 0 0 0 tcp_saturn_ident##lttype tcp_saturn_ident##lttype tcp_saturn_ident##lttype 0] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype saturnfolder##lttype] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype saturnfolder##lttype]
-            set tcp.custom.saturationbg.color folderstate=1 folderselected track_selected=1 + [0 0 0 0 tcp_saturn_ident##lttype tcp_saturn_ident##lttype tcp_saturn_ident##lttype 0] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype saturnalpha##lttype] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype saturnalpha##lttype]
+            set folderselected track_selected=1 + [0 0 0 0 tcp_saturn_ident##lttype tcp_saturn_ident##lttype tcp_saturn_ident##lttype 0] [0 0 0 0 26 26 24 saturnfolder##lttype] [0 0 0 0 26 26 24 saturnfolder##lttype]
+            set tcp.custom.saturationbg.color folderstate=1 folderselected track_selected=1 + [0 0 0 0 tcp_saturn_ident##lttype tcp_saturn_ident##lttype tcp_saturn_ident##lttype 0] [0 0 0 0 26 26 24 saturnalpha##lttype] [0 0 0 0 26 26 24 saturnalpha##lttype]
 
             set labellockout                h<=LongmameBP_h{1} [0] tcp.label
 
@@ -1094,7 +1094,7 @@ TRACK MASTER
 
             
             set master.tcp.custom.saturationbg * scale tcp_solid_colorad##lttype=3 [0 0 360 132 0 0 1 1] [0]
-            set master.tcp.custom.saturationbg.color track_selected=1 + [0 0 0 0 tcp_saturn_ident##lttype tcp_saturn_ident##lttype tcp_saturn_ident##lttype 0] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype 255] [0 0 0 0 saturnc##lttype saturnc##lttype saturnc##lttype 255]
+            set master.tcp.custom.saturationbg.color track_selected=1 + [0 0 0 0 tcp_saturn_ident##lttype tcp_saturn_ident##lttype tcp_saturn_ident##lttype 0] [0 0 0 0 26 26 24 255] [0 0 0 0 26 26 24 255]
 
             set master.tcp.label.color  [120 120 120 255]
             set master.tcp.label.font   + fontsize [1]
@@ -1266,7 +1266,7 @@ TRACK MASTER
             set mcp.custom.bracket   * scale folderstate=0 [0] folderstate=1 [0 6 2 304 0 0 0 1] [mcp_width{4} 6 2 304 0 0 0 1]  meterbridge=1 [0] ;  folderstate=2 [0] meterbridge=1 [0] [0]
 
             set mcp.custom.saturationbg * scale mcp_solid_color##lttype=3 [0 0 mcp.size{0} 150 0 0 0 0] [0]
-            set mcp.custom.saturationbg.color folderstate=1 [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype mcpsaturnfolder##lttype] track_selected=1 + [0 0 0 0 tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype 0] [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype saturnalphamcp##lttype] track_selected=0 [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype saturnalphamcp##lttype]
+            set mcp.custom.saturationbg.color folderstate=1 [0 0 0 0 26 26 24 mcpsaturnfolder##lttype] track_selected=1 + [0 0 0 0 tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype 0] [0 0 0 0 26 26 24 saturnalphamcp##lttype] track_selected=0 [0 0 0 0 26 26 24 saturnalphamcp##lttype]
 
       set collapseBP_fa  + folderdepth_multi [80 94 114]
       set collapseBP * scale collapseBP_fa
@@ -1449,7 +1449,7 @@ endmacro
                   set mcp.margin + mcp.margin * scale [0 0 0 2]
 
                   set mcp.custom.saturationbg * scale mcp_solid_color##lttype=3 [0 16 150 60 0 0 0 0] [0]
-                  set mcp.custom.saturationbg.color track_selected=1 + [0 0 0 0 tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype 0] [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype saturnalphamcp##lttype] track_selected=0 [0 0 0 0 saturncmcp##lttype saturncmcp##lttype saturncmcp##lttype saturnalphamcp##lttype]
+                  set mcp.custom.saturationbg.color track_selected=1 + [0 0 0 0 tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype tcp_saturn_identmcp##lttype 0] [0 0 0 0 26 26 24 saturnalphamcp##lttype] track_selected=0 [0 0 0 0 26 26 24 saturnalphamcp##lttype]
 
                   set mcp.custom.colrcover + mcp.custom.colrcover * scale [0 0 0 -100]
                   set mcp.custom.trackcolor  * scale  [4 8 38 8]
