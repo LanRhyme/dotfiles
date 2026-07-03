@@ -82,10 +82,10 @@ LAYOUT A (DEFAULT)
       define_parameter mcp_solid_color_A        'A MCP Solid backgrounds'                        3 1 3        id 11
       define_parameter mixer_folderindent_A     'A enable folder indentification for mixer'      2 1 2        id 12
       define_parameter saturnc_A                'A background brighness'                         80 80 200    id 13    ; dark - 110 80 bright - 180 100
-      define_parameter saturnalpha_A            'A background saturation'                        255 1 255    id 14
+      define_parameter saturnalpha_A            'A background saturation'                        0 1 255    id 14
       define_parameter tcp_saturn_ident_A       'A selected track brightness'                    10 0 30      id 15
       define_parameter saturncmcp_A             'A MCP background brighness'                     80 80 200    id 16    ; dark - 110 80 bright - 180 100
-      define_parameter saturnalphamcp_A         'A MCP background saturation'                    255 1 255    id 17
+      define_parameter saturnalphamcp_A         'A MCP background saturation'                    0 1 255    id 17
       define_parameter tcp_saturn_identmcp_A    'A MCP selected track brightness'                10 0 30      id 18
       define_parameter gencoloring_A            'tinttcp adjust'                                 2 1 250      id 19
       define_parameter foldermargin_A           'A Center text label in folder/longname'         1 0 1        id 20
@@ -129,10 +129,10 @@ LAYOUT B
       define_parameter tcp_solid_colorad_B    'B TCP Solid backgrounds'                        3 1 3        id 55
       define_parameter mcp_solid_color_B      'B MCP Solid backgrounds'                        3 1 3        id 56
       define_parameter saturnc_B              'B background brighness'                         80 80 200    id 57
-      define_parameter saturnalpha_B          'B background saturation'                        255 1 255    id 58
+      define_parameter saturnalpha_B          'B background saturation'                        0 1 255    id 58
       define_parameter tcp_saturn_ident_B     'B selected track brightness'                    10 0 30      id 59
       define_parameter saturncmcp_B           'B MCP background brighness'                     80 80 200    id 60
-      define_parameter saturnalphamcp_B       'B MCP background saturation'                    255 1 255    id 61
+      define_parameter saturnalphamcp_B       'B MCP background saturation'                    0 1 255    id 61
       define_parameter tcp_saturn_identmcp_B  'B MCP selected track brightness'                10 0 30      id 62
       define_parameter foldermargin_B         'B Center text label in folder/longname'         1 0 1        id 63
       define_parameter tcplabelbrightness_B   'B tcp label brightness'                         120 120 200  id 64
@@ -164,10 +164,10 @@ LAYOUT C
       define_parameter tcp_solid_colorad_C    'C TCP Solid backgrounds'                        3 1 3        id 87
       define_parameter mcp_solid_color_C      'C MCP Solid backgrounds'                        3 1 3        id 88
       define_parameter saturnc_C              'C background brighness'                         80 80 200    id 89
-      define_parameter saturnalpha_C          'C background saturation'                        255 1 255    id 90
+      define_parameter saturnalpha_C          'C background saturation'                        0 1 255    id 90
       define_parameter tcp_saturn_ident_C     'C selected track brightness'                    10 0 30      id 91
       define_parameter saturncmcp_C           'C MCP background brighness'                     80 80 200    id 92
-      define_parameter saturnalphamcp_C       'C MCP background saturation'                    255 1 255    id 93
+      define_parameter saturnalphamcp_C       'C MCP background saturation'                    0 1 255    id 93
       define_parameter tcp_saturn_identmcp_C  'C MCP selected track brightness'                10 0 30      id 94
       define_parameter foldermargin_C         'C Center text label in folder/longname'         1 0 1        id 95
       define_parameter tcplabelbrightness_C   'C tcp label brightness'                         120 120 200  id 96
