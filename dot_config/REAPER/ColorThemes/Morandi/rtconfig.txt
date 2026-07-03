@@ -328,7 +328,7 @@ clear tcp.*
 
             set fixedlanes_trigger trackfixedlanes>0 [-16] [0]
             set tcp.custom.actionsbg track_selected=1 * scale actionlist=1 + + [fixedlanes_trigger{0} 0 0 0] [-50 0 0 0] [tcp.size{0} 0 50 tcp.size{1} 1 0 1 1] [0]
-            set tcp.custom.actionsbg.color bright=1 [0 0 0 0 65 65 65 255] [0 0 0 0 50 50 50 255]
+            set tcp.custom.actionsbg.color bright=1 [0 0 0 0 26 26 24 255] [0 0 0 0 26 26 24 255]
             set tcp.custom.actionsbgl track_selected=1 + tcp.custom.actionsbg * scale [0 3 -6 -6] [0]
             set tcp.custom.lanesbg * scale  trackfixedlanes>0 + [quickactions{0} 0 0 0] [370 0 18 122 1 0 1 1] tcp_iconsize>1  + [quickactions{0} 0 0 0] [370 0 18 122 1 0 1 1] [0]
             
@@ -384,7 +384,7 @@ clear tcp.*
             set tcp_label  folderstate=1 + tcp_label_main [0 0 0 0] lnstate=1 + + tcp_label_main tcp_label_lnmod [0 0 0 0]  meter_position<3 + tcp_label_main [0 0 0 0] meter_position>2 + tcp_label_main [0 0 0 0] 
             set tcp.label * scale tcp_label
             set tcp.custom.findent * scale [-500 -10 500 200 0 0 0 1]
-            set tcp.custom.findent.color   [0 0 0 0 25 25 25 255]
+            set tcp.custom.findent.color   [0 0 0 0 26 26 24 255]
 
             -------- TRACK IDX
 
@@ -864,7 +864,7 @@ clear tcp.*
             set tcp.custom.palette               * scale tcp_solid_color=3 [0 0 10 122 0 0 0 1]  [0]
             set tcp.custom.embedded.frame tcp_fxembed=0 [0] h<=labelBP_h{3} [0] + tcp.fxembed   [0 0 0 0]  
             set tcp.custom.fxsidefill            * scale fxside=0 [0]  [220 0 150 130 0 0 1 1]
-            set tcp.custom.fxsidefill.color    bright=1 [0 0 0 0 65 65 65 255] [0 0 0 0 50 50 50 255]
+            set tcp.custom.fxsidefill.color    bright=1 [0 0 0 0 26 26 24 255] [0 0 0 0 26 26 24 255]
             
             set glossw + + +  tcp.recarm{2} tcp.recmode{2} tcp.recmon{2} * scale [2]
             set glossh  h<FXIOBP_h{3} + tcp.recarm{3} [0] + +  tcp.recarm{3} tcp.env{3} [0]
@@ -901,9 +901,9 @@ clear tcp.*
             set tcp.custom.widbg            tcp.width.label
             
             set tcp.custom.upperdivider  dividercolor=0 [0] * scale [0 -4 2000 4 0 0 0 0] 
-            set tcp.custom.upperdivider.color [0 0 0 0 35 35 35 dividercolor]      
+            set tcp.custom.upperdivider.color [0 0 0 0 26 26 24 dividercolor]      
             set tcp.custom.dividerbg tcp.custom.upperdivider
-            set tcp.custom.dividerbg.color bright=1 [0 0 0 0 65 65 65 255] [0 0 0 0 45 45 45 255]
+            set tcp.custom.dividerbg.color bright=1 [0 0 0 0 26 26 24 255] [0 0 0 0 26 26 24 255]
 
            ; set tcp.custom.lowerdivider * scale [tcp.custom.upperdivider{0} 111 1000 10 0 1 0 1]
             ; set tcp.custom.lowerdivider.color  tcp.custom.upperdivider.color    
@@ -1259,7 +1259,7 @@ TRACK MASTER
             set mcp.custom.buttonghost2 * scale [50 8 22 20] 
 
             set mcp.custom.generalbg mcpsize
-            set mcp.custom.generalbg.color [0 0 0 0 65 65 65 255]
+            set mcp.custom.generalbg.color [0 0 0 0 26 26 24 255]
 
             set mcp.custom.foldertoggle   * scale  folderstate=1 [8 54 64 18] meterbridge=1 [0] [0]
             set minussuka - 2 [mcp.size{0} 0 0]
@@ -1363,7 +1363,7 @@ TRACK MASTER
       set mcp.custom.vlbg mcp.volume.label
       set mcp.custom.vlbg.color [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255]
       set mcp.custom.vlbgtop mcp.volume.label
-      set mcp.custom.vlbgtop.color [0 0 0 0 25 25 25 235]
+      set mcp.custom.vlbgtop.color [0 0 0 0 26 26 24 235]
 
       set mcppanswitch mcppanslider##lttype=1 [6 126 68 20] [7 124 20 20]
       set mcp.pan * scale trackpanmode<4 mcppanswitch [6 124 68 10]
@@ -1535,7 +1535,7 @@ endmacro
                   set mcp.custom.vlbg mcp.volume.label
                   set mcp.custom.vlbg.color [0 0 0 0 trackcolor_r trackcolor_g trackcolor_b 255]
                   set mcp.custom.vlbgtop mcp.volume.label
-                  set mcp.custom.vlbgtop.color [0 0 0 0 25 25 25 235]
+                  set mcp.custom.vlbgtop.color [0 0 0 0 26 26 24 235]
 
                   set labelfonttrick   - [saturnalphamcp##lttype saturnalphamco saturnalphamcp##lttype] [255 255 255 255]
                   set labelfontadjust  saturnalphamcp##lttype<50 [255 255 255] saturnalphamcp##lttype<100 + [80 80 80] [trackcolor_r trackcolor_g trackcolor_b]  + [50 50 50] [trackcolor_r trackcolor_g trackcolor_b]
@@ -1711,7 +1711,7 @@ endmacro
             set envcp.size                                                       * scale [282 122 266]
 
             set envcp.custom.findent * scale [-1000 -10 1000 200 0 0 0 1]
-            set envcp.custom.findent.color [0 0 0 0 25 25 25 255]
+            set envcp.custom.findent.color [0 0 0 0 26 26 24 255]
      
             set envcp.margin  * scale * [folderdepth 0 0 0 0] [tcp_folderindent 0 0 0 0.5]
             set envBP * scale  [10 46 49 24]
@@ -1745,7 +1745,7 @@ endmacro
             set envcp.custom.env     envcp_type<4       * scale h>envBP{2} [212 100 20 16 1 1 1 1]  [0] 
             set envcp.custom.fx      envcp_type=4       * scale h>envBP{2} [212 100 20 16 1 1 1 1]  [0]
             set envcp.custom.bypblur envcp_bypass=1 [0 0 envcp.size{0} envcp.size{1} 0 0 1 1] [0]
-            set envcp.custom.bypblur.color [0 0 0 0 50 50 50 200]
+            set envcp.custom.bypblur.color [0 0 0 0 26 26 24 200]
             
             endmacro
 

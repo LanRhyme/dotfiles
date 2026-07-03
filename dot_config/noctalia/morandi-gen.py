@@ -713,10 +713,10 @@ def write_reaper(palette):
                 for y in range(height):
                     for x in range(width):
                         r, g, b, a = pixels[x, y]
-                        if a == 0: continue
-                        if (r, g, b) == (255, 0, 255) or (r, g, b) == (255, 255, 0): continue
-                        
-                        pixels[x, y] = (new_color[0], new_color[1], new_color[2], a)
+                        if (r, g, b) == (255, 0, 255) or (r, g, b) == (255, 255, 0):
+                            continue
+                            
+                        pixels[x, y] = (new_color[0], new_color[1], new_color[2], 255)
                         modified = True
                         
                 if modified:
@@ -738,6 +738,23 @@ def write_reaper(palette):
     else:
         content = content.replace("[reaper]", "[reaper]\nlangpack=/home/lanrhyme/.config/REAPER/LangPack/zh_CN.ReaperLangPack")
     
+    reaper_ini.write_text(content)
+    
+    # Dynamically patch hardcoded bright greys in rtconfig.txt
+    rtconfig_path = theme_dir / "Morandi/rtconfig.txt"
+    if rtconfig_path.exists():
+        rt_content = rtconfig_path.read_text()
+        
+        # Replace 65 65 65, 50 50 50, 45 45 45, 35 35 35, 25 25 25 with the dynamic bg_rgb
+        for grey_val in ["65 65 65", "50 50 50", "45 45 45", "35 35 35", "25 25 25"]:
+            pattern = r"\[0 0 0 0 " + grey_val + r" (\S+)\]"
+            replacement = f"[0 0 0 0 {bg_rgb[0]} {bg_rgb[1]} {bg_rgb[2]} \\1]"
+            rt_content = re.sub(pattern, replacement, rt_content)
+            
+        # Forcefully disable the bright saturationbg overlays by setting saturnalpha to 0
+        rt_content = re.sub(r'(saturnalpha[a-zA-Z_0-9]*\s+.*\s+)255 1 255', r'\g<1>0 1 255', rt_content)
+            
+        rtconfig_path.write_text(rt_content)
     # We no longer override color_theme here so the user can choose freely. 
     # But if they choose Morandi.ReaperTheme, it will now inherit from Reapertips Theme!
     
