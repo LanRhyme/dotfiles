@@ -772,8 +772,27 @@ def write_reaper(palette):
                             r, g, b, a = pixels[x, y]
                             if (r, g, b) == (255, 0, 255) or (r, g, b) == (255, 255, 0):
                                 continue
-                                
-                            pixels[x, y] = (new_color[0], new_color[1], new_color[2], a)
+                            if a == 0:
+                                continue
+                            
+                            if r == 0 and g == 0 and b == 0:
+                                pass # Keep pure black shadows
+                            elif r == 255 and g == 255 and b == 255:
+                                pass # Keep pure white highlights
+                            else:
+                                l = (r + g + b) / (3.0 * 255.0)
+                                tl = (new_color[0] + new_color[1] + new_color[2]) / (3.0 * 255.0)
+                                if tl > 0:
+                                    factor = l / tl
+                                    pixels[x, y] = (
+                                        min(255, int(new_color[0] * factor)),
+                                        min(255, int(new_color[1] * factor)),
+                                        min(255, int(new_color[2] * factor)),
+                                        a
+                                    )
+                                else:
+                                    pixels[x, y] = (new_color[0], new_color[1], new_color[2], a)
+                                    
                             modified = True
                             
                     if modified:
