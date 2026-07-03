@@ -708,6 +708,27 @@ def write_reaper(palette):
             "tcp_adjust_bgsel.png": sel_bg_rgb,
             "mcp_adjust_bg.png": bg_rgb,
             "mcp_adjust_bgsel.png": sel_bg_rgb,
+            "tcp_color_bg.png": bg_rgb,
+            "tcp_color_bgsel.png": sel_bg_rgb,
+            "mcp_color_bg.png": bg_rgb,
+            "mcp_color_bgsel.png": sel_bg_rgb,
+            "tcp_master_bg.png": bg_rgb,
+            "tcp_master_bgsel.png": sel_bg_rgb,
+            "tcp_custom_bg.png": bg_rgb,
+            "tcp_custom_bgsel.png": sel_bg_rgb,
+            "tcp_fxparm_bg.png": bg_rgb,
+            "tcp_fxparm_empty.png": bg_rgb,
+            "tcp_fxparm_fx_empty.png": bg_rgb,
+            "mcp_fxlist_bg.png": bg_rgb,
+            "mcp_fxlist_empty.png": bg_rgb,
+            "mcp_fxparm_bg.png": bg_rgb,
+            "mcp_sendlist_bg.png": bg_rgb,
+            "mcp_sendlist_empty.png": bg_rgb,
+            "track_fx_empty.png": bg_rgb,
+            "track_fx_empty_v.png": bg_rgb,
+            "track_fx_in_empty.png": bg_rgb,
+            "track_fxempty_h.png": bg_rgb,
+            "track_fxempty_v.png": bg_rgb,
             "tcp_pan_labelbg.png": bg_alt_rgb,
             "mcp_label_bground.png": bg_alt_rgb,
             "toolbar_bg.png": bg_rgb,
@@ -715,38 +736,38 @@ def write_reaper(palette):
             "transport_bg.png": bg_rgb,
             "Transport_bpm_bg.png": bg_alt_rgb,
             "Transport_edit_bg.png": bg_alt_rgb,
+            "transport_edit_bg.png": bg_alt_rgb,
             "Transport_group_bg.png": bg_alt_rgb,
+            "transport_group_bg.png": bg_alt_rgb,
             "transport_options_bg.png": bg_alt_rgb,
             "Transport_status_bg.png": bg_alt_rgb,
+            "transport_status_bg.png": bg_alt_rgb,
             "trans_tools_bg.png": bg_alt_rgb,
             "value_bg.png": bg_alt_rgb,
             "genlist_bg.png": bg_rgb,
         }
         
         for filename, new_color in tint_map.items():
-            filepath = morandi_img_dir / filename
-            if not filepath.exists():
-                continue
-                
-            try:
-                img = Image.open(filepath).convert("RGBA")
-                pixels = img.load()
-                width, height = img.size
-                modified = False
-                
-                for y in range(height):
-                    for x in range(width):
-                        r, g, b, a = pixels[x, y]
-                        if (r, g, b) == (255, 0, 255) or (r, g, b) == (255, 255, 0):
-                            continue
+            for filepath in morandi_img_dir.rglob(filename):
+                try:
+                    img = Image.open(filepath).convert("RGBA")
+                    pixels = img.load()
+                    width, height = img.size
+                    modified = False
+                    
+                    for y in range(height):
+                        for x in range(width):
+                            r, g, b, a = pixels[x, y]
+                            if (r, g, b) == (255, 0, 255) or (r, g, b) == (255, 255, 0):
+                                continue
+                                
+                            pixels[x, y] = (new_color[0], new_color[1], new_color[2], a)
+                            modified = True
                             
-                        pixels[x, y] = (new_color[0], new_color[1], new_color[2], 255)
-                        modified = True
-                        
-                if modified:
-                    img.save(filepath)
-            except Exception:
-                pass
+                    if modified:
+                        img.save(filepath)
+                except Exception:
+                    pass
     except Exception as e:
         print(f"Failed to tint reaper PNGs: {e}")
 
