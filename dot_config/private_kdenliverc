@@ -1,6 +1,7 @@
 [Recent Dirs]
 KdenliveClipFolder[$e]=$HOME/视频,$HOME/文档
 KdenliveProjectsFolder[$e]=$HOME/视频,$HOME/文档
+KdenliveProjectsTitles[$e]=/usr/share/kdenlive/titles,$HOME/文档
 
 [Recent Profiles]
 recentProfileNames=HD 1080p 60 fps,HD 1080p 30 fps,HD 1080p 25 fps
@@ -15,7 +16,7 @@ addtobin=false
 showoptions=false
 
 [TitleWidget]
-dialog_geometry=AdnQywADAAAAAAGOAAAAPgAABaEAAAORAAABjgAAAD4AAAWhAAADkQAAAAAAAAAAB4AAAAGOAAAAPgAABaEAAAOR
+dialog_geometry=AdnQywADAAAAAAAAAAAAAAAABBMAAANTAAAAAAAAAAAAAAQTAAADUwAAAAAAAAAAB4AAAAAAAAAAAAAABBMAAANT
 splitter=604,419
 
 [UiSettings]
@@ -75,4 +76,4 @@ producerslist=avformat,avformat-novalidate,abnormal,blank,color,colour,consumer,
 project_fps=60
 
 [version]
-version=26.04.2
+version=26.04.3
