@@ -6,6 +6,8 @@ This file serves as a live context buffer for AI agents. It tracks the current s
 - **Theming**: Handled globally by `~/.config/noctalia/morandi-gen.py` (Morandi colors). Avoid breaking structural CSS in UI-heavy apps
 - **Niri Animations**: Tuned to a slower, springy gentle glide (stiffness=180-220, damping-ratio=0.8) in `~/.config/niri/cfg/animation.kdl` to ensure fluid transition feel
 - **Niri Window Gaps**: Shrunk from 12px to 8px in `~/.config/niri/cfg/layout.kdl` to optimize screen layout space
+- **Niri Transparency**: Global window rule sets `opacity 0.8` + `blur true` for all windows (except Krita). Critical: `draw-border-with-background false` must be set, otherwise niri renders the border as a solid rectangle behind the window, which bleeds through semi-transparent windows and makes them appear opaque when focused.
+- **Zen Browser (Flatpak)**: GPU acceleration via `flatpak override` with NVIDIA env vars (`__NV_PRIME_RENDER_OFFLOAD=1`, `__GLX_VENDOR_LIBRARY_NAME=nvidia`, etc.). fcitx5 theme fix via D-Bus talk permissions (`org.fcitx.Fcitx5`, `org.freedesktop.portal.Fcitx`) and readonly filesystem access to `~/.local/share/fcitx5` and `~/.config/fcitx5`. Zen `user.js` has WebRender, DMA-BUF, hardware video decoding forced on.
 
 
 
