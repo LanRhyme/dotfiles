@@ -83,7 +83,7 @@
   "ui_font_size": 16,
   "buffer_font_size": 20.0,
   "theme": {
-    "mode": "light",
+    "mode": "dark",
     "light": "Morandi",
     "dark": "Morandi"
   }
