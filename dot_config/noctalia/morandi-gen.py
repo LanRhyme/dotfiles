@@ -692,6 +692,18 @@ def write_zed(palette):
                     "terminal.ansi.bright_magenta": palette["rose"],
                     "terminal.ansi.bright_cyan": palette["sky"],
                     "terminal.ansi.bright_white": palette["text"],
+                    "players": [
+                        {
+                            "cursor": palette["pine"],
+                            "background": palette["pine"],
+                            "selection": palette["surface2"]
+                        }
+                    ],
+                    "created": palette["pine"],
+                    "modified": palette["iris"],
+                    "deleted": palette["love"],
+                    "conflict": palette["peach"],
+                    "ignored": palette["subtext0"],
                     "syntax": {
                         "keyword": {"color": palette["rose"]},
                         "function": {"color": palette["iris"]},
