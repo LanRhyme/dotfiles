@@ -610,8 +610,111 @@ def write_libswell(palette):
     content = re.sub(r"#[0-9a-fA-F]{6}", lambda m: replacements.get(m.group(0), m.group(0).lower()), content)
     # also try lower casing for the map
     content = re.sub(r"#[0-9a-fA-F]{6}", lambda m: replacements.get(m.group(0).lower(), m.group(0)), content)
-    
     swell_conf.write_text(content)
+
+def write_zed(palette):
+    zed_theme_dir = Path.home() / ".config/zed/themes"
+    zed_theme_dir.mkdir(parents=True, exist_ok=True)
+    
+    theme = {
+        "$schema": "https://zed.dev/schema/themes/v0.1.0.json",
+        "name": "Morandi",
+        "author": "morandi-gen",
+        "themes": [
+            {
+                "name": "Morandi",
+                "appearance": "dark",
+                "style": {
+                    "border": palette["surface2"],
+                    "border.variant": palette["surface1"],
+                    "border.focused": palette["iris"],
+                    "border.selected": palette["iris"],
+                    "border.transparent": "#00000000",
+                    "border.disabled": palette["surface1"],
+                    "elevated_surface.background": palette["surface0"],
+                    "surface.background": palette["base"],
+                    "background": palette["base"],
+                    "element.background": palette["base"],
+                    "element.hover": palette["surface0"],
+                    "element.active": palette["surface1"],
+                    "element.selected": palette["surface1"],
+                    "element.disabled": palette["base"],
+                    "drop_target.background": palette["surface1"],
+                    "ghost_element.background": "#00000000",
+                    "ghost_element.hover": palette["surface0"],
+                    "ghost_element.active": palette["surface1"],
+                    "ghost_element.selected": palette["surface1"],
+                    "ghost_element.disabled": "#00000000",
+                    "text": palette["text"],
+                    "text.muted": palette["subtext0"],
+                    "text.placeholder": palette["subtext1"],
+                    "text.disabled": palette["subtext0"],
+                    "text.accent": palette["iris"],
+                    "icon": palette["text"],
+                    "icon.muted": palette["subtext0"],
+                    "icon.disabled": palette["subtext0"],
+                    "icon.placeholder": palette["subtext1"],
+                    "icon.accent": palette["iris"],
+                    "status_bar.background": palette["mantle"],
+                    "title_bar.background": palette["mantle"],
+                    "toolbar.background": palette["mantle"],
+                    "tab_bar.background": palette["mantle"],
+                    "tab.inactive_background": palette["mantle"],
+                    "tab.active_background": palette["base"],
+                    "panel.background": palette["mantle"],
+                    "panel.focused_border": palette["iris"],
+                    "editor.foreground": palette["text"],
+                    "editor.background": palette["base"],
+                    "editor.gutter.background": palette["base"],
+                    "editor.line_number": palette["subtext0"],
+                    "editor.active_line_number": palette["text"],
+                    "editor.active_line.background": palette["surface0"],
+                    "editor.highlighted_line.background": palette["surface0"],
+                    "editor.invisible": palette["surface1"],
+                    "editor.wrap_guide": palette["surface1"],
+                    "editor.active_wrap_guide": palette["surface2"],
+                    "search.match_background": palette["surface2"],
+                    "terminal.background": palette["base"],
+                    "terminal.foreground": palette["text"],
+                    "terminal.ansi.black": palette["surface1"],
+                    "terminal.ansi.red": palette["love"],
+                    "terminal.ansi.green": palette["pine"],
+                    "terminal.ansi.yellow": palette["gold"],
+                    "terminal.ansi.blue": palette["iris"],
+                    "terminal.ansi.magenta": palette["rose"],
+                    "terminal.ansi.cyan": palette["sky"],
+                    "terminal.ansi.white": palette["text"],
+                    "terminal.ansi.bright_black": palette["surface2"],
+                    "terminal.ansi.bright_red": palette["love"],
+                    "terminal.ansi.bright_green": palette["pine"],
+                    "terminal.ansi.bright_yellow": palette["gold"],
+                    "terminal.ansi.bright_blue": palette["iris"],
+                    "terminal.ansi.bright_magenta": palette["rose"],
+                    "terminal.ansi.bright_cyan": palette["sky"],
+                    "terminal.ansi.bright_white": palette["text"]
+                },
+                "syntax": {
+                    "keyword": {"color": palette["rose"]},
+                    "function": {"color": palette["iris"]},
+                    "string": {"color": palette["pine"]},
+                    "type": {"color": palette["gold"]},
+                    "number": {"color": palette["peach"]},
+                    "constant": {"color": palette["peach"]},
+                    "property": {"color": palette["text"]},
+                    "variable": {"color": palette["text"]},
+                    "comment": {"color": palette["subtext0"], "font_style": "italic"},
+                    "punctuation": {"color": palette["subtext0"]},
+                    "operator": {"color": palette["subtext0"]},
+                    "boolean": {"color": palette["peach"]},
+                    "label": {"color": palette["pine"]},
+                    "predictive": {"color": palette["subtext0"], "font_style": "italic"}
+                }
+            }
+        ]
+    }
+    
+    (zed_theme_dir / "morandi.json").write_text(json.dumps(theme, indent=2))
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -637,6 +740,7 @@ def main():
     write_cava(palette)
     write_flclash(palette)
     write_libswell(palette)
+    write_zed(palette)
     
     apply_system_changes(args.wallpaper)
     
