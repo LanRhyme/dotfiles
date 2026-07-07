@@ -704,6 +704,9 @@ def write_zed(palette):
                     "deleted": palette["love"],
                     "conflict": palette["peach"],
                     "ignored": palette["subtext0"],
+                    "hint": palette["subtext0"],
+                    "info": palette["foam"],
+                    "predictive": palette["subtext0"],
                     "syntax": {
                         "keyword": {"color": palette["rose"]},
                         "function": {"color": palette["iris"]},
