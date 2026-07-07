@@ -5,3 +5,9 @@ dot_config/noctalia/plugins/github-feed/cache/
 dot_config/opencode/node_modules/
 dot_config/opencode/opencode.json
 dot_config/frp/frpc.toml
+dot_config/obs-studio/logs/
+dot_config/obs-studio/profiler_data/
+dot_config/obs-studio/updates/
+dot_config/obs-studio/basic/profiles/*/service.json
+dot_config/obs-studio/basic/scenes/*.json
+dot_config/obs-studio/basic/scenes/*.json.bak
