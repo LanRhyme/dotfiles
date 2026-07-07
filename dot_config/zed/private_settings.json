@@ -81,6 +81,7 @@
   "hard_tabs": false,
   "tab_size": 4,
   "base_keymap": "VSCode",
+  "ui_font_family": "JetbrainsMono NF",
   "ui_font_size": 14,
   "ui_font_weight": 300,
   "buffer_font_size": 20.0,
