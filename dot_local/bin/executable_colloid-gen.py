@@ -4,6 +4,7 @@ import sys
 import argparse
 import colorsys
 from PIL import Image, ImageDraw, ImageOps
+import subprocess
 
 def get_dominant_color(img):
     img = img.convert("RGBA")
@@ -150,7 +151,8 @@ def generate_icon(input_path, output_name, bg_color_hex=None, padding_ratio=0.72
         
     print("🔄 Updating icon cache...")
     os.system(f"gtk-update-icon-cache -f -t ~/.local/share/icons/{theme_dir} >/dev/null 2>&1")
-    os.system("killall noctalia 2>/dev/null; systemd-run --user --scope --collect noctalia >/dev/null 2>&1 &")
+    os.system("killall noctalia 2>/dev/null")
+    subprocess.Popen(["systemd-run", "--user", "--scope", "--collect", "noctalia"], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print("✅ Done! Noctalia has been restarted to apply changes.")
 
 if __name__ == "__main__":
