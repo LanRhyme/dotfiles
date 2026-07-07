@@ -691,23 +691,23 @@ def write_zed(palette):
                     "terminal.ansi.bright_blue": palette["iris"],
                     "terminal.ansi.bright_magenta": palette["rose"],
                     "terminal.ansi.bright_cyan": palette["sky"],
-                    "terminal.ansi.bright_white": palette["text"]
-                },
-                "syntax": {
-                    "keyword": {"color": palette["rose"]},
-                    "function": {"color": palette["iris"]},
-                    "string": {"color": palette["pine"]},
-                    "type": {"color": palette["gold"]},
-                    "number": {"color": palette["peach"]},
-                    "constant": {"color": palette["peach"]},
-                    "property": {"color": palette["text"]},
-                    "variable": {"color": palette["text"]},
-                    "comment": {"color": palette["subtext0"], "font_style": "italic"},
-                    "punctuation": {"color": palette["subtext0"]},
-                    "operator": {"color": palette["subtext0"]},
-                    "boolean": {"color": palette["peach"]},
-                    "label": {"color": palette["pine"]},
-                    "predictive": {"color": palette["subtext0"], "font_style": "italic"}
+                    "terminal.ansi.bright_white": palette["text"],
+                    "syntax": {
+                        "keyword": {"color": palette["rose"]},
+                        "function": {"color": palette["iris"]},
+                        "string": {"color": palette["pine"]},
+                        "type": {"color": palette["gold"]},
+                        "number": {"color": palette["peach"]},
+                        "constant": {"color": palette["peach"]},
+                        "property": {"color": palette["text"]},
+                        "variable": {"color": palette["text"]},
+                        "comment": {"color": palette["subtext0"], "font_style": "italic"},
+                        "punctuation": {"color": palette["subtext0"]},
+                        "operator": {"color": palette["subtext0"]},
+                        "boolean": {"color": palette["peach"]},
+                        "label": {"color": palette["pine"]},
+                        "predictive": {"color": palette["subtext0"], "font_style": "italic"}
+                    }
                 }
             }
         ]
