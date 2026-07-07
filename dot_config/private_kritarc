@@ -260,7 +260,7 @@ popuppalette/usevisualcolorselector=true
 presetChooserViewMode=1
 presetIconSize=40
 presetStripVisible=true
-presethistory=j) Waterpaint Soft Edges,j) Waterpaint Hard Edges,k) Blender Textured Soft,b) Basic-5 Size Opacity,line-manga 2,Line mangatest,The good line,t) Shapes Fill,c) Pencil-4 Soft,b) Basic-5 Size
+presethistory=b) Basic-5 Size Opacity,line-manga 2,Line mangatest,The good line,t) Shapes Fill,c) Pencil-4 Soft,b) Basic-5 Size,b) Basic-2 Opacity,b) Basic-1,a) Eraser Small
 recorder/captureinterval=1
 recorder/quality=63
 recorder/realtimecapturemode=false
@@ -482,7 +482,7 @@ yPosition=22
 [MainWindow][DockWidget KisLayerBox]
 DockArea=2
 Locked=false
-height=560
+height=516
 width=311
 xPosition=0
 yPosition=22
@@ -514,7 +514,7 @@ yPosition=0
 [MainWindow][DockWidget OverviewDocker]
 DockArea=2
 Locked=false
-height=335
+height=228
 width=311
 xPosition=0
 yPosition=22
@@ -554,10 +554,10 @@ yPosition=0
 [MainWindow][DockWidget RecorderDocker]
 DockArea=2
 Locked=false
-height=369
-width=324
+height=128
+width=311
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget SmallColorSelector]
 DockArea=2
@@ -710,9 +710,11 @@ pinControls=true
 File1[$e]=$HOME/图片/headportrait.png
 File2[$e]=$HOME/图片/krita/1.kra
 File3[$e]=$HOME/图片/krita/2.kra
+File4[$e]=$HOME/图片/krita/3稿.kra
 Name1=headportrait.png
 Name2=1.kra
 Name3=2.kra
+Name4=3稿.kra
 maxRecentFileItems=100
 
 [Redesign]
