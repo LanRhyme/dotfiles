@@ -43,7 +43,9 @@
   },
   "gutter": {
     "folds": false,
-    "runnables": false
+    "runnables": false,
+    "breakpoints": false,
+    "code_actions": false
   },
   "minimap": {
     "show": "always"
