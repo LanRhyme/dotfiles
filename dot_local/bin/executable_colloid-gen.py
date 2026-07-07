@@ -58,7 +58,7 @@ def adjust_color_for_bg(r, g, b):
     r_new, g_new, b_new = colorsys.hls_to_rgb(h, l, s)
     return int(r_new*255), int(g_new*255), int(b_new*255)
 
-def has_background(img, threshold=0.10):
+def has_background(img, threshold=0.30):
     if img.mode != "RGBA":
         return True
     alpha = img.split()[3]
