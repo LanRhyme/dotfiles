@@ -666,7 +666,7 @@ def write_zed(palette):
                     "editor.foreground": palette["text"],
                     "editor.background": palette["base"],
                     "editor.gutter.background": palette["base"],
-                    "editor.line_number": palette["subtext0"],
+                    "editor.line_number": palette["overlay0"],
                     "editor.active_line_number": palette["text"],
                     "editor.active_line.background": palette["surface0"],
                     "editor.highlighted_line.background": palette["surface0"],

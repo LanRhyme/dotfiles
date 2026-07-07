@@ -82,9 +82,9 @@
   "tab_size": 4,
   "base_keymap": "VSCode",
   "ui_font_size": 14,
-  "ui_font_weight": 400,
+  "ui_font_weight": 300,
   "buffer_font_size": 20.0,
-  "buffer_font_weight": 400,
+  "buffer_font_weight": 300,
   "theme": {
     "mode": "dark",
     "light": "Morandi",
