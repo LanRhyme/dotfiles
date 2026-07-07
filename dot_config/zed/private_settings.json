@@ -1,0 +1,90 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "agent": {
+    "dock": "right",
+    "favorite_models": [],
+    "model_parameters": []
+  },
+  "terminal": {
+    "font_size": 14.0,
+    "cursor_shape": "underline",
+    "blinking": "on"
+  },
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "project_panel": {
+    "dock": "left",
+    "git_status": true,
+    "auto_reveal_entries": false,
+    "auto_fold_dirs": false
+  },
+  "outline_panel": {
+    "git_status": true
+  },
+  "tabs": {
+    "git_status": true
+  },
+  "git_panel": {
+    "dock": "left",
+    "button": true
+  },
+  "lsp_document_links": false,
+  "sticky_scroll": {
+    "enabled": false
+  },
+  "gutter": {
+    "folds": true
+  },
+  "minimap": {
+    "show": "always"
+  },
+  "scrollbar": {
+    "axes": {
+      "horizontal": false,
+      "vertical": false
+    }
+  },
+  "rounded_selection": false,
+  "autosave": {
+    "after_delay": {
+      "milliseconds": 1000
+    }
+  },
+  "buffer_font_family": "JetbrainsMono NF",
+  "file_types": {
+    "cmake": [
+      "CMakeLists.txt",
+      "*.cmake"
+    ],
+    "yaml": [
+      ".clang*"
+    ]
+  },
+  "auto_indent_on_paste": false,
+  "linked_edits": true,
+  "show_whitespaces": "none",
+  "line_ending": "prefer_lf",
+  "indent_guides": {
+    "enabled": false
+  },
+  "soft_wrap": "editor_width",
+  "hard_tabs": false,
+  "tab_size": 4,
+  "base_keymap": "VSCode",
+  "ui_font_size": 16,
+  "buffer_font_size": 20.0,
+  "theme": {
+    "mode": "system",
+    "light": "Morandi",
+    "dark": "Morandi"
+  }
+}
