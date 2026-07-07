@@ -707,6 +707,11 @@ def write_zed(palette):
                     "hint": palette["subtext0"],
                     "info": palette["foam"],
                     "predictive": palette["subtext0"],
+                    "scrollbar_thumb.background": palette["surface2"] + "40",
+                    "scrollbar.thumb.background": palette["surface2"] + "40",
+                    "scrollbar.thumb.hover_background": palette["surface2"] + "80",
+                    "scrollbar.track.background": "#00000000",
+                    "scrollbar.track.border": "#00000000",
                     "syntax": {
                         "keyword": {"color": palette["rose"]},
                         "function": {"color": palette["iris"]},
