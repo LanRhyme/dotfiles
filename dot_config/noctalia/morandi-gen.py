@@ -699,10 +699,10 @@ def write_zed(palette):
                             "selection": palette["surface2"]
                         }
                     ],
-                    "created": palette["pine"],
-                    "modified": palette["iris"],
-                    "deleted": palette["love"],
-                    "conflict": palette["peach"],
+                    "created": palette["pine"] + "50",
+                    "modified": palette["iris"] + "50",
+                    "deleted": palette["love"] + "50",
+                    "conflict": palette["peach"] + "50",
                     "ignored": palette["subtext0"],
                     "hint": palette["subtext0"],
                     "info": palette["foam"],
