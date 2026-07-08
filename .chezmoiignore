@@ -11,3 +11,16 @@ dot_config/obs-studio/updates/
 dot_config/obs-studio/basic/profiles/*/service.json
 dot_config/obs-studio/basic/scenes/*.json
 dot_config/obs-studio/basic/scenes/*.json.bak
+dot_config/REAPER/ColorThemes/
+dot_config/REAPER/Cursors/
+dot_config/REAPER/Data/
+dot_config/REAPER/Scripts/
+dot_config/REAPER/reaper-wndpos.ini
+dot_config/REAPER/reaper-recentfx.ini
+dot_config/REAPER/reaper-extstate.ini
+dot_config/REAPER/reaper-fxtags.ini
+dot_config/REAPER/reaper-midihw-linux.ini
+dot_config/REAPER/reaper-mouse.ini
+dot_config/REAPER/reaper-vstplugins64.ini
+dot_config/REAPER/reaper-jsfx.ini
+dot_config/REAPER/reaper-reginfo2.ini
