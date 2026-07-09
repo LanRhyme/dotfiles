@@ -1,5 +1,5 @@
 [user]
-	name = lanrhyme
+	name = LanRhyme
 	email = xiao_ren233@foxmail.com
 	signingkey = ~/.ssh/id_ed25519
 [gpg]
@@ -22,3 +22,8 @@
 	helper = !/usr/bin/gh auth git-credential
 [init]
 	defaultBranch = main
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
