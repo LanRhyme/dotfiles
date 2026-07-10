@@ -9,8 +9,7 @@
     }
 
     window-rule {
-        match app-id="splayer"
-        match title=".*桌面歌词.*"
+        match app-id="splayer" title=".*桌面歌词.*"
         opacity 1.0
         background-effect {
             blur false
