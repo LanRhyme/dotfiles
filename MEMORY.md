@@ -1,30 +1,23 @@
-# Configuration Memory
+# 配置记忆
 
-This file serves as a live context buffer for AI agents. It tracks the current state of LanRhyme's system configuration, recent structural decisions, and ongoing tasks to ensure smooth handoffs between sessions.
+本文件作为 AI 代理的实时上下文缓冲区，记录 LanRhyme 系统配置的当前状态、近期结构决策和进行中的任务，以确保会话间的平滑交接
 
-## Current Setup State
-- **Theming**: Handled globally by `~/.config/noctalia/morandi-gen.py` (Morandi colors). Avoid breaking structural CSS in UI-heavy apps
-- **Niri Animations**: Tuned to a slower, springy gentle glide (stiffness=180-220, damping-ratio=0.8) in `~/.config/niri/cfg/animation.kdl` to ensure fluid transition feel
-- **Niri Window Gaps**: Shrunk from 12px to 8px in `~/.config/niri/cfg/layout.kdl` to optimize screen layout space
-- **Niri Transparency**: Global window rule sets `opacity 0.8` + `blur true` for all windows (except Krita). Critical: `draw-border-with-background false` must be set, otherwise niri renders the border as a solid rectangle behind the window, which bleeds through semi-transparent windows and makes them appear opaque when focused.
-- **Zen Browser (Flatpak)**: GPU acceleration via `flatpak override` with NVIDIA env vars (`__NV_PRIME_RENDER_OFFLOAD=1`, `__GLX_VENDOR_LIBRARY_NAME=nvidia`, etc.). fcitx5 theme fix via D-Bus talk permissions (`org.fcitx.Fcitx5`, `org.freedesktop.portal.Fcitx`) and readonly filesystem access to `~/.local/share/fcitx5` and `~/.config/fcitx5`. Zen `user.js` has WebRender, DMA-BUF, hardware video decoding forced on.
-
-
+## 当前配置状态
+- **主题化**: 全局由 `~/.config/noctalia/morandi-gen.py` 处理（莫兰迪色系）。避免破坏 UI 密集型应用的结构化 CSS
+- **Niri 动画**: 在 `~/.config/niri/cfg/animation.kdl` 中调优为较慢、弹性轻柔的滑行（stiffness=180-220, damping-ratio=0.8），确保流畅的过渡手感
+- **Niri 窗口间距**: 在 `~/.config/niri/cfg/layout.kdl` 中从 12px 缩小到 8px，优化屏幕布局空间
+- **Niri 透明度**: 全局窗口规则设置 `opacity 0.8` + `blur true`（Krita 除外）。关键点: 必须设置 `draw-border-with-background false`，否则 niri 会在窗口后方渲染为实心矩形边框，透过半透明窗口显示出来，导致聚焦时窗口看起来不透明
+- **Zen 浏览器 (Flatpak)**: 通过 `flatpak override` 配合 NVIDIA 环境变量（`__NV_PRIME_RENDER_OFFLOAD=1`、`__GLX_VENDOR_LIBRARY_NAME=nvidia` 等）实现 GPU 加速。fcitx5 主题修复通过 D-Bus talk 权限（`org.fcitx.Fcitx5`、`org.freedesktop.portal.Fcitx`）和对 `~/.local/share/fcitx5` 及 `~/.config/fcitx5` 的只读文件系统访问实现。Zen `user.js` 已强制开启 WebRender、DMA-BUF、硬件视频解码
 
 
 
+## 进行中的配置任务
+- 已将 `Reaper` 集成到莫兰迪全局主题引擎: 在 `morandi-gen.py` 中添加了 `write_reaper`，动态生成 `Morandi.ReaperTheme` 用莫兰迪色板覆盖 UI 和轨道颜色，并配置 `reaper.ini` 使用该主题及中文语言包
+- 已将 `clash-verge-rev` 和 `flclash` 集成到莫兰迪全局主题引擎。`flclash` 利用注入主色生成的 Material 3 动态颜色，`clash-verge-rev` 通过 `verge.yaml` 注入详细的 CSS 覆盖块。两者都需要在更新配置文件后完全重启进程（`kill -9` 或通过服务）才能生效
+- 已将 `VSCode` 集成到莫兰迪主题引擎: 完整的 `workbench.colorCustomizations`（200+ 标记）+ `editor.tokenColorCustomizations`（48 条规则）。语法色板使用 `_light` 变体同步到 Neovim morandi 主题（关键字=#d47a7e rose_light、字符串=#c0c3b8 green_light、类型=#d5cfb2 yellow_light、函数=#c4c4b7 blue_light、常量=#d4907e mauve_light、预处理器=#c5c2b2 violet_light）。为 `vscode_vibrancy` 保留透明元素。VSCode 通过 `~/.vscode/argv.json`（`"ozone-platform": "x11"`）强制使用 XWayland
+- 已将 `cava` 集成到莫兰迪全局主题引擎: 在 `morandi-gen.py` 中添加了 `write_cava`，动态生成 `~/.config/cava/themes/morandi`（8 色渐变，从冷色到暖色莫兰迪色），并通过向进程发送 `USR2` 信号自动重载 Cava 颜色; 同时优化了 `~/.config/cava/config`，使用 144Hz 帧率、Monstercat 平滑、细条（width=2, spacing=1）、居中对齐和同步 sync，实现流畅的 Wayland 终端渲染
+- 已将 `Zed` 集成到莫兰迪主题引擎: 在 `morandi-gen.py` 中添加了 `write_zed`，动态生成 `~/.config/zed/themes/morandi.json`。语法和 UI 颜色映射到莫兰迪色板以模拟 Neovim 主题，并更新了 `~/.config/zed/settings.json` 设置主题为莫兰迪
 
-
-## Ongoing Configuration Tasks
-- Integrated `Reaper` into the Morandi global theme engine by adding `write_reaper` to `morandi-gen.py`, which dynamically generates a `Morandi.ReaperTheme` overriding the UI and track colors with the Morandi palette, and configures `reaper.ini` to use it along with the Chinese language pack.
-- Integrated `clash-verge-rev` and `flclash` into the Morandi global theme engine. `flclash` leverages Material 3 dynamic color generated from the injected primary color, while `clash-verge-rev` uses a detailed CSS override block injected via `verge.yaml`. Both require full process restarts (`kill -9` or via service) after updating the configuration files to apply changes.
-- Integrated `VSCode` into the Morandi theme engine: full `workbench.colorCustomizations` (200+ tokens) + `editor.tokenColorCustomizations` (48 rules). Syntax palette synced to Neovim morandi theme using `_light` variants (keywords=#d47a7e rose_light, strings=#c0c3b8 green_light, types=#d5cfb2 yellow_light, functions=#c4c4b7 blue_light, constants=#d4907e mauve_light, preprocessor=#c5c2b2 violet_light). Transparent elements preserved for `vscode_vibrancy`. VSCode forced to XWayland via `~/.vscode/argv.json` (`"ozone-platform": "x11"`).
-- Integrated `cava` into the Morandi global theme engine by adding `write_cava` to `morandi-gen.py` which dynamically generates `~/.config/cava/themes/morandi` with an 8-color gradient (cool-to-warm Morandi colors) and reloads Cava's colors automatically by sending a `USR2` signal to the process; also optimized `~/.config/cava/config` for smooth Wayland terminal rendering using 144Hz framerate, Monstercat smoothing, thin bars (width=2, spacing=1), center alignment, and synchronized sync
-- Integrated `Zed` into the Morandi theme engine: added `write_zed` to `morandi-gen.py` which dynamically generates `~/.config/zed/themes/morandi.json`. Syntax and UI colors map neatly to the Morandi palette to emulate the Neovim theme, and `~/.config/zed/settings.json` was updated to set the theme to Morandi.
-
-## Rules
-- **PKGBUILD 审查**: 帮用户安装 AUR/第三方软件时，必须先查看 PKGBUILD 内容，检查 build()、package() 和安装后脚本（.install）中是否有可疑操作（如 rm -rf、异常网络请求、隐藏的 post_install 逻辑、可疑的权限修改等），确认安全后再执行安装。
-
-## Structural Patterns
-- Dotfiles are managed via `chezmoi` in `~/.local/share/chezmoi`.
-- Always sync changes using `~/.local/bin/dotfiles-sync.sh`.
+## 结构模式
+- Dotfiles 通过 `chezmoi` 管理，源位于 `~/.local/share/chezmoi`
+- 始终使用 `~/.local/bin/dotfiles-sync.sh` 同步变更

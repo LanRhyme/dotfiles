@@ -6,8 +6,8 @@ return {
     "tris203/precognition.nvim",
     event = "VeryLazy",
     opts = {
-      startVisible = true,
-      showBlankVirtLine = true,
+      startVisible = false,
+      showBlankVirtLine = false,
       highlightColor = { link = "Comment" },
       hints = {
         Caret = { text = "^", prio = 2 },

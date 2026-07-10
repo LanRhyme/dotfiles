@@ -1,36 +1,46 @@
-# LanRhyme's System Guidelines for AI Agents
+# LanRhyme 的 AI 代理系统指南
 
-These rules define the user's system architecture, preferences, and mandatory procedures for configuring or modifying the environment. All agents must follow these instructions closely.
+以下规则定义了用户的系统架构、偏好和配置/修改环境时的强制流程，所有代理必须严格遵守
 
-## 1. System Architecture & Package Management
-- **OS**: Arch Linux (CachyOS).
-- **Package Managers**: Use `paru` for AUR packages and `pacman` for official repositories. Use `--noconfirm` when installing packages.
-- **Display Server & WM**: Wayland + `niri` (compositor).
-- **Desktop Elements**: `noctalia` (status bar), `kando` (pie menus).
+## 1. 系统架构与包管理
+- **操作系统**: Arch Linux（CachyOS）
+- **包管理器**: 使用 `paru` 管理 AUR 包，使用 `pacman` 管理官方仓库。安装包时使用 `--noconfirm`
+- **显示服务器与窗口管理器**: Wayland + `niri`（合成器）
+- **桌面元素**: `noctalia`（状态栏）、`kando`（饼状菜单）
 
-## 2. Global Theming Engine (Morandi Theme)
-- The system uses a centralized, dynamic theme generator written in Python that hooks into wallpaper changes to generate "Morandi" (low saturation, warm/cool) colors.
-- **Core Script Location**: `~/.config/noctalia/morandi-gen.py`
-- **Rule**: If requested to theme a new application or modify UI colors, **DO NOT** edit the application's config files directly in isolation. Instead, you MUST extend `morandi-gen.py`. Add a `write_<app>` function that parses the application's config and injects the `palette` dictionary colors, call it in `main()`, and run the script. This ensures the app syncs automatically with future wallpaper changes.
+## 2. 全局主题引擎（莫兰迪主题）
+- 系统使用一个集中的、动态的主题生成器（Python 编写），监听壁纸变化生成"莫兰迪"（低饱和度、暖/冷色调）颜色
+- **核心脚本位置**: `~/.config/noctalia/morandi-gen.py`
+- **规则**: 当被要求为主题化新应用或修改 UI 颜色时，**不要**直接编辑应用的配置文件，而**必须**扩展 `morandi-gen.py`。添加一个 `write_<app>` 函数解析应用配置并注入 `palette` 字典颜色，在 `main()` 中调用它，然后运行脚本。这确保应用在未来壁纸变化时自动同步
 
-## 3. Configuration Management (Chezmoi)
-- **Tool**: `chezmoi` is used to manage dotfiles.
-- **Source Repository**: `~/.local/share/chezmoi`
-- **Rule**: When modifying system configuration files (e.g., `~/.config/app/config`), you must ensure the changes are committed to the dotfiles repository. A dedicated sync script is provided at `~/.local/bin/dotfiles-sync.sh`. Run this script immediately after applying and testing any dotfile modifications.
-- **Rule**: If you edit scripts directly in `~/.config`, remember to edit the source in `~/.local/share/chezmoi` first and copy it over, or run `chezmoi re-add` if you edit the local copy.
+## 3. 配置管理（Chezmoi）
+- **工具**: 使用 `chezmoi` 管理 dotfiles
+- **源仓库**: `~/.local/share/chezmoi`
+- **规则**: 修改系统配置文件（如 `~/.config/app/config`）时，必须确保变更提交到 dotfiles 仓库。专用同步脚本位于 `~/.local/bin/dotfiles-sync.sh`，在应用和测试任何 dotfile 修改后立即运行此脚本
+- **规则**: 如果直接在 `~/.config` 中编辑脚本，记得先编辑 `~/.local/share/chezmoi` 中的源文件再复制过去，或者如果编辑了本地副本则运行 `chezmoi re-add`
 
-## 4. Documentation & Writing Preferences
-- **Formatting Rule**: **NEVER** use full stops/periods (句号) and **NEVER** use emojis when writing or updating `README.md` files or markdown documentation. Keep it clean and minimalist.
-- **Tone**: Keep conversational responses concise, direct, and professional.
+## 4. 文档与写作偏好
+- **格式规则**: 编写或更新 `README.md` 文件或 markdown 文档时，**绝不**使用句号，**绝不**使用表情符号。保持简洁和极简
+- **语气**: 对话回复保持简洁、直接和专业
 
-## 5. Storage & File System
-- The system has access to Windows partitions:
-  - Windows C Drive: `/mnt/WindowsC`
-  - Windows D Drive: `/mnt/WindowsD`
-- When searching for external VSTs, games, or Windows configurations, always check these mount points.
+## 5. 存储与文件系统
+- 系统可访问 Windows 分区：
+  - Windows C 盘: `/mnt/WindowsC`
+  - Windows D 盘: `/mnt/WindowsD`
+- 搜索外部 VST、游戏或 Windows 配置时，始终检查这些挂载点
 
-## 6. Configuration Memory & Context (MEMORY.md)
-- **Concept**: To facilitate seamless configuration work and maintain context across sessions, agents must use a centralized memory file.
-- **Location**: `~/MEMORY.md`
-- **Read Rule**: Before modifying dotfiles or starting a configuration task, you MUST read `~/MEMORY.md` to understand the user's current setup state, ongoing tasks, and structural preferences.
-- **Write Rule**: When the user introduces a new system component, establishes a configuration pattern (e.g., how paths are managed), or leaves a task unfinished, you MUST update `~/MEMORY.md`. Keep it focused on the current architecture, active TODOs, and specific environmental states that are critical for ongoing configuration work.
+## 6. PKGBUILD 安全审查
+- **规则**: 代替用户安装 AUR 或第三方软件时，**必须**先获取并审查 PKGBUILD，确认安全后再继续安装
+- **检查内容**: 审查 `build()`、`package()` 和安装钩子（`.install` 文件、`post_install`、`pre_install`）中的可疑操作，例如：
+  - 不受限制的 `rm -rf` 或破坏性文件操作
+  - 向未知域名发起的异常网络请求
+  - 隐藏的 `post_install` 逻辑或混淆命令
+  - 可疑的权限变更（如 `chmod 777`、非标准二进制文件的 `setuid`）
+  - 过多或不必要的依赖
+- **处理**: 确认 PKGBUILD 安全后才继续安装，将任何发现报告给用户
+
+## 7. 配置记忆与上下文（MEMORY.md）
+- **概念**: 为促进无缝的配置工作并跨会话维护上下文，代理必须使用集中的记忆文件
+- **位置**: `~/MEMORY.md`
+- **读取规则**: 修改 dotfile 或开始配置任务前，**必须**读取 `~/MEMORY.md` 以了解用户的当前配置状态、进行中的任务和结构偏好
+- **写入规则**: 当用户引入新的系统组件、建立配置模式（如路径管理方式）或留下未完成的任务时，**必须**更新 `~/MEMORY.md`。保持其聚焦于当前架构、活跃 TODO 和对进行中配置工作至关重要的特定环境状态
