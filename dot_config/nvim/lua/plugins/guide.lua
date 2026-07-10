@@ -1,5 +1,5 @@
 return {
-  -- 1. Precognition: 移动提示向导
+  -- Precognition: 移动提示向导
   -- 当你不知道按什么键能最快到达某个位置时，它会在代码上显示提示
   -- 比如它会告诉你按 'w' 可以跳到下一个词，按 'e' 可以跳到词尾
   {
@@ -31,6 +31,15 @@ return {
     keys = {
       { "<leader>cp", function() require("precognition").toggle() end, desc = "Toggle Precognition (Guide)" },
     },
+  },
+
+  -- Vim Be Good: 动作练习小游戏 (独立开发版)
+  {
+    dir = vim.fn.stdpath("data") .. "/../nvim/vim-be-good",
+    cmd = "VimBeGood",
+    config = function()
+      vim.opt.rtp:append(vim.fn.stdpath("data") .. "/../nvim/vim-be-good")
+    end,
   },
 
   -- Hardtime: 坏习惯纠正 (默认不启用，可根据需要打开)
