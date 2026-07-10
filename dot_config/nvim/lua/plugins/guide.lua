@@ -33,14 +33,7 @@ return {
     },
   },
 
-  -- 2. Vim Be Good: 动作练习小游戏
-  -- ThePrimeagen 制作的 vim 练习插件，可以帮助你训练肌肉记忆
-  {
-    "ThePrimeagen/vim-be-good",
-    cmd = "VimBeGood",
-  },
-
-  -- 3. Hardtime: 坏习惯纠正 (默认不启用，可根据需要打开)
+  -- Hardtime: 坏习惯纠正 (默认不启用，可根据需要打开)
   -- 阻止你连续按多次 j/k，强迫你使用跳跃命令
   {
     "m4xshen/hardtime.nvim",
