@@ -58,6 +58,15 @@ window-rule {
 	}
 }
 
+window-rule {
+	match app-id="splayer" title=".*桌面歌词.*"
+	open-floating true
+	opacity 1.0
+	background-effect {
+		blur false
+	}
+}
+
 cursor {
     xcursor-theme "Bibata-Modern-Classic"
     xcursor-size 16

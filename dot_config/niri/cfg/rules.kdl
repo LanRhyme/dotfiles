@@ -8,13 +8,7 @@
         open-floating true
     }
 
-    window-rule {
-        match app-id="splayer" title=".*桌面歌词.*"
-        opacity 1.0
-        background-effect {
-            blur false
-        }
-    }
+
 
 
 
