@@ -62,6 +62,10 @@ window-rule {
 	match app-id="splayer" title=".*桌面歌词.*"
 	open-floating true
 	opacity 1.0
+	focus-ring { off; }
+	border { off; }
+	shadow { off; }
+	geometry-corner-radius 0
 	background-effect {
 		blur false
 	}
