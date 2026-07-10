@@ -22,6 +22,9 @@ This file serves as a live context buffer for AI agents. It tracks the current s
 - Integrated `cava` into the Morandi global theme engine by adding `write_cava` to `morandi-gen.py` which dynamically generates `~/.config/cava/themes/morandi` with an 8-color gradient (cool-to-warm Morandi colors) and reloads Cava's colors automatically by sending a `USR2` signal to the process; also optimized `~/.config/cava/config` for smooth Wayland terminal rendering using 144Hz framerate, Monstercat smoothing, thin bars (width=2, spacing=1), center alignment, and synchronized sync
 - Integrated `Zed` into the Morandi theme engine: added `write_zed` to `morandi-gen.py` which dynamically generates `~/.config/zed/themes/morandi.json`. Syntax and UI colors map neatly to the Morandi palette to emulate the Neovim theme, and `~/.config/zed/settings.json` was updated to set the theme to Morandi.
 
+## Rules
+- **PKGBUILD 审查**: 帮用户安装 AUR/第三方软件时，必须先查看 PKGBUILD 内容，检查 build()、package() 和安装后脚本（.install）中是否有可疑操作（如 rm -rf、异常网络请求、隐藏的 post_install 逻辑、可疑的权限修改等），确认安全后再执行安装。
+
 ## Structural Patterns
 - Dotfiles are managed via `chezmoi` in `~/.local/share/chezmoi`.
 - Always sync changes using `~/.local/bin/dotfiles-sync.sh`.
