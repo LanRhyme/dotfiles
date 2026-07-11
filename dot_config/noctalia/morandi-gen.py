@@ -736,6 +736,270 @@ def write_zed(palette):
     (zed_theme_dir / "morandi.json").write_text(json.dumps(theme, indent=2))
 
 
+def write_vscode(palette):
+    vscode_theme_dir = Path.home() / ".config/Code/User/themes"
+    vscode_theme_dir.mkdir(parents=True, exist_ok=True)
+
+    theme = {
+        "name": "Morandi",
+        "type": "dark",
+        "colors": {
+            "editor.background": palette["base"],
+            "editor.foreground": palette["text"],
+            "editorLineNumber.foreground": palette["overlay0"],
+            "editorLineNumber.activeForeground": palette["text"],
+            "editor.lineHighlightBackground": palette["surface0"],
+            "editor.selectionBackground": palette["surface2"],
+            "editor.inactiveSelectionBackground": palette["surface1"],
+            "editorCursor.foreground": palette["pine"],
+            "editorWhitespace.foreground": palette["surface1"],
+            "editorIndentGuide.background": palette["surface1"],
+            "editorIndentGuide.activeBackground": palette["surface2"],
+            "editor.findMatchBackground": palette["surface2"],
+            "editor.findMatchHighlightBackground": palette["surface2"] + "80",
+            "editorBracketMatch.background": palette["surface2"] + "80",
+            "editorBracketMatch.border": palette["iris"],
+            "editorGutter.background": palette["base"],
+            "editorWidget.background": palette["surface0"],
+            "editorWidget.border": palette["surface2"],
+            "editorSuggestWidget.background": palette["surface0"],
+            "editorSuggestWidget.border": palette["surface2"],
+            "editorSuggestWidget.selectedBackground": palette["surface1"],
+            "editorHoverWidget.background": palette["surface0"],
+            "editorHoverWidget.border": palette["surface2"],
+            "minimap.background": palette["base"] + "cc",
+            "scrollbarSlider.background": palette["surface2"] + "80",
+            "scrollbarSlider.hoverBackground": palette["surface2"] + "c0",
+            "scrollbarSlider.activeBackground": palette["surface2"],
+            "sideBar.background": palette["mantle"],
+            "sideBar.foreground": palette["text"],
+            "sideBar.border": palette["surface1"],
+            "sideBarTitle.foreground": palette["text"],
+            "sideBarSectionHeader.background": palette["mantle"],
+            "sideBarSectionHeader.foreground": palette["subtext0"],
+            "statusBar.background": palette["mantle"],
+            "statusBar.foreground": palette["subtext0"],
+            "statusBar.border": palette["surface1"],
+            "titleBar.activeBackground": palette["mantle"],
+            "titleBar.activeForeground": palette["subtext0"],
+            "titleBar.inactiveBackground": palette["mantle"],
+            "titleBar.border": palette["surface1"],
+            "tab.activeBackground": palette["base"],
+            "tab.activeForeground": palette["text"],
+            "tab.inactiveBackground": palette["mantle"],
+            "tab.inactiveForeground": palette["subtext0"],
+            "tab.activeBorderTop": palette["iris"],
+            "tab.border": palette["mantle"],
+            "editorGroupHeader.tabsBackground": palette["mantle"],
+            "editorGroupHeader.tabsBorder": palette["surface1"],
+            "panel.background": palette["mantle"],
+            "panel.border": palette["surface1"],
+            "panelTitle.activeBorder": palette["iris"],
+            "panelTitle.activeForeground": palette["text"],
+            "panelTitle.inactiveForeground": palette["subtext0"],
+            "terminal.background": palette["base"],
+            "terminal.foreground": palette["text"],
+            "terminal.ansiBlack": palette["surface1"],
+            "terminal.ansiRed": palette["love"],
+            "terminal.ansiGreen": palette["pine"],
+            "terminal.ansiYellow": palette["gold"],
+            "terminal.ansiBlue": palette["iris"],
+            "terminal.ansiMagenta": palette["rose"],
+            "terminal.ansiCyan": palette["sky"],
+            "terminal.ansiWhite": palette["text"],
+            "terminal.ansiBrightBlack": palette["surface2"],
+            "terminal.ansiBrightRed": palette["love"],
+            "terminal.ansiBrightGreen": palette["pine"],
+            "terminal.ansiBrightYellow": palette["gold"],
+            "terminal.ansiBrightBlue": palette["iris"],
+            "terminal.ansiBrightMagenta": palette["rose"],
+            "terminal.ansiBrightCyan": palette["sky"],
+            "terminal.ansiBrightWhite": palette["text"],
+            "input.background": palette["surface0"],
+            "input.border": palette["surface2"],
+            "input.foreground": palette["text"],
+            "input.placeholderForeground": palette["subtext0"],
+            "inputOption.activeBorder": palette["iris"],
+            "dropdown.background": palette["surface0"],
+            "dropdown.border": palette["surface2"],
+            "dropdown.foreground": palette["text"],
+            "button.background": palette["iris"],
+            "button.foreground": palette["base"],
+            "button.hoverBackground": palette["iris"] + "cc",
+            "list.activeSelectionBackground": palette["surface1"],
+            "list.activeSelectionForeground": palette["text"],
+            "list.hoverBackground": palette["surface0"],
+            "list.focusBackground": palette["surface1"],
+            "list.highlightForeground": palette["iris"],
+            "gitDecoration.modifiedResourceForeground": palette["iris"],
+            "gitDecoration.deletedResourceForeground": palette["love"],
+            "gitDecoration.untrackedResourceForeground": palette["pine"],
+            "gitDecoration.conflictingResourceForeground": palette["peach"],
+            "gitDecoration.ignoredResourceForeground": palette["subtext0"],
+            "diffEditor.insertedTextBackground": palette["pine"] + "20",
+            "diffEditor.removedTextBackground": palette["love"] + "20",
+        },
+        "tokenColors": [
+            {
+                "scope": ["comment", "punctuation.definition.comment"],
+                "settings": {
+                    "foreground": palette["subtext0"],
+                    "fontStyle": "italic"
+                }
+            },
+            {
+                "scope": [
+                    "keyword",
+                    "keyword.control",
+                    "keyword.operator.new",
+                    "keyword.operator.expression",
+                    "storage",
+                    "storage.type",
+                    "storage.modifier"
+                ],
+                "settings": {
+                    "foreground": palette["rose"]
+                }
+            },
+            {
+                "scope": [
+                    "entity.name.function",
+                    "support.function",
+                    "meta.function-call"
+                ],
+                "settings": {
+                    "foreground": palette["iris"]
+                }
+            },
+            {
+                "scope": [
+                    "string",
+                    "string.quoted",
+                    "string.template"
+                ],
+                "settings": {
+                    "foreground": palette["pine"]
+                }
+            },
+            {
+                "scope": [
+                    "entity.name.type",
+                    "entity.other.inherited-class",
+                    "support.type",
+                    "support.class"
+                ],
+                "settings": {
+                    "foreground": palette["gold"]
+                }
+            },
+            {
+                "scope": [
+                    "constant.numeric",
+                    "constant.language"
+                ],
+                "settings": {
+                    "foreground": palette["peach"]
+                }
+            },
+            {
+                "scope": ["variable.other", "variable.language"],
+                "settings": {
+                    "foreground": palette["text"]
+                }
+            },
+            {
+                "scope": ["variable.parameter", "variable.other.readwrite"],
+                "settings": {
+                    "foreground": palette["text"]
+                }
+            },
+            {
+                "scope": ["entity.name.tag"],
+                "settings": {
+                    "foreground": palette["rose"]
+                }
+            },
+            {
+                "scope": ["entity.other.attribute-name"],
+                "settings": {
+                    "foreground": palette["gold"]
+                }
+            },
+            {
+                "scope": ["punctuation"],
+                "settings": {
+                    "foreground": palette["subtext0"]
+                }
+            },
+            {
+                "scope": ["keyword.operator"],
+                "settings": {
+                    "foreground": palette["subtext0"]
+                }
+            },
+            {
+                "scope": ["support.constant"],
+                "settings": {
+                    "foreground": palette["peach"]
+                }
+            },
+            {
+                "scope": ["entity.name.class", "entity.name.type.class"],
+                "settings": {
+                    "foreground": palette["gold"]
+                }
+            },
+            {
+                "scope": ["entity.name.namespace"],
+                "settings": {
+                    "foreground": palette["gold"]
+                }
+            },
+            {
+                "scope": ["markup.heading", "entity.name.section"],
+                "settings": {
+                    "foreground": palette["iris"],
+                    "fontStyle": "bold"
+                }
+            },
+            {
+                "scope": ["markup.italic"],
+                "settings": {
+                    "fontStyle": "italic"
+                }
+            },
+            {
+                "scope": ["markup.bold"],
+                "settings": {
+                    "fontStyle": "bold"
+                }
+            },
+            {
+                "scope": ["markup.deleted"],
+                "settings": {
+                    "foreground": palette["love"]
+                }
+            },
+            {
+                "scope": ["markup.inserted"],
+                "settings": {
+                    "foreground": palette["pine"]
+                }
+            },
+            {
+                "scope": ["markup.changed"],
+                "settings": {
+                    "foreground": palette["gold"]
+                }
+            },
+        ]
+    }
+
+    theme_path = vscode_theme_dir / "morandi.json"
+    theme_path.write_text(json.dumps(theme, indent=4))
+    print(f"VSCode Morandi theme written to {theme_path}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wallpaper", help="Path to current wallpaper for limine sync")
@@ -761,7 +1025,8 @@ def main():
     write_flclash(palette)
     write_libswell(palette)
     write_zed(palette)
-    
+    write_vscode(palette)
+
     apply_system_changes(args.wallpaper)
     
     try:
