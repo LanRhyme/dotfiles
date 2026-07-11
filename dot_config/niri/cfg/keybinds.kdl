@@ -147,5 +147,5 @@ binds {
     Mod+Shift+U hotkey-overlay-title="Toggle UGEE Key Bridge" { spawn-sh "/home/lanrhyme/.local/bin/ugee-bridge-toggle"; }
 
     // ─── Clipboard ───
-    Mod+Super                           hotkey-overlay-title="Clipboard: noctalia clipboard" { spawn-sh "noctalia msg panel-toggle clipboard"; }
+    Mod+V                               hotkey-overlay-title="Clipboard: noctalia clipboard" { spawn-sh "noctalia msg panel-toggle clipboard"; }
 }
