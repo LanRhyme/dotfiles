@@ -18,6 +18,7 @@ environment {
     QT_IM_MODULE "fcitx"
     GTK_IM_MODULE "fcitx"
     SDL_IM_MODULE "fcitx"
+    NVIDIA_API_KEY "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"
 }
 
 input {
