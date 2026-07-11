@@ -737,8 +737,10 @@ def write_zed(palette):
 
 
 def write_vscode(palette):
-    vscode_theme_dir = Path.home() / ".config/Code/User/themes"
-    vscode_theme_dir.mkdir(parents=True, exist_ok=True)
+    vscode_ext_dir = Path.home() / ".vscode/extensions/morandi-theme-0.0.1/themes"
+    vscode_user_dir = Path.home() / ".config/Code/User/themes"
+    vscode_ext_dir.mkdir(parents=True, exist_ok=True)
+    vscode_user_dir.mkdir(parents=True, exist_ok=True)
 
     theme = {
         "name": "Morandi",
@@ -995,9 +997,12 @@ def write_vscode(palette):
         ]
     }
 
-    theme_path = vscode_theme_dir / "morandi.json"
-    theme_path.write_text(json.dumps(theme, indent=4))
-    print(f"VSCode Morandi theme written to {theme_path}")
+    theme_json = json.dumps(theme, indent=4)
+    ext_path = vscode_ext_dir / "morandi.json"
+    ext_path.write_text(theme_json)
+    user_path = vscode_user_dir / "morandi.json"
+    user_path.write_text(theme_json)
+    print(f"VSCode Morandi theme written to {ext_path} and {user_path}")
 
 
 def main():
