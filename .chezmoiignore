@@ -1,5 +1,4 @@
 dot_config/kdeconnect/private_privateKey.pem
-dot_config/environment.d/96-nvidia.conf
 dot_config/kdeconnect/private_certificate.pem
 dot_config/noctalia/plugins/github-feed/settings.json
 dot_config/noctalia/plugins/github-feed/cache/
