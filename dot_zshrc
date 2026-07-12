@@ -42,3 +42,15 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 # opencode
 export PATH=/home/lanrhyme/.opencode/bin:$PATH
+
+# dotenv loader
+if [[ -f "$HOME/.env" ]]; then
+  while IFS= read -r line; do
+    line="${line%%#*}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "$line" ]] && continue
+    if [[ "$line" == *"="* ]]; then
+      export "$line"
+    fi
+  done < "$HOME/.env"
+fi
