@@ -12,6 +12,7 @@ from pathlib import Path
 
 NOCTALIA_COLORS = Path.home() / ".config/noctalia/colors.json"
 NIRI_COLORS_KDL = Path.home() / ".config/niri/cfg/colors.kdl"
+MANGO_CONFIG = Path.home() / ".config/mango/config.conf"
 STARSHIP_TOML = Path.home() / ".config/starship.toml"
 FCITX5_THEME = Path.home() / ".local/share/fcitx5/themes/morandi/theme.conf"
 FASTFETCH_CONFIG = Path.home() / ".config/fastfetch/config.jsonc"
@@ -120,6 +121,28 @@ recent-windows {{
 """
     with open(NIRI_COLORS_KDL, "w") as f:
         f.write(kdl)
+
+def write_mango(palette):
+    if not MANGO_CONFIG.exists(): return
+    content = MANGO_CONFIG.read_text()
+    
+    def c(hex_val, alpha="ff"):
+        return "0x" + hex_val.lstrip("#").lower() + alpha
+        
+    replacements = {
+        "focuscolor": c(palette["iris"]),
+        "bordercolor": c(palette["surface1"]),
+        "shadowscolor": c(palette["surface0"], "70"),
+        "rootcolor": c(palette["base"]),
+        "urgentcolor": c(palette["love"]),
+        "overlaycolor": c(palette["iris"]),
+        "scratchpadcolor": c(palette["foam"]),
+    }
+    
+    for key, val in replacements.items():
+        content = re.sub(fr"^{key}\s*=.*", f"{key}={val}", content, flags=re.MULTILINE)
+        
+    MANGO_CONFIG.write_text(content)
 
 def write_starship(palette):
     if not STARSHIP_TOML.exists(): return
@@ -515,6 +538,7 @@ def apply_system_changes(wallpaper_path=None):
     run_ignore_missing(["dbus-send", "--session", "--dest=org.kde.plasmashell", "--type=method_call", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", "string: var allDesktops = desktops(); for (var i=0; i<allDesktops.length; i++) { allDesktops[i].wallpaperPlugin = '' }"], env=env, stderr=subprocess.DEVNULL)
     run_ignore_missing(["qdbus", "org.kde.KWin", "/KWin", "reconfigure"], env=env, stderr=subprocess.DEVNULL)
     run_ignore_missing(["niri", "msg", "action", "load-config-file"], stderr=subprocess.DEVNULL)
+    run_ignore_missing(["mmsg", "reload_config"], stderr=subprocess.DEVNULL)
     run_ignore_missing(["pkill", "-USR2", "cava"], stderr=subprocess.DEVNULL)
     
     if wallpaper_path and Path(wallpaper_path).exists():
@@ -1019,6 +1043,7 @@ def main():
 
     palette = generate_palette(colors)
     write_niri(palette)
+    write_mango(palette)
     write_starship(palette)
     write_fcitx5(palette)
     write_fastfetch(palette)
