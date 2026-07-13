@@ -94,8 +94,8 @@ def write_niri(palette):
 layout {{
     focus-ring {{
         width 3
-        active-gradient from="{palette['iris']}" to="{palette['pine']}" angle=45
-        inactive-gradient from="{palette['surface0']}" to="{palette['surface1']}" angle=45
+        active-gradient from="{palette['iris']}" to="{palette['pine']}" angle=45 relative-to="workspace-view"
+        inactive-gradient from="{palette['surface0']}" to="{palette['surface1']}" angle=45 relative-to="workspace-view"
     }}
     border {{
         off
