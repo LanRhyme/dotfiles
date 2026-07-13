@@ -779,7 +779,7 @@ forceLodMode=true
 showPreview=true
 
 [hsvadjustment_filter_bookmarks]
-Last Used=<!DOCTYPE params>\n<params version="0">\n <param name="colorize" type="internal">false</param>\n <param name="compatibilityMode" type="internal">false</param>\n <param name="h" type="internal">0</param>\n <param name="s" type="internal">38</param>\n <param name="type" type="internal">1</param>\n <param name="v" type="internal">8</param>\n</params>\n
+Last Used=<!DOCTYPE params>\n<params version="0">\n <param name="colorize" type="internal">false</param>\n <param name="compatibilityMode" type="internal">false</param>\n <param name="h" type="internal">0</param>\n <param name="s" type="internal">15</param>\n <param name="type" type="internal">1</param>\n <param name="v" type="internal">7</param>\n</params>\n
 
 [python]
 enable_dockerundercursor=false

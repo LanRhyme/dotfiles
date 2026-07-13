@@ -1,0 +1,19 @@
+{
+  "id": "clipboard-osd",
+  "name": "Clipboard OSD",
+  "version": "1.0.0",
+  "minNoctaliaVersion": "5.0.0",
+  "author": "Antigravity",
+  "license": "MIT",
+  "description": "Shows an OSD when clipboard content is copied.",
+  "tags": [
+    "Background"
+  ],
+  "entryPoints": {
+    "main": "Main.qml"
+  },
+  "dependencies": {
+    "plugins": []
+  },
+  "metadata": {}
+}

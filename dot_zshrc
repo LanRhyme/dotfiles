@@ -54,3 +54,6 @@ if [[ -f "$HOME/.env" ]]; then
     fi
   done < "$HOME/.env"
 fi
+
+# kimi-code
+export PATH="/home/lanrhyme/.kimi-code/bin:$PATH"
