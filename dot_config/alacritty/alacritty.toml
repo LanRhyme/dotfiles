@@ -148,6 +148,11 @@ mods = "Control|Shift"
 action = "Paste"
 
 [[keyboard.bindings]]
+key = "V"
+mods = "Control"
+action = "Paste"
+
+[[keyboard.bindings]]
 key = "C"
 mods = "Control|Shift"
 action = "Copy"
