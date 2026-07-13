@@ -10,11 +10,11 @@
   - `keybinds.kdl` - 快捷键绑定
   - `input.kdl` - 输入设备设置（鼠标加速 profile 为 flat）
   - `display.kdl` - 显示器设置
-  - `layout.kdl` - 窗口布局（间隙 12px、默认半屏）
-  - `rules.kdl` - 窗口规则（全局圆角 12px、fcitx 浮动、noctalia 壁纸置于底层）
+  - `layout.kdl` - 窗口布局（首个窗口居中）
+  - `rules.kdl` - 窗口规则（全局圆角 8px、fcitx 浮动、noctalia 壁纸置于底层）
   - `misc.kdl` - 其他设置
-  - `animation.kdl` - 动画参数（spring 弹簧动画）
-  - `colors.kdl` - 焦点环颜色（由 morandi-gen.py 自动生成，跟随壁纸变化）
+  - `animation.kdl` - 动画参数（spring 临界阻尼平滑动画）
+  - `colors.kdl` - 焦点环颜色（由 morandi-gen.py 自动生成，动态流动渐变）
 
 ## 主要配置
 
@@ -103,6 +103,7 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `Mod+Print` | mark-shot 截图 |
+| `Print` | 快速截取当前聚焦显示器全屏 |
 | `Ctrl+Shift+1` | 区域截图 |
 | `Ctrl+Shift+2` | 全屏截图 |
 | `Ctrl+Shift+3` | 截取当前窗口 |
@@ -113,14 +114,14 @@
 |--------|------|
 | `Mod+Shift+Esc` | 显示快捷键覆盖 |
 | `Mod+Escape` | 切换快捷键抑制（全屏应用卡住时使用） |
-| `Mod+O` | 切换概览模式 |
+| `Mod+Z` | 切换概览模式 |
 | `Mod+Shift+U` | 切换 UGEE 数位板桥接 |
 | `Mod+Shift+P` | 关闭显示器（OLED 省电/隐私） |
 | `Ctrl+Alt+Delete` | 退出 Niri |
 
 ## 窗口规则
 
-- 所有窗口：圆角 12px，裁剪到几何体
+- 所有窗口：圆角 8px，裁剪到几何体
 - fcitx：自动浮动
 - noctalia 壁纸层：置于底层背景
 - 全局窗口透明度 0.8 + 背景模糊
@@ -129,11 +130,11 @@
 
 ## 动画
 
-使用 spring 弹簧动画系统，各动画参数：
-- 工作区切换：damping 0.8, stiffness 600
-- 窗口打开：damping 0.7, stiffness 300
-- 窗口关闭：damping 0.85, stiffness 1000
-- 窗口移动/调整大小：damping 0.8~0.85, stiffness 700~800
+使用 macOS 风格的临界阻尼平滑动画系统：
+- 阻尼比 (damping-ratio) 统一设置为 1.0 实现零回弹的极致丝滑体验
+- 硬度 (stiffness) 调校在 130~150 之间提供优雅的缓冲与过渡时间
+- 边框颜色采用 relative-to="workspace-view" 锚定工作区，实现拖动时的动态流彩边框动画
+- 窗口关闭使用带有掉落和轻微旋转的魔法 Shader 着色器
 
 ## 相关链接
 
