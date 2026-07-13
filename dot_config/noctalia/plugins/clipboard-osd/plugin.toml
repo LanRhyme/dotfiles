@@ -1,0 +1,7 @@
+id = "antigravity/clipboard-osd"
+name = "Clipboard OSD"
+version = "1.0.0"
+author = "Antigravity"
+description = "Shows an OSD when clipboard content is copied."
+entry = "Main.qml"
+min_noctalia = "5.0.0"
