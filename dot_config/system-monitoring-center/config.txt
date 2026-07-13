@@ -1,0 +1,91 @@
+[General - General]
+reset_all_settings_with_new_release = 6
+language = system
+light_dark_theme = system
+font_scale = 1.0
+update_interval = 0.75
+chart_data_history = 150
+default_main_tab = 0
+performance_tab_default_sub_tab = 0
+performance_summary_on_the_headerbar = 1
+remember_last_opened_tabs = 0
+remember_last_selected_hardware = 0
+remember_window_size = 0x0
+main_window_opacity = 1.0
+
+[Performance Tab - Summary]
+summary_show_gpu_usage = 0
+
+[Performance Tab - CPU]
+chart_line_color_cpu_percent = [0.29, 0.78, 0.0, 1.0]
+show_cpu_usage_per_core = 0
+performance_cpu_usage_percent_precision = 0
+show_processes_using_max_cpu = 0
+show_cpu_cache_type = socket
+selected_cpu_core = 
+
+[Performance Tab - Memory]
+chart_line_color_memory_percent = [0.27, 0.49, 1.0, 1.0]
+show_memory_usage_per_memory = 0
+performance_memory_data_precision = 1
+performance_memory_data_unit = 0
+
+[Performance Tab - Disk]
+chart_line_color_disk_speed_usage = [1.0, 0.44, 0.17, 1.0]
+show_disk_usage_per_disk = 0
+performance_disk_data_precision = 1
+performance_disk_data_unit = 0
+performance_disk_speed_bit = 0
+plot_disk_read_speed = 1
+plot_disk_write_speed = 1
+selected_disk = 
+hide_loop_ramdisk_zram_disks = 1
+
+[Performance Tab - Network]
+chart_line_color_network_speed_data = [0.56, 0.3, 0.78, 1.0]
+show_network_usage_per_network_card = 0
+performance_network_data_precision = 1
+performance_network_data_unit = 0
+performance_network_speed_bit = 0
+plot_network_download_speed = 1
+plot_network_upload_speed = 1
+selected_network_card = 
+
+[Performance Tab - GPU]
+chart_line_color_fps = [1.0, 0.09, 0.09, 1.0]
+selected_gpu = 
+
+[Performance Tab - Sensors]
+temperature_unit = celsius
+
+[Processes Tab]
+show_processes_of_all_users = 1
+hide_kernel_threads = 0
+show_processes_as_tree = 0
+show_tree_lines = 0
+show_multiple_processes_summation = 1
+processes_cpu_precision = 0
+processes_cpu_divide_by_core = 1
+processes_memory_data_precision = 1
+processes_memory_data_unit = 0
+processes_disk_data_precision = 1
+processes_disk_data_unit = 0
+processes_disk_speed_bit = 0
+processes_gpu_precision = 0
+processes_gpu_memory_data_precision = 1
+processes_gpu_memory_data_unit = 0
+warn_before_stopping_processes = 1
+processes_columns_shown = name, pid, username, cpu_usage, memory_rss, write_speed, read_speed
+processes_row_sorting_column = name
+processes_row_sorting_order = 0
+
+[Users Tab]
+users_columns_shown = user_name, logged_in, uid, process_count, home_directory, group_name, cpu_usage
+users_row_sorting_column = user_name
+users_row_sorting_order = 0
+
+[Services Tab]
+services_columns_shown = service_name, unit_file_state, main_pid, active_state, load_state, sub_state, memory_current, description
+services_row_sorting_column = service_name
+services_row_sorting_order = 0
+
