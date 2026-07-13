@@ -9,42 +9,28 @@ Item {
 
     Process {
         id: watcher
-        command: ["wl-paste", "--watch", "echo", "COPIED_CLIPBOARD"]
+        command: ["wl-paste", "--watch", "sh", "-c", "printf \"COPIED_CLIPBOARD|\"; wl-paste -n | head -n 1 | cut -c 1-50; echo"]
         running: true
-        stdout.onReadyRead: {
-            var data = stdout.readAll();
-            var text = String(data);
-            if (text.indexOf("COPIED_CLIPBOARD") !== -1) {
-                showOsd();
+        stdout: SplitParser {
+            onRead: data => {
+                var text = String(data).trim();
+                if (text.startsWith("COPIED_CLIPBOARD|")) {
+                    var content = text.substring("COPIED_CLIPBOARD|".length).trim();
+                    if (content.length === 0) content = "图片或二进制数据";
+                    showOsd(content);
+                }
             }
         }
     }
 
-    function showOsd() {
-        // Try different known signatures or fallback to notification
-        if (typeof OsdService !== "undefined") {
-            if (typeof OsdService.show === "function") {
-                try {
-                    OsdService.show("edit-copy", "已复制到剪贴板", 0);
-                } catch (e) {
-                    fallbackNotification();
-                }
-            } else if (typeof OsdService.showOsd === "function") {
-                try {
-                    OsdService.showOsd("edit-copy", "已复制到剪贴板");
-                } catch (e) {
-                    fallbackNotification();
-                }
-            } else {
-                fallbackNotification();
-            }
+    function showOsd(content) {
+        // Try Noctalia 5 ToastService first (usually better for text notifications)
+        if (typeof ToastService !== "undefined" && typeof ToastService.showNotice === "function") {
+            ToastService.showNotice("已复制到剪贴板", content, "edit-copy", 2000);
         } else {
-            fallbackNotification();
+            // Fallback
+            var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["noctalia", "msg", "notification-show", "已复制到剪贴板", "--", "' + content.replace(/"/g, '\\"') + '"] }', root);
+            p.running = true;
         }
-    }
-
-    function fallbackNotification() {
-        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["noctalia", "msg", "notification-show", "已复制", "--", "已复制到剪贴板"] }', root);
-        p.running = true;
     }
 }

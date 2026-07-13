@@ -22,3 +22,4 @@
 ## 结构模式
 - Dotfiles 通过 `chezmoi` 管理，源位于 `~/.local/share/chezmoi`
 - 始终使用 `~/.local/bin/dotfiles-sync.sh` 同步变更
+- 已为 Noctalia 5 编写并启用了 `clipboard-osd` 插件（利用 `wl-paste` 监听并在复制时弹出 OSD/通知），配置已同步到 chezmoi
