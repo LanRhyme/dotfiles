@@ -1,5 +1,5 @@
     window-rule {
-        geometry-corner-radius 12 // Set every window radius to 12
+        geometry-corner-radius 8 // Set every window radius to 8
         clip-to-geometry true
     }
 
