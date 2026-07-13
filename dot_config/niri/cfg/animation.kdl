@@ -36,7 +36,7 @@ vec4 close_color(vec3 coords_geo, vec3 size_geo) {
             spring damping-ratio=0.8 stiffness=220 epsilon=0.0001
         }
         window-resize {
-            spring damping-ratio=0.7 stiffness=30 epsilon=0.0001
+            spring damping-ratio=0.8 stiffness=220 epsilon=0.0001
         }
         config-notification-open-close {
             spring damping-ratio=0.8 stiffness=250 epsilon=0.0001
