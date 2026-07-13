@@ -1,3 +1,4 @@
+for k, _ in pairs(noctalia) do os.execute("echo " .. tostring(k) .. " >> /tmp/luau_apis.txt") end
 --!nonstrict
 
 local function onClipboardLine(line)
