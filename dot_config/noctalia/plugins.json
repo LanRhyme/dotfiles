@@ -4,6 +4,11 @@
       "enabled": true,
       "name": "Noctalia Plugins",
       "url": "https://github.com/noctalia-dev/noctalia-plugins"
+    },
+    {
+      "enabled": true,
+      "name": "my-local",
+      "url": "/home/lanrhyme/.config/noctalia/plugins"
     }
   ],
   "states": {
@@ -42,6 +47,10 @@
     "clipboard-osd": {
       "enabled": true,
       "sourceUrl": "local"
+    },
+    "antigravity/clipboard-osd": {
+      "enabled": true,
+      "sourceUrl": "my-local"
     }
   },
   "version": 2
