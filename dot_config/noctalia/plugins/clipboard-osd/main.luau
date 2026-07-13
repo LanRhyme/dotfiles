@@ -6,9 +6,9 @@ local function onClipboardLine(line)
         content = content:match("^%s*(.-)%s*$") or content
         
         if content == "" then
-            noctalia.notify("📋 已复制媒体内容", "图片或二进制数据已存入剪贴板")
+            noctalia.notify("󰅍 已复制媒体内容", "图片或二进制数据已存入剪贴板")
         else
-            noctalia.notify("📋 已复制到剪贴板", content)
+            noctalia.notify("󰅍 已复制到剪贴板", content)
         end
     end
 end
