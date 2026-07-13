@@ -1,13 +1,16 @@
     animations {
+        // 工作区切换：稍快的滑动，带有平滑的缓动
         workspace-switch {
-            spring damping-ratio=0.8 stiffness=200 epsilon=0.0001
+            spring damping-ratio=0.75 stiffness=150 epsilon=0.0001
         }
+        // 窗口打开：非常明显的 Q 弹效果 (Hyprland 风格)
         window-open {
-            spring damping-ratio=0.8 stiffness=200 epsilon=0.0001
+            spring damping-ratio=0.55 stiffness=160 epsilon=0.0001
         }
+        // 窗口关闭：保留原有的掉落+旋转着色器，但调整时间和曲线让其更丝滑
         window-close {
-            duration-ms 300
-            curve "linear"
+            duration-ms 350
+            curve "ease-out-quad"
             custom-shader r#"
 vec4 fall_and_rotate(vec3 coords_geo, vec3 size_geo) {
     float progress = niri_clamped_progress * niri_clamped_progress;
@@ -29,27 +32,26 @@ vec4 close_color(vec3 coords_geo, vec3 size_geo) {
 }
 "#
         }
+        // 水平视图移动（滚轮或触控板滚动）：非常丝滑且带有轻微回弹的惯性
         horizontal-view-movement {
-            spring damping-ratio=0.8 stiffness=200 epsilon=0.0001
+            spring damping-ratio=0.75 stiffness=130 epsilon=0.0001
         }
+        // 窗口移动（比如被推开或者拖动后归位）：果冻般的回弹
         window-movement {
-            spring damping-ratio=0.8 stiffness=220 epsilon=0.0001
+            spring damping-ratio=0.6 stiffness=140 epsilon=0.0001
         }
+        // 窗口调整大小（由快捷键或布局变化引起）：平滑展开
         window-resize {
-            spring damping-ratio=0.8 stiffness=220 epsilon=0.0001
+            spring damping-ratio=0.65 stiffness=140 epsilon=0.0001
         }
         config-notification-open-close {
-            spring damping-ratio=0.8 stiffness=250 epsilon=0.0001
+            spring damping-ratio=0.7 stiffness=200 epsilon=0.0001
         }
         screenshot-ui-open {
-            spring damping-ratio=0.8 stiffness=250 epsilon=0.0001
+            spring damping-ratio=0.7 stiffness=200 epsilon=0.0001
         }
+        // 总览模式：像 macOS 调度中心一样平滑展开，略带阻尼
         overview-open-close {
-            spring damping-ratio=0.8 stiffness=180 epsilon=0.0001
+            spring damping-ratio=0.8 stiffness=120 epsilon=0.0001
         }
     }
-
-
-
-
-
