@@ -313,338 +313,335 @@ theme = bpy.context.preferences.themes[0]
 theme.name = "Morandi"
 
 def h(hx):
-    return [int(hx.lstrip('#')[i:i+2], 16)/255.0 for i in (0, 2, 4)]
+    return tuple(int(hx.lstrip('#')[i:i+2], 16)/255.0 for i in (0, 2, 4))
 
-def s(o, a, c):
-    try:
-        setattr(o, a, tuple(c + [1.0]) if len(getattr(o, a)) == 4 else tuple(c))
-    except: pass
+# Morandi palette — visibility-first: high contrast between bg/text, accent stands out
+bg       = h('{palette["base"]}')        # dark warm grey
+bg_light = h('{palette["surface0"]}')    # elevated panels
+bg_mid   = h('{palette["surface1"]}')    # widget bg
+bg_dark  = h('{palette["mantle"]}')      # deepest bg
+fg       = h('{palette["text"]}')        # bright text
+fg_dim   = h('{palette["subtext0"]}')    # dimmed text
+accent   = h('{palette["iris"]}')        # muted purple
+green    = h('{palette["pine"]}')        # muted green
+red      = h('{palette["love"]}')        # muted red
+gold     = h('{palette["gold"]}')        # warm gold
+peach    = h('{palette["peach"]}')       # peach
+rose     = h('{palette["rose"]}')        # rose
+sky      = h('{palette["sky"]}')         # muted blue
+orange   = h('{palette["iris"]}')
 
-# Palette shortcuts
-bg       = h('{palette["base"]}')
-bg_light = h('{palette["surface0"]}')
-bg_mid   = h('{palette["surface1"]}')
-bg_dark  = h('{palette["mantle"]}')
-fg       = h('{palette["text"]}')
-fg_dim   = h('{palette["subtext0"]}')
-accent   = h('{palette["iris"]}')
-accent2  = h('{palette["foam"]}')
-green    = h('{palette["pine"]}')
-red      = h('{palette["love"]}')
-gold     = h('{palette["gold"]}')
-peach    = h('{palette["peach"]}')
-rose     = h('{palette["rose"]}')
-sky      = h('{palette["sky"]}')
-iris     = h('{palette["iris"]}')
-overlay  = h('{palette["overlay0"]}')
-
-# ── 3D Viewport ──
+# ══════════════════════════════════════════════
+# 3D Viewport
+# ══════════════════════════════════════════════
 v3 = theme.view_3d
-v3.space.background = bg
+v3.space.gradients.background_type = 'SINGLE_COLOR'
+v3.space.gradients.gradient = bg_dark
+v3.space.gradients.high_gradient = bg
 v3.space.text = fg
-v3.space.header = bg_dark
+v3.space.text_hi = fg
 v3.space.header_text = fg
-v3.space.panelcolors.header = bg_light
-v3.space.panelcolors.back = bg
-s(v3.space.gradients, 'high_gradient', bg)
-s(v3.space.gradients, 'low_gradient', bg_dark)
-v3.space.grid = overlay
-v3.space.wire = fg_dim
-v3.space.object_active = accent
-v3.space.object_selected = green
-v3.space.object_active_wire = accent
-v3.space.vertex = fg
-v3.space.vertex_active = accent
-v3.space.vertex_select = green
-v3.space.edge = fg_dim
-v3.space.edge_select = green
-v3.space.edge_crease = gold
-v3.space.edge_bevel = peach
-v3.space.edge_seam = red
-v3.space.edge_sharp = gold
-v3.space.edge_faces = bg_light
-v3.space.face = bg_light
-v3.space.face_select = green
-v3.space.face_back = bg_dark
-v3.space.face_dot = accent
-v3.space.nurb_sel_uline = green
-v3.space.nurb_sel_vline = green
-v3.space.nurb_uline = fg_dim
-v3.space.nurb_vline = fg_dim
-v3.space.skin_root = accent
-v3.space.pose_action = rose
-v3.space.pose_action_active = peach
-v3.space.trimetri_face = bg_light
-v3.space.transform = accent
-v3.space.frame_current = gold
-v3.space.text_keybinding = fg
-v3.space.match = green
-v3.space.selected_highlight = green
-v3.space.selected_object = green
+v3.space.header_text_hi = fg
+v3.space.title = fg
+v3.object_active = gold
+v3.object_selected = orange
+v3.object_active_wire = gold
+v3.vertex = fg_dim
+v3.vertex_active = gold
+v3.vertex_select = green
+v3.vertex_normal = sky
+v3.edge_select = green
+v3.edge_mode_select = gold
+v3.edge_width = 1
+v3.seam = red
+v3.sharp = sky
+v3.bevel = sky
+v3.crease = rose
+v3.facedot_size = 3
+v3.nurb_uline = fg_dim
+v3.nurb_vline = fg_dim
+v3.nurb_sel_uline = green
+v3.nurb_sel_vline = peach
+v3.bone_solid = bg_mid
+v3.bone_pose = accent
+v3.bone_pose_active = gold
+v3.gp_vertex = fg_dim
+v3.gp_vertex_select = green
+v3.gp_vertex_size = 3
+v3.text_grease_pencil = green
+v3.transform = fg
+v3.wire = fg_dim
+v3.wire_edit = fg_dim
+v3.normal = sky
+v3.split_normal = rose
+v3.skin_root = peach
+v3.view_overlay = fg_dim
+v3.camera = fg_dim
+v3.empty = fg_dim
+v3.speaker = fg_dim
+v3.bundle_solid = fg_dim
+v3.extra_edge_angle = gold
+v3.extra_edge_len = peach
+v3.extra_face_angle = sky
+v3.extra_face_area = green
+v3.before_current_frame = red
+v3.after_current_frame = green
+v3.vertex_unreferenced = fg_dim
+v3.object_origin_size = 6
+v3.outline_width = 1
 
-# ── User Interface ──
+# ══════════════════════════════════════════════
+# User Interface — all widget types
+# ══════════════════════════════════════════════
 ui = theme.user_interface
-ui.base = bg
-ui.text = fg
-ui.text_dim = fg_dim
-ui.panel = bg_light
+ui.panel_text = fg
 ui.panel_title = fg
-ui.panel_back = bg_dark
-ui.panel_sub = bg_light
-ui.button = bg_mid
-ui.button_text = fg
-ui.button_text_highlight = bg
-ui.wcol_regular.inner = bg_light
-ui.wcol_regular.inner_sel = accent
-ui.wcol_regular.item = fg
-ui.wcol_regular.text = fg
-ui.wcol_regular.text_sel = bg
-ui.wcol_tool.inner = bg_light
-ui.wcol_tool.inner_sel = accent
-ui.wcol_tool.item = fg
-ui.wcol_tool.text = fg
-ui.wcol_tool.text_sel = bg
-ui.wcol_tool.outline = overlay
-ui.wcol_text.inner = bg_light
-ui.wcol_text.inner_sel = accent
-ui.wcol_text.item = fg
-ui.wcol_text.text = fg
-ui.wcol_text.text_sel = bg
-ui.wcol_option.inner = bg_light
-ui.wcol_option.inner_sel = accent
-ui.wcol_option.item = fg
-ui.wcol_option.text = fg
-ui.wcol_option.text_sel = bg
-ui.wcol_option.outline = overlay
-ui.wcol_menu.inner = bg_light
-ui.wcol_menu.inner_sel = accent
-ui.wcol_menu.item = fg
-ui.wcol_menu.text = fg
-ui.wcol_menu.text_sel = bg
-ui.wcol_menu.outline = overlay
-ui.wcol_pulldown.inner = bg_light
-ui.wcol_pulldown.inner_sel = accent
-ui.wcol_pulldown.item = fg
-ui.wcol_pulldown.text = fg
-ui.wcol_pulldown.text_sel = bg
-ui.wcol_tab.inner = bg_light
-ui.wcol_tab.inner_sel = accent
-ui.wcol_tab.item = fg
-ui.wcol_tab.text = fg
-ui.wcol_tab.text_sel = bg
+ui.editor_border = bg_dark
+ui.widget_text_cursor = gold
+ui.gizmo_primary = gold
+ui.gizmo_secondary = sky
+ui.gizmo_hi = fg
+for wc_name in ['wcol_regular', 'wcol_tool', 'wcol_text', 'wcol_option',
+                'wcol_menu', 'wcol_menu_back', 'wcol_menu_item',
+                'wcol_pulldown', 'wcol_pie_menu', 'wcol_tab',
+                'wcol_radio', 'wcol_toggle', 'wcol_num', 'wcol_numslider',
+                'wcol_box', 'wcol_scroll', 'wcol_list_item',
+                'wcol_tooltip', 'wcol_toolbar_item', 'wcol_progress', 'wcol_curve']:
+    wc = getattr(ui, wc_name)
+    wc.text = fg
+    wc.text_sel = bg_dark
+ws = ui.wcol_state
+ws.inner_anim = green
+ws.inner_anim_sel = green
+ws.inner_changed = gold
+ws.inner_changed_sel = gold
+ws.inner_driven = rose
+ws.inner_driven_sel = rose
+ws.inner_key = peach
+ws.inner_key_sel = peach
+ws.inner_overridden = sky
+ws.inner_overridden_sel = sky
 
-# ── Header / Toolbar / Properties ──
-for sp_name in ['view_3d', 'graph_editor', 'dope_sheet', 'nla_editor',
-                 'image_editor', 'uv_editor', 'seqencer', 'seqencer_preview',
-                 'text_editor', 'node_editor', 'logic_editor', 'properties',
-                 'outliner', 'preferences', 'file_browser', 'info',
-                 'console', 'clip_editor', 'spreadsheet']:
+# ══════════════════════════════════════════════
+# Common — keyframe & curve handle colors
+# ══════════════════════════════════════════════
+ca = theme.common.anim
+ca.keyframe = fg_dim
+ca.keyframe_selected = gold
+ca.keyframe_breakdown = sky
+ca.keyframe_breakdown_selected = sky
+ca.keyframe_extreme = rose
+ca.keyframe_extreme_selected = red
+ca.keyframe_generated = fg_dim
+ca.keyframe_generated_selected = peach
+ca.keyframe_jitter = green
+ca.keyframe_jitter_selected = green
+ca.keyframe_moving_hold = fg_dim
+ca.keyframe_moving_hold_selected = gold
+ca.playhead = gold
+
+cc = theme.common.curves
+cc.handle_auto = red
+cc.handle_auto_clamped = rose
+cc.handle_vect = sky
+cc.handle_align = green
+cc.handle_free = gold
+cc.handle_sel_auto = red
+cc.handle_sel_auto_clamped = rose
+cc.handle_sel_vect = sky
+cc.handle_sel_align = green
+cc.handle_sel_free = gold
+cc.handle_vertex = fg_dim
+cc.handle_vertex_select = gold
+
+# ══════════════════════════════════════════════
+# All editor spaces — text, header, title
+# ══════════════════════════════════════════════
+for sp_name in ['view_3d', 'graph_editor', 'dopesheet_editor', 'nla_editor',
+                'image_editor', 'sequence_editor', 'text_editor', 'node_editor',
+                'properties', 'outliner', 'preferences', 'file_browser',
+                'info', 'console', 'clip_editor', 'spreadsheet',
+                'statusbar', 'topbar']:
     try:
         sp = getattr(theme, sp_name).space
-        if hasattr(sp, 'back'): sp.back = bg
-        if hasattr(sp, 'text'): sp.text = fg
-        if hasattr(sp, 'header'): sp.header = bg_dark
-        if hasattr(sp, 'header_text'): sp.header_text = fg
-        if hasattr(sp, 'panelcolors'):
-            sp.panelcolors.header = bg_light
-            sp.panelcolors.back = bg
+        sp.text = fg
+        sp.text_hi = fg
+        sp.header_text = fg
+        sp.header_text_hi = fg
+        sp.title = fg
     except: pass
 
-# ── Graph Editor ──
+# ══════════════════════════════════════════════
+# Graph Editor
+# ══════════════════════════════════════════════
 ge = theme.graph_editor
-ge.space.grid = overlay
-ge.space.window_sliders = bg_mid
-ge.curve_point = accent
-ge.curve_selection = green
-ge.handle_auto = fg_dim
-ge.handle_vector = gold
-ge.handle_align = peach
-ge.handle_free = red
-ge.handle_sel_auto = accent
-ge.handle_sel_vector = gold
-ge.handle_sel_align = peach
-ge.handle_sel_free = red
-ge.modifier = sky
-ge.modifier_active = iris
+ge.grid = bg_mid
+ge.vertex = fg_dim
+ge.vertex_active = gold
+ge.vertex_select = green
+ge.vertex_size = 6
 
-# ── Dope Sheet / Action / Shape Key ──
-ds = theme.dope_sheet
-ds.space.grid = overlay
-ds.keyframe_curves = fg_dim
-ds.keyframe_border = fg_dim
-ds.keyframe_border_selected = green
-ds.keyframe_channels_group = fg_dim
-ds.keyframe_channels_selected = green
-ds.keyframe_inserted = green
-ds.keyframe_modified = gold
+# ══════════════════════════════════════════════
+# Dope Sheet
+# ══════════════════════════════════════════════
+ds = theme.dopesheet_editor
+ds.grid = bg_mid
 
-# ── Node Editor ──
+# ══════════════════════════════════════════════
+# Node Editor — replaces all default blues
+# ══════════════════════════════════════════════
 ne = theme.node_editor
-ne.space.grid = overlay
-ne.space.wire = fg_dim
-ne.wire = fg_dim
-ne.wire_select = green
-ne.node_socket = fg_dim
-ne.node_socket_select = green
-ne.label = fg
-ne.label_selected = bg
-ne.backdrop = bg_dark
+ne.grid = bg_mid
+ne.grid_levels = 3
 ne.noodle_curving = 12
-ne.grid_level = 1
-ne.tree_node = bg_light
-ne.tree_node_sel = green
-ne.active_node_label = bg
-ne.active_node_label_text = accent
-ne.node_backdrop = bg_mid
-ne.convex_node = bg_light
-ne.group_node = bg_mid
-ne.frame_node = bg_dark
-ne.operator_node = bg_light
+ne.wire_inner = fg_dim
+ne.node_selected = orange
+ne.node_active = fg
+ne.shader_node = green
+ne.texture_node = peach
+ne.color_node = gold
+ne.converter_node = sky
+ne.filter_node = rose
+ne.vector_node = accent
+ne.geometry_node = green
+ne.script_node = sky
+ne.input_node = peach
+ne.output_node = rose
+ne.attribute_node = accent
+ne.distor_node = sky
+ne.matte_node = red
+ne.group_node = green
+ne.group_socket_node = bg_mid
 
-# ── Image / UV Editor ──
+# ══════════════════════════════════════════════
+# Image / UV Editor
+# ══════════════════════════════════════════════
 ie = theme.image_editor
-ie.space.background = bg_dark
-ie.space.wire = fg_dim
-ie.space.pin = accent
-ie.wire = fg_dim
-ie.face = bg_light
-ie.face_select = green
-ie.face_dot = accent
-ie.vertex = fg
+ie.vertex = fg_dim
 ie.vertex_select = green
-ie.stitch = gold
-ie.paint = accent
-ie.uv_shadow = green
-ie.uv_clear = fg_dim
+ie.vertex_size = 3
+ie.edge_select = green
+ie.edge_width = 1
+ie.wire_edit = fg_dim
+ie.facedot_size = 3
 
-# ── Outliner ──
+# ══════════════════════════════════════════════
+# NLA Editor
+# ══════════════════════════════════════════════
+nla = theme.nla_editor
+nla.grid = bg_mid
+nla.strips = bg_light
+nla.strips_selected = gold
+nla.transition_strips = bg_mid
+nla.transition_strips_selected = sky
+nla.meta_strips = bg_mid
+nla.meta_strips_selected = accent
+nla.sound_strips = bg_mid
+nla.sound_strips_selected = green
+nla.tweak = green
+nla.tweak_duplicate = red
+
+# ══════════════════════════════════════════════
+# Sequence Editor
+# ══════════════════════════════════════════════
+sq = theme.sequence_editor
+sq.grid = bg_mid
+sq.active_strip = fg
+sq.selected_strip = gold
+sq.movie_strip = sky
+sq.image_strip = accent
+sq.audio_strip = green
+sq.effect_strip = rose
+sq.scene_strip = fg_dim
+sq.movieclip_strip = peach
+sq.mask_strip = red
+sq.text_strip = gold
+sq.meta_strip = green
+sq.color_strip = gold
+sq.transition_strip = accent
+
+# ══════════════════════════════════════════════
+# Outliner
+# ══════════════════════════════════════════════
 ol = theme.outliner
-ol.space.text = fg
-ol.space.back = bg
-ol.space.header = bg_dark
-ol.space.header_text = fg
-ol.active = accent
-ol.selected = green
-ol.unselected = fg_dim
-ol.activated = accent
-ol.edited_object = gold
+ol.active = orange
+ol.active_object = gold
+ol.selected_object = orange
+ol.selected_highlight = bg_mid
+ol.match = green
 
-# ── Properties ──
-pr = theme.properties
-pr.space.text = fg
-pr.space.back = bg
-pr.space.header = bg_dark
-pr.space.header_text = fg
-pr.space.panel_back = bg_dark
-pr.space.tab_back = bg_light
-pr.space.panel_sub = bg_light
-pr.space.button = bg_mid
-pr.space.button_text = fg
-pr.space.wcol_regular.inner = bg_light
-pr.space.wcol_regular.inner_sel = accent
+# ══════════════════════════════════════════════
+# Properties / Preferences
+# ══════════════════════════════════════════════
+theme.properties.match = orange
+theme.preferences.match = orange
 
-# ── Timeline ──
-tl = theme.timeline
-tl.space.text = fg
-tl.space.back = bg_dark
-tl.space.header = bg_dark
-tl.space.header_text = fg
-tl.frame_current = gold
-tl.playing = green
-tl.preview_range = bg_mid
-tl.grid = overlay
+# ══════════════════════════════════════════════
+# Text Editor
+# ══════════════════════════════════════════════
+te = theme.text_editor
+te.cursor = gold
+te.line_numbers = fg_dim
+te.line_numbers_background = bg_dark
+te.selected_text = bg_mid
+te.syntax_builtin = rose
+te.syntax_numbers = peach
+te.syntax_string = green
+te.syntax_special = gold
+te.syntax_reserved = orange
+te.syntax_comment = fg_dim
+te.syntax_symbols = red
+te.syntax_preprocessor = accent
 
-# ── Console / Info / Text Editor ──
-console_theme = theme.console
-console_theme.space.text = fg
-console_theme.space.back = bg
-console_theme.space.header = bg_dark
-console_theme.space.header_text = fg
-console_theme.output = fg
-console_theme.input = accent
-console_theme.info = green
-console_theme.error = red
-console_theme.cursor = gold
-console_theme.selection = bg_mid
+# ══════════════════════════════════════════════
+# Console
+# ══════════════════════════════════════════════
+co = theme.console
+co.cursor = gold
+co.line_input = fg
+co.line_output = accent
+co.line_error = red
+co.line_info = green
 
-info_theme = theme.info
-info_theme.space.text = fg
-info_theme.space.back = bg
-info_theme.space.header = bg_dark
-info_theme.space.header_text = fg
-info_theme.selected = green
-info_theme.selected_text = fg
-info_theme.info = fg_dim
-info_theme.warning = gold
-info_theme.error = red
-
-text_theme = theme.text_editor
-text_theme.space.text = fg
-text_theme.space.back = bg
-text_theme.space.header = bg_dark
-text_theme.space.header_text = fg
-text_theme.space.line_numbers_background = bg_dark
-text_theme.space.line_numbers = fg_dim
-text_theme.space.syntax_builtin = iris
-text_theme.space.syntax_number = peach
-text_theme.space.syntax_string = green
-text_theme.space.syntax_special = gold
-text_theme.space.syntax_comment = fg_dim
-text_theme.space.syntax_identifier = fg
-text_theme.space.syntax_symbol = fg_dim
-text_theme.space.syntax_predefined = rose
-text_theme.space.cursor = gold
-text_theme.space.selection_background = bg_mid
-
-# ── Preferences ──
-pref = theme.preferences
-pref.space.text = fg
-pref.space.back = bg
-pref.space.header = bg_dark
-pref.space.header_text = fg
-
-# ── File Browser ──
-fb = theme.file_browser
-fb.space.text = fg
-fb.space.back = bg
-fb.space.header = bg_dark
-fb.space.header_text = fg
-fb.space.panel_back = bg_dark
-
-# ── Sequencer ──
-sq = theme.sequencer
-sq.space.text = fg
-sq.space.back = bg_dark
-sq.space.header = bg_dark
-sq.space.header_text = fg
-sq.space.grid = overlay
-sq.strip = bg_light
-sq.strip_select = green
-sq.strip_active = accent
-sq.strip_duplicate = gold
-sq.strip_retime = peach
-sq.strip_media = sky
-
-# ── Clip Editor ──
+# ══════════════════════════════════════════════
+# Clip Editor
+# ══════════════════════════════════════════════
 ce = theme.clip_editor
-ce.space.text = fg
-ce.space.back = bg_dark
-ce.space.header = bg_dark
-ce.space.header_text = fg
+ce.path_before = red
+ce.path_after = green
+ce.path_keyframe_before = peach
+ce.path_keyframe_after = sky
+ce.marker = gold
+ce.active_marker = fg
+ce.selected_marker = gold
+ce.disabled_marker = red
+ce.locked_marker = fg_dim
 
-# ── Viewport Navigation / Overlay ──
-v3.space.text = fg
-v3.space.text_cursor = gold
-v3.space.view_overlay = fg_dim
-v3.space.view_overlay_text = fg
-v3.space.bone_solid = bg_mid
-v3.space.bone_pose = accent
-v3.space.bone_pose_active = gold
-v3.space.bone_outline = fg_dim
+# ══════════════════════════════════════════════
+# Regions — channels sidebar
+# ══════════════════════════════════════════════
+theme.regions.channels.text = fg_dim
+theme.regions.channels.text_selected = gold
+theme.regions.channels.back = bg_dark
+theme.regions.scrubbing.text = fg_dim
 
-# ── Theme status bar / region ──
-ui.status = bg_dark
-ui.status_text = fg_dim
+# ══════════════════════════════════════════════
+# File Browser
+# ══════════════════════════════════════════════
+theme.file_browser.selected_file = orange
+
+# ══════════════════════════════════════════════
+# Info
+# ══════════════════════════════════════════════
+inf = theme.info
+inf.info_selected = bg_mid
+inf.info_selected_text = fg
+inf.info_info_text = fg_dim
+inf.info_warning_text = gold
+inf.info_error_text = red
+inf.info_debug_text = fg_dim
+inf.info_operator_text = fg
+inf.info_property_text = fg
 
 bpy.ops.wm.save_userpref()
 """
