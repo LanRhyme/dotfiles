@@ -18,6 +18,7 @@
 - 已将 `cava` 集成到莫兰迪全局主题引擎: 在 `morandi-gen.py` 中添加了 `write_cava`，动态生成 `~/.config/cava/themes/morandi`（8 色渐变，从冷色到暖色莫兰迪色），并通过向进程发送 `USR2` 信号自动重载 Cava 颜色; 同时优化了 `~/.config/cava/config`，使用 144Hz 帧率、Monstercat 平滑、细条（width=2, spacing=1）、居中对齐和同步 sync，实现流畅的 Wayland 终端渲染
 - **SPlayer 桌面歌词**: 在 `config.kdl` 中添加窗口规则（必须在全局 opacity 规则之后才能生效），匹配 `app-id="splayer" title=".*桌面歌词.*"`，设置 `open-floating true`、`opacity 1.0`、`blur false`，解决歌词背景透过窗口显示的问题
 - 已将 `Zed` 集成到莫兰迪主题引擎: 在 `morandi-gen.py` 中添加了 `write_zed`，动态生成 `~/.config/zed/themes/morandi.json`。语法和 UI 颜色映射到莫兰迪色板以模拟 Neovim 主题，并更新了 `~/.config/zed/settings.json` 设置主题为莫兰迪
+- 已将 `Blender` 集成到莫兰迪主题引擎: 在 `morandi-gen.py` 中添加了 `write_blender`，基于 Eclipse 主题 XML 模板通过字符串替换生成莫兰迪主题。XML 方式覆盖所有属性（Python API 在 Blender 5.1 中 `save_userpref()` 无法保存所有主题属性）。基线文件: `~/.config/noctalia/blender-eclipse-theme.xml`，输出: `~/.config/blender/5.1/scripts/presets/interface_theme/Morandi.xml`，通过 `bpy.ops.preferences.theme_install()` 自动安装
 
 ## 结构模式
 - Dotfiles 通过 `chezmoi` 管理，源位于 `~/.local/share/chezmoi`

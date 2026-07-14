@@ -308,349 +308,385 @@ activeTitleBtnBg={rgb_str(primary_cont)}\ninactiveTitleBtnBg={rgb_str(surface)}\
     KDE_OUTPUT.write_text(content)
 
 def write_blender(palette):
-    script_content = f"""import bpy
-theme = bpy.context.preferences.themes[0]
-theme.name = "Morandi"
+    """Generate Morandi Blender theme via XML string replacement on Eclipse baseline."""
+    THEME_DIR = Path.home() / ".config/blender/5.1/scripts/presets/interface_theme"
+    THEME_DIR.mkdir(parents=True, exist_ok=True)
+    xml_path = THEME_DIR / "Morandi.xml"
 
-def h(hx):
-    return tuple(int(hx.lstrip('#')[i:i+2], 16)/255.0 for i in (0, 2, 4))
+    baseline = Path(__file__).parent / "blender-eclipse-theme.xml"
+    if not baseline.exists():
+        print(f"Baseline XML not found: {baseline}")
+        return
 
-# Morandi palette — visibility-first: high contrast between bg/text, accent stands out
-bg       = h('{palette["base"]}')        # dark warm grey
-bg_light = h('{palette["surface0"]}')    # elevated panels
-bg_mid   = h('{palette["surface1"]}')    # widget bg
-bg_dark  = h('{palette["mantle"]}')      # deepest bg
-fg       = h('{palette["text"]}')        # bright text
-fg_dim   = h('{palette["subtext0"]}')    # dimmed text
-accent   = h('{palette["iris"]}')        # muted purple
-green    = h('{palette["pine"]}')        # muted green
-red      = h('{palette["love"]}')        # muted red
-gold     = h('{palette["gold"]}')        # warm gold
-peach    = h('{palette["peach"]}')       # peach
-rose     = h('{palette["rose"]}')        # rose
-sky      = h('{palette["sky"]}')         # muted blue
-orange   = h('{palette["iris"]}')
+    def rgba(h, a="ff"):
+        return f"#{h.lstrip('#')}{a}"
 
-# ══════════════════════════════════════════════
-# 3D Viewport
-# ══════════════════════════════════════════════
-v3 = theme.view_3d
-v3.space.gradients.background_type = 'SINGLE_COLOR'
-v3.space.gradients.gradient = bg_dark
-v3.space.gradients.high_gradient = bg
-v3.space.text = fg
-v3.space.text_hi = fg
-v3.space.header_text = fg
-v3.space.header_text_hi = fg
-v3.space.title = fg
-v3.object_active = gold
-v3.object_selected = orange
-v3.object_active_wire = gold
-v3.vertex = fg_dim
-v3.vertex_active = gold
-v3.vertex_select = green
-v3.vertex_normal = sky
-v3.edge_select = green
-v3.edge_mode_select = gold
-v3.edge_width = 1
-v3.seam = red
-v3.sharp = sky
-v3.bevel = sky
-v3.crease = rose
-v3.facedot_size = 3
-v3.nurb_uline = fg_dim
-v3.nurb_vline = fg_dim
-v3.nurb_sel_uline = green
-v3.nurb_sel_vline = peach
-v3.bone_solid = bg_mid
-v3.bone_pose = accent
-v3.bone_pose_active = gold
-v3.gp_vertex = fg_dim
-v3.gp_vertex_select = green
-v3.gp_vertex_size = 3
-v3.text_grease_pencil = green
-v3.transform = fg
-v3.wire = fg_dim
-v3.wire_edit = fg_dim
-v3.normal = sky
-v3.split_normal = rose
-v3.skin_root = peach
-v3.view_overlay = fg_dim
-v3.camera = fg_dim
-v3.empty = fg_dim
-v3.speaker = fg_dim
-v3.bundle_solid = fg_dim
-v3.extra_edge_angle = gold
-v3.extra_edge_len = peach
-v3.extra_face_angle = sky
-v3.extra_face_area = green
-v3.before_current_frame = red
-v3.after_current_frame = green
-v3.vertex_unreferenced = fg_dim
-v3.object_origin_size = 6
-v3.outline_width = 1
+    m = palette
+    # The Eclipse theme uses #242bf0 as its primary blue accent
+    # We replace all color values systematically
+    replacements = {
+        # ── Primary accent (the big blue #242bf0 -> iris) ──
+        "#242bf0":   rgba(m["iris"]),
+        "#242bf0ff": rgba(m["iris"]),
+        "#242bf033": rgba(m["iris"], "33"),
+        "#242bf040": rgba(m["iris"], "40"),
+        "#242bf002": rgba(m["iris"], "02"),
 
-# ══════════════════════════════════════════════
-# User Interface — all widget types
-# ══════════════════════════════════════════════
-ui = theme.user_interface
-ui.panel_text = fg
-ui.panel_title = fg
-ui.editor_border = bg_dark
-ui.widget_text_cursor = gold
-ui.gizmo_primary = gold
-ui.gizmo_secondary = sky
-ui.gizmo_hi = fg
-for wc_name in ['wcol_regular', 'wcol_tool', 'wcol_text', 'wcol_option',
-                'wcol_menu', 'wcol_menu_back', 'wcol_menu_item',
-                'wcol_pulldown', 'wcol_pie_menu', 'wcol_tab',
-                'wcol_radio', 'wcol_toggle', 'wcol_num', 'wcol_numslider',
-                'wcol_box', 'wcol_scroll', 'wcol_list_item',
-                'wcol_tooltip', 'wcol_toolbar_item', 'wcol_progress', 'wcol_curve']:
-    wc = getattr(ui, wc_name)
-    wc.text = fg
-    wc.text_sel = bg_dark
-ws = ui.wcol_state
-ws.inner_anim = green
-ws.inner_anim_sel = green
-ws.inner_changed = gold
-ws.inner_changed_sel = gold
-ws.inner_driven = rose
-ws.inner_driven_sel = rose
-ws.inner_key = peach
-ws.inner_key_sel = peach
-ws.inner_overridden = sky
-ws.inner_overridden_sel = sky
+        # ── Backgrounds ──
+        "#080808":   rgba(m["mantle"]),
+        "#080808ff": rgba(m["mantle"]),
+        "#08080800": rgba(m["mantle"], "00"),
+        "#080808b3": rgba(m["mantle"], "b3"),
+        "#121216":   rgba(m["base"]),
+        "#18191e":   rgba(m["base"]),
+        "#18191eff": rgba(m["base"]),
+        "#18191e00": rgba(m["base"], "00"),
+        "#18191eab": rgba(m["base"], "ab"),
+        "#18191e66": rgba(m["base"], "66"),
+        "#1b1c21ff": rgba(m["surface0"]),
+        "#020202":   rgba(m["mantle"]),
+        "#030303ff": rgba(m["mantle"]),
+        "#0d0d0d":   rgba(m["mantle"]),
+        "#0d0d0dff": rgba(m["mantle"]),
+        "#0d0d0d00": rgba(m["mantle"], "00"),
+        "#202124ff": rgba(m["surface0"]),
+        "#22232dff": rgba(m["surface0"]),
+        "#23252aff": rgba(m["surface1"]),
+        "#23252a00": rgba(m["surface1"], "00"),
+        "#23252aff": rgba(m["surface1"]),
+        "#27292eff": rgba(m["surface1"]),
+        "#292b339c": rgba(m["surface1"], "9c"),
+        "#292c3373": rgba(m["surface1"], "73"),
+        "#2c2e3b":   rgba(m["surface0"]),
+        "#2e2f3b":   rgba(m["surface0"]),
+        "#2f313b":   rgba(m["surface0"]),
+        "#24262e":   rgba(m["surface1"]),
+        "#24262eff": rgba(m["surface1"]),
+        "#393d45ff": rgba(m["surface1"]),
+        "#414452":   rgba(m["surface1"]),
+        "#424552":   rgba(m["surface0"]),
+        "#484a52ff": rgba(m["surface1"]),
+        "#484a5200": rgba(m["surface1"], "00"),
+        "#60636eff": rgba(m["surface2"]),
+        "#17191f":   rgba(m["mantle"]),
 
-# ══════════════════════════════════════════════
-# Common — keyframe & curve handle colors
-# ══════════════════════════════════════════════
-ca = theme.common.anim
-ca.keyframe = fg_dim
-ca.keyframe_selected = gold
-ca.keyframe_breakdown = sky
-ca.keyframe_breakdown_selected = sky
-ca.keyframe_extreme = rose
-ca.keyframe_extreme_selected = red
-ca.keyframe_generated = fg_dim
-ca.keyframe_generated_selected = peach
-ca.keyframe_jitter = green
-ca.keyframe_jitter_selected = green
-ca.keyframe_moving_hold = fg_dim
-ca.keyframe_moving_hold_selected = gold
-ca.playhead = gold
+        # ── Text ──
+        "#d2d4d9":   rgba(m["text"]),
+        "#d2d4d9ff": rgba(m["text"]),
+        "#d0d6e0":   rgba(m["text"]),
+        "#f8f8f9":   rgba(m["text"]),
+        "#f8f8f9ff": rgba(m["text"]),
+        "#f7f8f8":   rgba(m["text"]),
+        "#e4e7f0":   rgba(m["text"]),
+        "#eeefff":   rgba(m["text"]),
+        "#eeeeee":   rgba(m["text"]),
+        "#e6e6e6":   rgba(m["text"]),
+        "#ffffff":   rgba(m["text"]),
+        "#b2b3b8":   rgba(m["subtext0"]),
+        "#bbbdc2":   rgba(m["subtext0"]),
+        "#88898c":   rgba(m["subtext0"]),
+        "#a2a9b8":   rgba(m["subtext0"]),
+        "#717482":   rgba(m["subtext0"]),
+        "#717480":   rgba(m["subtext0"]),
+        "#66676e":   rgba(m["subtext0"]),
+        "#585b69":   rgba(m["subtext0"]),
+        "#b7b7b8":   rgba(m["subtext0"]),
 
-cc = theme.common.curves
-cc.handle_auto = red
-cc.handle_auto_clamped = rose
-cc.handle_vect = sky
-cc.handle_align = green
-cc.handle_free = gold
-cc.handle_sel_auto = red
-cc.handle_sel_auto_clamped = rose
-cc.handle_sel_vect = sky
-cc.handle_sel_align = green
-cc.handle_sel_free = gold
-cc.handle_vertex = fg_dim
-cc.handle_vertex_select = gold
+        # ── Active / selection (Eclipse blue -> gold) ──
+        "#eef4ff":   rgba(m["gold"]),
+        "#f8f8f9":   rgba(m["text"]),
 
-# ══════════════════════════════════════════════
-# All editor spaces — text, header, title
-# ══════════════════════════════════════════════
-for sp_name in ['view_3d', 'graph_editor', 'dopesheet_editor', 'nla_editor',
-                'image_editor', 'sequence_editor', 'text_editor', 'node_editor',
-                'properties', 'outliner', 'preferences', 'file_browser',
-                'info', 'console', 'clip_editor', 'spreadsheet',
-                'statusbar', 'topbar']:
-    try:
-        sp = getattr(theme, sp_name).space
-        sp.text = fg
-        sp.text_hi = fg
-        sp.header_text = fg
-        sp.header_text_hi = fg
-        sp.title = fg
-    except: pass
+        # ── Greens ──
+        "#26ff8a":   rgba(m["pine"]),
+        "#33ff9d":   rgba(m["pine"]),
+        "#54ffcc":   rgba(m["pine"]),
+        "#26ffbe":   rgba(m["pine"]),
+        "#78f244":   rgba(m["pine"]),
+        "#94e575":   rgba(m["pine"]),
+        "#95d600":   rgba(m["pine"]),
+        "#188625":   rgba(m["pine"]),
+        "#61c042":   rgba(m["pine"]),
+        "#53992e":   rgba(m["pine"]),
+        "#38a600":   rgba(m["pine"]),
+        "#409030":   rgba(m["pine"]),
+        "#40c030":   rgba(m["pine"]),
+        "#3c5e03":   rgba(m["pine"]),
+        "#156e49":   rgba(m["pine"]),
+        "#036950":   rgba(m["pine"]),
+        "#008062":   rgba(m["pine"]),
+        "#0e7ee6":   rgba(m["sky"]),
+        "#0ee68b":   rgba(m["pine"]),
+        "#00ff00ff": rgba(m["pine"]),
 
-# ══════════════════════════════════════════════
-# Graph Editor
-# ══════════════════════════════════════════════
-ge = theme.graph_editor
-ge.grid = bg_mid
-ge.vertex = fg_dim
-ge.vertex_active = gold
-ge.vertex_select = green
-ge.vertex_size = 6
+        # ── Reds ──
+        "#ff337c":   rgba(m["love"]),
+        "#f02814":   rgba(m["love"]),
+        "#ff4d84":   rgba(m["love"]),
+        "#ff2674":   rgba(m["love"]),
+        "#771111":   rgba(m["love"]),
+        "#e8b3cc":   rgba(m["rose"]),
+        "#f28080":   rgba(m["love"]),
+        "#ff1900":   rgba(m["love"]),
+        "#740d00":   rgba(m["love"]),
+        "#cc5a52":   rgba(m["love"]),
+        "#e63776":   rgba(m["love"]),
+        "#f090a0":   rgba(m["rose"]),
+        "#803232":   rgba(m["love"]),
+        "#8054ff":   rgba(m["iris"]),
+        "#5e26ff":   rgba(m["iris"]),
+        "#548eff":   rgba(m["sky"]),
+        "#2670ff":   rgba(m["sky"]),
+        "#ff5491":   rgba(m["rose"]),
+        "#994030":   rgba(m["peach"]),
+        "#f0af90":   rgba(m["peach"]),
+        "#803060":   rgba(m["rose"]),
+        "#cc0099":   rgba(m["rose"]),
+        "#dd23dd":   rgba(m["rose"]),
+        "#ff0000ff": rgba(m["love"]),
 
-# ══════════════════════════════════════════════
-# Dope Sheet
-# ══════════════════════════════════════════════
-ds = theme.dopesheet_editor
-ds.grid = bg_mid
+        # ── Golds / yellows ──
+        "#edba18":   rgba(m["gold"]),
+        "#ffc300":   rgba(m["gold"]),
+        "#f0ff40":   rgba(m["gold"]),
+        "#909000":   rgba(m["gold"]),
+        "#a28962":   rgba(m["gold"]),
+        "#cc7529":   rgba(m["peach"]),
+        "#d26400":   rgba(m["peach"]),
+        "#ac8737":   rgba(m["gold"]),
+        "#ffaf23":   rgba(m["gold"]),
+        "#ffff00":   rgba(m["gold"]),
+        "#ebc80f":   rgba(m["gold"]),
+        "#f4c90c":   rgba(m["gold"]),
+        "#eec236":   rgba(m["gold"]),
+        "#f3ff00":   rgba(m["gold"]),
+        "#d4a233":   rgba(m["gold"]),
 
-# ══════════════════════════════════════════════
-# Node Editor — replaces all default blues
-# ══════════════════════════════════════════════
-ne = theme.node_editor
-ne.grid = bg_mid
-ne.grid_levels = 3
-ne.noodle_curving = 12
-ne.wire_inner = fg_dim
-ne.node_selected = orange
-ne.node_active = fg
-ne.shader_node = green
-ne.texture_node = peach
-ne.color_node = gold
-ne.converter_node = sky
-ne.filter_node = rose
-ne.vector_node = accent
-ne.geometry_node = green
-ne.script_node = sky
-ne.input_node = peach
-ne.output_node = rose
-ne.attribute_node = accent
-ne.distor_node = sky
-ne.matte_node = red
-ne.group_node = green
-ne.group_socket_node = bg_mid
+        # ── Blues -> morandi sky/iris ──
+        "#2670ff":   rgba(m["sky"]),
+        "#63ffff":   rgba(m["sky"]),
+        "#2e75db":   rgba(m["sky"]),
+        "#5db6ea":   rgba(m["sky"]),
+        "#00a5ff":   rgba(m["sky"]),
+        "#00ffff":   rgba(m["sky"]),
+        "#22dddd":   rgba(m["sky"]),
+        "#50c8ff":   rgba(m["sky"]),
+        "#8cffff":   rgba(m["sky"]),
+        "#2361dd":   rgba(m["sky"]),
+        "#0000cc":   rgba(m["sky"]),
+        "#48d9e6":   rgba(m["sky"]),
+        "#93dbe8":   rgba(m["sky"]),
+        "#54bfed":   rgba(m["sky"]),
+        "#28487d":   rgba(m["sky"]),
+        "#4444ff":   rgba(m["sky"]),
+        "#232374":   rgba(m["sky"]),
+        "#096494":   rgba(m["sky"]),
+        "#2a2482":   rgba(m["iris"]),
+        "#551a80":   rgba(m["iris"]),
+        "#9c73e6":   rgba(m["iris"]),
+        "#8d59da":   rgba(m["iris"]),
+        "#692196":   rgba(m["iris"]),
+        "#332642":   rgba(m["mantle"]),
+        "#867acc":   rgba(m["iris"]),
+        "#3a40f099": rgba(m["iris"], "99"),
+        "#32369966": rgba(m["iris"], "66"),
+        "#252ab4":   rgba(m["iris"]),
+        "#1d3c692a": rgba(m["iris"], "2a"),
 
-# ══════════════════════════════════════════════
-# Image / UV Editor
-# ══════════════════════════════════════════════
-ie = theme.image_editor
-ie.vertex = fg_dim
-ie.vertex_select = green
-ie.vertex_size = 3
-ie.edge_select = green
-ie.edge_width = 1
-ie.wire_edit = fg_dim
-ie.facedot_size = 3
+        # ── Teals ──
+        "#00c3c3":   rgba(m["sky"]),
+        "#118f8f":   rgba(m["sky"]),
+        "#4c9797":   rgba(m["sky"]),
+        "#084d4d":   rgba(m["sky"]),
+        "#54ffff":   rgba(m["sky"]),
+        "#33ffff":   rgba(m["sky"]),
+        "#1f7a7a":   rgba(m["sky"]),
+        "#2b3d3d":   rgba(m["mantle"]),
 
-# ══════════════════════════════════════════════
-# NLA Editor
-# ══════════════════════════════════════════════
-nla = theme.nla_editor
-nla.grid = bg_mid
-nla.strips = bg_light
-nla.strips_selected = gold
-nla.transition_strips = bg_mid
-nla.transition_strips_selected = sky
-nla.meta_strips = bg_mid
-nla.meta_strips_selected = accent
-nla.sound_strips = bg_mid
-nla.sound_strips_selected = green
-nla.tweak = green
-nla.tweak_duplicate = red
+        # ── Oranges / warm ──
+        "#c4753b":   rgba(m["peach"]),
+        "#6e3d15":   rgba(m["peach"]),
+        "#834326":   rgba(m["peach"]),
+        "#8b5811":   rgba(m["peach"]),
+        "#bd6a11":   rgba(m["peach"]),
+        "#7a5441":   rgba(m["peach"]),
+        "#996952":   rgba(m["peach"]),
+        "#8f6e56":   rgba(m["peach"]),
+        "#6278a3":   rgba(m["sky"]),
+        "#8c548c":   rgba(m["iris"]),
+        "#7b5f80":   rgba(m["rose"]),
+        "#568f6d":   rgba(m["pine"]),
+        "#8f5656":   rgba(m["love"]),
+        "#9f926f":   rgba(m["peach"]),
+        "#689d06":   rgba(m["pine"]),
+        "#ff734d":   rgba(m["peach"]),
+        "#e62e67":   rgba(m["love"]),
 
-# ══════════════════════════════════════════════
-# Sequence Editor
-# ══════════════════════════════════════════════
-sq = theme.sequence_editor
-sq.grid = bg_mid
-sq.active_strip = fg
-sq.selected_strip = gold
-sq.movie_strip = sky
-sq.image_strip = accent
-sq.audio_strip = green
-sq.effect_strip = rose
-sq.scene_strip = fg_dim
-sq.movieclip_strip = peach
-sq.mask_strip = red
-sq.text_strip = gold
-sq.meta_strip = green
-sq.color_strip = gold
-sq.transition_strip = accent
+        # ── NLA / strip fills ──
+        "#0d0d0d":   rgba(m["mantle"]),
+        "#1c2630":   rgba(m["mantle"]),
+        "#332642":   rgba(m["mantle"]),
+        "#664162":   rgba(m["mantle"]),
+        "#76512f":   rgba(m["mantle"]),
+        "#33527f":   rgba(m["mantle"]),
+        "#7d7d3a":   rgba(m["mantle"]),
+        "#4d3b174d": rgba(m["mantle"], "4d"),
+        "#4df31a":   rgba(m["pine"]),
 
-# ══════════════════════════════════════════════
-# Outliner
-# ══════════════════════════════════════════════
-ol = theme.outliner
-ol.active = orange
-ol.active_object = gold
-ol.selected_object = orange
-ol.selected_highlight = bg_mid
-ol.match = green
+        # ── Misc ──
+        "#4da84d":   rgba(m["pine"]),
+        "#a33535":   rgba(m["love"]),
+        "#7fff7f":   rgba(m["pine"]),
+        "#ccad63":   rgba(m["gold"]),
+        "#cc6670":   rgba(m["rose"]),
+        "#e19658":   rgba(m["peach"]),
+        "#00d4a3":   rgba(m["pine"]),
+        "#74a2ff":   rgba(m["sky"]),
+        "#ab3c48":   rgba(m["love"]),
+        "#f1a355":   rgba(m["peach"]),
+        "#f1dc55":   rgba(m["gold"]),
+        "#7bcc7b":   rgba(m["pine"]),
+        "#c673b8":   rgba(m["rose"]),
+        "#519fcc":   rgba(m["sky"]),
+        "#99995c":   rgba(m["gold"]),
+        "#7b995c":   rgba(m["pine"]),
+        "#cc8a48":   rgba(m["peach"]),
+        "#b3a33f":   rgba(m["gold"]),
+        "#5c995c":   rgba(m["pine"]),
+        "#8d59da":   rgba(m["iris"]),
+        "#1e9109":   rgba(m["pine"]),
+        "#59b70b":   rgba(m["pine"]),
+        "#83ef1d":   rgba(m["pine"]),
+        "#0a3694":   rgba(m["sky"]),
+        "#3667df":   rgba(m["sky"]),
+        "#5ec1ef":   rgba(m["sky"]),
+        "#a9294e":   rgba(m["love"]),
+        "#c1416a":   rgba(m["love"]),
+        "#f05d91":   rgba(m["rose"]),
+        "#430c78":   rgba(m["iris"]),
+        "#543aa3":   rgba(m["iris"]),
+        "#8764d5":   rgba(m["iris"]),
+        "#24785a":   rgba(m["pine"]),
+        "#3c9579":   rgba(m["pine"]),
+        "#6fb6ab":   rgba(m["sky"]),
+        "#4b707c":   rgba(m["sky"]),
+        "#6a8691":   rgba(m["sky"]),
+        "#9bc2cd":   rgba(m["sky"]),
+        "#6f2f6a":   rgba(m["iris"]),
+        "#9845be":   rgba(m["iris"]),
+        "#d330d6":   rgba(m["rose"]),
+        "#6c8e22":   rgba(m["pine"]),
+        "#7fb022":   rgba(m["pine"]),
+        "#bbef5b":   rgba(m["pine"]),
+        "#1e2024":   rgba(m["mantle"]),
+        "#484c56":   rgba(m["surface1"]),
+        "#08310e":   rgba(m["pine"]),
+        "#1c430b":   rgba(m["pine"]),
+        "#34622b":   rgba(m["pine"]),
+        "#f74018":   rgba(m["peach"]),
+        "#f66913":   rgba(m["peach"]),
+        "#fa9900":   rgba(m["gold"]),
+        "#1e9109":   rgba(m["pine"]),
+        "#59b70b":   rgba(m["pine"]),
+        "#83ef1d":   rgba(m["pine"]),
+        "#0a3694":   rgba(m["sky"]),
+        "#3667df":   rgba(m["sky"]),
+        "#5ec1ef":   rgba(m["sky"]),
+        "#a9294e":   rgba(m["love"]),
+        "#c1416a":   rgba(m["love"]),
+        "#f05d91":   rgba(m["rose"]),
+        "#430c78":   rgba(m["iris"]),
+        "#543aa3":   rgba(m["iris"]),
+        "#8764d5":   rgba(m["iris"]),
+        "#24785a":   rgba(m["pine"]),
+        "#3c9579":   rgba(m["pine"]),
+        "#6fb6ab":   rgba(m["sky"]),
+        "#4b707c":   rgba(m["sky"]),
+        "#6a8691":   rgba(m["sky"]),
+        "#9bc2cd":   rgba(m["sky"]),
 
-# ══════════════════════════════════════════════
-# Properties / Preferences
-# ══════════════════════════════════════════════
-theme.properties.match = orange
-theme.preferences.match = orange
+        # ── Preview stitch ──
+        "#7f7f0033": rgba(m["gold"], "33"),
+        "#ff00ff33": rgba(m["rose"], "33"),
+        "#0000ff33": rgba(m["sky"], "33"),
+        "#e1d2c323": rgba(m["peach"], "23"),
 
-# ══════════════════════════════════════════════
-# Text Editor
-# ══════════════════════════════════════════════
-te = theme.text_editor
-te.cursor = gold
-te.line_numbers = fg_dim
-te.line_numbers_background = bg_dark
-te.selected_text = bg_mid
-te.syntax_builtin = rose
-te.syntax_numbers = peach
-te.syntax_string = green
-te.syntax_special = gold
-te.syntax_reserved = orange
-te.syntax_comment = fg_dim
-te.syntax_symbols = red
-te.syntax_preprocessor = accent
+        # ── Remaining blues from Eclipse ──
+        "#191d8080": rgba(m["sky"], "80"),
+        "#0046cc02": rgba(m["sky"], "02"),
+        "#0051f033": rgba(m["sky"], "33"),
+        "#3339ff":   rgba(m["iris"]),
+        "#1317801a": rgba(m["iris"], "1a"),
+        "#001566":   rgba(m["iris"]),
+        "#0000ff":   rgba(m["sky"]),
+        "#c4c4ff":   rgba(m["sky"]),
+        "#0000ff33": rgba(m["sky"], "33"),
 
-# ══════════════════════════════════════════════
-# Console
-# ══════════════════════════════════════════════
-co = theme.console
-co.cursor = gold
-co.line_input = fg
-co.line_output = accent
-co.line_error = red
-co.line_info = green
+        # ── Transparent / overlay fills ──
+        "#ffffff04": rgba(m["mantle"], "04"),
+        "#ffffff05": rgba(m["mantle"], "05"),
+        "#ffffff0a": rgba(m["mantle"], "0a"),
+        "#ffffff15": rgba(m["mantle"], "15"),
+        "#ffffff1a": rgba(m["mantle"], "1a"),
+        "#ffffff1f": rgba(m["mantle"], "1f"),
+        "#ffffff26": rgba(m["mantle"], "26"),
+        "#ffffff30": rgba(m["mantle"], "30"),
+        "#ffffff33": rgba(m["mantle"], "33"),
+        "#ffffff4d": rgba(m["mantle"], "4d"),
+        "#ffffff80": rgba(m["text"], "80"),
+        "#ffffff8f": rgba(m["text"], "8f"),
+        "#ffffffb3": rgba(m["text"], "b3"),
+        "#ffffffff": rgba(m["text"]),
+        "#00000080": rgba(m["mantle"], "80"),
+        "#00000099": rgba(m["mantle"], "99"),
+        "#0000004d": rgba(m["mantle"], "4d"),
+        "#000000ff": rgba(m["mantle"]),
+        "#000000":   rgba(m["mantle"]),
+        "#0000ffb3": rgba(m["sky"], "b3"),
 
-# ══════════════════════════════════════════════
-# Clip Editor
-# ══════════════════════════════════════════════
-ce = theme.clip_editor
-ce.path_before = red
-ce.path_after = green
-ce.path_keyframe_before = peach
-ce.path_keyframe_after = sky
-ce.marker = gold
-ce.active_marker = fg
-ce.selected_marker = gold
-ce.disabled_marker = red
-ce.locked_marker = fg_dim
+        # ── Special view3d ──
+        "#ececff33": rgba(m["surface1"], "33"),
+        "#50c8ff0f": rgba(m["sky"], "0f"),
 
-# ══════════════════════════════════════════════
-# Regions — channels sidebar
-# ══════════════════════════════════════════════
-theme.regions.channels.text = fg_dim
-theme.regions.channels.text_selected = gold
-theme.regions.channels.back = bg_dark
-theme.regions.scrubbing.text = fg_dim
+        # ── Info bar ──
+        "#120730ff": rgba(m["mantle"]),
+        "#460ee6":   rgba(m["iris"]),
+        "#07301fff": rgba(m["mantle"]),
+    }
 
-# ══════════════════════════════════════════════
-# File Browser
-# ══════════════════════════════════════════════
-theme.file_browser.selected_file = orange
+    xml_content = baseline.read_text()
 
-# ══════════════════════════════════════════════
-# Info
-# ══════════════════════════════════════════════
-inf = theme.info
-inf.info_selected = bg_mid
-inf.info_selected_text = fg
-inf.info_info_text = fg_dim
-inf.info_warning_text = gold
-inf.info_error_text = red
-inf.info_debug_text = fg_dim
-inf.info_operator_text = fg
-inf.info_property_text = fg
+    # Apply replacements (longest first to avoid partial matches)
+    for old, new in sorted(replacements.items(), key=lambda x: -len(x[0])):
+        xml_content = xml_content.replace(old, new)
 
-bpy.ops.wm.save_userpref()
-"""
-    import tempfile
-    with tempfile.NamedTemporaryFile('w', suffix='.py', delete=False) as f:
-        f.write(script_content)
-        temp_path = f.name
-    subprocess.run(["blender", "-b", "-P", temp_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    os.remove(temp_path)
+    # Rename theme
+    xml_content = xml_content.replace(
+        'name="Eclipse"',
+        'name="Morandi"'
+    ).replace(
+        '<ThemeUserInterface',
+        '<ThemeUserInterface name="Morandi"'
+    )
+
+    # Playhead: mid-dark bg so white text is readable
+    xml_content = xml_content.replace(
+        'playhead="#afac9cff"',
+        'playhead="#302f2cff"'
+    )
+    xml_content = xml_content.replace(
+        'time_marker_selected="#f2f2f2b3"',
+        'time_marker_selected="#111112b3"'
+    )
+
+    xml_path.write_text(xml_content)
+    print(f"Morandi theme written to {xml_path}")
+
+    # Auto-install via Blender
+    subprocess.run([
+        "blender", "-b", "--python-expr",
+        f"import bpy; bpy.ops.preferences.theme_install(filepath='{xml_path}')"
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 
 def write_godot(palette):
     godot_settings = list(Path.home().glob(".config/godot/editor_settings-*.tres"))
