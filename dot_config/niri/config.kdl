@@ -45,6 +45,14 @@ window-rule {
 }
 
 window-rule {
+	match app-id="org.gnome.Loupe"
+	opacity 1.0
+	background-effect {
+		blur false
+	}
+}
+
+window-rule {
 	match app-id="menu.kando.Kando"
 	open-floating true
 	open-focused true
