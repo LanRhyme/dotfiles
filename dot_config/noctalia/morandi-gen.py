@@ -311,27 +311,341 @@ def write_blender(palette):
     script_content = f"""import bpy
 theme = bpy.context.preferences.themes[0]
 theme.name = "Morandi"
-def h(hx): return [int(hx.lstrip('#')[i:i+2], 16)/255.0 for i in (0, 2, 4)]
-bg, fg, accent, bg_light, bg_dark = h('{palette['base']}'), h('{palette['text']}'), h('{palette['iris']}'), h('{palette['surface0']}'), h('{palette['mantle']}')
+
+def h(hx):
+    return [int(hx.lstrip('#')[i:i+2], 16)/255.0 for i in (0, 2, 4)]
+
 def s(o, a, c):
-    try: setattr(o, a, tuple(c + [1.0]) if len(getattr(o, a)) == 4 else tuple(c))
+    try:
+        setattr(o, a, tuple(c + [1.0]) if len(getattr(o, a)) == 4 else tuple(c))
     except: pass
-spaces = [getattr(theme, n).space if hasattr(getattr(theme, n), 'space') else getattr(theme, n) for n in dir(theme) if not n.startswith('_') and (hasattr(getattr(theme, n), 'space') or hasattr(getattr(theme, n), 'back'))]
-for sp in spaces:
-    if hasattr(sp, 'back'): s(sp, 'back', bg)
-    if hasattr(sp, 'text'): s(sp, 'text', fg)
-    if hasattr(sp, 'header'): s(sp, 'header', bg)
-    if hasattr(sp, 'header_text'): s(sp, 'header_text', fg)
-    if hasattr(sp, 'panelcolors'):
-        s(sp.panelcolors, 'header', bg_light); s(sp.panelcolors, 'back', bg)
+
+# Palette shortcuts
+bg       = h('{palette["base"]}')
+bg_light = h('{palette["surface0"]}')
+bg_mid   = h('{palette["surface1"]}')
+bg_dark  = h('{palette["mantle"]}')
+fg       = h('{palette["text"]}')
+fg_dim   = h('{palette["subtext0"]}')
+accent   = h('{palette["iris"]}')
+accent2  = h('{palette["foam"]}')
+green    = h('{palette["pine"]}')
+red      = h('{palette["love"]}')
+gold     = h('{palette["gold"]}')
+peach    = h('{palette["peach"]}')
+rose     = h('{palette["rose"]}')
+sky      = h('{palette["sky"]}')
+iris     = h('{palette["iris"]}')
+overlay  = h('{palette["overlay0"]}')
+
+# ── 3D Viewport ──
 v3 = theme.view_3d
-if hasattr(v3, 'space') and hasattr(v3.space, 'gradients'): s(v3.space.gradients, 'high_gradient', bg)
+v3.space.background = bg
+v3.space.text = fg
+v3.space.header = bg_dark
+v3.space.header_text = fg
+v3.space.panelcolors.header = bg_light
+v3.space.panelcolors.back = bg
+s(v3.space.gradients, 'high_gradient', bg)
+s(v3.space.gradients, 'low_gradient', bg_dark)
+v3.space.grid = overlay
+v3.space.wire = fg_dim
+v3.space.object_active = accent
+v3.space.object_selected = green
+v3.space.object_active_wire = accent
+v3.space.vertex = fg
+v3.space.vertex_active = accent
+v3.space.vertex_select = green
+v3.space.edge = fg_dim
+v3.space.edge_select = green
+v3.space.edge_crease = gold
+v3.space.edge_bevel = peach
+v3.space.edge_seam = red
+v3.space.edge_sharp = gold
+v3.space.edge_faces = bg_light
+v3.space.face = bg_light
+v3.space.face_select = green
+v3.space.face_back = bg_dark
+v3.space.face_dot = accent
+v3.space.nurb_sel_uline = green
+v3.space.nurb_sel_vline = green
+v3.space.nurb_uline = fg_dim
+v3.space.nurb_vline = fg_dim
+v3.space.skin_root = accent
+v3.space.pose_action = rose
+v3.space.pose_action_active = peach
+v3.space.trimetri_face = bg_light
+v3.space.transform = accent
+v3.space.frame_current = gold
+v3.space.text_keybinding = fg
+v3.space.match = green
+v3.space.selected_highlight = green
+v3.space.selected_object = green
+
+# ── User Interface ──
 ui = theme.user_interface
-for w in [ui.wcol_regular, ui.wcol_tool, ui.wcol_text, ui.wcol_option, ui.wcol_menu, ui.wcol_pulldown, ui.wcol_tab]:
-    if hasattr(w, 'inner'): s(w, 'inner', bg_light)
-    if hasattr(w, 'inner_sel'): s(w, 'inner_sel', accent)
-    if hasattr(w, 'item'): s(w, 'item', fg)
-    if hasattr(w, 'text'): s(w, 'text', fg)
+ui.base = bg
+ui.text = fg
+ui.text_dim = fg_dim
+ui.panel = bg_light
+ui.panel_title = fg
+ui.panel_back = bg_dark
+ui.panel_sub = bg_light
+ui.button = bg_mid
+ui.button_text = fg
+ui.button_text_highlight = bg
+ui.wcol_regular.inner = bg_light
+ui.wcol_regular.inner_sel = accent
+ui.wcol_regular.item = fg
+ui.wcol_regular.text = fg
+ui.wcol_regular.text_sel = bg
+ui.wcol_tool.inner = bg_light
+ui.wcol_tool.inner_sel = accent
+ui.wcol_tool.item = fg
+ui.wcol_tool.text = fg
+ui.wcol_tool.text_sel = bg
+ui.wcol_tool.outline = overlay
+ui.wcol_text.inner = bg_light
+ui.wcol_text.inner_sel = accent
+ui.wcol_text.item = fg
+ui.wcol_text.text = fg
+ui.wcol_text.text_sel = bg
+ui.wcol_option.inner = bg_light
+ui.wcol_option.inner_sel = accent
+ui.wcol_option.item = fg
+ui.wcol_option.text = fg
+ui.wcol_option.text_sel = bg
+ui.wcol_option.outline = overlay
+ui.wcol_menu.inner = bg_light
+ui.wcol_menu.inner_sel = accent
+ui.wcol_menu.item = fg
+ui.wcol_menu.text = fg
+ui.wcol_menu.text_sel = bg
+ui.wcol_menu.outline = overlay
+ui.wcol_pulldown.inner = bg_light
+ui.wcol_pulldown.inner_sel = accent
+ui.wcol_pulldown.item = fg
+ui.wcol_pulldown.text = fg
+ui.wcol_pulldown.text_sel = bg
+ui.wcol_tab.inner = bg_light
+ui.wcol_tab.inner_sel = accent
+ui.wcol_tab.item = fg
+ui.wcol_tab.text = fg
+ui.wcol_tab.text_sel = bg
+
+# ── Header / Toolbar / Properties ──
+for sp_name in ['view_3d', 'graph_editor', 'dope_sheet', 'nla_editor',
+                 'image_editor', 'uv_editor', 'seqencer', 'seqencer_preview',
+                 'text_editor', 'node_editor', 'logic_editor', 'properties',
+                 'outliner', 'preferences', 'file_browser', 'info',
+                 'console', 'clip_editor', 'spreadsheet']:
+    try:
+        sp = getattr(theme, sp_name).space
+        if hasattr(sp, 'back'): sp.back = bg
+        if hasattr(sp, 'text'): sp.text = fg
+        if hasattr(sp, 'header'): sp.header = bg_dark
+        if hasattr(sp, 'header_text'): sp.header_text = fg
+        if hasattr(sp, 'panelcolors'):
+            sp.panelcolors.header = bg_light
+            sp.panelcolors.back = bg
+    except: pass
+
+# ── Graph Editor ──
+ge = theme.graph_editor
+ge.space.grid = overlay
+ge.space.window_sliders = bg_mid
+ge.curve_point = accent
+ge.curve_selection = green
+ge.handle_auto = fg_dim
+ge.handle_vector = gold
+ge.handle_align = peach
+ge.handle_free = red
+ge.handle_sel_auto = accent
+ge.handle_sel_vector = gold
+ge.handle_sel_align = peach
+ge.handle_sel_free = red
+ge.modifier = sky
+ge.modifier_active = iris
+
+# ── Dope Sheet / Action / Shape Key ──
+ds = theme.dope_sheet
+ds.space.grid = overlay
+ds.keyframe_curves = fg_dim
+ds.keyframe_border = fg_dim
+ds.keyframe_border_selected = green
+ds.keyframe_channels_group = fg_dim
+ds.keyframe_channels_selected = green
+ds.keyframe_inserted = green
+ds.keyframe_modified = gold
+
+# ── Node Editor ──
+ne = theme.node_editor
+ne.space.grid = overlay
+ne.space.wire = fg_dim
+ne.wire = fg_dim
+ne.wire_select = green
+ne.node_socket = fg_dim
+ne.node_socket_select = green
+ne.label = fg
+ne.label_selected = bg
+ne.backdrop = bg_dark
+ne.noodle_curving = 12
+ne.grid_level = 1
+ne.tree_node = bg_light
+ne.tree_node_sel = green
+ne.active_node_label = bg
+ne.active_node_label_text = accent
+ne.node_backdrop = bg_mid
+ne.convex_node = bg_light
+ne.group_node = bg_mid
+ne.frame_node = bg_dark
+ne.operator_node = bg_light
+
+# ── Image / UV Editor ──
+ie = theme.image_editor
+ie.space.background = bg_dark
+ie.space.wire = fg_dim
+ie.space.pin = accent
+ie.wire = fg_dim
+ie.face = bg_light
+ie.face_select = green
+ie.face_dot = accent
+ie.vertex = fg
+ie.vertex_select = green
+ie.stitch = gold
+ie.paint = accent
+ie.uv_shadow = green
+ie.uv_clear = fg_dim
+
+# ── Outliner ──
+ol = theme.outliner
+ol.space.text = fg
+ol.space.back = bg
+ol.space.header = bg_dark
+ol.space.header_text = fg
+ol.active = accent
+ol.selected = green
+ol.unselected = fg_dim
+ol.activated = accent
+ol.edited_object = gold
+
+# ── Properties ──
+pr = theme.properties
+pr.space.text = fg
+pr.space.back = bg
+pr.space.header = bg_dark
+pr.space.header_text = fg
+pr.space.panel_back = bg_dark
+pr.space.tab_back = bg_light
+pr.space.panel_sub = bg_light
+pr.space.button = bg_mid
+pr.space.button_text = fg
+pr.space.wcol_regular.inner = bg_light
+pr.space.wcol_regular.inner_sel = accent
+
+# ── Timeline ──
+tl = theme.timeline
+tl.space.text = fg
+tl.space.back = bg_dark
+tl.space.header = bg_dark
+tl.space.header_text = fg
+tl.frame_current = gold
+tl.playing = green
+tl.preview_range = bg_mid
+tl.grid = overlay
+
+# ── Console / Info / Text Editor ──
+console_theme = theme.console
+console_theme.space.text = fg
+console_theme.space.back = bg
+console_theme.space.header = bg_dark
+console_theme.space.header_text = fg
+console_theme.output = fg
+console_theme.input = accent
+console_theme.info = green
+console_theme.error = red
+console_theme.cursor = gold
+console_theme.selection = bg_mid
+
+info_theme = theme.info
+info_theme.space.text = fg
+info_theme.space.back = bg
+info_theme.space.header = bg_dark
+info_theme.space.header_text = fg
+info_theme.selected = green
+info_theme.selected_text = fg
+info_theme.info = fg_dim
+info_theme.warning = gold
+info_theme.error = red
+
+text_theme = theme.text_editor
+text_theme.space.text = fg
+text_theme.space.back = bg
+text_theme.space.header = bg_dark
+text_theme.space.header_text = fg
+text_theme.space.line_numbers_background = bg_dark
+text_theme.space.line_numbers = fg_dim
+text_theme.space.syntax_builtin = iris
+text_theme.space.syntax_number = peach
+text_theme.space.syntax_string = green
+text_theme.space.syntax_special = gold
+text_theme.space.syntax_comment = fg_dim
+text_theme.space.syntax_identifier = fg
+text_theme.space.syntax_symbol = fg_dim
+text_theme.space.syntax_predefined = rose
+text_theme.space.cursor = gold
+text_theme.space.selection_background = bg_mid
+
+# ── Preferences ──
+pref = theme.preferences
+pref.space.text = fg
+pref.space.back = bg
+pref.space.header = bg_dark
+pref.space.header_text = fg
+
+# ── File Browser ──
+fb = theme.file_browser
+fb.space.text = fg
+fb.space.back = bg
+fb.space.header = bg_dark
+fb.space.header_text = fg
+fb.space.panel_back = bg_dark
+
+# ── Sequencer ──
+sq = theme.sequencer
+sq.space.text = fg
+sq.space.back = bg_dark
+sq.space.header = bg_dark
+sq.space.header_text = fg
+sq.space.grid = overlay
+sq.strip = bg_light
+sq.strip_select = green
+sq.strip_active = accent
+sq.strip_duplicate = gold
+sq.strip_retime = peach
+sq.strip_media = sky
+
+# ── Clip Editor ──
+ce = theme.clip_editor
+ce.space.text = fg
+ce.space.back = bg_dark
+ce.space.header = bg_dark
+ce.space.header_text = fg
+
+# ── Viewport Navigation / Overlay ──
+v3.space.text = fg
+v3.space.text_cursor = gold
+v3.space.view_overlay = fg_dim
+v3.space.view_overlay_text = fg
+v3.space.bone_solid = bg_mid
+v3.space.bone_pose = accent
+v3.space.bone_pose_active = gold
+v3.space.bone_outline = fg_dim
+
+# ── Theme status bar / region ──
+ui.status = bg_dark
+ui.status_text = fg_dim
+
 bpy.ops.wm.save_userpref()
 """
     import tempfile
