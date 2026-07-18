@@ -52,13 +52,13 @@ error_symbol = "[╰─ >](bold love)"
 
 [username]
 disabled = false
-format = "[╭─  $user ](fg:text) "
+format = "[╭─  $user ](fg:text) "
 show_always = true
 style_user = "fg:text"
 style_root = "fg:love"
 
 [directory]
-format = "[╭─   $path ](fg:iris)"
+format = "[╭─   $path ](fg:iris)"
 style = "fg:iris"
 truncation_length = 3
 truncation_symbol = ".../"
@@ -73,82 +73,82 @@ style = "fg:surface1"
 symbol = "·"
 
 [git_branch]
-format = "[  $branch ](fg:foam)"
+format = "[ $symbol$branch ](fg:foam)"
 style = "fg:foam"
-symbol = ""
+symbol = " "
 
 [git_status]
 disabled = false
 style = "fg:love"
 format = '([$all_status$ahead_behind]($style))'
-up_to_date = '[ ✓ ](fg:iris)'
-untracked = '[?\($count\)](fg:gold)'
-stashed = '[$](fg:iris)'
-modified = '[!\($count\)](fg:gold)'
-renamed = '[>>\($count\)](fg:iris)'
-deleted = '[xx\($count\)](fg:love)'
-staged = '[++\($count\)](fg:gold)'
-ahead = '[↑\($count\)](fg:foam)'
-diverged = '[↑\($ahead_count\)↓\($behind_count\)](fg:rose)'
-behind = '[↓\($count\)](fg:rose)'
+up_to_date = '[ 󰄬 ](fg:iris)'
+untracked = '[  \($count\)](fg:gold)'
+stashed = '[ 󰏗 ](fg:iris)'
+modified = '[ 󰏫 \($count\)](fg:gold)'
+renamed = '[ 󰑕 \($count\)](fg:iris)'
+deleted = '[ 󰆴 \($count\)](fg:love)'
+staged = '[ 󰐕 \($count\)](fg:gold)'
+ahead = '[ 󰄥 \($count\)](fg:foam)'
+diverged = '[ 󰹹 \($ahead_count\) 󰹺 \($behind_count\)](fg:rose)'
+behind = '[ 󰄠 \($count\)](fg:rose)'
 
 [time]
 disabled = false
-format = "[   $time ](fg:text) "
+format = "[   $time ](fg:text) "
 style = "fg:text"
 time_format = "%H:%M"
 
 [cmd_duration]
-format = "[dur: $duration ](fg:overlay1)"
+format = "[󱦟 $duration ](fg:overlay1)"
 
 [c]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "c:"
+symbol = " "
 
 [cpp]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "cpp:"
+symbol = " "
 
 [golang]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "go:"
+symbol = " "
 
 [java]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "java:"
+symbol = " "
 
 [nodejs]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "node:"
+symbol = " "
 
 [bun]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "bun:"
+symbol = "🥟 "
 
 [python]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "py:"
+symbol = " "
 
 [rust]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "rs:"
+symbol = " "
 
 [docker_context]
 style = "fg:pine"
 format = "[ $symbol$context ](fg:pine) "
-symbol = "docker:"
+symbol = " "
 
 [nix_shell]
 format = 'via [$symbol$state]($style) '
-symbol = "nix:"
+symbol = " "
 style = "bold foam"
 impure_msg = "impure"
 pure_msg = "pure"
@@ -158,66 +158,66 @@ disabled = false
 [lua]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "lua:"
+symbol = " "
 
 [ruby]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "rb:"
+symbol = " "
 
 [deno]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "deno:"
+symbol = "🦕 "
 
 [swift]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "sw:"
+symbol = " "
 
 [elixir]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "exs:"
+symbol = " "
 
 [elm]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "elm:"
+symbol = " "
 
 [haskell]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "hs:"
+symbol = " "
 
 [julia]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "jl:"
+symbol = " "
 
 [nim]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "nim:"
+symbol = " "
 
 [scala]
 style = "fg:pine"
 format = "[ $symbol$version ](fg:pine) "
-symbol = "scala:"
+symbol = " "
 
 [conda]
 style = "fg:pine"
 format = "[ $symbol$environment ](fg:pine) "
-symbol = "conda:"
+symbol = " "
 
 [package]
 style = "fg:gold"
 format = "[ $symbol$version ](fg:gold) "
-symbol = "pkg:"
+symbol = "󰏗 "
 
 [memory_usage]
 disabled = false
-format = "[mem: $ram ](fg:overlay1)"
+format = "[󰍛 $ram ](fg:overlay1)"
 style = "fg:overlay1"
 
 [localip]
