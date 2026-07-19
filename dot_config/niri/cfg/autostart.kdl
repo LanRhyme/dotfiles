@@ -4,3 +4,4 @@
     spawn-sh-at-startup "/usr/lib/polkit-kde-authentication-agent-1 &" // Polkit
     spawn-sh-at-startup "noctalia"
     spawn-sh-at-startup "clipse"
+    spawn-sh-at-startup "/home/lanrhyme/Projects/slugcatpet/start.sh"
