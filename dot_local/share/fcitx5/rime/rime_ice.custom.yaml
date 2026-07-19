@@ -1,6 +1,23 @@
 # 添加了模糊音的自定义配置文件 rime_ice.custom.yaml
 # https://github.com/Mark24Code/rime-auto-deploy/issues/1
 patch:
+  # 默认英文模式
+  switches:
+    - name: ascii_mode
+      reset: 1
+      states: ["中", "Ａ"]
+    - name: ascii_punct
+      states: ["¥", "$"]
+    - name: traditionalization
+      states: ["简", "繁"]
+    - name: emoji
+      reset: 1
+      states: ["💀", "😄"]
+    - name: full_shape
+      states: ["半角", "全角"]
+    - abbrev: ["词", "单"]
+      name: search_single_char
+      states: ["正常", "单字"]
   # 拼写设定
   speller:
     # 如果不想让什么标点直接上屏，可以加在 alphabet，或者编辑标点符号为两个及以上的映射
