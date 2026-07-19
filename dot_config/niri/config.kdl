@@ -84,15 +84,3 @@ cursor {
     xcursor-size 16
 }
 
-window-rule {
-	match title="slugcatpet"
-	open-floating true
-	opacity 1.0
-	focus-ring { off; }
-	border { off; }
-	shadow { off; }
-	geometry-corner-radius 0
-	background-effect {
-		blur false
-	}
-}
