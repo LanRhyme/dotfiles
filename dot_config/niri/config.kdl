@@ -85,7 +85,7 @@ cursor {
 }
 
 window-rule {
-	match app-id="run_slugcatpet.py"
+	match title="slugcatpet"
 	open-floating true
 	opacity 1.0
 	focus-ring { off; }
