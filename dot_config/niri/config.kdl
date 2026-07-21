@@ -18,6 +18,9 @@ environment {
     QT_IM_MODULE "fcitx"
     GTK_IM_MODULE "fcitx"
     SDL_IM_MODULE "fcitx"
+    // NVIDIA hybrid GPU offloading
+    __NV_PRIME_RENDER_OFFLOAD "1"
+    __GLX_VENDOR_LIBRARY_NAME "nvidia"
 }
 
 input {
