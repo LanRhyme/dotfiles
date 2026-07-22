@@ -20,7 +20,7 @@
 - **SPlayer 桌面歌词**: 在 `config.kdl` 中添加窗口规则（必须在全局 opacity 规则之后才能生效），匹配 `app-id="splayer" title=".*桌面歌词.*"`，设置 `open-floating true`、`opacity 1.0`、`blur false`，解决歌词背景透过窗口显示的问题
 - 已将 `Zed` 集成到莫兰迪主题引擎: 在 `morandi-gen.py` 中添加了 `write_zed`，动态生成 `~/.config/zed/themes/morandi.json`。语法和 UI 颜色映射到莫兰迪色板以模拟 Neovim 主题，并更新了 `~/.config/zed/settings.json` 设置主题为莫兰迪
 - 已将 `Blender` 集成到莫兰迪主题引擎: 在 `morandi-gen.py` 中添加了 `write_blender`，基于 Eclipse 主题 XML 模板通过字符串替换生成莫兰迪主题。XML 方式覆盖所有属性（Python API 在 Blender 5.1 中 `save_userpref()` 无法保存所有主题属性）。基线文件: `~/.config/noctalia/blender-eclipse-theme.xml`，输出: `~/.config/blender/5.1/scripts/presets/interface_theme/Morandi.xml`，通过 `bpy.ops.preferences.theme_install()` 自动安装
-- 已修复 Alacritty 终端配色并完全集成到莫兰迪主题引擎: 修复了 `morandi-gen.py` 中 `write_alacritty` 的偏蓝/偏粉问题；重新精细化定义了 ANSI 16 色的纯正莫兰迪基准色相（砖红 `#b35f5f`、竹绿 `#68aa6f`、琥珀黄 `#c09f66`、清澈雾蓝 `#6694b7`、天青 `#62a6a4`、柔紫 `#a178b9`），光标改为冷调雾蓝，彻底消除了全屏字符偏粉/偏紫色调的问题，实现清爽典雅的淡雅色彩层次
+- 已修复 Alacritty 终端配色并完全集成到莫兰迪主题引擎: 修复了 `morandi-gen.py` 中 `write_alacritty` 未更新导入主题的问题；已回滚至最初修复语法后的稳定基准莫兰迪调色板（从系统 Material 主色提取计算，搭配极致灰润舒缓的莫兰迪低饱和色调），并保持 `alacritty.toml` 语法干净与 chezmoi 同步
 
 ## 结构模式
 - Dotfiles 通过 `chezmoi` 管理，源位于 `~/.local/share/chezmoi`
