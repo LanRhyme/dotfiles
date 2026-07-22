@@ -87,14 +87,29 @@ def generate_palette(c):
     p["fcitx5_hl_bg"] = hsl_to_hex(ih, is_, min(il, 38))
     p["fcitx5_text"] = p["text"]
     p["fcitx5_hl_text"] = p["base"]
-
-    # Terminal-specific muted semantic colors
+    # Normal terminal colors
     p["term_red"] = morandi(blend(primary, "#ff757f", 0.4), 0.3, -10)
     p["term_green"] = morandi(blend(primary, "#c3e88d", 0.4), 0.3, -10)
     p["term_yellow"] = morandi(blend(primary, "#ffc777", 0.4), 0.3, -10)
     p["term_blue"] = morandi(blend(primary, "#82aaff", 0.4), 0.3, -10)
     p["term_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.3, -10)
     p["term_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.3, -10)
+
+    # Bright terminal colors (higher lightness, slightly higher saturation)
+    p["term_bright_red"] = morandi(blend(primary, "#ff757f", 0.4), 0.2, 5)
+    p["term_bright_green"] = morandi(blend(primary, "#c3e88d", 0.4), 0.2, 5)
+    p["term_bright_yellow"] = morandi(blend(primary, "#ffc777", 0.4), 0.2, 5)
+    p["term_bright_blue"] = morandi(blend(primary, "#82aaff", 0.4), 0.2, 5)
+    p["term_bright_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.2, 5)
+    p["term_bright_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.2, 5)
+
+    # Dim terminal colors (lower lightness, lower saturation)
+    p["term_dim_red"] = morandi(blend(primary, "#ff757f", 0.4), 0.4, -20)
+    p["term_dim_green"] = morandi(blend(primary, "#c3e88d", 0.4), 0.4, -20)
+    p["term_dim_yellow"] = morandi(blend(primary, "#ffc777", 0.4), 0.4, -20)
+    p["term_dim_blue"] = morandi(blend(primary, "#82aaff", 0.4), 0.4, -20)
+    p["term_dim_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.4, -20)
+    p["term_dim_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.4, -20)
 
     return p
 
@@ -320,22 +335,22 @@ white = '{palette["text"]}'
 
 [colors.bright]
 black = '{palette["surface2"]}'
-red = '{palette["term_red"]}'
-green = '{palette["term_green"]}'
-yellow = '{palette["term_yellow"]}'
-blue = '{palette["term_blue"]}'
-magenta = '{palette["term_magenta"]}'
-cyan = '{palette["term_cyan"]}'
+red = '{palette["term_bright_red"]}'
+green = '{palette["term_bright_green"]}'
+yellow = '{palette["term_bright_yellow"]}'
+blue = '{palette["term_bright_blue"]}'
+magenta = '{palette["term_bright_magenta"]}'
+cyan = '{palette["term_bright_cyan"]}'
 white = '{palette["text"]}'
 
 [colors.dim]
 black = '{palette["surface0"]}'
-red = '{palette["term_red"]}'
-green = '{palette["term_green"]}'
-yellow = '{palette["term_yellow"]}'
-blue = '{palette["term_blue"]}'
-magenta = '{palette["term_magenta"]}'
-cyan = '{palette["term_cyan"]}'
+red = '{palette["term_dim_red"]}'
+green = '{palette["term_dim_green"]}'
+yellow = '{palette["term_dim_yellow"]}'
+blue = '{palette["term_dim_blue"]}'
+magenta = '{palette["term_dim_magenta"]}'
+cyan = '{palette["term_dim_cyan"]}'
 white = '{palette["subtext0"]}'
 """
     ALACRITTY_THEME.write_text(theme_content)
