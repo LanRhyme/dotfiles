@@ -261,28 +261,26 @@ ALACRITTY_THEME = Path.home() / ".config/alacritty/themes/noctalia.toml"
 def write_alacritty(palette):
     if not ALACRITTY_TOML.exists(): return
 
-    term_bg = blend(palette["base"], palette["iris"], 0.08)
-
     ALACRITTY_THEME.parent.mkdir(parents=True, exist_ok=True)
     theme_content = f"""# Auto-generated Morandi theme by morandi-gen.py
 [colors.primary]
-background = '{term_bg}'
+background = '{palette["base"]}'
 foreground = '{palette["text"]}'
 
 [colors.cursor]
-text = '{term_bg}'
+text = '{palette["base"]}'
 cursor = '{palette["iris"]}'
 
 [colors.vi_mode_cursor]
-text = '{term_bg}'
+text = '{palette["base"]}'
 cursor = '{palette["foam"]}'
 
 [colors.search.matches]
-foreground = '{term_bg}'
+foreground = '{palette["base"]}'
 background = '{palette["gold"]}'
 
 [colors.search.focused_match]
-foreground = '{term_bg}'
+foreground = '{palette["base"]}'
 background = '{palette["iris"]}'
 
 [colors.footer_bar]
@@ -290,11 +288,11 @@ foreground = '{palette["text"]}'
 background = '{palette["mantle"]}'
 
 [colors.hints.start]
-foreground = '{term_bg}'
+foreground = '{palette["base"]}'
 background = '{palette["gold"]}'
 
 [colors.hints.end]
-foreground = '{term_bg}'
+foreground = '{palette["base"]}'
 background = '{palette["rose"]}'
 
 [colors.selection]
@@ -334,12 +332,11 @@ white = '{palette["subtext0"]}'
     ALACRITTY_THEME.write_text(theme_content)
 
     content = ALACRITTY_TOML.read_text()
-    if "[colors.normal]" in content and "[colors.bright]" in content:
-        normal_str = f"[colors.normal]\nblack = \"{palette['surface1']}\"\nred = \"{palette['love']}\"\ngreen = \"{palette['pine']}\"\nyellow = \"{palette['gold']}\"\nblue = \"{palette['iris']}\"\nmagenta = \"{palette['rose']}\"\ncyan = \"{palette['sky']}\"\nwhite = \"{palette['text']}\""
-        bright_str = f"[colors.bright]\nblack = \"{palette['surface2']}\"\nred = \"{palette['love']}\"\ngreen = \"{palette['pine']}\"\nyellow = \"{palette['gold']}\"\nblue = \"{palette['iris']}\"\nmagenta = \"{palette['rose']}\"\ncyan = \"{palette['sky']}\"\nwhite = \"{palette['text']}\""
-        content = re.sub(r"\[colors\.normal\]\n(?:.*?\n)+?(?=\[colors\.bright\])", f"{normal_str}\n", content, flags=re.MULTILINE)
-        content = re.sub(r"\[colors\.bright\]\n(?:.*?\n)+?(?=\[colors\.cursor\])", f"[colors.bright]\n{bright_str}\n", content, flags=re.MULTILINE)
-        ALACRITTY_TOML.write_text(content)
+    # Clean up redundant inline color blocks in alacritty.toml since themes/noctalia.toml is imported
+    cleaned = re.sub(r"\[colors\.(?:primary|normal|bright|cursor|selection)\][\s\S]*?(?=\n\[|\Z)", "", content)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    if cleaned != content:
+        ALACRITTY_TOML.write_text(cleaned)
 
 def hex_to_rgb(hex_color):
     h = hex_color.lstrip("#")
