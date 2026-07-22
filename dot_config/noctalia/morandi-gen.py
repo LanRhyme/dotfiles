@@ -76,20 +76,15 @@ def generate_palette(c):
     p["subtext1"] = morandi(on_surface, 0.3, -4)
     p["text"] = morandi(on_surface, 0.2, 0)
 
-    # Low saturation (17%-25%) and distinct hue anchors for true Morandi aesthetics
-    prim_h, _, _ = hex_to_hsl(primary)
-    def morandi_accent(target_h, target_s=22, target_l=58, blend_prim_ratio=0.1):
-        h = blend_hue(target_h, prim_h, blend_prim_ratio)
-        return hsl_to_hex(h, target_s, target_l)
-
-    p["love"]  = morandi_accent(352, 25, 52) # 豆沙暗红
-    p["rose"]  = morandi_accent(342, 23, 60) # 灰暖干玫瑰
-    p["peach"] = morandi_accent(18,  24, 56) # 陶土暖杏
-    p["gold"]  = morandi_accent(42,  23, 60) # 麦芽金黄
-    p["pine"]  = morandi_accent(140, 18, 54) # 鼠尾草灰绿
-    p["foam"]  = morandi_accent(170, 18, 56) # 浅石青绿
-    p["sky"]   = morandi_accent(205, 20, 56) # 湖青/雾蓝
-    p["iris"]  = morandi_accent(260, 20, 58) # 薰衣草灰紫
+    # Pure, distinct, and elegant Morandi color definitions
+    p["love"]  = hsl_to_hex(0,   36, 54) # 莫兰迪砖红
+    p["rose"]  = hsl_to_hex(335, 30, 60) # 莫兰迪玫瑰红
+    p["peach"] = hsl_to_hex(20,  38, 58) # 莫兰迪暖杏橙
+    p["gold"]  = hsl_to_hex(38,  42, 58) # 莫兰迪琥珀金
+    p["pine"]  = hsl_to_hex(126, 28, 54) # 莫兰迪竹绿
+    p["foam"]  = hsl_to_hex(178, 28, 52) # 莫兰迪天青
+    p["sky"]   = hsl_to_hex(206, 36, 56) # 莫兰迪纯正雾蓝 (纯冷调)
+    p["iris"]  = hsl_to_hex(278, 32, 60) # 莫兰迪柔紫
 
     h, s, l = hex_to_hsl(p["surface1"])
     p["fcitx5_bg"] = hsl_to_hex(h, s * 0.6, min(l, 20))
@@ -280,7 +275,7 @@ foreground = '{palette["text"]}'
 
 [colors.cursor]
 text = '{palette["base"]}'
-cursor = '{palette["iris"]}'
+cursor = '{palette["sky"]}'
 
 [colors.vi_mode_cursor]
 text = '{palette["base"]}'
@@ -292,7 +287,7 @@ background = '{palette["gold"]}'
 
 [colors.search.focused_match]
 foreground = '{palette["base"]}'
-background = '{palette["iris"]}'
+background = '{palette["sky"]}'
 
 [colors.footer_bar]
 foreground = '{palette["text"]}'
@@ -304,7 +299,7 @@ background = '{palette["gold"]}'
 
 [colors.hints.end]
 foreground = '{palette["base"]}'
-background = '{palette["rose"]}'
+background = '{palette["pine"]}'
 
 [colors.selection]
 text = '{palette["text"]}'
@@ -316,18 +311,18 @@ red = '{palette["love"]}'
 green = '{palette["pine"]}'
 yellow = '{palette["gold"]}'
 blue = '{palette["sky"]}'
-magenta = '{palette["rose"]}'
+magenta = '{palette["iris"]}'
 cyan = '{palette["foam"]}'
 white = '{palette["subtext0"]}'
 
 [colors.bright]
 black = '{palette["overlay0"]}'
-red = '{palette["rose"]}'
-green = '{palette["foam"]}'
-yellow = '{palette["peach"]}'
-blue = '{palette["iris"]}'
+red = '{palette["love"]}'
+green = '{palette["pine"]}'
+yellow = '{palette["gold"]}'
+blue = '{palette["sky"]}'
 magenta = '{palette["iris"]}'
-cyan = '{palette["sky"]}'
+cyan = '{palette["foam"]}'
 white = '{palette["text"]}'
 
 [colors.dim]
@@ -336,7 +331,7 @@ red = '{palette["love"]}'
 green = '{palette["pine"]}'
 yellow = '{palette["gold"]}'
 blue = '{palette["sky"]}'
-magenta = '{palette["rose"]}'
+magenta = '{palette["iris"]}'
 cyan = '{palette["foam"]}'
 white = '{palette["subtext1"]}'
 """
