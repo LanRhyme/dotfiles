@@ -114,7 +114,7 @@ def generate_palette(c):
     # Terminal background: tinted slightly with primary theme color
     h_p, s_p, _ = hex_to_hsl(primary)
     h_b, s_b, l_b = hex_to_hsl(p["base"])
-    p["term_bg"] = hsl_to_hex(h_p, min(s_b + 16, 30), l_b + 1.5)
+    p["term_bg"] = hsl_to_hex(h_p, min(s_b + 12, 25), l_b + 1)
 
     return p
 
