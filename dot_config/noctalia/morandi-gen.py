@@ -256,31 +256,39 @@ def write_fastfetch(palette):
 
     FASTFETCH_CONFIG.write_text(content)
 
+ALACRITTY_ORIGINAL_NORMAL = {"black": "#1c1c1c", "red": "#ff6c6b", "green": "#98be65", "yellow": "#ecbe7b", "blue": "#51afef", "magenta": "#c678dd", "cyan": "#46d9ff", "white": "#bbc2cf"}
+ALACRITTY_ORIGINAL_BRIGHT = {"black": "#5b6268", "red": "#da8548", "green": "#4db5bd", "yellow": "#ecbe7b", "blue": "#3071db", "magenta": "#a9a1e1", "cyan": "#46d9ff", "white": "#dfdfdf"}
+
 ALACRITTY_THEME = Path.home() / ".config/alacritty/themes/noctalia.toml"
 
 def write_alacritty(palette):
     if not ALACRITTY_TOML.exists(): return
 
+    term_bg = blend(palette["base"], palette["iris"], 0.08)
+
+    normal_colors = {k: morandi(v, 0.45, -5, 0, 40) for k, v in ALACRITTY_ORIGINAL_NORMAL.items()}
+    bright_colors = {k: morandi(v, 0.45, -5, 0, 40) for k, v in ALACRITTY_ORIGINAL_BRIGHT.items()}
+
     ALACRITTY_THEME.parent.mkdir(parents=True, exist_ok=True)
     theme_content = f"""# Auto-generated Morandi theme by morandi-gen.py
 [colors.primary]
-background = '{palette["base"]}'
+background = '{term_bg}'
 foreground = '{palette["text"]}'
 
 [colors.cursor]
-text = '{palette["base"]}'
+text = '{term_bg}'
 cursor = '{palette["iris"]}'
 
 [colors.vi_mode_cursor]
-text = '{palette["base"]}'
+text = '{term_bg}'
 cursor = '{palette["foam"]}'
 
 [colors.search.matches]
-foreground = '{palette["base"]}'
+foreground = '{term_bg}'
 background = '{palette["gold"]}'
 
 [colors.search.focused_match]
-foreground = '{palette["base"]}'
+foreground = '{term_bg}'
 background = '{palette["iris"]}'
 
 [colors.footer_bar]
@@ -288,11 +296,11 @@ foreground = '{palette["text"]}'
 background = '{palette["mantle"]}'
 
 [colors.hints.start]
-foreground = '{palette["base"]}'
+foreground = '{term_bg}'
 background = '{palette["gold"]}'
 
 [colors.hints.end]
-foreground = '{palette["base"]}'
+foreground = '{term_bg}'
 background = '{palette["rose"]}'
 
 [colors.selection]
@@ -300,43 +308,43 @@ text = '{palette["text"]}'
 background = '{palette["surface2"]}'
 
 [colors.normal]
-black = '{palette["surface1"]}'
-red = '{palette["love"]}'
-green = '{palette["pine"]}'
-yellow = '{palette["gold"]}'
-blue = '{palette["iris"]}'
-magenta = '{palette["rose"]}'
-cyan = '{palette["sky"]}'
-white = '{palette["text"]}'
+black = '{normal_colors["black"]}'
+red = '{normal_colors["red"]}'
+green = '{normal_colors["green"]}'
+yellow = '{normal_colors["yellow"]}'
+blue = '{normal_colors["blue"]}'
+magenta = '{normal_colors["magenta"]}'
+cyan = '{normal_colors["cyan"]}'
+white = '{normal_colors["white"]}'
 
 [colors.bright]
-black = '{palette["surface2"]}'
-red = '{palette["love"]}'
-green = '{palette["pine"]}'
-yellow = '{palette["gold"]}'
-blue = '{palette["iris"]}'
-magenta = '{palette["rose"]}'
-cyan = '{palette["sky"]}'
-white = '{palette["text"]}'
+black = '{bright_colors["black"]}'
+red = '{bright_colors["red"]}'
+green = '{bright_colors["green"]}'
+yellow = '{bright_colors["yellow"]}'
+blue = '{bright_colors["blue"]}'
+magenta = '{bright_colors["magenta"]}'
+cyan = '{bright_colors["cyan"]}'
+white = '{bright_colors["white"]}'
 
 [colors.dim]
 black = '{palette["surface0"]}'
-red = '{palette["love"]}'
-green = '{palette["pine"]}'
-yellow = '{palette["gold"]}'
-blue = '{palette["iris"]}'
-magenta = '{palette["rose"]}'
-cyan = '{palette["sky"]}'
+red = '{normal_colors["red"]}'
+green = '{normal_colors["green"]}'
+yellow = '{normal_colors["yellow"]}'
+blue = '{normal_colors["blue"]}'
+magenta = '{normal_colors["magenta"]}'
+cyan = '{normal_colors["cyan"]}'
 white = '{palette["subtext0"]}'
 """
     ALACRITTY_THEME.write_text(theme_content)
 
     content = ALACRITTY_TOML.read_text()
     if "[colors.normal]" in content and "[colors.bright]" in content:
-        normal_str = f"[colors.normal]\nblack = \"{palette['surface1']}\"\nred = \"{palette['love']}\"\ngreen = \"{palette['pine']}\"\nyellow = \"{palette['gold']}\"\nblue = \"{palette['iris']}\"\nmagenta = \"{palette['rose']}\"\ncyan = \"{palette['sky']}\"\nwhite = \"{palette['text']}\""
-        bright_str = f"[colors.bright]\nblack = \"{palette['surface2']}\"\nred = \"{palette['love']}\"\ngreen = \"{palette['pine']}\"\nyellow = \"{palette['gold']}\"\nblue = \"{palette['iris']}\"\nmagenta = \"{palette['rose']}\"\ncyan = \"{palette['sky']}\"\nwhite = \"{palette['text']}\""
-        content = re.sub(r"\[colors\.normal\]\n(?:.*?\n)+?(?=\[colors\.bright\])", f"{normal_str}\n", content, flags=re.MULTILINE)
-        content = re.sub(r"\[colors\.bright\]\n(?:.*?\n)+?(?=\[colors\.cursor\])", f"{bright_str}\n", content, flags=re.MULTILINE)
+        normal_str = "\n".join(f'{k} = "{v}"' for k, v in normal_colors.items())
+        bright_str = "\n".join(f'{k} = "{v}"' for k, v in bright_colors.items())
+        content = re.sub(r"\[colors\.normal\]\n(?:.*?\n)+?(?=\[colors\.bright\])", f"[colors.normal]\n{normal_str}\n", content, flags=re.MULTILINE)
+        content = re.sub(r"\[colors\.bright\]\n(?:.*?\n)+?(?=\[colors\.cursor\])", f"[colors.bright]\n{bright_str}\n", content, flags=re.MULTILINE)
         ALACRITTY_TOML.write_text(content)
 
 def hex_to_rgb(hex_color):
