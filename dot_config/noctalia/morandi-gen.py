@@ -49,6 +49,10 @@ def blend(c1, c2, ratio=0.5):
     b = int(b1 + (b2 - b1) * ratio)
     return f"#{r:02x}{g:02x}{b:02x}"
 
+def blend_hue(h1, h2, ratio=0.1):
+    diff = (h2 - h1 + 180) % 360 - 180
+    return (h1 + diff * ratio) % 360
+
 def generate_palette(c):
     p = {}
     primary = c.get("mPrimary", c.get("primary"))
@@ -71,14 +75,21 @@ def generate_palette(c):
     p["subtext0"] = morandi(on_surface, 0.4, -8)
     p["subtext1"] = morandi(on_surface, 0.3, -4)
     p["text"] = morandi(on_surface, 0.2, 0)
-    p["love"] = morandi(error, 0.25, -15)
-    p["rose"] = morandi(blend(primary, error, 0.6), 0.3, -15, 5)
-    p["gold"] = morandi(blend(primary, "#d4a574", 0.3), 0.35, -10, 15)
-    p["peach"] = morandi(blend(error, "#d4a574", 0.4), 0.3, -10, 10)
-    p["pine"] = morandi(tertiary, 0.3, -18, -5)
-    p["foam"] = morandi(secondary, 0.35, -18, -5)
-    p["iris"] = morandi(primary, 0.25, -18)
-    p["sky"] = morandi(tertiary, 0.35, -18, -10)
+
+    # Low saturation (17%-25%) and distinct hue anchors for true Morandi aesthetics
+    prim_h, _, _ = hex_to_hsl(primary)
+    def morandi_accent(target_h, target_s=22, target_l=58, blend_prim_ratio=0.1):
+        h = blend_hue(target_h, prim_h, blend_prim_ratio)
+        return hsl_to_hex(h, target_s, target_l)
+
+    p["love"]  = morandi_accent(352, 25, 52) # 豆沙暗红
+    p["rose"]  = morandi_accent(342, 23, 60) # 灰暖干玫瑰
+    p["peach"] = morandi_accent(18,  24, 56) # 陶土暖杏
+    p["gold"]  = morandi_accent(42,  23, 60) # 麦芽金黄
+    p["pine"]  = morandi_accent(140, 18, 54) # 鼠尾草灰绿
+    p["foam"]  = morandi_accent(170, 18, 56) # 浅石青绿
+    p["sky"]   = morandi_accent(205, 20, 56) # 湖青/雾蓝
+    p["iris"]  = morandi_accent(260, 20, 58) # 薰衣草灰紫
 
     h, s, l = hex_to_hsl(p["surface1"])
     p["fcitx5_bg"] = hsl_to_hex(h, s * 0.6, min(l, 20))
