@@ -111,6 +111,11 @@ def generate_palette(c):
     p["term_dim_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.55, -18)
     p["term_dim_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.55, -18)
 
+    # Terminal background: tinted slightly with primary theme color
+    h_p, s_p, _ = hex_to_hsl(primary)
+    h_b, s_b, l_b = hex_to_hsl(p["base"])
+    p["term_bg"] = hsl_to_hex(h_p, min(s_b + 8, 20), l_b + 1)
+
     return p
 
 def write_niri(palette):
@@ -288,7 +293,7 @@ def write_alacritty(palette):
     ALACRITTY_THEME.parent.mkdir(parents=True, exist_ok=True)
     theme_content = f"""# Auto-generated Morandi theme by morandi-gen.py
 [colors.primary]
-background = '{palette["base"]}'
+background = '{palette["term_bg"]}'
 foreground = '{palette["text"]}'
 
 [colors.cursor]
