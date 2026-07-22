@@ -96,20 +96,20 @@ def generate_palette(c):
     p["term_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.3, -10)
 
     # Bright terminal colors (higher lightness, slightly higher saturation)
-    p["term_bright_red"] = morandi(blend(primary, "#ff757f", 0.4), 0.2, 5)
-    p["term_bright_green"] = morandi(blend(primary, "#c3e88d", 0.4), 0.2, 5)
-    p["term_bright_yellow"] = morandi(blend(primary, "#ffc777", 0.4), 0.2, 5)
-    p["term_bright_blue"] = morandi(blend(primary, "#82aaff", 0.4), 0.2, 5)
-    p["term_bright_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.2, 5)
-    p["term_bright_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.2, 5)
+    p["term_bright_red"] = morandi(blend(primary, "#ff757f", 0.4), 0.25, -5)
+    p["term_bright_green"] = morandi(blend(primary, "#c3e88d", 0.4), 0.25, -5)
+    p["term_bright_yellow"] = morandi(blend(primary, "#ffc777", 0.4), 0.25, -5)
+    p["term_bright_blue"] = morandi(blend(primary, "#82aaff", 0.4), 0.25, -5)
+    p["term_bright_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.25, -5)
+    p["term_bright_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.25, -5)
 
     # Dim terminal colors (lower lightness, lower saturation)
-    p["term_dim_red"] = morandi(blend(primary, "#ff757f", 0.4), 0.4, -20)
-    p["term_dim_green"] = morandi(blend(primary, "#c3e88d", 0.4), 0.4, -20)
-    p["term_dim_yellow"] = morandi(blend(primary, "#ffc777", 0.4), 0.4, -20)
-    p["term_dim_blue"] = morandi(blend(primary, "#82aaff", 0.4), 0.4, -20)
-    p["term_dim_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.4, -20)
-    p["term_dim_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.4, -20)
+    p["term_dim_red"] = morandi(blend(primary, "#ff757f", 0.4), 0.35, -15)
+    p["term_dim_green"] = morandi(blend(primary, "#c3e88d", 0.4), 0.35, -15)
+    p["term_dim_yellow"] = morandi(blend(primary, "#ffc777", 0.4), 0.35, -15)
+    p["term_dim_blue"] = morandi(blend(primary, "#82aaff", 0.4), 0.35, -15)
+    p["term_dim_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.35, -15)
+    p["term_dim_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.35, -15)
 
     return p
 
