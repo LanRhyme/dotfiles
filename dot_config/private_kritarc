@@ -635,9 +635,9 @@ yPosition=0
 DockArea=2
 Locked=false
 height=100
-width=307
+width=0
 xPosition=0
-yPosition=22
+yPosition=0
 
 [MainWindow][DockWidget TimelineDocker]
 DockArea=8
