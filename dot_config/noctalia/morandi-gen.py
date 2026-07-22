@@ -87,6 +87,15 @@ def generate_palette(c):
     p["fcitx5_hl_bg"] = hsl_to_hex(ih, is_, min(il, 38))
     p["fcitx5_text"] = p["text"]
     p["fcitx5_hl_text"] = p["base"]
+
+    # Terminal-specific muted semantic colors
+    p["term_red"] = morandi(blend(primary, "#ff757f", 0.4), 0.3, -10)
+    p["term_green"] = morandi(blend(primary, "#c3e88d", 0.4), 0.3, -10)
+    p["term_yellow"] = morandi(blend(primary, "#ffc777", 0.4), 0.3, -10)
+    p["term_blue"] = morandi(blend(primary, "#82aaff", 0.4), 0.3, -10)
+    p["term_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.3, -10)
+    p["term_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.3, -10)
+
     return p
 
 def write_niri(palette):
@@ -277,11 +286,11 @@ cursor = '{palette["foam"]}'
 
 [colors.search.matches]
 foreground = '{palette["base"]}'
-background = '{palette["gold"]}'
+background = '{palette["term_yellow"]}'
 
 [colors.search.focused_match]
 foreground = '{palette["base"]}'
-background = '{palette["iris"]}'
+background = '{palette["term_blue"]}'
 
 [colors.footer_bar]
 foreground = '{palette["text"]}'
@@ -289,11 +298,11 @@ background = '{palette["mantle"]}'
 
 [colors.hints.start]
 foreground = '{palette["base"]}'
-background = '{palette["gold"]}'
+background = '{palette["term_yellow"]}'
 
 [colors.hints.end]
 foreground = '{palette["base"]}'
-background = '{palette["rose"]}'
+background = '{palette["term_magenta"]}'
 
 [colors.selection]
 text = '{palette["text"]}'
@@ -301,32 +310,32 @@ background = '{palette["surface2"]}'
 
 [colors.normal]
 black = '{palette["surface1"]}'
-red = '{palette["love"]}'
-green = '{palette["pine"]}'
-yellow = '{palette["gold"]}'
-blue = '{palette["iris"]}'
-magenta = '{palette["rose"]}'
-cyan = '{palette["sky"]}'
+red = '{palette["term_red"]}'
+green = '{palette["term_green"]}'
+yellow = '{palette["term_yellow"]}'
+blue = '{palette["term_blue"]}'
+magenta = '{palette["term_magenta"]}'
+cyan = '{palette["term_cyan"]}'
 white = '{palette["text"]}'
 
 [colors.bright]
 black = '{palette["surface2"]}'
-red = '{palette["love"]}'
-green = '{palette["pine"]}'
-yellow = '{palette["gold"]}'
-blue = '{palette["iris"]}'
-magenta = '{palette["rose"]}'
-cyan = '{palette["sky"]}'
+red = '{palette["term_red"]}'
+green = '{palette["term_green"]}'
+yellow = '{palette["term_yellow"]}'
+blue = '{palette["term_blue"]}'
+magenta = '{palette["term_magenta"]}'
+cyan = '{palette["term_cyan"]}'
 white = '{palette["text"]}'
 
 [colors.dim]
 black = '{palette["surface0"]}'
-red = '{palette["love"]}'
-green = '{palette["pine"]}'
-yellow = '{palette["gold"]}'
-blue = '{palette["iris"]}'
-magenta = '{palette["rose"]}'
-cyan = '{palette["sky"]}'
+red = '{palette["term_red"]}'
+green = '{palette["term_green"]}'
+yellow = '{palette["term_yellow"]}'
+blue = '{palette["term_blue"]}'
+magenta = '{palette["term_magenta"]}'
+cyan = '{palette["term_cyan"]}'
 white = '{palette["subtext0"]}'
 """
     ALACRITTY_THEME.write_text(theme_content)
