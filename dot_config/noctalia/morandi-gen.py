@@ -118,6 +118,131 @@ def generate_palette(c):
 
     return p
 
+def write_antigravity(palette):
+    agy_conf = Path.home() / ".gemini/antigravity-cli/settings.json"
+    if not agy_conf.exists(): return
+    try:
+        import json
+        content = json.loads(agy_conf.read_text())
+        content["tuiStyle"] = "opencode"
+        content["theme"] = {
+            "primary": palette["primary"],
+            "secondary": palette["term_magenta"],
+            "accent": palette["term_yellow"],
+            "error": palette["term_red"],
+            "warning": palette["term_yellow"],
+            "success": palette["term_green"],
+            "info": palette["term_blue"],
+            "text": palette["text"],
+            "textMuted": palette["subtext0"],
+            "background": "none",
+            "backgroundPanel": palette["base"],
+            "backgroundElement": "none",
+            "border": palette["surface2"],
+            "borderActive": palette["primary"],
+            "borderSubtle": palette["surface"],
+            "diffAdded": palette["term_green"],
+            "diffRemoved": palette["term_red"],
+            "diffContext": palette["subtext0"],
+            "diffHunkHeader": palette["subtext0"],
+            "diffHighlightAdded": palette["term_bright_green"],
+            "diffHighlightRemoved": palette["term_bright_red"],
+            "diffAddedBg": "none",
+            "diffRemovedBg": "none",
+            "diffContextBg": "none",
+            "diffLineNumber": palette["surface2"],
+            "diffAddedLineNumberBg": "none",
+            "diffRemovedLineNumberBg": "none",
+            "markdownText": palette["text"],
+            "markdownHeading": palette["primary"],
+            "markdownLink": palette["term_blue"],
+            "markdownLinkText": palette["term_cyan"],
+            "markdownCode": palette["term_green"],
+            "markdownBlockQuote": palette["subtext0"],
+            "markdownEmph": palette["term_yellow"],
+            "markdownStrong": palette["primary"],
+            "markdownHorizontalRule": palette["surface2"],
+            "markdownListItem": palette["primary"],
+            "markdownListEnumeration": palette["term_yellow"],
+            "markdownImage": palette["term_blue"],
+            "markdownImageText": palette["term_yellow"],
+            "markdownCodeBlock": palette["text"],
+            "syntaxComment": palette["subtext0"],
+            "syntaxKeyword": palette["term_magenta"],
+            "syntaxFunction": palette["term_blue"],
+            "syntaxVariable": palette["text"],
+            "syntaxString": palette["term_green"],
+            "syntaxNumber": palette["term_yellow"],
+            "syntaxType": palette["term_cyan"],
+            "syntaxOperator": palette["term_cyan"],
+            "syntaxPunctuation": palette["subtext0"]
+        }
+        agy_conf.write_text(json.dumps(content, indent=2))
+    except Exception:
+        pass
+
+def write_opencode(palette):
+    oc_theme = Path.home() / ".config/opencode/themes/transparent.json"
+    if not oc_theme.exists(): return
+    try:
+        import json
+        content = json.loads(oc_theme.read_text())
+        content["theme"] = {
+            "primary": palette["primary"],
+            "secondary": palette["term_magenta"],
+            "accent": palette["term_yellow"],
+            "error": palette["term_red"],
+            "warning": palette["term_yellow"],
+            "success": palette["term_green"],
+            "info": palette["term_blue"],
+            "text": palette["text"],
+            "textMuted": palette["subtext0"],
+            "background": "none",
+            "backgroundPanel": palette["base"],
+            "backgroundElement": "none",
+            "border": palette["surface2"],
+            "borderActive": palette["primary"],
+            "borderSubtle": palette["surface"],
+            "diffAdded": palette["term_green"],
+            "diffRemoved": palette["term_red"],
+            "diffContext": palette["subtext0"],
+            "diffHunkHeader": palette["subtext0"],
+            "diffHighlightAdded": palette["term_bright_green"],
+            "diffHighlightRemoved": palette["term_bright_red"],
+            "diffAddedBg": "none",
+            "diffRemovedBg": "none",
+            "diffContextBg": "none",
+            "diffLineNumber": palette["surface2"],
+            "diffAddedLineNumberBg": "none",
+            "diffRemovedLineNumberBg": "none",
+            "markdownText": palette["text"],
+            "markdownHeading": palette["primary"],
+            "markdownLink": palette["term_blue"],
+            "markdownLinkText": palette["term_cyan"],
+            "markdownCode": palette["term_green"],
+            "markdownBlockQuote": palette["subtext0"],
+            "markdownEmph": palette["term_yellow"],
+            "markdownStrong": palette["primary"],
+            "markdownHorizontalRule": palette["surface2"],
+            "markdownListItem": palette["primary"],
+            "markdownListEnumeration": palette["term_yellow"],
+            "markdownImage": palette["term_blue"],
+            "markdownImageText": palette["term_yellow"],
+            "markdownCodeBlock": palette["text"],
+            "syntaxComment": palette["subtext0"],
+            "syntaxKeyword": palette["term_magenta"],
+            "syntaxFunction": palette["term_blue"],
+            "syntaxVariable": palette["text"],
+            "syntaxString": palette["term_green"],
+            "syntaxNumber": palette["term_yellow"],
+            "syntaxType": palette["term_cyan"],
+            "syntaxOperator": palette["term_cyan"],
+            "syntaxPunctuation": palette["subtext0"]
+        }
+        oc_theme.write_text(json.dumps(content, indent=2))
+    except Exception:
+        pass
+
 def write_niri(palette):
     kdl = f"""// Auto-generated by morandi-gen.py — do not edit manually
 layout {{
@@ -1521,6 +1646,9 @@ def main():
     except Exception as e:
         print(f"Failed to write obs theme: {e}")
 
+    write_opencode(palette)
+    write_antigravity(palette)
+    
     apply_system_changes(args.wallpaper)
     print("Morandi theme generated and system changes applied successfully.")
 
