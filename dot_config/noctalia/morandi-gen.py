@@ -49,10 +49,6 @@ def blend(c1, c2, ratio=0.5):
     b = int(b1 + (b2 - b1) * ratio)
     return f"#{r:02x}{g:02x}{b:02x}"
 
-def blend_hue(h1, h2, ratio=0.1):
-    diff = (h2 - h1 + 180) % 360 - 180
-    return (h1 + diff * ratio) % 360
-
 def generate_palette(c):
     p = {}
     primary = c.get("mPrimary", c.get("primary"))
@@ -75,16 +71,14 @@ def generate_palette(c):
     p["subtext0"] = morandi(on_surface, 0.4, -8)
     p["subtext1"] = morandi(on_surface, 0.3, -4)
     p["text"] = morandi(on_surface, 0.2, 0)
-
-    # Pure, distinct, and elegant Morandi color definitions
-    p["love"]  = hsl_to_hex(0,   36, 54) # 莫兰迪砖红
-    p["rose"]  = hsl_to_hex(335, 30, 60) # 莫兰迪玫瑰红
-    p["peach"] = hsl_to_hex(20,  38, 58) # 莫兰迪暖杏橙
-    p["gold"]  = hsl_to_hex(38,  42, 58) # 莫兰迪琥珀金
-    p["pine"]  = hsl_to_hex(126, 28, 54) # 莫兰迪竹绿
-    p["foam"]  = hsl_to_hex(178, 28, 52) # 莫兰迪天青
-    p["sky"]   = hsl_to_hex(206, 36, 56) # 莫兰迪纯正雾蓝 (纯冷调)
-    p["iris"]  = hsl_to_hex(278, 32, 60) # 莫兰迪柔紫
+    p["love"] = morandi(error, 0.25, -15)
+    p["rose"] = morandi(blend(primary, error, 0.6), 0.3, -15, 5)
+    p["gold"] = morandi(blend(primary, "#d4a574", 0.3), 0.35, -10, 15)
+    p["peach"] = morandi(blend(error, "#d4a574", 0.4), 0.3, -10, 10)
+    p["pine"] = morandi(tertiary, 0.3, -18, -5)
+    p["foam"] = morandi(secondary, 0.35, -18, -5)
+    p["iris"] = morandi(primary, 0.25, -18)
+    p["sky"] = morandi(tertiary, 0.35, -18, -10)
 
     h, s, l = hex_to_hsl(p["surface1"])
     p["fcitx5_bg"] = hsl_to_hex(h, s * 0.6, min(l, 20))
@@ -275,7 +269,7 @@ foreground = '{palette["text"]}'
 
 [colors.cursor]
 text = '{palette["base"]}'
-cursor = '{palette["sky"]}'
+cursor = '{palette["iris"]}'
 
 [colors.vi_mode_cursor]
 text = '{palette["base"]}'
@@ -287,7 +281,7 @@ background = '{palette["gold"]}'
 
 [colors.search.focused_match]
 foreground = '{palette["base"]}'
-background = '{palette["sky"]}'
+background = '{palette["iris"]}'
 
 [colors.footer_bar]
 foreground = '{palette["text"]}'
@@ -299,7 +293,7 @@ background = '{palette["gold"]}'
 
 [colors.hints.end]
 foreground = '{palette["base"]}'
-background = '{palette["pine"]}'
+background = '{palette["rose"]}'
 
 [colors.selection]
 text = '{palette["text"]}'
@@ -310,19 +304,19 @@ black = '{palette["surface1"]}'
 red = '{palette["love"]}'
 green = '{palette["pine"]}'
 yellow = '{palette["gold"]}'
-blue = '{palette["sky"]}'
-magenta = '{palette["iris"]}'
-cyan = '{palette["foam"]}'
-white = '{palette["subtext0"]}'
+blue = '{palette["iris"]}'
+magenta = '{palette["rose"]}'
+cyan = '{palette["sky"]}'
+white = '{palette["text"]}'
 
 [colors.bright]
-black = '{palette["overlay0"]}'
+black = '{palette["surface2"]}'
 red = '{palette["love"]}'
 green = '{palette["pine"]}'
 yellow = '{palette["gold"]}'
-blue = '{palette["sky"]}'
-magenta = '{palette["iris"]}'
-cyan = '{palette["foam"]}'
+blue = '{palette["iris"]}'
+magenta = '{palette["rose"]}'
+cyan = '{palette["sky"]}'
 white = '{palette["text"]}'
 
 [colors.dim]
@@ -330,10 +324,10 @@ black = '{palette["surface0"]}'
 red = '{palette["love"]}'
 green = '{palette["pine"]}'
 yellow = '{palette["gold"]}'
-blue = '{palette["sky"]}'
-magenta = '{palette["iris"]}'
-cyan = '{palette["foam"]}'
-white = '{palette["subtext1"]}'
+blue = '{palette["iris"]}'
+magenta = '{palette["rose"]}'
+cyan = '{palette["sky"]}'
+white = '{palette["subtext0"]}'
 """
     ALACRITTY_THEME.write_text(theme_content)
 
