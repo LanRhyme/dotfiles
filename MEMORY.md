@@ -3,6 +3,7 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录 LanRhyme 系统配置的当前状态、近期结构决策和进行中的任务，以确保会话间的平滑交接
 
 ## 当前配置状态
+- **显示管理器**: 已替换为 `greetd` + `noctalia-greeter` (Noctalia 官方原生图形化 Greeter)。通过 `greetd.service` 运行。其主题美化（壁纸、莫兰迪色板）和多显示器布局完全依赖于 Noctalia Shell 的图形界面同步功能（设置 -> Shell -> 安全 -> Noctalia Greeter -> Sync Now）。
 - **主题化**: 全局由 `~/.config/noctalia/morandi-gen.py` 处理（莫兰迪色系）。避免破坏 UI 密集型应用的结构化 CSS
 - **Niri 动画**: 在 `~/.config/niri/cfg/animation.kdl` 中调优为较慢、弹性轻柔的滑行（stiffness=180-220, damping-ratio=0.8），确保流畅的过渡手感
 - **Niri 窗口间距**: 在 `~/.config/niri/cfg/layout.kdl` 中从 12px 缩小到 8px，优化屏幕布局空间
