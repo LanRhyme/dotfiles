@@ -22,6 +22,7 @@
 - 已将 `Zed` 集成到莫兰迪主题引擎: 在 `morandi-gen.py` 中添加了 `write_zed`，动态生成 `~/.config/zed/themes/morandi.json`。语法和 UI 颜色映射到莫兰迪色板以模拟 Neovim 主题，并更新了 `~/.config/zed/settings.json` 设置主题为莫兰迪
 - 已将 `Blender` 集成到莫兰迪主题引擎: 在 `morandi-gen.py` 中添加了 `write_blender`，基于 Eclipse 主题 XML 模板通过字符串替换生成莫兰迪主题。XML 方式覆盖所有属性（Python API 在 Blender 5.1 中 `save_userpref()` 无法保存所有主题属性）。基线文件: `~/.config/noctalia/blender-eclipse-theme.xml`，输出: `~/.config/blender/5.1/scripts/presets/interface_theme/Morandi.xml`，通过 `bpy.ops.preferences.theme_install()` 自动安装
 - 已修复 Alacritty 终端配色并完全集成到莫兰迪主题引擎: 在 `morandi-gen.py` 的 `generate_palette` 中为其专门生成了 `term_red`、`term_green` 等终端专用的语义色。这些颜色通过将原色与纯色按 4:6 混合并应用低饱和度限制，既分离了不同色调（解决了“单色感”），又保留了柔和的莫兰迪灰调（贴近单色系风格，避免鲜艳突兀），且只作用于终端而不影响 fcitx5、niri 等其他 UI 组件。保持了 `alacritty.toml` 语法干净与 chezmoi 同步。
+- 已优化 Krita 莫兰迪 UI 插件并集成到莫兰迪主题引擎: 在 `morandi-gen.py` 中添加了 `write_krita`，自动生成 `~/.local/share/krita/color-schemes/Morandi-System.colors` 与 `~/.config/krita/morandi_theme.json`; 插件增加全新 GUI 设置对话框 `MorandiSettingsDialog`，支持自由选择强调色预设/自定义 `QColorDialog`、整体色调预设（暖炭灰/石墨/极夜黑等）及一键生成/应用 `Morandi-Dynamic.colors` 主题文件与 `QPalette` 实时重绘。
 
 ## 结构模式
 - Dotfiles 通过 `chezmoi` 管理，源位于 `~/.local/share/chezmoi`
