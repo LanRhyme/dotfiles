@@ -1652,6 +1652,189 @@ def write_vscode(palette):
     print(f"VSCode Morandi theme written to {ext_path} and {user_path}")
 
 
+def write_krita(palette):
+    """Generate Krita Morandi color scheme (.colors) and theme JSON."""
+    krita_colors_dir = Path.home() / ".local/share/krita/color-schemes"
+    krita_colors_dir.mkdir(parents=True, exist_ok=True)
+    scheme_file = krita_colors_dir / "Morandi-System.colors"
+
+    def rgb_str(hex_c):
+        h = hex_c.lstrip("#")
+        return f"{int(h[0:2], 16)},{int(h[2:4], 16)},{int(h[4:6], 16)}"
+
+    bg = palette["base"]
+    bg_alt = palette["surface0"]
+    fg = palette["text"]
+    fg_inact = palette["subtext0"]
+    highlight = palette["iris"]
+    negative = palette["love"]
+    neutral = palette["gold"]
+    positive = palette["pine"]
+
+    bg_rgb = rgb_str(bg)
+    bg_alt_rgb = rgb_str(bg_alt)
+    fg_rgb = rgb_str(fg)
+    fg_inact_rgb = rgb_str(fg_inact)
+    hl_rgb = rgb_str(highlight)
+    neg_rgb = rgb_str(negative)
+    neu_rgb = rgb_str(neutral)
+    pos_rgb = rgb_str(positive)
+
+    content = f"""[ColorEffects:Disabled]
+Color={bg_rgb}
+ColorAmount=0
+ColorEffect=0
+ContrastAmount=0.65
+ContrastEffect=1
+IntensityAmount=0.1
+IntensityEffect=2
+
+[ColorEffects:Inactive]
+ChangeSelectionColor=false
+Color={fg_inact_rgb}
+ColorAmount=0.025
+ColorEffect=2
+ContrastAmount=0.1
+ContrastEffect=2
+Enable=false
+IntensityAmount=0
+IntensityEffect=0
+
+[Colors:Button]
+BackgroundAlternate={bg_alt_rgb}
+BackgroundNormal={bg_rgb}
+DecorationFocus={hl_rgb}
+DecorationHover={hl_rgb}
+ForegroundActive={hl_rgb}
+ForegroundInactive={fg_inact_rgb}
+ForegroundLink={hl_rgb}
+ForegroundNegative={neg_rgb}
+ForegroundNeutral={neu_rgb}
+ForegroundNormal={fg_rgb}
+ForegroundPositive={pos_rgb}
+ForegroundVisited={hl_rgb}
+
+[Colors:Complementary]
+BackgroundAlternate={bg_alt_rgb}
+BackgroundNormal={bg_rgb}
+DecorationFocus={hl_rgb}
+DecorationHover={hl_rgb}
+ForegroundActive={hl_rgb}
+ForegroundInactive={fg_inact_rgb}
+ForegroundLink={hl_rgb}
+ForegroundNegative={neg_rgb}
+ForegroundNeutral={neu_rgb}
+ForegroundNormal={fg_rgb}
+ForegroundPositive={pos_rgb}
+ForegroundVisited={hl_rgb}
+
+[Colors:Header]
+BackgroundAlternate={bg_alt_rgb}
+BackgroundNormal={bg_rgb}
+DecorationFocus={hl_rgb}
+DecorationHover={hl_rgb}
+ForegroundActive={hl_rgb}
+ForegroundInactive={fg_inact_rgb}
+ForegroundLink={hl_rgb}
+ForegroundNegative={neg_rgb}
+ForegroundNeutral={neu_rgb}
+ForegroundNormal={fg_rgb}
+ForegroundPositive={pos_rgb}
+ForegroundVisited={hl_rgb}
+
+[Colors:Selection]
+BackgroundAlternate={hl_rgb}
+BackgroundNormal={hl_rgb}
+DecorationFocus={hl_rgb}
+DecorationHover={hl_rgb}
+ForegroundActive={bg_rgb}
+ForegroundInactive={bg_rgb}
+ForegroundLink={bg_rgb}
+ForegroundNegative={neg_rgb}
+ForegroundNeutral={neu_rgb}
+ForegroundNormal={bg_rgb}
+ForegroundPositive={pos_rgb}
+ForegroundVisited={bg_rgb}
+
+[Colors:Tooltip]
+BackgroundAlternate={bg_alt_rgb}
+BackgroundNormal={bg_rgb}
+DecorationFocus={hl_rgb}
+DecorationHover={hl_rgb}
+ForegroundActive={hl_rgb}
+ForegroundInactive={fg_inact_rgb}
+ForegroundLink={hl_rgb}
+ForegroundNegative={neg_rgb}
+ForegroundNeutral={neu_rgb}
+ForegroundNormal={fg_rgb}
+ForegroundPositive={pos_rgb}
+ForegroundVisited={hl_rgb}
+
+[Colors:View]
+BackgroundAlternate={bg_alt_rgb}
+BackgroundNormal={bg_rgb}
+DecorationFocus={hl_rgb}
+DecorationHover={hl_rgb}
+ForegroundActive={hl_rgb}
+ForegroundInactive={fg_inact_rgb}
+ForegroundLink={hl_rgb}
+ForegroundNegative={neg_rgb}
+ForegroundNeutral={neu_rgb}
+ForegroundNormal={fg_rgb}
+ForegroundPositive={pos_rgb}
+ForegroundVisited={hl_rgb}
+
+[Colors:Window]
+BackgroundAlternate={bg_alt_rgb}
+BackgroundNormal={bg_rgb}
+DecorationFocus={hl_rgb}
+DecorationHover={hl_rgb}
+ForegroundActive={hl_rgb}
+ForegroundInactive={fg_inact_rgb}
+ForegroundLink={hl_rgb}
+ForegroundNegative={neg_rgb}
+ForegroundNeutral={neu_rgb}
+ForegroundNormal={fg_rgb}
+ForegroundPositive={pos_rgb}
+ForegroundVisited={hl_rgb}
+
+[General]
+ColorScheme=Morandi-System
+Name=Morandi System
+shadeSortColumn=true
+
+[KDE]
+contrast=4
+
+[WM]
+activeBackground={bg_rgb}
+activeBlend={fg_rgb}
+activeForeground={fg_rgb}
+inactiveBackground={bg_alt_rgb}
+inactiveBlend={fg_inact_rgb}
+inactiveForeground={fg_inact_rgb}
+"""
+    scheme_file.write_text(content)
+
+    json_path = Path.home() / ".config/krita/morandi_theme.json"
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    theme_data = {
+        "highlight": highlight,
+        "background": bg,
+        "alternate": bg_alt,
+        "text": fg,
+        "inactive_text": fg_inact,
+        "iris": palette.get("iris", "#8c829e"),
+        "gold": palette.get("gold", "#bfa980"),
+        "rose": palette.get("rose", "#c48c90"),
+        "pine": palette.get("pine", "#7b9c90"),
+        "foam": palette.get("foam", "#809c95"),
+        "peach": palette.get("peach", "#c79685"),
+        "sky": palette.get("sky", "#7f9bb0")
+    }
+    json_path.write_text(json.dumps(theme_data, indent=2))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wallpaper", help="Path to current wallpaper for limine sync")
@@ -1692,6 +1875,10 @@ def main():
     except Exception as e:
         print(f"Failed to write godot theme: {e}")
         
+    try:
+        write_krita(palette)
+    except Exception as e:
+        print(f"Failed to write krita theme: {e}")
 
     try:
         write_obs(palette)
