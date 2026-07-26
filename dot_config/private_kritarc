@@ -440,10 +440,10 @@ yPosition=22
 [MainWindow][DockWidget BrushHudDocker]
 DockArea=2
 Locked=false
-height=458
-width=640
+height=30
+width=100
 xPosition=0
-yPosition=22
+yPosition=0
 
 [MainWindow][DockWidget ChannelDocker]
 DockArea=2
@@ -512,7 +512,7 @@ yPosition=22
 [MainWindow][DockWidget KisLayerBox]
 DockArea=2
 Locked=false
-height=509
+height=381
 width=364
 xPosition=0
 yPosition=22
@@ -552,7 +552,7 @@ yPosition=22
 [MainWindow][DockWidget OverviewDocker]
 DockArea=2
 Locked=false
-height=222
+height=166
 width=364
 xPosition=0
 yPosition=22
@@ -576,7 +576,7 @@ yPosition=22
 [MainWindow][DockWidget PresetDocker]
 DockArea=1
 Locked=false
-height=261
+height=197
 width=273
 xPosition=0
 yPosition=22
@@ -592,7 +592,7 @@ yPosition=22
 [MainWindow][DockWidget RecorderDocker]
 DockArea=2
 Locked=false
-height=129
+height=95
 width=364
 xPosition=0
 yPosition=22
@@ -728,7 +728,7 @@ yPosition=22
 [MainWindow][DockWidget pykrita_simple_hsv_sliders]
 DockArea=1
 Locked=false
-height=190
+height=141
 width=273
 xPosition=0
 yPosition=22
@@ -744,7 +744,7 @@ yPosition=22
 [MainWindow][DockWidget quick_settings_docker]
 DockArea=1
 Locked=false
-height=161
+height=119
 width=273
 xPosition=0
 yPosition=22
@@ -752,7 +752,7 @@ yPosition=22
 [MainWindow][DockWidget sai_vhsv_picker]
 DockArea=1
 Locked=false
-height=225
+height=162
 width=273
 xPosition=0
 yPosition=22
@@ -764,6 +764,14 @@ height=480
 width=640
 xPosition=0
 yPosition=0
+
+[MainWindow][DockWidget visual_timeline_docker]
+DockArea=8
+Locked=false
+height=195
+width=1868
+xPosition=0
+yPosition=22
 
 [OverviewDocker]
 pinControls=true
