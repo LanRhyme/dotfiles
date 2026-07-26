@@ -1859,6 +1859,14 @@ def write_tvp_timeline(palette):
 
 
 
+
+def write_krita_tvp(palette):
+    import json
+    from pathlib import Path
+    out_path = Path.home() / ".local/share/krita/pykrita/tvp_timeline/morandi_colors.json"
+    if out_path.parent.exists():
+        out_path.write_text(json.dumps(palette, indent=2))
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wallpaper", help="Path to current wallpaper for limine sync")
@@ -1893,6 +1901,11 @@ def main():
         write_blender(palette)
     except Exception as e:
         print(f"Failed to write blender theme: {e}")
+        
+    try:
+        write_krita_tvp(palette)
+    except Exception as e:
+        print(f"Failed to write krita tvp theme: {e}")
         
     try:
         write_godot(palette)
