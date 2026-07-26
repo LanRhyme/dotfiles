@@ -878,9 +878,9 @@ enable_layer_kit=true
 enable_sai_vhsv_picker=true
 enable_shortcut_composer=true
 enable_simple_hsv_sliders=true
-enable_visual_timeline=true
 enable_tvp_timeline=true
-
+enable_kritapykrita_tvp_timeline=true
+enable_visual_timeline=true
 
 [sai_vhsv_picker]
 config={"mode": "v-hsv", "hue_style": "ring", "show_preview": true, "history_pos": "left", "history": ["#7f3a3a", "#2d3865", "#181f3c", "#a08d46", "#6d7a77", "#3e524b", "#ccd4d2", "#12211c", "#081510", "#3f544c", "#1e4d2e", "#ffffff", "#ceccc8", "#d0cfcd", "#cec9bf", "#b9b09f", "#b9b9b9", "#888888", "#7c7c7c", "#47391f", "#3d3126", "#563e27", "#9196a0", "#323a4b", "#5e6c8b", "#f8f8f8", "#cab3a8", "#806051", "#654435", "#2c2727", "#000000", "#7c4c4c", "#633a3a", "#472121", "#f4eada", "#f4e6ce", "#999999", "#1b2318", "#3b3131", "#000000", "#977836", "#a29882", "#4b370e", "#9e7f3b", "#79653a", "#a07a29", "#a18344", "#d8c295", "#886d32", "#d2b577", "#4f493b", "#6a5e46", "#635e51", "#a78537", "#af872c", "#a9976e", "#867a60", "#514835", "#76560f", "#e8a715"]}
