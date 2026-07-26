@@ -879,7 +879,6 @@ enable_sai_vhsv_picker=true
 enable_shortcut_composer=true
 enable_simple_hsv_sliders=true
 enable_tvp_timeline=true
-enable_kritapykrita_tvp_timeline=true
 enable_visual_timeline=true
 
 [sai_vhsv_picker]
