@@ -1835,6 +1835,30 @@ inactiveForeground={fg_inact_rgb}
     json_path.write_text(json.dumps(theme_data, indent=2))
 
 
+def write_tvp_timeline(palette):
+    """Generate TVP Timeline Morandi theme JSON config."""
+    json_path = Path.home() / ".config/krita/tvp_timeline_morandi.json"
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    theme_data = {
+        "bg_dark": palette.get("base", "#1a1a18"),
+        "bg_alt": palette.get("mantle", "#222220"),
+        "surface0": palette.get("surface0", "#2c2c29"),
+        "surface1": palette.get("surface1", "#363632"),
+        "border": palette.get("overlay0", "#444440"),
+        "text": palette.get("text", "#dededd"),
+        "subtext": palette.get("subtext0", "#a5a5a0"),
+        "iris": palette.get("iris", "#afac9c"),
+        "gold": palette.get("gold", "#bdb79a"),
+        "rose": palette.get("rose", "#c25f63"),
+        "pine": palette.get("pine", "#a8aba0"),
+        "foam": palette.get("foam", "#acac9f"),
+        "peach": palette.get("peach", "#c2725f"),
+        "sky": palette.get("sky", "#a9aba0")
+    }
+    json_path.write_text(json.dumps(theme_data, indent=2))
+
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wallpaper", help="Path to current wallpaper for limine sync")
@@ -1879,6 +1903,12 @@ def main():
         write_krita(palette)
     except Exception as e:
         print(f"Failed to write krita theme: {e}")
+
+    try:
+        write_tvp_timeline(palette)
+    except Exception as e:
+        print(f"Failed to write tvp_timeline theme: {e}")
+
 
     try:
         write_obs(palette)
