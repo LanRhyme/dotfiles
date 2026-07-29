@@ -142,6 +142,7 @@ forcedDpiForQtFontBugWorkaround=-1
 fpsLimit=100
 frameRenderingClones=6
 frameRenderingTimeout=30000
+generatordialog/geometry=\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\xbb\x00\x00\x01\xad\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\xbb\x00\x00\x01\xad\x00\x00\x00\x00\x00\x00\x00\x00\x07\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\xbb\x00\x00\x01\xad
 globalSnapBoundingBox=false
 globalSnapExtension=false
 globalSnapImageBounds=true
@@ -175,6 +176,8 @@ imagesizedlg_printSizeSeparatly=false
 imagesizedlg_ratioLock=false
 imagesizedlg_resunit=像素/英寸
 imagesizedlg_sizeunit=cm
+internal_selector_active_color_set=Default
+internal_selector_active_color_set_md5=c87a9302bc4be28bcdb5e990ce56bb5a
 layerInfoTextOpacity=80
 layerInfoTextStyle=2
 layerThumbnailSize=32
@@ -286,6 +289,7 @@ selectionOutlineOpacity=1
 selectionOverlayMaskColor=255,0,0,128
 separateEraserCursor=false
 sessionOnStartup=0
+setShowFilterGalleryLayerMaskDialog=true
 showAdditionalOnionSkinsSettings=true
 showDockers=true
 showFilterGallery=false
@@ -464,8 +468,8 @@ yPosition=22
 [MainWindow][DockWidget CompositionDocker]
 DockArea=2
 Locked=false
-height=458
-width=640
+height=550
+width=319
 xPosition=0
 yPosition=22
 
@@ -552,7 +556,7 @@ yPosition=22
 [MainWindow][DockWidget OverviewDocker]
 DockArea=2
 Locked=false
-height=222
+height=221
 width=319
 xPosition=0
 yPosition=22
@@ -592,7 +596,7 @@ yPosition=22
 [MainWindow][DockWidget RecorderDocker]
 DockArea=2
 Locked=false
-height=88
+height=89
 width=319
 xPosition=0
 yPosition=22
@@ -698,6 +702,14 @@ DockArea=8
 Locked=false
 height=195
 width=1868
+xPosition=0
+yPosition=22
+
+[MainWindow][DockWidget folio_layers]
+DockArea=2
+Locked=false
+height=550
+width=319
 xPosition=0
 yPosition=22
 
