@@ -468,8 +468,8 @@ yPosition=22
 [MainWindow][DockWidget CompositionDocker]
 DockArea=2
 Locked=false
-height=550
-width=319
+height=458
+width=640
 xPosition=0
 yPosition=22
 
@@ -516,8 +516,8 @@ yPosition=22
 [MainWindow][DockWidget KisLayerBox]
 DockArea=2
 Locked=false
-height=550
-width=319
+height=458
+width=640
 xPosition=0
 yPosition=22
 
@@ -808,15 +808,15 @@ pinControls=true
 File1[$e]=$HOME/图片/headportrait.png
 File2[$e]=$HOME/图片/krita/1.kra
 File3[$e]=$HOME/图片/krita/2.kra
-File4[$e]=$HOME/图片/krita/3稿.kra
-File5[$e]=$HOME/图片/krita/4.kra
-File6[$e]=$HOME/图片/krita/5稿.kra
+File4[$e]=$HOME/图片/krita/4.kra
+File5[$e]=$HOME/图片/krita/5稿.kra
+File6[$e]=$HOME/图片/krita/3稿.kra
 Name1=headportrait.png
 Name2=1.kra
 Name3=2.kra
-Name4=3稿.kra
-Name5=4.kra
-Name6=5稿.kra
+Name4=4.kra
+Name5=5稿.kra
+Name6=3稿.kra
 maxRecentFileItems=100
 
 [Redesign]
