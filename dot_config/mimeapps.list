@@ -5,6 +5,7 @@ application/yaml=neovide.desktop
 text/plain=neovide.desktop
 x-scheme-handler/antigravity=antigravity.desktop
 image/png=org.gnome.Loupe.desktop
+x-scheme-handler/discord-1216669957799018608=discord-1216669957799018608.desktop
 
 [Added Associations]
 application/yaml=neovide.desktop;
