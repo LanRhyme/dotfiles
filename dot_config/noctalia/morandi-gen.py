@@ -380,14 +380,8 @@ def write_fcitx5(palette):
 <path d="M5.21655 5.51948H1V1H5.21655V10.1667H1V31.8333H5.21655V41H1V36.8333H9.8V41H32.2V36.8333H41V41H36.5293V31.8333H41V10.1667H36.5293V1H41V5.51948H32.2V1H20.2H9.8V5.51948H5.21655Z" stroke="{pine}" stroke-width="2"/>
 </svg>'''
 
-    prev_svg = f'''<svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path d="M404.053333 534.613333a32 32 0 0 1 0-45.226666l213.333334-213.333334a32 32 0 1 1 45.226666 45.226667L471.893333 512l190.72 190.72a32 32 0 1 1-45.226666 45.226667l-213.333334-213.333334z" fill="{palette['subtext0']}"></path></svg>'''
-
-    next_svg = f'''<svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path d="M672 512a32 32 0 0 1-9.386667 22.613333l-213.333333 213.333334a32 32 0 1 1-45.226667-45.226667L594.773333 512 404.053333 321.28a32 32 0 0 1 45.226667-45.226667l213.333333 213.333334c6.016 5.973333 9.386667 14.122667 9.386667 22.613333z" fill="{palette['subtext0']}"></path></svg>'''
-
     with open(theme_dir / "panel.svg", "w") as f: f.write(panel_svg)
     with open(theme_dir / "highlight.svg", "w") as f: f.write(highlight_svg)
-    with open(theme_dir / "prev.svg", "w") as f: f.write(prev_svg)
-    with open(theme_dir / "next.svg", "w") as f: f.write(next_svg)
 
     theme = f"""[Metadata]
 Name=bamboo-dark
@@ -446,12 +440,6 @@ Left=10
 Right=10
 Top=4
 Bottom=4
-
-[InputPanel/PrevPage]
-Image=prev.svg
-
-[InputPanel/NextPage]
-Image=next.svg
 
 [Menu]
 NormalColor={palette['fcitx5_text']}
