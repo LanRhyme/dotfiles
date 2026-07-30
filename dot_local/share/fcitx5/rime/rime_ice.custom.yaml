@@ -1,6 +1,9 @@
 # 添加了模糊音的自定义配置文件 rime_ice.custom.yaml
 # https://github.com/Mark24Code/rime-auto-deploy/issues/1
 patch:
+  # 降低所有与拼音冲突的英文单词候选位置
+  reduce_english_filter/mode: all
+
   # 拼写设定
   speller:
     # 如果不想让什么标点直接上屏，可以加在 alphabet，或者编辑标点符号为两个及以上的映射
