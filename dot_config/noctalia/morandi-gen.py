@@ -366,67 +366,122 @@ def write_fcitx5(palette):
     theme_dir.mkdir(parents=True, exist_ok=True)
     tray_outline, tray_text = palette["surface0"], palette["text"]
     bg, hl = palette['fcitx5_bg'], palette['fcitx5_hl_bg']
+    pine = palette.get('pine', '#a8aba0')
     bh, bs, bl = hex_to_hsl(bg)
     border = hsl_to_hex(bh, bs, min(bl + 5, 100))
-    hh, hs, hl_val = hex_to_hsl(hl)
-    hborder = hsl_to_hex(hh, hs, min(hl_val + 5, 100))
-    
-    panel_svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="40" height="100"><g><rect width="39" height="99" x=".5" y=".5" fill="{bg}" stroke="{border}" rx="10" ry="10"/></g></svg>'
-    highlight_svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="39" height="44"><g><rect width="39" height="44" x="0" y="0" fill="{hl}" stroke="{hborder}" stroke-width="0" rx="8" ry="8"/></g></svg>'
-    
+
+    panel_svg = f'''<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="40" height="40" rx="8" fill="{bg}" fill-opacity="0.95"/>
+<rect x="0.5" y="0.5" width="39" height="39" rx="8" stroke="{border}" stroke-opacity="1.0"/>
+</svg>'''
+
+    highlight_svg = f'''<svg width="42" height="42" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M41 1V5.51948H36.5293V10.1667H41V31.8333H36.5293V36.8333H41V41H36.5293V36.8333H32.2V41H9.8V36.8333H5.21655V41H1V36.8333H5.21655V31.8333H1V10.1667H5.21655V5.51948H1V1H5.21655V5.51948H9.8V1H20.2H32.2V5.51948H36.5293V1H41Z" fill="{pine}" fill-opacity="0.2"/>
+<path d="M5.21655 5.51948H1V1H5.21655V10.1667H1V31.8333H5.21655V41H1V36.8333H9.8V41H32.2V36.8333H41V41H36.5293V31.8333H41V10.1667H36.5293V1H41V5.51948H32.2V1H20.2H9.8V5.51948H5.21655Z" stroke="{pine}" stroke-width="2"/>
+</svg>'''
+
+    prev_svg = f'''<svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path d="M404.053333 534.613333a32 32 0 0 1 0-45.226666l213.333334-213.333334a32 32 0 1 1 45.226666 45.226667L471.893333 512l190.72 190.72a32 32 0 1 1-45.226666 45.226667l-213.333334-213.333334z" fill="{palette['subtext0']}"></path></svg>'''
+
+    next_svg = f'''<svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32"><path d="M672 512a32 32 0 0 1-9.386667 22.613333l-213.333333 213.333334a32 32 0 1 1-45.226667-45.226667L594.773333 512 404.053333 321.28a32 32 0 0 1 45.226667-45.226667l213.333333 213.333334c6.016 5.973333 9.386667 14.122667 9.386667 22.613333z" fill="{palette['subtext0']}"></path></svg>'''
+
     with open(theme_dir / "panel.svg", "w") as f: f.write(panel_svg)
     with open(theme_dir / "highlight.svg", "w") as f: f.write(highlight_svg)
-    
+    with open(theme_dir / "prev.svg", "w") as f: f.write(prev_svg)
+    with open(theme_dir / "next.svg", "w") as f: f.write(next_svg)
+
     theme = f"""[Metadata]
-Name=morandi
-Version=0.0.3
-Author=morandi-gen
-Description=Auto-generated Morandi theme
+Name=bamboo-dark
+Version=0.0.1
+Author=witt & morandi-gen
+Description=古典竹简花纹 Morandi 主题
 
 [InputPanel]
 NormalColor={palette['fcitx5_text']}
 HighlightColor={palette['fcitx5_hl_text']}
-HighlightBackgroundColor={palette['fcitx5_hl_bg']}
-HighlightCandidateColor={palette['fcitx5_text']}
+HighlightBackgroundColor={pine}
+HighlightCandidateColor={pine}
 EnableBlur=True
 FullWidthHighlight=True
 PageButtonAlignment=Bottom
+
 [InputPanel/BlurMargin]
-Left=0\nRight=0\nTop=0\nBottom=0
+Left=2
+Right=2
+Top=2
+Bottom=2
+
 [InputPanel/Background]
 Image=panel.svg
-Color={palette['fcitx5_bg']}
-BorderColor={palette['fcitx5_bg']}
+Color={bg}
+BorderColor={border}
 BorderWidth=0
+
 [InputPanel/Background/Margin]
-Left=6\nRight=6\nTop=6\nBottom=6
+Left=12
+Right=12
+Top=12
+Bottom=12
+
 [InputPanel/Highlight]
 Image=highlight.svg
-Color={palette['fcitx5_hl_bg']}
-BorderColor={palette['fcitx5_hl_bg']}00
+Color={bg}
+BorderColor={border}00
 BorderWidth=0
+Gravity="Top Left"
+
 [InputPanel/Highlight/Margin]
-Left=4\nRight=4\nTop=3\nBottom=3
+Left=12
+Right=12
+Top=1
+Bottom=1
+
+[InputPanel/ContentMargin]
+Left=10
+Right=10
+Top=10
+Bottom=10
+
 [InputPanel/TextMargin]
-Left=8\nRight=8\nTop=4\nBottom=4
+Left=10
+Right=10
+Top=4
+Bottom=4
+
+[InputPanel/PrevPage]
+Image=prev.svg
+
+[InputPanel/NextPage]
+Image=next.svg
+
 [Menu]
 NormalColor={palette['fcitx5_text']}
 HighlightCandidateColor={palette['fcitx5_text']}
 Spacing=0
+
 [Menu/Background]
 Image=panel.svg
-Color={palette['fcitx5_bg']}
-BorderColor={palette['fcitx5_bg']}00
+Color={bg}
+BorderColor={border}
 BorderWidth=0
+
 [Menu/Background/Margin]
-Left=4\nRight=4\nTop=4\nBottom=4
+Left=6
+Right=6
+Top=6
+Bottom=6
+
 [Menu/Highlight]
 Image=highlight.svg
-Color={palette['fcitx5_hl_bg']}
-BorderColor={palette['fcitx5_hl_bg']}00
+Color={bg}
+BorderColor={border}00
 BorderWidth=0
+
 [Menu/Highlight/Margin]
-Left=2\nRight=2\nTop=1\nBottom=1
+Left=4
+Right=4
+Top=2
+Bottom=2
+
 [Menu/Separator]
 Color={palette['fcitx5_bg_alt']}
 BorderColor={palette['fcitx5_bg_alt']}00
@@ -436,9 +491,13 @@ BorderWidth=0
     classicui = Path.home() / ".config/fcitx5/conf/classicui.conf"
     if classicui.exists():
         content = classicui.read_text()
-        content = re.sub(r"^Theme=.*", "Theme=morandi", content, flags=re.MULTILINE)
-        content = re.sub(r"^DarkTheme=.*", "DarkTheme=morandi", content, flags=re.MULTILINE)
+        content = re.sub(r"^Theme=.*", "Theme=bamboo-dark", content, flags=re.MULTILINE)
+        content = re.sub(r"^DarkTheme=.*", "DarkTheme=bamboo-dark", content, flags=re.MULTILINE)
         content = re.sub(r"^UseDarkTheme=.*", "UseDarkTheme=False", content, flags=re.MULTILINE)
+        if "Vertical Candidate List=" in content:
+            content = re.sub(r"^Vertical Candidate List=.*", "Vertical Candidate List=True", content, flags=re.MULTILINE)
+        else:
+            content += "\nVertical Candidate List=True\n"
         content = re.sub(r"^TrayOutlineColor=.*", f"TrayOutlineColor={tray_outline}", content, flags=re.MULTILINE)
         content = re.sub(r"^TrayTextColor=.*", f"TrayTextColor={tray_text}", content, flags=re.MULTILINE)
         classicui.write_text(content)
