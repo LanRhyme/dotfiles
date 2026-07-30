@@ -10,3 +10,4 @@
 - **Niri 透明度**: 全局窗口规则设置 `opacity 0.9` + `blur true`（Krita 除外）。关键点: 必须设置 `draw-border-with-background false`，否则 niri 会在窗口后方渲染为实心矩形边框，透过半透明窗口显示出来，导致聚焦时窗口看起来不透明
 - **Zen 浏览器 (Flatpak)**: 通过 `flatpak override` 配合 NVIDIA 环境变量（`__NV_PRIME_RENDER_OFFLOAD=1`、`__GLX_VENDOR_LIBRARY_NAME=nvidia` 等）实现 GPU 加速。fcitx5 主题修复通过 D-Bus talk 权限（`org.fcitx.Fcitx5`、`org.freedesktop.portal.Fcitx`）和对 `~/.local/share/fcitx5` 及 `~/.config/fcitx5` 的只读文件系统访问实现。Zen `user.js` 已强制开启 WebRender、DMA-BUF、硬件视频解码
 - **SPlayer-Next**: 通过 `splayer-next-bin` (AUR) 安装。二进制位于 `/opt/splayer-next/SPlayer-Next`，命令行启动命令 `splayer-next`。桌面文件路径已修正为 `/opt/splayer-next/SPlayer-Next`
+- **Fcitx5 输入法**: 皮肤已切换为 `bamboo-dark`（古典竹简花纹主题），由 `~/.config/noctalia/morandi-gen.py` 动态注入莫兰迪配色；候选词排列已调整为竖向（`Vertical Candidate List=True`）
