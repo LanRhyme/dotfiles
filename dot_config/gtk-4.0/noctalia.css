@@ -92,12 +92,12 @@
     --sidebar-border-color: @window_bg_color;
 
     --warning-bg-color: #7f8c69;
-    --warning-fg-color: #e6e7e4;
+    --warning-fg-color: #000000;
     --warning-color: #d5d8d0;
 
     --success-color: #d8d9cf;
     --success-bg-color: #898d68;
-    --success-fg-color: #e7e7e4;
+    --success-fg-color: #000000;
     
     --shade-color: rgba(0, 0, 0, 0.36);
 }
