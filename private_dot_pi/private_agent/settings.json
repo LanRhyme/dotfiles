@@ -2,6 +2,7 @@
   "theme": "morandi",
   "quietStartup": true,
   "doubleEscapeAction": "tree",
+  "enableSkillCommands": false,
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
@@ -28,7 +29,5 @@
     "npm:@oh-my-pi/pi-natives",
     "npm:pi-acp",
     "npm:@tmustier/pi-usage-extension"
-  ],
-  "defaultProvider": "sensenova",
-  "defaultModel": "sensenova-6.7-flash-lite"
+  ]
 }
