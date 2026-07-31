@@ -2,6 +2,11 @@
   "theme": "morandi",
   "quietStartup": true,
   "doubleEscapeAction": "tree",
+  "compaction": {
+    "enabled": true,
+    "reserveTokens": 16384,
+    "keepRecentTokens": 20000
+  },
   "lastChangelogVersion": "0.83.0",
   "packages": [
     "npm:pi-zentui",
@@ -9,6 +14,8 @@
     "npm:pi-rewind",
     "npm:pi-interactive-shell",
     "npm:pi-memctx",
-    "npm:pi-lean-ctx"
+    "npm:pi-lean-ctx",
+    "npm:pi-web-access",
+    "npm:pi-subagents"
   ]
 }
