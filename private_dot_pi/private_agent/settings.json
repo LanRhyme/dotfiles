@@ -6,6 +6,9 @@
   "packages": [
     "npm:pi-zentui",
     "npm:pi-open-tui",
-    "npm:pi-rewind"
+    "npm:pi-rewind",
+    "npm:pi-interactive-shell",
+    "npm:pi-memctx",
+    "npm:pi-lean-ctx"
   ]
 }
