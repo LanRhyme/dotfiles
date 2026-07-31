@@ -9,19 +9,13 @@
     "gitBranch": true,
     "gitStatus": true,
     "gitCommit": false,
-    "runtime": true,
+    "runtime": false,
     "context": true,
     "tokens": true,
-    "cost": true,
-    "extensionStatuses": true
+    "cost": false,
+    "extensionStatuses": false
   },
   "telemetry": {
-    "enabled": true,
-    "tps": true,
-    "ttft": true,
-    "duration": true,
-    "tokens": true,
-    "stalls": true,
-    "cost": true
+    "enabled": false
   }
 }
