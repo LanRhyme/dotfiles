@@ -1,0 +1,27 @@
+{
+  "enabled": true,
+  "settingsLanguage": "zh",
+  "icons": {
+    "mode": "nerd"
+  },
+  "footerSegments": {
+    "cwd": true,
+    "gitBranch": true,
+    "gitStatus": true,
+    "gitCommit": false,
+    "runtime": true,
+    "context": true,
+    "tokens": true,
+    "cost": true,
+    "extensionStatuses": true
+  },
+  "telemetry": {
+    "enabled": true,
+    "tps": true,
+    "ttft": true,
+    "duration": true,
+    "tokens": true,
+    "stalls": true,
+    "cost": true
+  }
+}
