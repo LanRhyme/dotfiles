@@ -1,4 +1,5 @@
 {
   "defaultProvider": "evomap",
-  "defaultModel": "evomap-deepseek-v4-flash"
+  "defaultModel": "evomap-deepseek-v4-flash",
+  "theme": "morandi"
 }
