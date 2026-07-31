@@ -1,11 +1,10 @@
 {
   "theme": "morandi",
   "quietStartup": true,
+  "doubleEscapeAction": "tree",
   "lastChangelogVersion": "0.83.0",
   "packages": [
     "npm:pi-zentui",
     "npm:pi-open-tui"
-  ],
-  "defaultProvider": "sensenova",
-  "defaultModel": "sensenova-6.7-flash-lite"
+  ]
 }
