@@ -36,7 +36,7 @@
     "typechanged": "T",
     "cacheHit": "󰆼",
     "editorPrompt": "",
-    "rail": "",
+    "rail": "│",
     "username": "",
     "time": "",
     "os": "󰣇"
@@ -80,9 +80,9 @@
     "userMessages": "theme"
   },
   "features": {
-    "editor": false,
+    "editor": true,
     "statusLine": true,
-    "copyFriendly": true,
+    "copyFriendly": false,
     "viewportIndicators": true
   },
   "footerSegments": {
@@ -118,7 +118,7 @@
     "colorModes": {}
   },
   "fixedEditor": {
-    "enabled": false,
+    "enabled": true,
     "mouseScroll": true,
     "copyNotice": true
   }
