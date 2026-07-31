@@ -1,10 +1,10 @@
 {
-  "defaultProvider": "evomap",
-  "defaultModel": "evomap-deepseek-v4-flash",
   "theme": "morandi",
   "lastChangelogVersion": "0.83.0",
   "packages": [
     "npm:pi-zentui",
     "npm:pi-open-tui"
-  ]
+  ],
+  "defaultProvider": "sensenova",
+  "defaultModel": "sensenova-6.7-flash-lite"
 }
