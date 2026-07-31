@@ -5,6 +5,7 @@
   "lastChangelogVersion": "0.83.0",
   "packages": [
     "npm:pi-zentui",
-    "npm:pi-open-tui"
+    "npm:pi-open-tui",
+    "npm:pi-rewind"
   ]
 }
