@@ -9,10 +9,10 @@
     "gitBranch": true,
     "gitStatus": true,
     "gitCommit": false,
-    "runtime": false,
+    "runtime": true,
     "context": true,
     "tokens": true,
-    "cost": false,
+    "cost": true,
     "extensionStatuses": false
   },
   "telemetry": {
