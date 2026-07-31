@@ -19,6 +19,8 @@
     "npm:pi-subagents",
     "npm:@vigolium/piolium",
     "npm:pi-mcp-adapter",
-    "npm:pi-lens"
+    "npm:pi-lens",
+    "npm:pi-observational-memory",
+    "npm:pi-extmgr"
   ]
 }
