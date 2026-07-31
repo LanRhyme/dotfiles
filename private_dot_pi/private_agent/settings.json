@@ -24,6 +24,9 @@
     "npm:pi-extmgr",
     "npm:@narumitw/pi-goal",
     "npm:@plannotator/pi-extension",
-    "npm:@ff-labs/pi-fff"
+    "npm:@ff-labs/pi-fff",
+    "npm:@oh-my-pi/pi-natives",
+    "npm:pi-acp",
+    "npm:@tmustier/pi-usage-extension"
   ]
 }
