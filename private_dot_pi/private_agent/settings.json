@@ -21,6 +21,9 @@
     "npm:pi-mcp-adapter",
     "npm:pi-lens",
     "npm:pi-observational-memory",
-    "npm:pi-extmgr"
+    "npm:pi-extmgr",
+    "npm:@narumitw/pi-goal",
+    "npm:@plannotator/pi-extension",
+    "npm:@ff-labs/pi-fff"
   ]
 }
