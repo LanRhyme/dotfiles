@@ -16,6 +16,9 @@
     "npm:pi-memctx",
     "npm:pi-lean-ctx",
     "npm:pi-web-access",
-    "npm:pi-subagents"
+    "npm:pi-subagents",
+    "npm:@vigolium/piolium",
+    "npm:pi-mcp-adapter",
+    "npm:pi-lens"
   ]
 }
