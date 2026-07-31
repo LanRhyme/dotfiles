@@ -1,5 +1,9 @@
 {
   "defaultProvider": "evomap",
   "defaultModel": "evomap-deepseek-v4-flash",
-  "theme": "morandi"
+  "theme": "morandi",
+  "lastChangelogVersion": "0.83.0",
+  "packages": [
+    "npm:pi-zentui"
+  ]
 }
