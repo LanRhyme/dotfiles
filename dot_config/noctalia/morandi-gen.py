@@ -322,7 +322,7 @@ def write_pi(palette):
             "cyan": palette.get("term_cyan", "#689d6a"),
             "rose": palette.get("rose", "#d3869b"),
             "gold": palette.get("gold", "#fabd2f"),
-            "thinking": morandi(palette.get("rose", "#c25f63"), 0, -6)
+            "thinking": morandi(palette.get("subtext0", "#a89984"), 0.1, -24, 6)
         },
         "colors": {
             "accent": "primary",
