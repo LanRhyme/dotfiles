@@ -29,6 +29,7 @@
     "npm:@oh-my-pi/pi-natives",
     "npm:pi-acp",
     "npm:@tmustier/pi-usage-extension",
+    "npm:pi-go-bars",
     "npm:pi-rounded-tools"
   ],
   "defaultProvider": "opencode-go",
