@@ -29,8 +29,7 @@
     "npm:@oh-my-pi/pi-natives",
     "npm:pi-acp",
     "npm:@tmustier/pi-usage-extension",
-    "npm:pi-go-bars",
-    "npm:pi-rounded-tools"
+    "npm:pi-go-bars"
   ],
   "defaultProvider": "opencode-go",
   "defaultModel": "deepseek-v4-flash",
