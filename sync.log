@@ -927,3 +927,7 @@ To https://github.com/LanRhyme/dotfiles.git
 [master c79d20a] auto: 2026-08-01-21:52:17
  1 file changed, 4 insertions(+)
 致命错误：无法访问 'https://github.com/LanRhyme/dotfiles.git/'：TLS connect error: error:0A000126:SSL routines::unexpected eof while reading
+[master 35e2372] auto: 2026-08-01-22:00:01
+ 3 files changed, 6 insertions(+), 1 deletion(-)
+致命错误：无法访问 'https://github.com/LanRhyme/dotfiles.git/'：Failed to connect to github.com:443 after 132784 ms: Could not connect to server
+chezmoi: /home/lanrhyme/.pi/agent/models.json:56: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.

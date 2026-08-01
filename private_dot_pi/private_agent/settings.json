@@ -6,8 +6,10 @@
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
-    "keepRecentTokens": 20000
+    "keepRecentTokens": 32000
   },
+  "enableInstallTelemetry": false,
+  "showCacheMissNotices": true,
   "lastChangelogVersion": "0.83.0",
   "packages": [
     "npm:pi-zentui",
