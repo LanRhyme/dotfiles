@@ -321,7 +321,8 @@ def write_pi(palette):
             "magenta": palette.get("term_magenta", "#b162ac"),
             "cyan": palette.get("term_cyan", "#689d6a"),
             "rose": palette.get("rose", "#d3869b"),
-            "gold": palette.get("gold", "#fabd2f")
+            "gold": palette.get("gold", "#fabd2f"),
+            "thinking": morandi(palette.get("rose", "#c25f63"), 0, -6)
         },
         "colors": {
             "accent": "primary",
@@ -334,7 +335,7 @@ def write_pi(palette):
             "muted": "subtext0",
             "dim": "subtext0",
             "text": "text",
-            "thinkingText": "subtext0",
+            "thinkingText": "thinking",
             "selectedBg": "surface0",
             "userMessageBg": "surface0",
             "userMessageText": "text",
