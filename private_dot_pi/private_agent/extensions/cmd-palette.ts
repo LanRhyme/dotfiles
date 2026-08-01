@@ -125,6 +125,12 @@ const PALETTE_COMMANDS: PaletteCommand[] = [
 		cnName: "扩展 TUI 图形管理器",
 		description: "可视化查看、开关、更新已安装扩展",
 	},
+	{
+		name: "simplify",
+		category: "常用",
+		cnName: "代码清晰度审查",
+		description: "审查最近改动的代码，提升可读性与可维护性",
+	},
 
 	// 高级命令
 	{
@@ -327,10 +333,7 @@ class CommandPaletteComponent extends Container {
 		}
 
 		// 计算左侧列最大宽度（不含颜色码），用于右对齐快捷键列
-		const visibleCmds = this.filteredCommands.slice(
-			safeStartIdx,
-			endIndex,
-		);
+		const visibleCmds = this.filteredCommands.slice(safeStartIdx, endIndex);
 		let maxLeft = 0;
 		for (const c of visibleCmds) {
 			if (!c) continue;
