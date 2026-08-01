@@ -17,6 +17,17 @@ interface PaletteCommand {
 	category: "常用" | "高级" | "配置" | "系统";
 	cnName: string;
 	description: string;
+	shortcut?: string;
+}
+
+// CJK 等宽字符按 2 列计算（终端宽度）
+function displayWidth(s: string): number {
+	let w = 0;
+	for (const ch of s) {
+		const c = ch.codePointAt(0) ?? 0;
+		w += c >= 0x1100 && (c <= 0x115f || c >= 0x2e80) ? 2 : 1;
+	}
+	return w;
 }
 
 const PALETTE_COMMANDS: PaletteCommand[] = [
@@ -25,7 +36,8 @@ const PALETTE_COMMANDS: PaletteCommand[] = [
 		name: "tree",
 		category: "常用",
 		cnName: "对话树视图与节点回溯",
-		description: "快捷键 Esc Esc — 打开对话树图切回历史 Turn",
+		description: "打开对话树图切回历史 Turn",
+		shortcut: "Esc Esc",
 	},
 	{
 		name: "rewind",
@@ -61,13 +73,15 @@ const PALETTE_COMMANDS: PaletteCommand[] = [
 		name: "model",
 		category: "常用",
 		cnName: "切换 AI 语言模型",
-		description: "快捷键 Ctrl+L — 选择与切换当前 LLM",
+		description: "选择与切换当前 LLM",
+		shortcut: "Ctrl+L",
 	},
 	{
 		name: "thinking",
 		category: "常用",
 		cnName: "调整推理思考深度",
-		description: "快捷键 Shift+Tab — 切换思考深度 (off/low/high)",
+		description: "切换思考深度 (off/low/high)",
+		shortcut: "Shift+Tab",
 	},
 	{
 		name: "subagents",
@@ -209,7 +223,8 @@ const PALETTE_COMMANDS: PaletteCommand[] = [
 		name: "clear",
 		category: "系统",
 		cnName: "清空终端屏幕",
-		description: "快捷键 Ctrl+C — 清空当前终端内容",
+		description: "清空当前终端内容",
+		shortcut: "Ctrl+C",
 	},
 	{
 		name: "help",
@@ -311,6 +326,18 @@ class CommandPaletteComponent extends Container {
 			return;
 		}
 
+		// 计算左侧列最大宽度（不含颜色码），用于右对齐快捷键列
+		const visibleCmds = this.filteredCommands.slice(
+			safeStartIdx,
+			endIndex,
+		);
+		let maxLeft = 0;
+		for (const c of visibleCmds) {
+			if (!c) continue;
+			const plain = `[${c.category}] /${c.name} — ${c.cnName}`;
+			maxLeft = Math.max(maxLeft, displayWidth(plain));
+		}
+
 		for (let i = safeStartIdx; i < endIndex; i++) {
 			const cmd = this.filteredCommands[i];
 			if (!cmd) continue;
@@ -330,7 +357,14 @@ class CommandPaletteComponent extends Container {
 			const cmdName = this.theme.bold(this.theme.fg("accent", `/${cmd.name}`));
 			const cnName = this.theme.fg("text", cmd.cnName);
 
-			let line = `${prefix}${categoryTag} ${cmdName}  —  ${cnName}`;
+			// 右侧快捷键列：与左侧列右对齐后接 dim 色快捷键
+			const leftPlain = `[${cmd.category}] /${cmd.name} — ${cmd.cnName}`;
+			const pad = Math.max(1, maxLeft - displayWidth(leftPlain));
+			const shortcut = cmd.shortcut
+				? this.theme.fg("dim", " ".repeat(pad) + cmd.shortcut)
+				: "";
+
+			let line = `${prefix}${categoryTag} ${cmdName}  —  ${cnName}${shortcut}`;
 			if (isSelected) {
 				line = this.theme.bg("selectedBg", line);
 			}
