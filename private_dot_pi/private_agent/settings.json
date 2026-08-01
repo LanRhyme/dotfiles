@@ -31,7 +31,12 @@
     "npm:@oh-my-pi/pi-natives",
     "npm:pi-acp",
     "npm:@tmustier/pi-usage-extension",
-    "npm:pi-go-bars"
+    "npm:pi-go-bars",
+    "npm:@narumitw/pi-plan-mode",
+    "npm:@narumitw/pi-chrome-devtools",
+    "npm:@narumitw/pi-btw",
+    "npm:@narumitw/pi-stamp",
+    "npm:pi-deepseek-search"
   ],
   "defaultProvider": "opencode-go",
   "defaultModel": "deepseek-v4-flash",
