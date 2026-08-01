@@ -28,8 +28,10 @@
     "npm:@ff-labs/pi-fff",
     "npm:@oh-my-pi/pi-natives",
     "npm:pi-acp",
-    "npm:@tmustier/pi-usage-extension"
+    "npm:@tmustier/pi-usage-extension",
+    "npm:pi-go-bars"
   ],
-  "defaultProvider": "sensenova",
-  "defaultModel": "sensenova-6.7-flash-lite"
+  "defaultProvider": "opencode-go",
+  "defaultModel": "deepseek-v4-flash",
+  "defaultThinkingLevel": "high"
 }
