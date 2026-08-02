@@ -32,7 +32,7 @@ input {
 window-rule {
 	match app-id=".*"
 	exclude app-id="org.kde.krita"
-	opacity 0.9
+	opacity 0.98
 	draw-border-with-background false
 	background-effect {
 		blur true
