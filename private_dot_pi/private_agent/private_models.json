@@ -1,0 +1,105 @@
+{
+  "providers": {
+    "evomap": {
+      "name": "EvoMap",
+      "baseUrl": "https://api.evomap.ai/v1",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "evomap-claude-opus-4-7",
+          "name": "Claude Opus 4.7",
+          "reasoning": true,
+          "input": ["text", "image"]
+        },
+        {
+          "id": "evomap-gpt-5.5",
+          "name": "GPT 5.5",
+          "reasoning": true,
+          "input": ["text", "image"]
+        },
+        {
+          "id": "evomap-gemini-3.1-pro-preview",
+          "name": "Gemini 3.1 Pro",
+          "reasoning": true,
+          "input": ["text", "image"]
+        },
+        {
+          "id": "evomap-deepseek-v4-flash",
+          "name": "DeepSeek V4 Flash",
+          "reasoning": true,
+          "input": ["text"]
+        },
+        {
+          "id": "evomap-glm-5.1",
+          "name": "GLM 5.1",
+          "reasoning": true,
+          "input": ["text"]
+        },
+        {
+          "id": "evomap-glm-5.2",
+          "name": "GLM 5.2",
+          "reasoning": true,
+          "input": ["text"]
+        },
+        {
+          "id": "evomap-kimi-k2.6",
+          "name": "Kimi K2.6",
+          "reasoning": true,
+          "input": ["text", "image"]
+        }
+      ]
+    },
+    "sensenova": {
+      "name": "SenseNova",
+      "baseUrl": "https://token.sensenova.cn/v1",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "sensenova-6.7-flash-lite",
+          "name": "SenseNova 6.7 Flash-Lite",
+          "reasoning": false,
+          "input": ["text", "image"],
+          "contextWindow": 262144,
+          "maxTokens": 65536
+        },
+        {
+          "id": "deepseek-v4-flash",
+          "name": "DeepSeek V4 Flash",
+          "reasoning": true,
+          "input": ["text"],
+          "contextWindow": 1048576,
+          "maxTokens": 65536
+        },
+        {
+          "id": "glm-5.2",
+          "name": "GLM 5.2",
+          "reasoning": true,
+          "input": ["text"],
+          "contextWindow": 1048576,
+          "maxTokens": 131072
+        },
+        {
+          "id": "sensenova-u1-fast",
+          "name": "SenseNova U1 Fast",
+          "reasoning": false,
+          "input": ["text", "image"],
+          "contextWindow": 262144,
+          "maxTokens": 65536
+        }
+      ]
+    },
+    "nvidia": {
+      "name": "NVIDIA NIM",
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "moonshotai/kimi-k2.6",
+          "name": "Kimi K2.6",
+          "reasoning": true,
+          "input": ["text", "image"]
+        }
+      ]
+    }
+  }
+}
