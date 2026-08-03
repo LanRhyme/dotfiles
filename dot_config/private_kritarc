@@ -824,9 +824,9 @@ maxRecentFileItems=100
 [Redesign]
 accentPreset=自定义 (Custom)
 autoSyncSystem=true
-customAccent=7f9bb0
-customAlt=d7d9dc
-customBg=e3e4e6
+customAccent=8fa382
+customAlt=2b2d2a
+customBg=212320
 customQSS=
 dockerTitleStyle=pill
 enableFocusHighlight=true

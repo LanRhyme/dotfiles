@@ -6,7 +6,7 @@
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
-    "keepRecentTokens": 32000
+    "keepRecentTokens": 96000
   },
   "enableInstallTelemetry": false,
   "showCacheMissNotices": true,
