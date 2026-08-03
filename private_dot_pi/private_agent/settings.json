@@ -39,7 +39,7 @@
     "npm:pi-simplify"
   ],
   "defaultProvider": "opencode-go",
-  "defaultModel": "deepseek-v4-flash",
+  "defaultModel": "gpt-5.6-luna",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false
 }
