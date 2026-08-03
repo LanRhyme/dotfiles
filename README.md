@@ -2,13 +2,13 @@
 
 使用 [chezmoi](https://www.chezmoi.io/) 管理的个人 CachyOS 极简、高度自动化配置文件集合
 
-##  桌面截图
+## 桌面截图
 
 ![桌面截图](.github/assets/screenshot.png)
 
 ---
 
-##  核心特性
+## 核心特性
 
 - **全局动态主题**：基于 Noctalia 实现桌面壁纸色彩抓取，自动生成莫兰迪 (Morandi) 风格主题并全自动覆盖系统所有组件
 - **全自动同步**：配置每 2 小时通过定时任务 (Cron) 自动推送到 GitHub
@@ -18,23 +18,23 @@
 
 ---
 
-##  自动化脚本与文档索引
+## 自动化脚本与文档索引
 
 为了保持根目录整洁，各子系统的特定脚本均配备了独立的说明文档，点击下方链接深入了解：
 
-* **[全局色彩生成系统 (Morandi)](dot_config/noctalia/README.md)**: 包含了 `morandi-gen.py` 和 `apply-morandi.sh` 的架构说明，以及如何扩展新应用配色的开发指南
-* **[个人本地脚本库 (Local Bin)](dot_local/bin/README.md)**: 介绍了存放于 `~/.local/bin` 的所有快捷指令与自动化包装器（如配置同步器 `dotfiles-sync.sh`、环形菜单适配器 `kando-niri.sh` 以及可视化设置中心 `aether-hub.py`）
+- **[全局色彩生成系统 (Morandi)](dot_config/noctalia/README.md)**: 包含了 `morandi-gen.py` 和 `apply-morandi.sh` 的架构说明，以及如何扩展新应用配色的开发指南
+- **[个人本地脚本库 (Local Bin)](dot_local/bin/README.md)**: 介绍了存放于 `~/.local/bin` 的所有快捷指令与自动化包装器（如配置同步器 `dotfiles-sync.sh`、环形菜单适配器 `kando-niri.sh` 以及可视化设置中心 `aether-hub.py`）
 
 ---
 
-##  软件生态与依赖库
+## 软件生态与依赖库
 
 | 分类 | 软件 | 用途 |
-|------|------|------|
+| ------ | ------ | ------ |
 | **基础环境** | [fish](https://fishshell.com/) / [starship](https://starship.rs/) | 交互式 Shell 及其终端提示符引擎 |
 | **窗口管理** | [niri](https://github.com/YaLTeR/niri) | 现代化的无限滚动式 Wayland 合成器 |
 | **桌面交互** | [noctalia](https://github.com/noctalia/noctalia-shell) / [kando](https://kando.menu/) | 桌面状态栏、全局环形快捷菜单 |
-| **终端与编辑**| [alacritty](https://alacritty.org/) / [neovim](https://neovim.io/) / [micro](https://micro-editor.github.io/)| GPU 加速终端及多层次文本编辑器矩阵 |
+| **终端与编辑** | [alacritty](https://alacritty.org/) / [neovim](https://neovim.io/) / [micro](https://micro-editor.github.io/) | GPU 加速终端及多层次文本编辑器矩阵 |
 | **生产力** | [fcitx5](https://fcitx-im.org/) / [Kdenlive](https://kdenlive.org/) / [Godot](https://godotengine.org/) | Rime输入法框架、专业视频剪辑与开源游戏开发引擎 |
 | **系统监控** | [btop](https://github.com/aristocratos/btop) / [fastfetch](https://github.com/fastfetch-cli/fastfetch) | 终端资源监控与高度定制的系统信息打印 |
 | **录制推流** | OBS Studio / gpu-screen-recorder | 基于显卡的高效硬件录屏录影工具 |
@@ -44,11 +44,12 @@
 
 ---
 
-##  极速部署与恢复
+## 极速部署与恢复
 
 在新机器上复刻本环境，请遵循以下流程：
 
 ### 1. 基础环境初始化
+
 ```bash
 # 安装包管理器与代码同步工具
 paru -S chezmoi git
@@ -58,6 +59,7 @@ chezmoi init --apply LanRhyme
 ```
 
 ### 2. 软件依赖一键安装
+
 ```bash
 paru -S fish starship alacritty neovim micro \
         niri noctalia kando fcitx5-rime kvantum \
@@ -71,7 +73,7 @@ paru -S fish starship alacritty neovim micro \
 
 ---
 
-##  核心配置文件导航
+## 核心配置文件导航
 
 ```text
 dotfiles/
@@ -93,28 +95,30 @@ dotfiles/
 
 ---
 
-##  敏感文件隔离机制
+## 敏感文件隔离机制
 
 为防止意外提交隐私数据，以下文件路径被长期写入 `.chezmoiignore`：
 
 | 文件路径 | 隔离原因 |
-|------|------|
+| ------ | ------ |
 | `kdeconnect/*.pem` | 设备双向互联的非对称加密私钥与证书 |
 | `noctalia/plugins/github-feed/settings.json` | 包含 GitHub 账户私密 Token |
 | `noctalia/plugins/github-feed/cache/` | API 请求暂存缓存，避免提交垃圾文件 |
 
 如果您在二次开发时遇到新的密钥，务必执行：
+
 ```bash
 echo "dot_config/app/secret.json" >> ~/.local/share/chezmoi/.chezmoiignore
 ```
 
 ---
 
-##  配置同步指南
+## 配置同步指南
 
 目前系统已被配置为 **每 2 小时** 自动通过脚本 `~/.local/bin/dotfiles-sync.sh` 在后台无感同步
 
 若需手动操作，常用的 `chezmoi` 命令如下：
+
 ```bash
 chezmoi add ~/.config/newapp    # 追踪并托管新的软件配置
 chezmoi diff                    # 对比本地系统与源仓库的配置变化
