@@ -6,6 +6,7 @@
 
 - **显示管理器**: 已替换为 `greetd` + `noctalia-greeter` (Noctalia 官方原生图形化 Greeter)。通过 `greetd.service` 运行。其主题美化（壁纸、莫兰迪色板）和多显示器布局完全依赖于 Noctalia Shell 的图形界面同步功能（设置 -> Shell -> 安全 -> Noctalia Greeter -> Sync Now）。
 - **主题化**: 全局由 `~/.config/noctalia/morandi-gen.py` 处理（莫兰迪色系）。避免破坏 UI 密集型应用的结构化 CSS。具体情况具体分析，部分应用主题不由其管理，像是krita。
+- **Alacritty 终端背景 (2026-08-04)**: 背景色 `term_bg` 已调低明度至贴近黑色——公式由 `l_b + 1` 改为 `max(l_b - 1, 4)`（l_b 为 base 明度），当前背景 `#181714`（L≈7.9，保留莫兰迪暖调，仍由 morandi-gen.py 动态生成）。此前尝试 `l_b - 6`（#0b0a09）过深已回退
 - **Niri 动画**: 在 `~/.config/niri/cfg/animation.kdl` 中调优为较慢、弹性轻柔的滑行（stiffness=180-220, damping-ratio=0.8），确保流畅的过渡手感
 - **Niri 窗口间距**: 在 `~/.config/niri/cfg/layout.kdl` 中从 12px 缩小到 8px，优化屏幕布局空间
 - **Niri 透明度**: 全局窗口规则设置 `opacity 0.9` + `blur true`（Krita 除外）。关键点: 必须设置 `draw-border-with-background false`，否则 niri 会在窗口后方渲染为实心矩形边框，透过半透明窗口显示出来，导致聚焦时窗口看起来不透明
