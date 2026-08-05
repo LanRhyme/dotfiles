@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Vertical Line Ripple & Seamless Character Drop
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Micro Vertical Line Ripple & Seamless Character Drop
 
 // Configurable Parameters:
 
@@ -118,18 +118,20 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Cursor Trailing Tail & Fine Vertical Line Ripple (Strictly when focused & active)
+  // 3. Animated Cursor Trailing Tail & Micro Vertical Line Ripple (Strictly when focused & active)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
-    // Compact Micro Vertical Line Ripple Animation on Keypress (极小紧凑双竖线光效波纹)
+    // Compact Micro Vertical Line Ripple Animation on Keypress (严格单行高度 ~19px)
     if (!is_shape_change && type_time > 0.0 && type_time < 0.18) {
       float drop_t = type_time / 0.18;
 
       float dist_x = abs(frag_coord.x - curr_center.x);
       float dist_y = abs(frag_coord.y - curr_center.y);
 
-      // Micro height constraint (total height = 12px)
-      float y_fade = smoothstep(curr.w * 0.25, curr.w * 0.08, dist_y);
+      float cell_h = iCurrentCursor.w; // True character cell height (~24px)
+
+      // Strict single-line height constraint (max 9.6px from center, total height = 19.2px)
+      float y_fade = smoothstep(cell_h * 0.40, cell_h * 0.10, dist_y);
 
       if (y_fade > 0.0) {
         // Micro width expansion (0 to 6.0px max left/right, total 12px)
@@ -183,7 +185,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
           // Compute anti-aliased edge smoothing for liquid trail
           vec2 tail_center = mix(prev_center, curr_center, t);
           float dist_seg = dist_to_segment(frag_coord, tail_center, curr_center);
-          float max_rad = max(curr.z, curr.w) * 0.5;
+          float max_rad = max(iCurrentCursor.z, iCurrentCursor.w) * 0.5;
           float edge_aa = smoothstep(max_rad, max(0.0, max_rad - 2.0), dist_seg);
 
           // Trail opacity tuned to 70% max with smooth anti-aliased edges
