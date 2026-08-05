@@ -1249,3 +1249,9 @@ To https://github.com/LanRhyme/dotfiles.git
  3 files changed, 10 insertions(+), 4 deletions(-)
 To https://github.com/LanRhyme/dotfiles.git
    7d620be..1eea63e  master -> master
+[master f8498f9] auto: 2026-08-05-13:34:29
+ 4 files changed, 5 insertions(+), 208 deletions(-)
+ delete mode 100644 dot_config/alacritty/README.md
+ delete mode 100644 dot_config/alacritty/alacritty.toml
+To https://github.com/LanRhyme/dotfiles.git
+   1eea63e..f8498f9  master -> master

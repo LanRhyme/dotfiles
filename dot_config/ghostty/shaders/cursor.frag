@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Connected Bracket Reticle & Seamless Character Drop
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Connected Reticle & Seamless Character Drop (Robust TUI / Pi Agent Support)
 
 // Configurable Parameters:
 
@@ -64,8 +64,14 @@ const float speed = 1.0 / duration_seconds;
 void mainImage(out vec4 frag_color, vec2 frag_coord) {
   const vec2 uv = frag_coord / iResolution.xy;
 
-  // Check if window is focused and cursor is active
-  bool is_focused = (iCurrentCursorColor.a > 0.1) && (iCurrentCursor.z > 0.0) && (iCurrentCursor.w > 0.0);
+  // Check if cursor exists (Robust TUI / Pi Agent support: works even if TUI app sets cursor alpha <= 0.1)
+  bool is_focused = (iCurrentCursor.z > 0.0 || iPreviousCursor.z > 0.0);
+
+  // Fallback cursor color for TUI apps
+  vec4 active_cursor_color = iCurrentCursorColor;
+  if (active_cursor_color.a < 0.1 || length(active_cursor_color.rgb) < 0.1) {
+    active_cursor_color = vec4(0.85, 0.88, 0.82, 1.0);
+  }
 
   const vec4 curr = bb(iCurrentCursor);
   const vec4 prev = bb(iPreviousCursor);
@@ -122,8 +128,8 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Cursor Trailing Tail & Connected Bracket Reticle
-  if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
+  // 3. Animated Cursor Trailing Tail & Connected Bracket Reticle (Pi Agent / TUI Supported)
+  if (is_focused) {
 
     // Connected Bracket Reticle Animation (锁定在 iPreviousCursor 刚印出的字符上，左右连通)
     if (is_valid_move && type_time > 0.0 && type_time < 0.18) {
@@ -161,10 +167,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
           (rb.y >= 0.0 && rb.y <= corner_len && abs(rb.x) <= thick);
 
         if (is_top_bracket || is_bottom_bracket) {
-          vec3 reticle_tint = iCurrentCursorColor.rgb;
-          if (length(reticle_tint) < 0.3) { reticle_tint = vec3(0.85, 0.88, 0.82); }
-
-          frag_color.rgb += reticle_tint * water_fade * 0.45;
+          frag_color.rgb += active_cursor_color.rgb * water_fade * 0.45;
         }
       }
     }
@@ -178,10 +181,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
         const float t = 1.0 - pow(1.0 - progress, 4.5);
         const float fade = pow(1.0 - progress, 1.5);
 
-        vec3 trail_rgb = iCurrentCursorColor.rgb;
-        if (length(trail_rgb) < 0.2) {
-          trail_rgb = vec3(0.68, 0.67, 0.61);
-        }
+        vec3 trail_rgb = active_cursor_color.rgb;
 
         // Tail corners receding from prev to curr
         const vec2 t_lt = mix(left_top(prev), left_top(curr), t);
