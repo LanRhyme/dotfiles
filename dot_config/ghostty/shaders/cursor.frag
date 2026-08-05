@@ -95,7 +95,10 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
     const vec2 diff = curr_center - prev_center;
 
-    if (diff != vec2(0.0, 0.0) && length(diff) > 2.0) {
+    // Guard against focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
+    bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) && (abs(diff.y) < 1.0);
+
+    if (!is_shape_change && diff != vec2(0.0, 0.0) && length(diff) > 2.0) {
       const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
 
       if (progress < 1.0) {
