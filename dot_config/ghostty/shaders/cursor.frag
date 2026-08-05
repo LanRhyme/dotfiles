@@ -8,8 +8,8 @@ const float duration_seconds = 0.38;
 // Bloom / Glow strength around text (0.0 to disable, 0.12 for subtle modern glow).
 const float bloom_strength = 0.12;
 
-// Cursor ambient light halo strength (0.0 to disable, 0.18 for ambient glow).
-const float cursor_halo_strength = 0.18;
+// Cursor rectangular soft glow strength (0.0 to disable, 0.22 for soft border glow).
+const float cursor_glow_strength = 0.22;
 
 // Vignette strength (0.0 to disable, 0.08 for subtle corner depth).
 const float vignette_strength = 0.08;
@@ -79,11 +79,19 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     const vec4 curr = bb(iCurrentCursor);
     const vec2 curr_center = mix(curr.xy, curr.zw, 0.5);
 
-    // Ambient Cursor Light Halo
-    if (cursor_halo_strength > 0.0) {
-      float dist = length(frag_coord - curr_center);
-      float halo = exp(-dist * 0.04) * cursor_halo_strength;
-      frag_color.rgb += iCurrentCursorColor.rgb * halo;
+    // Soft Cursor Box Glow (Rectangular border radiance with blink guard)
+    if (cursor_glow_strength > 0.0) {
+      vec2 half_size = (curr.zw - curr.xy) * 0.5;
+      vec2 d_vec = max(abs(frag_coord - curr_center) - half_size, vec2(0.0));
+      float dist_to_box = length(d_vec);
+      float glow_intensity = exp(-dist_to_box * 0.20) * cursor_glow_strength;
+
+      // Guard against dark cursor color during blink off-phases
+      vec3 glow_color = iCurrentCursorColor.rgb;
+      if (length(glow_color) < 0.2) {
+        glow_color = vec3(0.68, 0.67, 0.61); // Morandi warm accent fallback
+      }
+      frag_color.rgb += glow_color * glow_intensity;
     }
 
     if (iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
