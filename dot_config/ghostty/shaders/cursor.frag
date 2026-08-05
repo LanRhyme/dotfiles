@@ -1,12 +1,9 @@
-// Ghostty Master Shader — Fluid Liquid Cursor Trail, Character Drop & Fine Raindrop Water Ripple
+// Ghostty Master Shader — Fluid Liquid Cursor Trail, Zero-Distortion Character Entry & Fine Raindrop Ripple
 
 // Configurable Parameters:
 
 // Animation duration in seconds (slower, ultra-smooth fluid movement).
 const float duration_seconds = 0.52;
-
-// Character entry drop & scale-down animation strength (0.0 to disable, 1.0 for drop-and-scale effect).
-const float character_drop_strength = 1.0;
 
 // Bloom / Glow strength around text (0.0 to disable, 0.06 for subtle modern glow).
 const float bloom_strength = 0.06;
@@ -61,61 +58,48 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   // Check if window is focused and cursor is active
   bool is_focused = (iCurrentCursorColor.a > 0.1) && (iCurrentCursor.z > 0.0) && (iCurrentCursor.w > 0.0);
 
+  const vec4 color = texture2D(iChannel0, uv);
+  frag_color = color;
+
+  const vec4 curr = bb(iCurrentCursor);
+  const vec4 prev = bb(iPreviousCursor);
+
+  const vec2 curr_center = mix(curr.xy, curr.zw, 0.5);
+  const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
+  const vec2 diff = curr_center - prev_center;
+
+  // Detect focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
+  bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) || (abs(iCurrentCursor.w - iPreviousCursor.w) > 2.0);
+
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
-  vec2 render_uv = uv;
 
-  // 1. Newly Typed Character Drop & Scale-Down Entry Animation (Strictly on active typing, NOT on focus gain)
-  if (is_focused && character_drop_strength > 0.0 && type_time > 0.0 && type_time < 0.18) {
-    const vec4 curr_box = bb(iCurrentCursor);
-    bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) || (abs(iCurrentCursor.w - iPreviousCursor.w) > 2.0);
-
-    if (!is_shape_change) {
-      vec2 curr_center = mix(curr_box.xy, curr_box.zw, 0.5);
-      float anim_t = type_time / 0.18;
-      float fall_ease = 1.0 - pow(1.0 - anim_t, 3.0); // easeOutCubic
-      float inv_t = 1.0 - fall_ease;
-
-      // Character Scale-down (1.20x -> 1.0x) & Vertical Drop (4.0px -> 0.0px)
-      float scale = 1.0 + 0.20 * inv_t * character_drop_strength;
-      float drop_y = 4.0 * inv_t * character_drop_strength;
-
-      vec2 rel_pos = frag_coord - curr_center;
-      if (abs(rel_pos.x) <= curr_box.z * 1.5 && abs(rel_pos.y) <= curr_box.w * 0.8) {
-        vec2 anim_pos = curr_center + rel_pos / scale - vec2(0.0, drop_y);
-        render_uv = anim_pos / iResolution.xy;
-      }
+  // 1. Newly Typed Character Entry Highlight (Zero distortion, zero interference to surrounding pixels)
+  if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.18) {
+    if (box_contains(frag_coord, curr)) {
+      float glow = exp(-type_time * 16.0) * 0.35;
+      vec3 char_tint = iCurrentCursorColor.rgb;
+      if (length(char_tint) < 0.3) { char_tint = vec3(0.85, 0.82, 0.75); }
+      frag_color.rgb += char_tint * glow;
     }
   }
-
-  const vec4 color = texture2D(iChannel0, render_uv);
-  frag_color = color;
 
   // 2. Text Bloom / Glow (Only when window is focused)
   if (is_focused && bloom_strength > 0.0) {
     vec2 px = 1.5 / iResolution.xy;
-    vec4 bloom_sum = texture2D(iChannel0, render_uv + vec2(-px.x, -px.y)) * 0.0625 +
-                     texture2D(iChannel0, render_uv + vec2( 0.0,  -px.y)) * 0.125  +
-                     texture2D(iChannel0, render_uv + vec2( px.x, -px.y)) * 0.0625 +
-                     texture2D(iChannel0, render_uv + vec2(-px.x,   0.0)) * 0.125  +
-                     texture2D(iChannel0, render_uv + vec2( 0.0,    0.0)) * 0.25   +
-                     texture2D(iChannel0, render_uv + vec2( px.x,   0.0)) * 0.125  +
-                     texture2D(iChannel0, render_uv + vec2(-px.x,  px.y)) * 0.0625 +
-                     texture2D(iChannel0, render_uv + vec2( 0.0,   px.y)) * 0.125  +
-                     texture2D(iChannel0, render_uv + vec2( px.x,  px.y)) * 0.0625;
+    vec4 bloom_sum = texture2D(iChannel0, uv + vec2(-px.x, -px.y)) * 0.0625 +
+                     texture2D(iChannel0, uv + vec2( 0.0,  -px.y)) * 0.125  +
+                     texture2D(iChannel0, uv + vec2( px.x, -px.y)) * 0.0625 +
+                     texture2D(iChannel0, uv + vec2(-px.x,   0.0)) * 0.125  +
+                     texture2D(iChannel0, uv + vec2( 0.0,    0.0)) * 0.25   +
+                     texture2D(iChannel0, uv + vec2( px.x,   0.0)) * 0.125  +
+                     texture2D(iChannel0, uv + vec2(-px.x,  px.y)) * 0.0625 +
+                     texture2D(iChannel0, uv + vec2( 0.0,   px.y)) * 0.125  +
+                     texture2D(iChannel0, uv + vec2( px.x,  px.y)) * 0.0625;
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
   // 3. Animated Cursor Trailing Tail & Raindrop Water Ripple (Strictly when focused & active)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
-    const vec4 curr = bb(iCurrentCursor);
-    const vec4 prev = bb(iPreviousCursor);
-
-    const vec2 curr_center = mix(curr.xy, curr.zw, 0.5);
-    const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
-    const vec2 diff = curr_center - prev_center;
-
-    // Detect focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
-    bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) || (abs(iCurrentCursor.w - iPreviousCursor.w) > 2.0);
 
     // Fine Raindrop Water Ripple on Keypress (Strictly on active typing, NOT on focus gain)
     if (!is_shape_change && type_time > 0.0 && type_time < 0.20) {
