@@ -111,14 +111,20 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
                         quad_contains(frag_coord, t_lt, t_lb, t_rb, t_rt);
 
         if (in_trail) {
-          vec4 trail_color = iCurrentCursorColor;
-          // Guard: Ensure trail color is vibrant and never dark/black when blinking
-          if (length(trail_color.rgb) < 0.2) {
-            trail_color.rgb = vec3(0.68, 0.67, 0.61);
+          vec3 trail_rgb = iCurrentCursorColor.rgb;
+          // Guard: Ensure trail color is bright and vibrant
+          if (length(trail_rgb) < 0.3) {
+            trail_rgb = vec3(0.85, 0.82, 0.75); // Bright Morandi warm gold/iris
           }
-          // Glowing tail effect with non-linear alpha fadeout
-          trail_color.a *= pow(1.0 - progress, 1.8) * trail_glow_intensity;
+
+          float fade = pow(1.0 - progress, 1.4);
+
+          // 1. Solid alpha blend for the trail body
+          vec4 trail_color = vec4(trail_rgb, fade * 0.90);
           frag_color = alpha_blend(trail_color, frag_color);
+
+          // 2. Additive light emission along the trail for vibrant glowing radiance!
+          frag_color.rgb += trail_rgb * fade * 0.50;
         }
       }
     }
