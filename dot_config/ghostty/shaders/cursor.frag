@@ -1,9 +1,12 @@
-// Ghostty Master Shader — Enhanced Aesthetics (Glowing Trailing Tail with Subtle Diffusion, Text Bloom, Vignette)
+// Ghostty Master Shader — Enhanced Aesthetics (Glowing Trailing Tail, Typing Impact Pulse, Text Bloom, Vignette)
 
 // Configurable Parameters:
 
 // Animation duration in seconds (slower, ultra-smooth fluid movement).
 const float duration_seconds = 0.52;
+
+// Typing impact pulse strength (0.0 to disable, 0.25 for crisp mechanical shockwave pulse on typing).
+const float typing_pulse_strength = 0.25;
 
 // Bloom / Glow strength around text (0.0 to disable, 0.06 for subtle modern glow).
 const float bloom_strength = 0.06;
@@ -86,7 +89,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 2. Animated Trailing Tail (Strictly when focused & moving)
+  // 2. Animated Trailing Tail & Typing Impact Pulse (Strictly when focused & active)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
     const vec4 curr = bb(iCurrentCursor);
     const vec4 prev = bb(iPreviousCursor);
@@ -94,6 +97,20 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     const vec2 curr_center = mix(curr.xy, curr.zw, 0.5);
     const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
     const vec2 diff = curr_center - prev_center;
+
+    // Typing Impact Shockwave Pulse (Crisp mechanical energy ripple on key entry)
+    if (typing_pulse_strength > 0.0) {
+      float type_time = iTime - iTimeCursorChange;
+      if (type_time > 0.0 && type_time < 0.14) {
+        float wave_radius = type_time * 260.0;
+        float dist = length(frag_coord - curr_center);
+        float ring = exp(-pow(dist - wave_radius, 2.0) / 25.0);
+        float wave_fade = 1.0 - type_time / 0.14;
+        vec3 pulse_rgb = iCurrentCursorColor.rgb;
+        if (length(pulse_rgb) < 0.3) { pulse_rgb = vec3(0.85, 0.82, 0.75); }
+        frag_color.rgb += pulse_rgb * ring * wave_fade * typing_pulse_strength;
+      }
+    }
 
     // Guard against focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
     bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) && (abs(diff.y) < 1.0);
