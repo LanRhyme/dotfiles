@@ -1,15 +1,15 @@
-// Ghostty Master Shader — Enhanced Aesthetics (Trailing, Cursor Halo, Text Bloom, Vignette)
+// Ghostty Master Shader — Enhanced Aesthetics (Glowing Trailing Tail, Text Bloom, Vignette)
 
 // Configurable Parameters:
 
 // Animation duration in seconds (slower, liquid smooth).
 const float duration_seconds = 0.38;
 
-// Bloom / Glow strength around text (0.0 to disable, 0.12 for subtle modern glow).
-const float bloom_strength = 0.12;
+// Bloom / Glow strength around text (0.0 to disable, 0.10 for subtle modern glow).
+const float bloom_strength = 0.10;
 
-// Cursor rectangular soft glow strength (0.0 to disable, 0.22 for soft border glow).
-const float cursor_glow_strength = 0.22;
+// Trailing tail glow brightness multiplier (glowing trail during movement).
+const float trail_glow_intensity = 0.75;
 
 // Vignette strength (0.0 to disable, 0.08 for subtle corner depth).
 const float vignette_strength = 0.08;
@@ -74,63 +74,51 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 2. Cursor Trailing & Ambient Halo
-  if (iCurrentCursor.z > 0.0 && iCurrentCursor.w > 0.0) {
+  // 2. Animated Trailing Tail with Tail Glow (Zero glow on static cursor)
+  if (iCurrentCursor.z > 0.0 && iCurrentCursor.w > 0.0 &&
+      iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
     const vec4 curr = bb(iCurrentCursor);
+    const vec4 prev = bb(iPreviousCursor);
+
     const vec2 curr_center = mix(curr.xy, curr.zw, 0.5);
+    const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
+    const vec2 diff = curr_center - prev_center;
 
-    // Soft Cursor Box Glow (Rectangular border radiance with blink guard)
-    if (cursor_glow_strength > 0.0) {
-      vec2 half_size = (curr.zw - curr.xy) * 0.5;
-      vec2 d_vec = max(abs(frag_coord - curr_center) - half_size, vec2(0.0));
-      float dist_to_box = length(d_vec);
-      float glow_intensity = exp(-dist_to_box * 0.20) * cursor_glow_strength;
+    if (diff != vec2(0.0, 0.0)) {
+      const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
 
-      // Guard against dark cursor color during blink off-phases
-      vec3 glow_color = iCurrentCursorColor.rgb;
-      if (length(glow_color) < 0.2) {
-        glow_color = vec3(0.68, 0.67, 0.61); // Morandi warm accent fallback
-      }
-      frag_color.rgb += glow_color * glow_intensity;
-    }
+      if (progress < 1.0) {
+        // Silky non-linear ease-out curve (fast start, smooth liquid-like deceleration)
+        const float t = 1.0 - pow(1.0 - progress, 3.5);
 
-    if (iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
-      const vec4 prev = bb(iPreviousCursor);
-      const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
-      const vec2 diff = curr_center - prev_center;
+        // Tail corners receding from prev to curr
+        const vec2 t_lt = mix(left_top(prev), left_top(curr), t);
+        const vec2 t_lb = mix(left_bottom(prev), left_bottom(curr), t);
+        const vec2 t_rb = mix(right_bottom(prev), right_bottom(curr), t);
+        const vec2 t_rt = mix(right_top(prev), right_top(curr), t);
 
-      if (diff != vec2(0.0, 0.0)) {
-        const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
+        // Head corners anchored tightly to curr
+        const vec2 c_lt = left_top(curr);
+        const vec2 c_lb = left_bottom(curr);
+        const vec2 c_rb = right_bottom(curr);
+        const vec2 c_rt = right_top(curr);
 
-        if (progress < 1.0) {
-          // Silky non-linear ease-out curve (fast start, smooth liquid-like deceleration)
-          const float t = 1.0 - pow(1.0 - progress, 3.5);
+        // Check if pixel is within the seamless hull connecting tail to head
+        bool in_trail = quad_contains(frag_coord, t_lt, t_lb, c_lb, c_lt) ||
+                        quad_contains(frag_coord, t_lb, t_rb, c_rb, c_lb) ||
+                        quad_contains(frag_coord, t_rb, t_rt, c_rt, c_rb) ||
+                        quad_contains(frag_coord, t_rt, t_lt, c_lt, c_rt) ||
+                        quad_contains(frag_coord, t_lt, t_lb, t_rb, t_rt);
 
-          // Tail corners receding from prev to curr
-          const vec2 t_lt = mix(left_top(prev), left_top(curr), t);
-          const vec2 t_lb = mix(left_bottom(prev), left_bottom(curr), t);
-          const vec2 t_rb = mix(right_bottom(prev), right_bottom(curr), t);
-          const vec2 t_rt = mix(right_top(prev), right_top(curr), t);
-
-          // Head corners anchored tightly to curr
-          const vec2 c_lt = left_top(curr);
-          const vec2 c_lb = left_bottom(curr);
-          const vec2 c_rb = right_bottom(curr);
-          const vec2 c_rt = right_top(curr);
-
-          // Check if pixel is within the seamless hull connecting tail to head
-          bool in_trail = quad_contains(frag_coord, t_lt, t_lb, c_lb, c_lt) ||
-                          quad_contains(frag_coord, t_lb, t_rb, c_rb, c_lb) ||
-                          quad_contains(frag_coord, t_rb, t_rt, c_rt, c_rb) ||
-                          quad_contains(frag_coord, t_rt, t_lt, c_lt, c_rt) ||
-                          quad_contains(frag_coord, t_lt, t_lb, t_rb, t_rt);
-
-          if (in_trail) {
-            vec4 trail_color = iCurrentCursorColor;
-            // Smooth non-linear alpha fadeout as tail contracts
-            trail_color.a *= pow(1.0 - progress, 1.8) * 0.85;
-            frag_color = alpha_blend(trail_color, frag_color);
+        if (in_trail) {
+          vec4 trail_color = iCurrentCursorColor;
+          // Guard: Ensure trail color is vibrant and never dark/black when blinking
+          if (length(trail_color.rgb) < 0.2) {
+            trail_color.rgb = vec3(0.68, 0.67, 0.61);
           }
+          // Glowing tail effect with non-linear alpha fadeout
+          trail_color.a *= pow(1.0 - progress, 1.8) * trail_glow_intensity;
+          frag_color = alpha_blend(trail_color, frag_color);
         }
       }
     }
