@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Lagging L-Shaped Corner Reticle & Seamless Character Drop
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Clean L-Shaped Corner Reticle & Seamless Character Drop
 
 // Configurable Parameters:
 
@@ -119,43 +119,43 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Cursor Trailing Tail & Lagging L-Shaped Corner Reticle
+  // 3. Animated Cursor Trailing Tail & Clean L-Shaped Corner Reticle
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
-    // Futuristic L-Shaped Corner Reticle Animation (锁定在 iPreviousCursor 刚印出的字符上，落后于当前光标)
+    // Clean L-Shaped Corner Reticle Animation (锁定在 iPreviousCursor 刚印出的字符上)
     if (!is_shape_change && type_time > 0.0 && type_time < 0.18 && length(diff) > 2.0) {
       float drop_t = type_time / 0.18;
       float water_fade = pow(1.0 - drop_t, 2.0);
 
-      // Expanding box around the JUST TYPED cell (prev)
-      float expand = drop_t * 5.0;
-      vec4 box = vec4(prev.x - expand, prev.y - expand, prev.z + expand, prev.w + expand);
+      // Force full cell width (~10px) to prevent L-corners from overlapping into an extra line
+      float cell_w = max(iCurrentCursor.z, 10.0);
+      vec4 full_prev_box = vec4(prev_center.x - cell_w * 0.5, prev.y, prev_center.x + cell_w * 0.5, prev.w);
 
-      float corner_len = 5.0; // Length of L-leg
-      float thick = 1.2;      // Thickness of L-leg
+      // Expanding box around full cell box (0 to 4px outward)
+      float expand = drop_t * 4.0;
+      vec4 box = vec4(full_prev_box.x - expand, full_prev_box.y - expand, full_prev_box.z + expand, full_prev_box.w + expand);
 
-      // Relative coordinates from each corner of prev cell
+      float corner_len = 3.2; // Short leg length (never overlaps in center)
+      float thick = 1.0;      // Clean 1px line thickness
+
+      // Relative coordinates from each corner of box
       vec2 lt = anim_pos - left_top(box);
       vec2 lb = anim_pos - left_bottom(box);
       vec2 rt = anim_pos - right_top(box);
       vec2 rb = anim_pos - right_bottom(box);
 
-      // True directional L-shaped corners:
-      // Top-Left (┌): extends right (+x) and down (-y)
-      bool is_lt = (lt.x >= -thick && lt.x <= corner_len && abs(lt.y) <= thick) ||
-                   (lt.y <= thick && lt.y >= -corner_len && abs(lt.x) <= thick);
+      // Clean directional L-shaped corners:
+      bool is_lt = (lt.x >= 0.0 && lt.x <= corner_len && abs(lt.y) <= thick) ||
+                   (lt.y <= 0.0 && lt.y >= -corner_len && abs(lt.x) <= thick);
 
-      // Bottom-Left (└): extends right (+x) and up (+y)
-      bool is_lb = (lb.x >= -thick && lb.x <= corner_len && abs(lb.y) <= thick) ||
-                   (lb.y >= -thick && lb.y <= corner_len && abs(lb.x) <= thick);
+      bool is_lb = (lb.x >= 0.0 && lb.x <= corner_len && abs(lb.y) <= thick) ||
+                   (lb.y >= 0.0 && lb.y <= corner_len && abs(lb.x) <= thick);
 
-      // Top-Right (┐): extends left (-x) and down (-y)
-      bool is_rt = (rt.x <= thick && rt.x >= -corner_len && abs(rt.y) <= thick) ||
-                   (rt.y <= thick && rt.y >= -corner_len && abs(rt.x) <= thick);
+      bool is_rt = (rt.x <= 0.0 && rt.x >= -corner_len && abs(rt.y) <= thick) ||
+                   (rt.y <= 0.0 && rt.y >= -corner_len && abs(rt.x) <= thick);
 
-      // Bottom-Right (┘): extends left (-x) and up (+y)
-      bool is_rb = (rb.x <= thick && rb.x >= -corner_len && abs(rb.x) <= thick) ||
-                   (rb.y >= -thick && rb.y <= corner_len && abs(rb.x) <= thick);
+      bool is_rb = (rb.x <= 0.0 && rb.x >= -corner_len && abs(rb.x) <= thick) ||
+                   (rb.y >= 0.0 && rb.y <= corner_len && abs(rb.x) <= thick);
 
       if (is_lt || is_lb || is_rt || is_rb) {
         vec3 reticle_tint = iCurrentCursorColor.rgb;
