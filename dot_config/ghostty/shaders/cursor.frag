@@ -17,9 +17,9 @@ bool box_contains(const vec2 p, const vec4 bb) {
   return bb.x <= p.x && p.x <= bb.z && bb.y <= p.y && p.y <= bb.w;
 }
 
-// Convert Ghostty Y-down cursor rect vec4(x, y, w, h) to GLSL Y-up vec4(min_x, min_y, max_x, max_y)
+// Convert Ghostty cursor rect vec4(x, y, w, h) to GLSL vec4(min_x, min_y, max_x, max_y)
 vec4 bb(const vec4 rect) {
-  return vec4(rect.x, iResolution.y - rect.y - rect.w, rect.x + rect.z, iResolution.y - rect.y);
+  return vec4(rect.x, rect.y - rect.w, rect.x + rect.z, rect.y);
 }
 
 vec2 left_top(const vec4 bb)     { return vec2(bb.x, bb.w); }
