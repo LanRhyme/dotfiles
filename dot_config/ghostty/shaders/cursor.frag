@@ -1,7 +1,7 @@
 // Configurable Parameters:
 
-// Animation duration in seconds.
-const float duration_seconds = 0.20;
+// Animation duration in seconds (slower, silky smooth).
+const float duration_seconds = 0.38;
 
 // FIN
 
@@ -68,8 +68,8 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     return;
   }
 
-  // Smooth easing for tail contracting towards current cursor
-  const float t = smoothstep(0.0, 1.0, progress);
+  // Silky non-linear ease-out curve (fast start, smooth liquid-like deceleration)
+  const float t = 1.0 - pow(1.0 - progress, 3.5);
 
   // Tail corners receding from prev to curr
   const vec2 t_lt = mix(left_top(prev), left_top(curr), t);
@@ -92,8 +92,8 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
 
   if (in_trail) {
     vec4 trail_color = iCurrentCursorColor;
-    // Smooth alpha fadeout as tail contracts
-    trail_color.a *= (1.0 - t) * 0.85;
+    // Smooth non-linear alpha fadeout as tail contracts
+    trail_color.a *= pow(1.0 - progress, 1.8) * 0.85;
     frag_color = alpha_blend(trail_color, frag_color);
   }
 
