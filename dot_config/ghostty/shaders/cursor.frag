@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Clean L-Shaped Corner Reticle & Seamless Character Drop
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Bounded L-Shaped Corner Reticle & Seamless Character Drop
 
 // Configurable Parameters:
 
@@ -77,7 +77,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   // Detect focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
   bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) || (abs(iCurrentCursor.w - iPreviousCursor.w) > 2.0);
 
-  // Validate cursor movement range (ignore teleports / newlines / clears > 200px to prevent window-spanning lines)
+  // Validate cursor movement range (ignore teleports / newlines / clears > 200px)
   bool is_valid_move = !is_shape_change && (length(diff) > 2.0) && (length(diff) < 200.0);
 
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
@@ -122,15 +122,15 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Cursor Trailing Tail & Clean L-Shaped Corner Reticle
+  // 3. Animated Cursor Trailing Tail & Bounded L-Shaped Corner Reticle
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
-    // Clean L-Shaped Corner Reticle Animation (锁定在 iPreviousCursor 刚印出的字符上)
+    // Clean Bounded L-Shaped Corner Reticle Animation (锁定在 iPreviousCursor 刚印出的字符上)
     if (is_valid_move && type_time > 0.0 && type_time < 0.18) {
       float drop_t = type_time / 0.18;
       float water_fade = pow(1.0 - drop_t, 2.0);
 
-      // Force full cell width (~10px) to prevent L-corners from overlapping into an extra line
+      // Force full cell width (~10px) for prev cell
       float cell_w = max(iCurrentCursor.z, 10.0);
       vec4 full_prev_box = vec4(prev_center.x - cell_w * 0.5, prev.y, prev_center.x + cell_w * 0.5, prev.w);
 
@@ -138,33 +138,36 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
       float expand = drop_t * 4.0;
       vec4 box = vec4(full_prev_box.x - expand, full_prev_box.y - expand, full_prev_box.z + expand, full_prev_box.w + expand);
 
-      float corner_len = 3.2; // Short leg length (never overlaps in center)
-      float thick = 1.0;      // Clean 1px line thickness
+      // HARD BOUNDING BOX GUARD: ZERO pixel outside (box + 2px) can EVER render!
+      if (box_contains(anim_pos, vec4(box.x - 2.0, box.y - 2.0, box.z + 2.0, box.w + 2.0))) {
+        float corner_len = 3.2; // Short leg length (never overlaps in center)
+        float thick = 1.0;      // Clean 1px line thickness
 
-      // Relative coordinates from each corner of box
-      vec2 lt = anim_pos - left_top(box);
-      vec2 lb = anim_pos - left_bottom(box);
-      vec2 rt = anim_pos - right_top(box);
-      vec2 rb = anim_pos - right_bottom(box);
+        // Relative coordinates from each corner of box
+        vec2 lt = anim_pos - left_top(box);
+        vec2 lb = anim_pos - left_bottom(box);
+        vec2 rt = anim_pos - right_top(box);
+        vec2 rb = anim_pos - right_bottom(box);
 
-      // Clean directional L-shaped corners:
-      bool is_lt = (lt.x >= 0.0 && lt.x <= corner_len && abs(lt.y) <= thick) ||
-                   (lt.y <= 0.0 && lt.y >= -corner_len && abs(lt.x) <= thick);
+        // Clean directional L-shaped corners:
+        bool is_lt = (lt.x >= 0.0 && lt.x <= corner_len && abs(lt.y) <= thick) ||
+                     (lt.y <= 0.0 && lt.y >= -corner_len && abs(lt.x) <= thick);
 
-      bool is_lb = (lb.x >= 0.0 && lb.x <= corner_len && abs(lb.y) <= thick) ||
-                   (lb.y >= 0.0 && lb.y <= corner_len && abs(lb.x) <= thick);
+        bool is_lb = (lb.x >= 0.0 && lb.x <= corner_len && abs(lb.y) <= thick) ||
+                     (lb.y >= 0.0 && lb.y <= corner_len && abs(lb.x) <= thick);
 
-      bool is_rt = (rt.x <= 0.0 && rt.x >= -corner_len && abs(rt.y) <= thick) ||
-                   (rt.y <= 0.0 && rt.y >= -corner_len && abs(rt.x) <= thick);
+        bool is_rt = (rt.x <= 0.0 && rt.x >= -corner_len && abs(rt.y) <= thick) ||
+                     (rt.y <= 0.0 && rt.y >= -corner_len && abs(rt.x) <= thick);
 
-      bool is_rb = (rb.x <= 0.0 && rb.x >= -corner_len && abs(rb.x) <= thick) ||
-                   (rb.y >= 0.0 && rb.y <= corner_len && abs(rb.x) <= thick);
+        bool is_rb = (rb.x <= 0.0 && rb.x >= -corner_len && abs(rb.x) <= thick) ||
+                     (rb.y >= 0.0 && rb.y <= corner_len && abs(rb.x) <= thick);
 
-      if (is_lt || is_lb || is_rt || is_rb) {
-        vec3 reticle_tint = iCurrentCursorColor.rgb;
-        if (length(reticle_tint) < 0.3) { reticle_tint = vec3(0.85, 0.88, 0.82); }
+        if (is_lt || is_lb || is_rt || is_rb) {
+          vec3 reticle_tint = iCurrentCursorColor.rgb;
+          if (length(reticle_tint) < 0.3) { reticle_tint = vec3(0.85, 0.88, 0.82); }
 
-        frag_color.rgb += reticle_tint * water_fade * 0.45;
+          frag_color.rgb += reticle_tint * water_fade * 0.45;
+        }
       }
     }
 
