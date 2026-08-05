@@ -5,14 +5,14 @@
 // Animation duration in seconds (slower, ultra-smooth fluid movement).
 const float duration_seconds = 0.52;
 
-// Bloom / Glow strength around text (0.0 to disable, 0.08 for subtle modern glow).
-const float bloom_strength = 0.08;
+// Bloom / Glow strength around text (0.0 to disable, 0.06 for subtle modern glow).
+const float bloom_strength = 0.06;
 
-// Trailing tail light diffusion / scatter strength (faint & subtle, 0.12).
-const float trail_diffusion_strength = 0.12;
+// Trailing tail light diffusion / scatter strength (faint & subtle, 0.08).
+const float trail_diffusion_strength = 0.08;
 
-// Vignette strength (0.0 to disable, 0.08 for subtle corner depth).
-const float vignette_strength = 0.08;
+// Vignette strength (0.0 to disable, 0.06 for subtle corner depth).
+const float vignette_strength = 0.06;
 
 // FIN
 
@@ -68,8 +68,11 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   const vec4 color = texture2D(iChannel0, uv);
   frag_color = color;
 
-  // 1. Subtle Text Bloom / Glow (OLED-style text radiance)
-  if (bloom_strength > 0.0) {
+  // Check if window is focused and cursor is active
+  bool is_focused = (iCurrentCursorColor.a > 0.1) && (iCurrentCursor.z > 0.0) && (iCurrentCursor.w > 0.0);
+
+  // 1. Text Bloom / Glow (Only when window is focused)
+  if (is_focused && bloom_strength > 0.0) {
     vec2 px = 1.5 / iResolution.xy;
     vec4 bloom_sum = texture2D(iChannel0, uv + vec2(-px.x, -px.y)) * 0.0625 +
                      texture2D(iChannel0, uv + vec2( 0.0,  -px.y)) * 0.125  +
@@ -83,9 +86,8 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 2. Animated Trailing Tail with Subtle Motion Diffusion Aura
-  if (iCurrentCursor.z > 0.0 && iCurrentCursor.w > 0.0 &&
-      iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
+  // 2. Animated Trailing Tail (Strictly when focused & moving)
+  if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
     const vec4 curr = bb(iCurrentCursor);
     const vec4 prev = bb(iPreviousCursor);
 
@@ -93,17 +95,17 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
     const vec2 diff = curr_center - prev_center;
 
-    if (diff != vec2(0.0, 0.0) && length(diff) > 1.0) {
+    if (diff != vec2(0.0, 0.0) && length(diff) > 2.0) {
       const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
 
       if (progress < 1.0) {
         // High-order Quintic Ease-Out curve for ultra-silky, gradual deceleration (0.52s)
         const float t = 1.0 - pow(1.0 - progress, 4.5);
-        const float fade = pow(1.0 - progress, 1.4);
+        const float fade = pow(1.0 - progress, 1.5);
 
         vec3 trail_rgb = iCurrentCursorColor.rgb;
-        if (length(trail_rgb) < 0.3) {
-          trail_rgb = vec3(0.85, 0.82, 0.75); // Bright Morandi warm gold/iris
+        if (length(trail_rgb) < 0.2) {
+          trail_rgb = vec3(0.68, 0.67, 0.61);
         }
 
         // Tail corners receding from prev to curr
@@ -126,7 +128,8 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
                         quad_contains(frag_coord, t_lt, t_lb, t_rb, t_rt);
 
         if (in_trail) {
-          vec4 trail_color = vec4(trail_rgb, fade * 0.75);
+          // Reverted soft, elegant trail opacity (50% max)
+          vec4 trail_color = vec4(trail_rgb, fade * 0.50);
           frag_color = alpha_blend(trail_color, frag_color);
         }
 
@@ -134,7 +137,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
         if (trail_diffusion_strength > 0.0) {
           vec2 tail_center = mix(prev_center, curr_center, t);
           float dist_seg = dist_to_segment(frag_coord, tail_center, curr_center);
-          float scatter = exp(-dist_seg * 0.12) * fade * trail_diffusion_strength;
+          float scatter = exp(-dist_seg * 0.15) * fade * trail_diffusion_strength;
           frag_color.rgb += trail_rgb * scatter;
         }
       }
