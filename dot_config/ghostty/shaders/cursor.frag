@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, True L-Shaped Corner Reticle & Seamless Character Drop
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Lagging L-Shaped Corner Reticle & Seamless Character Drop
 
 // Configurable Parameters:
 
@@ -119,22 +119,22 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Cursor Trailing Tail & True L-Shaped Corner Reticle
+  // 3. Animated Cursor Trailing Tail & Lagging L-Shaped Corner Reticle
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
-    // Futuristic L-Shaped Corner Reticle Animation on Keypress (真正的 ┌ ┐ └ ┘ L 型四角准星开合框)
-    if (!is_shape_change && type_time > 0.0 && type_time < 0.18) {
+    // Futuristic L-Shaped Corner Reticle Animation (锁定在 iPreviousCursor 刚印出的字符上，落后于当前光标)
+    if (!is_shape_change && type_time > 0.0 && type_time < 0.18 && length(diff) > 2.0) {
       float drop_t = type_time / 0.18;
       float water_fade = pow(1.0 - drop_t, 2.0);
 
-      // Expanding box around current cell (0 to 5px outward)
+      // Expanding box around the JUST TYPED cell (prev)
       float expand = drop_t * 5.0;
-      vec4 box = vec4(curr.x - expand, curr.y - expand, curr.z + expand, curr.w + expand);
+      vec4 box = vec4(prev.x - expand, prev.y - expand, prev.z + expand, prev.w + expand);
 
       float corner_len = 5.0; // Length of L-leg
       float thick = 1.2;      // Thickness of L-leg
 
-      // Relative coordinates from each corner
+      // Relative coordinates from each corner of prev cell
       vec2 lt = anim_pos - left_top(box);
       vec2 lb = anim_pos - left_bottom(box);
       vec2 rt = anim_pos - right_top(box);
@@ -154,7 +154,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
                    (rt.y <= thick && rt.y >= -corner_len && abs(rt.x) <= thick);
 
       // Bottom-Right (┘): extends left (-x) and up (+y)
-      bool is_rb = (rb.x <= thick && rb.x >= -corner_len && abs(rb.y) <= thick) ||
+      bool is_rb = (rb.x <= thick && rb.x >= -corner_len && abs(rb.x) <= thick) ||
                    (rb.y >= -thick && rb.y <= corner_len && abs(rb.x) <= thick);
 
       if (is_lt || is_lb || is_rt || is_rb) {
