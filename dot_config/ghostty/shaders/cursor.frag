@@ -71,7 +71,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
   vec2 render_uv = uv;
 
-  // 1. Dynamic Character Drop & Scale-Down Entry Animation (Surrounding 35px area)
+  // 1. Dynamic Character Drop & Scale-Down Entry Animation
   if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.22) {
     vec2 rel_pos = frag_coord - curr_center;
     if (abs(rel_pos.x) < 35.0 && abs(rel_pos.y) < 35.0) {
@@ -90,17 +90,6 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
 
   const vec4 color = texture2D(iChannel0, render_uv);
   frag_color = color;
-
-  // High-energy character entry glow on surrounding area
-  if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.20) {
-    float dist = length(frag_coord - curr_center);
-    if (dist < 30.0) {
-      float glow = exp(-type_time * 14.0) * (1.0 - dist / 30.0) * 0.45;
-      vec3 char_tint = iCurrentCursorColor.rgb;
-      if (length(char_tint) < 0.3) { char_tint = vec3(0.90, 0.88, 0.78); }
-      frag_color.rgb += char_tint * glow;
-    }
-  }
 
   // 2. Text Bloom / Glow (Only when window is focused)
   if (is_focused && bloom_strength > 0.0) {
