@@ -694,6 +694,36 @@ white = '{palette["subtext0"]}'
     if cleaned != content:
         ALACRITTY_TOML.write_text(cleaned)
 
+GHOSTTY_THEME = Path.home() / ".config/ghostty/theme"
+
+def write_ghostty(palette):
+    GHOSTTY_THEME.parent.mkdir(parents=True, exist_ok=True)
+    theme_content = f"""# Auto-generated Morandi theme by morandi-gen.py
+palette = 0={palette["surface1"]}
+palette = 1={palette["term_red"]}
+palette = 2={palette["term_green"]}
+palette = 3={palette["term_yellow"]}
+palette = 4={palette["term_blue"]}
+palette = 5={palette["term_magenta"]}
+palette = 6={palette["term_cyan"]}
+palette = 7={palette["text"]}
+palette = 8={palette["surface2"]}
+palette = 9={palette["term_bright_red"]}
+palette = 10={palette["term_bright_green"]}
+palette = 11={palette["term_bright_yellow"]}
+palette = 12={palette["term_bright_blue"]}
+palette = 13={palette["term_bright_magenta"]}
+palette = 14={palette["term_bright_cyan"]}
+palette = 15={palette["text"]}
+background = {palette["term_bg"]}
+foreground = {palette["text"]}
+cursor-color = {palette["iris"]}
+cursor-text = {palette["base"]}
+selection-background = {palette["surface2"]}
+selection-foreground = {palette["text"]}
+"""
+    GHOSTTY_THEME.write_text(theme_content)
+
 def hex_to_rgb(hex_color):
     h = hex_color.lstrip("#")
     return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
@@ -2036,6 +2066,7 @@ def main():
     write_fcitx5(palette)
     write_fastfetch(palette)
     write_alacritty(palette)
+    write_ghostty(palette)
     write_kde(colors)
     write_obs(palette)
     write_clash_verge(palette)
