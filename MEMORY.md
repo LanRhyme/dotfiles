@@ -6,7 +6,7 @@
 
 - **显示管理器**: 已替换为 `greetd` + `noctalia-greeter` (Noctalia 官方原生图形化 Greeter)。通过 `greetd.service` 运行。其主题美化（壁纸、莫兰迪色板）和多显示器布局完全依赖于 Noctalia Shell 的图形界面同步功能（设置 -> Shell -> 安全 -> Noctalia Greeter -> Sync Now）。
 - **主题化**: 全局由 `~/.config/noctalia/morandi-gen.py` 处理（莫兰迪色系）。避免破坏 UI 密集型应用的结构化 CSS。具体情况具体分析，部分应用主题不由其管理，像是krita。
-- **Ghostty 终端 (2026-08-05)**: 已从官方仓库安装 `ghostty` 并完成配置无缝迁移。配置存储于 `~/.config/ghostty/config`（继承 Alacritty 字体 JetBrainsMono Nerd Font、字号 12、边距 16、滚动历史 10000、游标 beam/blink 及快捷键）；集成了 `cursor.frag` 着色器实现 Neovide/Kitty 风格光标平滑拖尾动画；美化项包含 0.9 背景半透明（契合 Niri 全局高斯模糊）、字体连字支持 (`calt`/`liga`)、`gtk-titlebar = false` 极简无边框；莫兰迪配色主题生成已整合至 `~/.config/noctalia/morandi-gen.py`（输出 `~/.config/ghostty/theme`）；Niri 快捷键与 Noctalia、Mango 的默认终端命令均已切为 `ghostty`
+- **Ghostty 终端 (2026-08-05)**: 已从官方仓库安装 `ghostty` 并完成配置无缝迁移。配置存储于 `~/.config/ghostty/config`（继承 Alacritty 字体 JetBrainsMono Nerd Font、字号 12、边距 16、滚动历史 10000、游标 beam/blink 及快捷键）；集成了 `cursor.frag` 着色器实现 Neovide/Kitty 风格光标平滑拖尾动画；移除了背景透明度以匹配 Niri 窗口圆角渲染，开启 `scrollbar = system` 原生滚动条支持、字体连字 (`calt`/`liga`)、`gtk-titlebar = false` 极简无边框；莫兰迪配色主题生成已整合至 `~/.config/noctalia/morandi-gen.py`（输出 `~/.config/ghostty/theme`）；Niri 快捷键与 Noctalia、Mango 的默认终端命令均已切为 `ghostty`
 - **Alacritty 终端背景 (2026-08-04)**: 背景色 `term_bg` 已调低明度至贴近黑色——公式由 `l_b + 1` 改为 `max(l_b - 1, 4)`（l_b 为 base 明度），当前背景 `#181714`（L≈7.9，保留莫兰迪暖调，仍由 morandi-gen.py 动态生成）。此前尝试 `l_b - 6`（#0b0a09）过深已回退
 - **Niri 动画**: 在 `~/.config/niri/cfg/animation.kdl` 中调优为较慢、弹性轻柔的滑行（stiffness=180-220, damping-ratio=0.8），确保流畅的过渡手感
 - **Niri 窗口间距**: 在 `~/.config/niri/cfg/layout.kdl` 中从 12px 缩小到 8px，优化屏幕布局空间

@@ -12,6 +12,7 @@ window-padding-balance = true
 window-padding-color = background
 window-decoration = true
 gtk-titlebar = false
+resize-overlay = never
 
 # Scrollbar, Scrollback & Mouse
 scrollbar = system
