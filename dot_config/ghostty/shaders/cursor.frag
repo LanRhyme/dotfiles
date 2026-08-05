@@ -1,15 +1,15 @@
-// Ghostty Master Shader — Enhanced Aesthetics (Glowing Trailing Tail, Text Bloom, Vignette)
+// Ghostty Master Shader — Enhanced Aesthetics (Glowing Trailing Tail with Diffusion, Text Bloom, Vignette)
 
 // Configurable Parameters:
 
-// Animation duration in seconds (slower, liquid smooth).
-const float duration_seconds = 0.38;
+// Animation duration in seconds (slower, ultra-smooth fluid movement).
+const float duration_seconds = 0.52;
 
 // Bloom / Glow strength around text (0.0 to disable, 0.10 for subtle modern glow).
 const float bloom_strength = 0.10;
 
-// Trailing tail glow brightness multiplier (glowing trail during movement).
-const float trail_glow_intensity = 0.75;
+// Trailing tail light diffusion / scatter strength (0.0 to disable, 0.45 for soft outer glow beam).
+const float trail_diffusion_strength = 0.45;
 
 // Vignette strength (0.0 to disable, 0.08 for subtle corner depth).
 const float vignette_strength = 0.08;
@@ -52,6 +52,15 @@ bool quad_contains(const vec2 p, const vec2 a, const vec2 b, const vec2 c, const
   return !(neg && pos);
 }
 
+float dist_to_segment(vec2 P, vec2 A, vec2 B) {
+  vec2 AB = B - A;
+  float len_sq = dot(AB, AB);
+  if (len_sq == 0.0) return length(P - A);
+  float t_proj = clamp(dot(P - A, AB) / len_sq, 0.0, 1.0);
+  vec2 projection = A + t_proj * AB;
+  return length(P - projection);
+}
+
 const float speed = 1.0 / duration_seconds;
 
 void mainImage(out vec4 frag_color, vec2 frag_coord) {
@@ -74,7 +83,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 2. Animated Trailing Tail with Tail Glow (Zero glow on static cursor)
+  // 2. Animated Trailing Tail with Diffusion Aura
   if (iCurrentCursor.z > 0.0 && iCurrentCursor.w > 0.0 &&
       iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
     const vec4 curr = bb(iCurrentCursor);
@@ -88,8 +97,14 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
       const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
 
       if (progress < 1.0) {
-        // Silky non-linear ease-out curve (fast start, smooth liquid-like deceleration)
-        const float t = 1.0 - pow(1.0 - progress, 3.5);
+        // High-order Quintic Ease-Out curve for ultra-silky, gradual deceleration (0.52s)
+        const float t = 1.0 - pow(1.0 - progress, 4.5);
+        const float fade = pow(1.0 - progress, 1.3);
+
+        vec3 trail_rgb = iCurrentCursorColor.rgb;
+        if (length(trail_rgb) < 0.3) {
+          trail_rgb = vec3(0.85, 0.82, 0.75); // Bright Morandi warm gold/iris
+        }
 
         // Tail corners receding from prev to curr
         const vec2 t_lt = mix(left_top(prev), left_top(curr), t);
@@ -111,20 +126,16 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
                         quad_contains(frag_coord, t_lt, t_lb, t_rb, t_rt);
 
         if (in_trail) {
-          vec3 trail_rgb = iCurrentCursorColor.rgb;
-          // Guard: Ensure trail color is bright and vibrant
-          if (length(trail_rgb) < 0.3) {
-            trail_rgb = vec3(0.85, 0.82, 0.75); // Bright Morandi warm gold/iris
-          }
-
-          float fade = pow(1.0 - progress, 1.4);
-
-          // 1. Solid alpha blend for the trail body
           vec4 trail_color = vec4(trail_rgb, fade * 0.90);
           frag_color = alpha_blend(trail_color, frag_color);
+        }
 
-          // 2. Additive light emission along the trail for vibrant glowing radiance!
-          frag_color.rgb += trail_rgb * fade * 0.50;
+        // Light Diffusion / Scatter Aura radiating outward from the trail segment
+        if (trail_diffusion_strength > 0.0) {
+          vec2 tail_center = mix(prev_center, curr_center, t);
+          float dist_seg = dist_to_segment(frag_coord, tail_center, curr_center);
+          float scatter = exp(-dist_seg * 0.06) * fade * trail_diffusion_strength;
+          frag_color.rgb += trail_rgb * scatter;
         }
       }
     }
