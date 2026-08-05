@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Enhanced Aesthetics (Character Drop & Scale, Fine Water Ripple, Trailing Tail, Text Bloom, Vignette)
+// Ghostty Master Shader — Enhanced Aesthetics (Character Drop & Scale, Raindrop Ripple, Trailing Tail, Text Bloom, Vignette)
 
 // Configurable Parameters:
 
@@ -8,8 +8,8 @@ const float duration_seconds = 0.52;
 // Character entry drop & scale-down animation strength (0.0 to disable, 1.0 for drop-and-scale effect).
 const float character_drop_strength = 1.0;
 
-// Fine soft water ripple animation strength on typing (0.0 to disable, 0.18 for delicate water ring).
-const float typing_ripple_strength = 0.18;
+// Fine raindrop falling into water ripple strength on typing (0.0 to disable, 0.15 for delicate raindrop ring).
+const float typing_ripple_strength = 0.15;
 
 // Bloom / Glow strength around text (0.0 to disable, 0.06 for subtle modern glow).
 const float bloom_strength = 0.06;
@@ -116,22 +116,36 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Trailing Tail & Fine Soft Water Ripple (Strictly when focused & active)
+  // 3. Animated Trailing Tail & Fine Raindrop Water Ripple (Strictly when focused & active)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
     const vec4 prev = bb(iPreviousCursor);
     const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
     const vec2 diff = curr_center - prev_center;
 
-    // Fine, Soft Water Ripple Animation on Keypress (细柔水波纹)
-    if (typing_ripple_strength > 0.0 && type_time > 0.0 && type_time < 0.28) {
-      float ripple_t = type_time / 0.28;
-      float wave_radius = ripple_t * 220.0;
+    // Fine Raindrop Falling into Water Ripple Physics Model (细雨落水/极小微型水滴涟漪)
+    if (typing_ripple_strength > 0.0 && type_time > 0.0 && type_time < 0.20) {
+      float drop_t = type_time / 0.20;
       float dist = length(frag_coord - curr_center);
-      float ring = exp(-pow(dist - wave_radius, 2.0) / 10.0);
-      float ripple_fade = pow(1.0 - ripple_t, 1.8);
-      vec3 ripple_rgb = iCurrentCursorColor.rgb;
-      if (length(ripple_rgb) < 0.3) { ripple_rgb = vec3(0.85, 0.82, 0.75); }
-      frag_color.rgb += ripple_rgb * ring * ripple_fade * typing_ripple_strength;
+
+      // Raindrop radius: tiny expansion (0 to 18 pixels max!)
+      float primary_radius = drop_t * 18.0;
+      float secondary_radius = max(0.0, (drop_t - 0.04) * 12.0);
+
+      // Super fine ring width (gaussian variance 4.0 - ultra delicate!)
+      float ring1 = exp(-pow(dist - primary_radius, 2.0) / 4.0);
+      float ring2 = exp(-pow(dist - secondary_radius, 2.0) / 3.0) * 0.4;
+
+      // Natural water splash center droplet glint at impact (r < 4.0px, t < 0.06s)
+      float drop_glint = (dist < 4.0) ? (exp(-drop_t * 20.0) * 0.25) : 0.0;
+
+      // Rapid exponential water damping
+      float water_fade = pow(1.0 - drop_t, 2.2);
+      float raindrop_effect = (ring1 + ring2 + drop_glint) * water_fade;
+
+      vec3 water_tint = iCurrentCursorColor.rgb;
+      if (length(water_tint) < 0.3) { water_tint = vec3(0.82, 0.84, 0.80); } // Morandi rain water tint
+
+      frag_color.rgb += water_tint * raindrop_effect * typing_ripple_strength;
     }
 
     // Guard against focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
