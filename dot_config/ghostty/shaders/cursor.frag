@@ -77,6 +77,9 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   // Detect focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
   bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) || (abs(iCurrentCursor.w - iPreviousCursor.w) > 2.0);
 
+  // Validate cursor movement range (ignore teleports / newlines / clears > 200px to prevent window-spanning lines)
+  bool is_valid_move = !is_shape_change && (length(diff) > 2.0) && (length(diff) < 200.0);
+
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
   vec2 render_uv = uv;
   vec2 anim_pos = frag_coord;
@@ -123,7 +126,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
     // Clean L-Shaped Corner Reticle Animation (锁定在 iPreviousCursor 刚印出的字符上)
-    if (!is_shape_change && type_time > 0.0 && type_time < 0.18 && length(diff) > 2.0) {
+    if (is_valid_move && type_time > 0.0 && type_time < 0.18) {
       float drop_t = type_time / 0.18;
       float water_fade = pow(1.0 - drop_t, 2.0);
 
@@ -166,7 +169,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     }
 
     // Liquid Cursor Trailing Animation (Perturbed seamlessly using anim_pos)
-    if (!is_shape_change && diff != vec2(0.0, 0.0) && length(diff) > 2.0) {
+    if (is_valid_move) {
       const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
 
       if (progress < 1.0) {
