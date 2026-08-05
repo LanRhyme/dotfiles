@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Micro Vertical Line Ripple & Seamless Character Drop
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Unified Perturbation & Micro Vertical Ripple
 
 // Configurable Parameters:
 
@@ -79,8 +79,9 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
 
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
   vec2 render_uv = uv;
+  vec2 anim_pos = frag_coord;
 
-  // 1. Dynamic Character Drop & Scale-Down Entry Animation (Silky smooth radial edge falloff)
+  // 1. Dynamic Character Drop & Scale-Down Entry Animation (Warping anim_pos & render_uv)
   if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.22) {
     vec2 rel_pos = frag_coord - curr_center;
     float dist = length(rel_pos);
@@ -95,7 +96,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
       float scale = 1.0 + 0.25 * weight;
       float drop_y = -5.0 * weight;
 
-      vec2 anim_pos = curr_center + rel_pos / scale + vec2(0.0, drop_y);
+      anim_pos = curr_center + rel_pos / scale + vec2(0.0, drop_y);
       render_uv = anim_pos / iResolution.xy;
     }
   }
@@ -118,15 +119,15 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Cursor Trailing Tail & Micro Vertical Line Ripple (Strictly when focused & active)
+  // 3. Animated Cursor Trailing Tail & Micro Vertical Line Ripple (Unified with character perturbation)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
-    // Compact Micro Vertical Line Ripple Animation on Keypress (严格单行高度 ~19px)
+    // Compact Micro Vertical Line Ripple Animation on Keypress (Using anim_pos)
     if (!is_shape_change && type_time > 0.0 && type_time < 0.18) {
       float drop_t = type_time / 0.18;
 
-      float dist_x = abs(frag_coord.x - curr_center.x);
-      float dist_y = abs(frag_coord.y - curr_center.y);
+      float dist_x = abs(anim_pos.x - curr_center.x);
+      float dist_y = abs(anim_pos.y - curr_center.y);
 
       float cell_h = iCurrentCursor.w; // True character cell height (~24px)
 
@@ -148,7 +149,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
       }
     }
 
-    // Liquid Cursor Trailing Animation (Silky smooth anti-aliased edge)
+    // Liquid Cursor Trailing Animation (Perturbed seamlessly using anim_pos)
     if (!is_shape_change && diff != vec2(0.0, 0.0) && length(diff) > 2.0) {
       const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
 
@@ -174,17 +175,17 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
         const vec2 c_rb = right_bottom(curr);
         const vec2 c_rt = right_top(curr);
 
-        // Check if pixel is within the seamless hull connecting tail to head
-        bool in_trail = quad_contains(frag_coord, t_lt, t_lb, c_lb, c_lt) ||
-                        quad_contains(frag_coord, t_lb, t_rb, c_rb, c_lb) ||
-                        quad_contains(frag_coord, t_rb, t_rt, c_rt, c_rb) ||
-                        quad_contains(frag_coord, t_rt, t_lt, c_lt, c_rt) ||
-                        quad_contains(frag_coord, t_lt, t_lb, t_rb, t_rt);
+        // Check if perturbed pixel position anim_pos is within the liquid hull
+        bool in_trail = quad_contains(anim_pos, t_lt, t_lb, c_lb, c_lt) ||
+                        quad_contains(anim_pos, t_lb, t_rb, c_rb, c_lb) ||
+                        quad_contains(anim_pos, t_rb, t_rt, c_rt, c_rb) ||
+                        quad_contains(anim_pos, t_rt, t_lt, c_lt, c_rt) ||
+                        quad_contains(anim_pos, t_lt, t_lb, t_rb, t_rt);
 
         if (in_trail) {
-          // Compute anti-aliased edge smoothing for liquid trail
+          // Compute anti-aliased edge smoothing for liquid trail using anim_pos
           vec2 tail_center = mix(prev_center, curr_center, t);
-          float dist_seg = dist_to_segment(frag_coord, tail_center, curr_center);
+          float dist_seg = dist_to_segment(anim_pos, tail_center, curr_center);
           float max_rad = max(iCurrentCursor.z, iCurrentCursor.w) * 0.5;
           float edge_aa = smoothstep(max_rad, max(0.0, max_rad - 2.0), dist_seg);
 
