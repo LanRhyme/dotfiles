@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Fluid Liquid Cursor Trail, Newly Typed Character Drop Animation & Fine Raindrop Ripple
+// Ghostty Master Shader — Fluid Liquid Cursor Trail, High-Visibility Character Pop/Drop Animation & Raindrop Water Ripple
 
 // Configurable Parameters:
 
@@ -19,7 +19,7 @@ bool box_contains(const vec2 p, const vec4 bb) {
 
 // Convert Ghostty cursor rect vec4(x, y, w, h) to GLSL vec4(min_x, min_y, max_x, max_y)
 vec4 bb(const vec4 rect) {
-  return vec4(rect.x, rect.y - rect.w, rect.x + rect.z, rect.y);
+  return vec4(rect.x, rect.y, rect.x + rect.z, rect.y + rect.w);
 }
 
 vec2 left_top(const vec4 bb)     { return vec2(bb.x, bb.w); }
@@ -70,39 +70,34 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
 
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
   vec2 render_uv = uv;
+  vec3 extra_glow = vec3(0.0);
 
-  // 1. Newly Typed Character Entry Drop & Scale Animation (Applied to iPreviousCursor where the character was actually typed!)
-  if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.20 && length(diff) > 2.0) {
+  // 1. High-Visibility Character Pop & Drop Entry Animation (Applied to iPreviousCursor where the character was actually typed!)
+  if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.22 && length(diff) > 2.0) {
     if (box_contains(frag_coord, prev)) {
-      float anim_t = type_time / 0.20;
+      float anim_t = type_time / 0.22;
       float ease = 1.0 - pow(1.0 - anim_t, 3.0); // easeOutCubic
       float inv_t = 1.0 - ease;
 
-      // Smooth 4px vertical drop & 1.15x scale-down inside the typed character's cell
-      float offset_y = 4.0 * inv_t;
-      float scale = 1.0 + 0.15 * inv_t;
+      // 6.0px vertical drop + 1.35x scale down
+      float offset_y = 6.0 * inv_t;
+      float scale = 1.0 + 0.35 * inv_t;
 
       vec2 rel_pos = frag_coord - prev_center;
-      vec2 sample_pos = prev_center + rel_pos / scale + vec2(0.0, offset_y);
+      vec2 sample_pos = prev_center + rel_pos / scale - vec2(0.0, offset_y);
 
-      if (box_contains(sample_pos, prev)) {
-        render_uv = sample_pos / iResolution.xy;
-      }
+      render_uv = sample_pos / iResolution.xy;
+
+      // High-energy character entry glow
+      vec3 char_tint = iCurrentCursorColor.rgb;
+      if (length(char_tint) < 0.3) { char_tint = vec3(0.90, 0.88, 0.78); }
+      extra_glow = char_tint * inv_t * 0.60;
     }
   }
 
   const vec4 color = texture2D(iChannel0, render_uv);
   frag_color = color;
-
-  // Subtle character entry glow at the typed character cell
-  if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.18 && length(diff) > 2.0) {
-    if (box_contains(frag_coord, prev)) {
-      float glow = exp(-type_time * 16.0) * 0.30;
-      vec3 char_tint = iCurrentCursorColor.rgb;
-      if (length(char_tint) < 0.3) { char_tint = vec3(0.85, 0.82, 0.75); }
-      frag_color.rgb += char_tint * glow;
-    }
-  }
+  frag_color.rgb += extra_glow;
 
   // 2. Text Bloom / Glow (Only when window is focused)
   if (is_focused && bloom_strength > 0.0) {
