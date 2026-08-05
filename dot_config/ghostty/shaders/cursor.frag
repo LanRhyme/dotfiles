@@ -1,12 +1,15 @@
-// Ghostty Master Shader — Enhanced Aesthetics (Glowing Trailing Tail, Typing Impact Pulse, Text Bloom, Vignette)
+// Ghostty Master Shader — Enhanced Aesthetics (Kinetic Text Recoil, Trailing Tail, Text Bloom, Vignette)
 
 // Configurable Parameters:
 
 // Animation duration in seconds (slower, ultra-smooth fluid movement).
 const float duration_seconds = 0.52;
 
-// Typing impact pulse strength (0.0 to disable, 0.25 for crisp mechanical shockwave pulse on typing).
-const float typing_pulse_strength = 0.25;
+// Typing impact recoil strength (0.0 to disable, 1.0 for crisp mechanical typing recoil).
+const float typing_recoil_strength = 1.0;
+
+// Typing impact pulse strength (0.0 to disable, 0.35 for crisp energy shockwave).
+const float typing_pulse_strength = 0.35;
 
 // Bloom / Glow strength around text (0.0 to disable, 0.06 for subtle modern glow).
 const float bloom_strength = 0.06;
@@ -68,41 +71,61 @@ const float speed = 1.0 / duration_seconds;
 
 void mainImage(out vec4 frag_color, vec2 frag_coord) {
   const vec2 uv = frag_coord / iResolution.xy;
-  const vec4 color = texture2D(iChannel0, uv);
-  frag_color = color;
 
   // Check if window is focused and cursor is active
   bool is_focused = (iCurrentCursorColor.a > 0.1) && (iCurrentCursor.z > 0.0) && (iCurrentCursor.w > 0.0);
 
-  // 1. Text Bloom / Glow (Only when window is focused)
+  const vec4 curr = bb(iCurrentCursor);
+  const vec2 curr_center = mix(curr.xy, curr.zw, 0.5);
+
+  float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
+  vec2 render_uv = uv;
+
+  // 1. Kinetic Text Typing Recoil (Mechanical Screen & Text Impact Animation)
+  if (is_focused && typing_recoil_strength > 0.0 && type_time > 0.0 && type_time < 0.16) {
+    float recoil_decay = exp(-type_time * 24.0);
+    float recoil_x = sin(type_time * 80.0) * 1.2 * recoil_decay * typing_recoil_strength;
+    float recoil_y = cos(type_time * 60.0) * 0.8 * recoil_decay * typing_recoil_strength;
+    render_uv += vec2(recoil_x, recoil_y) / iResolution.xy;
+  }
+
+  const vec4 color = texture2D(iChannel0, render_uv);
+  frag_color = color;
+
+  // Newly Typed Character Energy Burst (Punchy text impact glow)
+  if (is_focused && type_time > 0.0 && type_time < 0.16) {
+    float dist_to_cursor = length(frag_coord - curr_center);
+    if (dist_to_cursor < 30.0) {
+      float energy = exp(-type_time * 18.0) * (1.0 - dist_to_cursor / 30.0) * 0.45;
+      frag_color.rgb += vec3(0.95, 0.90, 0.82) * energy;
+    }
+  }
+
+  // 2. Text Bloom / Glow (Only when window is focused)
   if (is_focused && bloom_strength > 0.0) {
     vec2 px = 1.5 / iResolution.xy;
-    vec4 bloom_sum = texture2D(iChannel0, uv + vec2(-px.x, -px.y)) * 0.0625 +
-                     texture2D(iChannel0, uv + vec2( 0.0,  -px.y)) * 0.125  +
-                     texture2D(iChannel0, uv + vec2( px.x, -px.y)) * 0.0625 +
-                     texture2D(iChannel0, uv + vec2(-px.x,   0.0)) * 0.125  +
-                     texture2D(iChannel0, uv + vec2( 0.0,    0.0)) * 0.25   +
-                     texture2D(iChannel0, uv + vec2( px.x,   0.0)) * 0.125  +
-                     texture2D(iChannel0, uv + vec2(-px.x,  px.y)) * 0.0625 +
-                     texture2D(iChannel0, uv + vec2( 0.0,   px.y)) * 0.125  +
-                     texture2D(iChannel0, uv + vec2( px.x,  px.y)) * 0.0625;
+    vec4 bloom_sum = texture2D(iChannel0, render_uv + vec2(-px.x, -px.y)) * 0.0625 +
+                     texture2D(iChannel0, render_uv + vec2( 0.0,  -px.y)) * 0.125  +
+                     texture2D(iChannel0, render_uv + vec2( px.x, -px.y)) * 0.0625 +
+                     texture2D(iChannel0, render_uv + vec2(-px.x,   0.0)) * 0.125  +
+                     texture2D(iChannel0, render_uv + vec2( 0.0,    0.0)) * 0.25   +
+                     texture2D(iChannel0, render_uv + vec2( px.x,   0.0)) * 0.125  +
+                     texture2D(iChannel0, render_uv + vec2(-px.x,  px.y)) * 0.0625 +
+                     texture2D(iChannel0, render_uv + vec2( 0.0,   px.y)) * 0.125  +
+                     texture2D(iChannel0, render_uv + vec2( px.x,  px.y)) * 0.0625;
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 2. Animated Trailing Tail & Typing Impact Pulse (Strictly when focused & active)
+  // 3. Animated Trailing Tail & Typing Impact Pulse (Strictly when focused & active)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
-    const vec4 curr = bb(iCurrentCursor);
     const vec4 prev = bb(iPreviousCursor);
-
-    const vec2 curr_center = mix(curr.xy, curr.zw, 0.5);
     const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
     const vec2 diff = curr_center - prev_center;
 
     // Typing Impact Shockwave Pulse (Crisp mechanical energy ripple on key entry)
     if (typing_pulse_strength > 0.0) {
-      float type_time = iTime - iTimeCursorChange;
       if (type_time > 0.0 && type_time < 0.14) {
-        float wave_radius = type_time * 260.0;
+        float wave_radius = type_time * 280.0;
         float dist = length(frag_coord - curr_center);
         float ring = exp(-pow(dist - wave_radius, 2.0) / 25.0);
         float wave_fade = 1.0 - type_time / 0.14;
@@ -168,7 +191,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     }
   }
 
-  // 3. Subtle Vignette (Darken corners slightly for immersive depth)
+  // 4. Subtle Vignette (Darken corners slightly for immersive depth)
   if (vignette_strength > 0.0) {
     vec2 v_uv = uv * (1.0 - uv.yx);
     float vig = v_uv.x * v_uv.y * 15.0;
