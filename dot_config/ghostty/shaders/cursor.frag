@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Fluid Liquid Cursor Trail, High-Visibility Character Pop/Drop Animation & Raindrop Water Ripple
+// Ghostty Master Shader — Ultra-Dynamic Liquid Cursor Trail, Raindrop Ripple & Character Drop Entry
 
 // Configurable Parameters:
 
@@ -19,7 +19,7 @@ bool box_contains(const vec2 p, const vec4 bb) {
 
 // Convert Ghostty cursor rect vec4(x, y, w, h) to GLSL vec4(min_x, min_y, max_x, max_y)
 vec4 bb(const vec4 rect) {
-  return vec4(rect.x, rect.y, rect.x + rect.z, rect.y + rect.w);
+  return vec4(rect.x, rect.y - rect.w, rect.x + rect.z, rect.y);
 }
 
 vec2 left_top(const vec4 bb)     { return vec2(bb.x, bb.w); }
@@ -70,47 +70,50 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
 
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
   vec2 render_uv = uv;
-  vec3 extra_glow = vec3(0.0);
 
-  // 1. High-Visibility Character Pop & Drop Entry Animation (Applied to iPreviousCursor where the character was actually typed!)
-  if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.22 && length(diff) > 2.0) {
-    if (box_contains(frag_coord, prev)) {
+  // 1. Dynamic Character Drop & Scale-Down Entry Animation (Surrounding 35px area)
+  if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.22) {
+    vec2 rel_pos = frag_coord - curr_center;
+    if (abs(rel_pos.x) < 35.0 && abs(rel_pos.y) < 35.0) {
       float anim_t = type_time / 0.22;
       float ease = 1.0 - pow(1.0 - anim_t, 3.0); // easeOutCubic
       float inv_t = 1.0 - ease;
 
-      // 6.0px vertical drop + 1.35x scale down
-      float offset_y = 6.0 * inv_t;
-      float scale = 1.0 + 0.35 * inv_t;
+      // 6.0px vertical drop + 1.30x scale down
+      float scale = 1.0 + 0.30 * inv_t;
+      float drop_y = -6.0 * inv_t;
 
-      vec2 rel_pos = frag_coord - prev_center;
-      vec2 sample_pos = prev_center + rel_pos / scale - vec2(0.0, offset_y);
-
-      render_uv = sample_pos / iResolution.xy;
-
-      // High-energy character entry glow
-      vec3 char_tint = iCurrentCursorColor.rgb;
-      if (length(char_tint) < 0.3) { char_tint = vec3(0.90, 0.88, 0.78); }
-      extra_glow = char_tint * inv_t * 0.60;
+      vec2 anim_pos = curr_center + rel_pos / scale + vec2(0.0, drop_y);
+      render_uv = anim_pos / iResolution.xy;
     }
   }
 
   const vec4 color = texture2D(iChannel0, render_uv);
   frag_color = color;
-  frag_color.rgb += extra_glow;
+
+  // High-energy character entry glow on surrounding area
+  if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.20) {
+    float dist = length(frag_coord - curr_center);
+    if (dist < 30.0) {
+      float glow = exp(-type_time * 14.0) * (1.0 - dist / 30.0) * 0.45;
+      vec3 char_tint = iCurrentCursorColor.rgb;
+      if (length(char_tint) < 0.3) { char_tint = vec3(0.90, 0.88, 0.78); }
+      frag_color.rgb += char_tint * glow;
+    }
+  }
 
   // 2. Text Bloom / Glow (Only when window is focused)
   if (is_focused && bloom_strength > 0.0) {
     vec2 px = 1.5 / iResolution.xy;
-    vec4 bloom_sum = texture2D(iChannel0, uv + vec2(-px.x, -px.y)) * 0.0625 +
-                     texture2D(iChannel0, uv + vec2( 0.0,  -px.y)) * 0.125  +
-                     texture2D(iChannel0, uv + vec2( px.x, -px.y)) * 0.0625 +
-                     texture2D(iChannel0, uv + vec2(-px.x,   0.0)) * 0.125  +
-                     texture2D(iChannel0, uv + vec2( 0.0,    0.0)) * 0.25   +
-                     texture2D(iChannel0, uv + vec2( px.x,   0.0)) * 0.125  +
-                     texture2D(iChannel0, uv + vec2(-px.x,  px.y)) * 0.0625 +
-                     texture2D(iChannel0, uv + vec2( 0.0,   px.y)) * 0.125  +
-                     texture2D(iChannel0, uv + vec2( px.x,  px.y)) * 0.0625;
+    vec4 bloom_sum = texture2D(iChannel0, render_uv + vec2(-px.x, -px.y)) * 0.0625 +
+                     texture2D(iChannel0, render_uv + vec2( 0.0,  -px.y)) * 0.125  +
+                     texture2D(iChannel0, render_uv + vec2( px.x, -px.y)) * 0.0625 +
+                     texture2D(iChannel0, render_uv + vec2(-px.x,   0.0)) * 0.125  +
+                     texture2D(iChannel0, render_uv + vec2( 0.0,    0.0)) * 0.25   +
+                     texture2D(iChannel0, render_uv + vec2( px.x,   0.0)) * 0.125  +
+                     texture2D(iChannel0, render_uv + vec2(-px.x,  px.y)) * 0.0625 +
+                     texture2D(iChannel0, render_uv + vec2( 0.0,   px.y)) * 0.125  +
+                     texture2D(iChannel0, render_uv + vec2( px.x,  px.y)) * 0.0625;
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
