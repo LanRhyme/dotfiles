@@ -635,7 +635,7 @@ def write_fastfetch(palette):
         {{ "type": "display", "key": "  \U000F0359 Display" }},
         {{ "type": "separator", "string": "─", "times": 40, "outputColor": "{sep}" }},
         {{ "type": "localip", "key": "  \U000F0A60 Local IP" }},
-        {{ "type": "colors" }}
+        {{ "type": "colors", "symbol": "circle", "paddingLeft": 2 }}
     ]
 }}
 """
