@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Unified Perturbation & Micro Vertical Ripple
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Sci-Fi Corner Crosshair Reticle & Seamless Character Drop
 
 // Configurable Parameters:
 
@@ -119,33 +119,38 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Cursor Trailing Tail & Micro Vertical Line Ripple (Unified with character perturbation)
+  // 3. Animated Cursor Trailing Tail & Sci-Fi Corner Crosshair Reticle
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
-    // Compact Micro Vertical Line Ripple Animation on Keypress (Using anim_pos)
+    // Futuristic Corner Crosshair Reticle Animation on Keypress (保留四角 L 型准星开合框)
     if (!is_shape_change && type_time > 0.0 && type_time < 0.18) {
       float drop_t = type_time / 0.18;
+      float water_fade = pow(1.0 - drop_t, 2.0);
 
-      float dist_x = abs(anim_pos.x - curr_center.x);
-      float dist_y = abs(anim_pos.y - curr_center.y);
+      // Expanding box around current cell (0 to 5px outward)
+      float expand = drop_t * 5.0;
+      vec4 box = vec4(curr.x - expand, curr.y - expand, curr.z + expand, curr.w + expand);
 
-      float cell_h = iCurrentCursor.w; // True character cell height (~24px)
+      // Distances to the 4 corners of expanding box
+      vec2 d_lt = abs(anim_pos - left_top(box));
+      vec2 d_lb = abs(anim_pos - left_bottom(box));
+      vec2 d_rt = abs(anim_pos - right_top(box));
+      vec2 d_rb = abs(anim_pos - right_bottom(box));
 
-      // Strict single-line height constraint (max 9.6px from center, total height = 19.2px)
-      float y_fade = smoothstep(cell_h * 0.40, cell_h * 0.10, dist_y);
+      float corner_len = 4.5; // L-leg length
+      float thick = 1.2;      // Line thickness
 
-      if (y_fade > 0.0) {
-        // Micro width expansion (0 to 6.0px max left/right, total 12px)
-        float line_radius = drop_t * 6.0;
-        float line_wave = exp(-pow(dist_x - line_radius, 2.0) / 2.0);
+      bool is_corner =
+        ((d_lt.x <= corner_len && d_lt.y <= thick) || (d_lt.y <= corner_len && d_lt.x <= thick)) ||
+        ((d_lb.x <= corner_len && d_lb.y <= thick) || (d_lb.y <= corner_len && d_lb.x <= thick)) ||
+        ((d_rt.x <= corner_len && d_rt.y <= thick) || (d_rt.y <= corner_len && d_rt.x <= thick)) ||
+        ((d_rb.x <= corner_len && d_rb.y <= thick) || (d_rb.y <= corner_len && d_rb.x <= thick));
 
-        // Exponential damping
-        float water_fade = pow(1.0 - drop_t, 2.0) * y_fade;
+      if (is_corner) {
+        vec3 reticle_tint = iCurrentCursorColor.rgb;
+        if (length(reticle_tint) < 0.3) { reticle_tint = vec3(0.85, 0.88, 0.82); }
 
-        vec3 line_tint = iCurrentCursorColor.rgb;
-        if (length(line_tint) < 0.3) { line_tint = vec3(0.82, 0.84, 0.80); }
-
-        frag_color.rgb += line_tint * line_wave * water_fade * 0.20;
+        frag_color.rgb += reticle_tint * water_fade * 0.45;
       }
     }
 
