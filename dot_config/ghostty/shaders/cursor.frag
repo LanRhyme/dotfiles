@@ -1,7 +1,7 @@
 // Configurable Parameters:
 
 // Animation duration in seconds.
-const float duration_seconds = 0.15;
+const float duration_seconds = 0.28;
 
 // FIN
 
@@ -84,7 +84,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     return; // diff can't be normalized
   }
 
-  const float t0 = min((iTime - iTimeCursorChange) * speed, 1);
+  const float t0 = min((iTime - iTimeCursorChange) * speed, 1.0);
 
   const vec2 dir = normalize(diff);
   const vec4 cos_theta = vec4(
@@ -93,7 +93,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     dot(dir, d.yy),
     dot(dir, d.yx)
   );
-  const vec4 p = mix(vec4(0), vec4(1), (cos_theta + vec4(1)) * 0.5);
+  const vec4 p = mix(vec4(0.0), vec4(1.0), (cos_theta + vec4(1.0)) * 0.5);
   const vec4 t = pow(vec4(t0), p);
 
   if (quad_contains(
@@ -103,7 +103,9 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     mix(right_bottom(prev), right_bottom(curr), t.z),
     mix(right_top(prev), right_top(curr), t.w)
   )) {
-    frag_color = alpha_blend(iCurrentCursorColor, frag_color);
+    vec4 trail_color = iCurrentCursorColor;
+    trail_color.a *= (1.0 - smoothstep(0.2, 1.0, t0));
+    frag_color = alpha_blend(trail_color, frag_color);
   }
   if (box_contains(frag_coord, curr)) {
     frag_color = color;
