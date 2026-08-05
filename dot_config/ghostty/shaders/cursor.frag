@@ -131,8 +131,8 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
                         quad_contains(frag_coord, t_lt, t_lb, t_rb, t_rt);
 
         if (in_trail) {
-          // Reverted soft, elegant trail opacity (50% max)
-          vec4 trail_color = vec4(trail_rgb, fade * 0.50);
+          // Trail opacity tuned to 70% max
+          vec4 trail_color = vec4(trail_rgb, fade * 0.70);
           frag_color = alpha_blend(trail_color, frag_color);
         }
 
