@@ -128,8 +128,8 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
       float dist_x = abs(frag_coord.x - curr_center.x);
       float dist_y = abs(frag_coord.y - curr_center.y);
 
-      // Height constraint matching active cursor cell
-      float y_fade = smoothstep(curr.w * 0.65, curr.w * 0.15, dist_y);
+      // Height constraint strictly matching single line height (~1 line)
+      float y_fade = smoothstep(curr.w * 0.45, curr.w * 0.15, dist_y);
 
       if (y_fade > 0.0) {
         // Vertical ripple lines expanding horizontally (0 to 14px max)
