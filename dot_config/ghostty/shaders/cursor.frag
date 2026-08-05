@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Fluid Liquid Cursor Trail, Zero-Distortion Character Entry & Fine Raindrop Ripple
+// Ghostty Master Shader — Fluid Liquid Cursor Trail, Isolated Character Drop Animation & Fine Raindrop Ripple
 
 // Configurable Parameters:
 
@@ -58,9 +58,6 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   // Check if window is focused and cursor is active
   bool is_focused = (iCurrentCursorColor.a > 0.1) && (iCurrentCursor.z > 0.0) && (iCurrentCursor.w > 0.0);
 
-  const vec4 color = texture2D(iChannel0, uv);
-  frag_color = color;
-
   const vec4 curr = bb(iCurrentCursor);
   const vec4 prev = bb(iPreviousCursor);
 
@@ -72,11 +69,32 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) || (abs(iCurrentCursor.w - iPreviousCursor.w) > 2.0);
 
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
+  vec2 render_uv = uv;
 
-  // 1. Newly Typed Character Entry Highlight (Zero distortion, zero interference to surrounding pixels)
+  // 1. Isolated Character Drop & Slide-In Animation (Strictly inside active cell, 0% distortion to surrounding text)
   if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.18) {
     if (box_contains(frag_coord, curr)) {
-      float glow = exp(-type_time * 16.0) * 0.35;
+      float anim_t = type_time / 0.18;
+      float ease = 1.0 - pow(1.0 - anim_t, 3.0); // easeOutCubic
+      float inv_t = 1.0 - ease;
+
+      // 3.0px upward offset sliding down into exact cell position
+      float offset_y = 3.0 * inv_t;
+      vec2 sample_pos = frag_coord + vec2(0.0, offset_y);
+
+      if (box_contains(sample_pos, curr)) {
+        render_uv = sample_pos / iResolution.xy;
+      }
+    }
+  }
+
+  const vec4 color = texture2D(iChannel0, render_uv);
+  frag_color = color;
+
+  // Subtle luminance entry glow on active cell
+  if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.18) {
+    if (box_contains(frag_coord, curr)) {
+      float glow = exp(-type_time * 16.0) * 0.25;
       vec3 char_tint = iCurrentCursorColor.rgb;
       if (length(char_tint) < 0.3) { char_tint = vec3(0.85, 0.82, 0.75); }
       frag_color.rgb += char_tint * glow;
