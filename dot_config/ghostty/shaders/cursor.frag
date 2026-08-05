@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Enhanced Aesthetics (360° Seamless Trail, Raindrop Ripple, Character Drop, Text Bloom, Vignette)
+// Ghostty Master Shader — Enhanced Aesthetics (Directional Beam Trail, Raindrop Ripple, Character Drop, Text Bloom, Vignette)
 
 // Configurable Parameters:
 
@@ -105,24 +105,22 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
     // Fine Raindrop Falling into Water Ripple Physics Model (Strictly on active typing, NOT on focus gain)
-    if (!is_shape_change && typing_ripple_strength > 0.0 && type_time > 0.0 && type_time < 0.20) {
-      float drop_t = type_time / 0.20;
+    if (!is_shape_change && typing_ripple_strength > 0.0 && type_time > 0.0 && type_time < 0.18) {
+      float drop_t = type_time / 0.18;
       float dist = length(frag_coord - curr_center);
 
-      // Raindrop radius: tiny expansion (0 to 18 pixels max!)
-      float primary_radius = drop_t * 18.0;
-      float secondary_radius = max(0.0, (drop_t - 0.04) * 12.0);
+      // Raindrop radius: tiny expansion (0 to 12 pixels max!)
+      float primary_radius = drop_t * 12.0;
 
-      // Super fine ring width (gaussian variance 4.0 - ultra delicate!)
-      float ring1 = exp(-pow(dist - primary_radius, 2.0) / 4.0);
-      float ring2 = exp(-pow(dist - secondary_radius, 2.0) / 3.0) * 0.4;
+      // Super fine ring width (gaussian variance 3.0 - ultra delicate!)
+      float ring1 = exp(-pow(dist - primary_radius, 2.0) / 3.0);
 
-      // Natural water splash center droplet glint at impact (r < 4.0px)
-      float drop_glint = (dist < 4.0) ? (exp(-drop_t * 20.0) * 0.25) : 0.0;
+      // Natural water splash center droplet glint at impact (r < 3.0px)
+      float drop_glint = (dist < 3.0) ? (exp(-drop_t * 20.0) * 0.20) : 0.0;
 
       // Rapid exponential water damping
       float water_fade = pow(1.0 - drop_t, 2.2);
-      float raindrop_effect = (ring1 + ring2 + drop_glint) * water_fade;
+      float raindrop_effect = (ring1 + drop_glint) * water_fade;
 
       vec3 water_tint = iCurrentCursorColor.rgb;
       if (length(water_tint) < 0.3) { water_tint = vec3(0.82, 0.84, 0.80); }
@@ -130,7 +128,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
       frag_color.rgb += water_tint * raindrop_effect * typing_ripple_strength;
     }
 
-    // Smooth 360-Degree Gapless Trailing Liquid Tail Animation
+    // Directional Thin Beam Trailing Liquid Tail Animation
     if (!is_shape_change && diff != vec2(0.0, 0.0) && length(diff) > 2.0) {
       const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
 
@@ -144,20 +142,24 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
           trail_rgb = vec3(0.68, 0.67, 0.61);
         }
 
-        // 360-degree direction-independent gapless capsule hull
+        // Directional perpendicular thickness matching exact beam width vs cell height
+        vec2 dir = normalize(diff);
+        vec2 perp = vec2(-dir.y, dir.x);
+        float half_thick = abs(perp.x) * (curr.z * 0.5) + abs(perp.y) * (curr.w * 0.5);
+        half_thick = max(half_thick, 1.0);
+
         vec2 tail_center = mix(prev_center, curr_center, t);
         float dist_seg = dist_to_segment(frag_coord, tail_center, curr_center);
-        float cursor_radius = max(curr.z, curr.w) * 0.5;
 
-        if (dist_seg <= cursor_radius) {
-          float edge_smooth = smoothstep(cursor_radius, max(0.0, cursor_radius - 1.2), dist_seg);
+        if (dist_seg <= half_thick) {
+          float edge_smooth = smoothstep(half_thick, max(0.0, half_thick - 1.0), dist_seg);
           vec4 trail_color = vec4(trail_rgb, fade * 0.70 * edge_smooth);
           frag_color = alpha_blend(trail_color, frag_color);
         }
 
         // Faint, gentle 2D light diffusion strictly active during trail motion
         if (trail_diffusion_strength > 0.0) {
-          float scatter = exp(-dist_seg * 0.15) * fade * trail_diffusion_strength;
+          float scatter = exp(-dist_seg * 0.25) * fade * trail_diffusion_strength;
           frag_color.rgb += trail_rgb * scatter;
         }
       }
