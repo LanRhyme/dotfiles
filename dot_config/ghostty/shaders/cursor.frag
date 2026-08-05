@@ -121,20 +121,20 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   // 3. Animated Cursor Trailing Tail & Fine Vertical Line Ripple (Strictly when focused & active)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
-    // Fine Vertical Line Ripple Animation on Keypress (竖线光效波纹，向两侧扩开)
-    if (!is_shape_change && type_time > 0.0 && type_time < 0.20) {
-      float drop_t = type_time / 0.20;
+    // Compact Micro Vertical Line Ripple Animation on Keypress (极小紧凑双竖线光效波纹)
+    if (!is_shape_change && type_time > 0.0 && type_time < 0.18) {
+      float drop_t = type_time / 0.18;
 
       float dist_x = abs(frag_coord.x - curr_center.x);
       float dist_y = abs(frag_coord.y - curr_center.y);
 
-      // Height constraint strictly matching single line height (~1 line)
-      float y_fade = smoothstep(curr.w * 0.45, curr.w * 0.15, dist_y);
+      // Micro height constraint (total height = 12px)
+      float y_fade = smoothstep(curr.w * 0.25, curr.w * 0.08, dist_y);
 
       if (y_fade > 0.0) {
-        // Vertical ripple lines expanding horizontally (0 to 14px max)
-        float line_radius = drop_t * 14.0;
-        float line_wave = exp(-pow(dist_x - line_radius, 2.0) / 4.0);
+        // Micro width expansion (0 to 6.0px max left/right, total 12px)
+        float line_radius = drop_t * 6.0;
+        float line_wave = exp(-pow(dist_x - line_radius, 2.0) / 2.0);
 
         // Exponential damping
         float water_fade = pow(1.0 - drop_t, 2.0) * y_fade;
@@ -142,7 +142,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
         vec3 line_tint = iCurrentCursorColor.rgb;
         if (length(line_tint) < 0.3) { line_tint = vec3(0.82, 0.84, 0.80); }
 
-        frag_color.rgb += line_tint * line_wave * water_fade * 0.22;
+        frag_color.rgb += line_tint * line_wave * water_fade * 0.20;
       }
     }
 
