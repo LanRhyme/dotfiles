@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Connected Reticle & Seamless Character Drop (Robust TUI / Pi Agent Support)
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Connected Reticle & Seamless Character Drop (Pi Agent & TUI Breathing Reticle Support)
 
 // Configurable Parameters:
 
@@ -64,7 +64,7 @@ const float speed = 1.0 / duration_seconds;
 void mainImage(out vec4 frag_color, vec2 frag_coord) {
   const vec2 uv = frag_coord / iResolution.xy;
 
-  // Check if cursor exists (Robust TUI / Pi Agent support: works even if TUI app sets cursor alpha <= 0.1)
+  // Check if cursor exists (Robust TUI / Pi Agent support: works even if TUI app hides cursor)
   bool is_focused = (iCurrentCursor.z > 0.0 || iPreviousCursor.z > 0.0);
 
   // Fallback cursor color for TUI apps
@@ -128,47 +128,49 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Cursor Trailing Tail & Connected Bracket Reticle (Pi Agent / TUI Supported)
+  // 3. Animated Cursor Trailing Tail & Connected Reticle (Pi Agent Breathing Reticle & Keypress Pop)
   if (is_focused) {
 
-    // Connected Bracket Reticle Animation (锁定在 iPreviousCursor 刚印出的字符上，左右连通)
-    if (is_valid_move && type_time > 0.0 && type_time < 0.18) {
-      float drop_t = type_time / 0.18;
-      float water_fade = pow(1.0 - drop_t, 2.0);
+    // Connected Bracket Reticle Animation (Stationary breathing pulse + keypress expansion)
+    float drop_t = (type_time > 0.0 && type_time < 0.25) ? (type_time / 0.25) : 1.0;
+    float expand = (drop_t < 1.0) ? (drop_t * 4.0) : 0.0;
+    float fade_val = (drop_t < 1.0) ? pow(1.0 - drop_t, 2.0) : (0.28 + 0.12 * sin(iTime * 3.5));
 
-      // Force full cell width (~10px) for prev cell
-      float cell_w = max(iCurrentCursor.z, 10.0);
-      vec4 full_prev_box = vec4(prev_center.x - cell_w * 0.5, prev.y, prev_center.x + cell_w * 0.5, prev.w);
+    // Target cell (prev when moving/typing, curr when stationary)
+    vec4 target_cell = (length(diff) > 2.0 && type_time < 0.25) ? prev : curr;
+    vec2 target_center = mix(target_cell.xy, target_cell.zw, 0.5);
 
-      // Expanding box around full cell box (0 to 4px outward)
-      float expand = drop_t * 4.0;
-      vec4 box = vec4(full_prev_box.x - expand, full_prev_box.y - expand, full_prev_box.z + expand, full_prev_box.w + expand);
+    // Force full cell width (~10px) for target cell
+    float cell_w = max(iCurrentCursor.z, 10.0);
+    vec4 full_box = vec4(target_center.x - cell_w * 0.5, target_cell.y, target_center.x + cell_w * 0.5, target_cell.w);
 
-      // Hard Bounding Box Guard: strictly inside box + 2px
-      if (box_contains(anim_pos, vec4(box.x - 2.0, box.y - 2.0, box.z + 2.0, box.w + 2.0))) {
-        float corner_len = 4.0; // Vertical leg length
-        float thick = 1.0;      // 1px line thickness
+    // Expanding box around full cell box
+    vec4 box = vec4(full_box.x - expand, full_box.y - expand, full_box.z + expand, full_box.w + expand);
 
-        vec2 lt = anim_pos - left_top(box);
-        vec2 lb = anim_pos - left_bottom(box);
-        vec2 rt = anim_pos - right_top(box);
-        vec2 rb = anim_pos - right_bottom(box);
+    // Hard Bounding Box Guard: strictly inside box + 2px
+    if (box_contains(anim_pos, vec4(box.x - 2.0, box.y - 2.0, box.z + 2.0, box.w + 2.0))) {
+      float corner_len = 4.0; // Vertical leg length
+      float thick = 1.0;      // 1px line thickness
 
-        // Connected Top Bracket (Top horizontal bar + 2 vertical corner legs):
-        bool is_top_bracket =
-          (anim_pos.x >= box.x && anim_pos.x <= box.z && abs(anim_pos.y - box.w) <= thick) ||
-          (lt.y <= 0.0 && lt.y >= -corner_len && abs(lt.x) <= thick) ||
-          (rt.y <= 0.0 && rt.y >= -corner_len && abs(rt.x) <= thick);
+      vec2 lt = anim_pos - left_top(box);
+      vec2 lb = anim_pos - left_bottom(box);
+      vec2 rt = anim_pos - right_top(box);
+      vec2 rb = anim_pos - right_bottom(box);
 
-        // Connected Bottom Bracket (Bottom horizontal bar + 2 vertical corner legs):
-        bool is_bottom_bracket =
-          (anim_pos.x >= box.x && anim_pos.x <= box.z && abs(anim_pos.y - box.y) <= thick) ||
-          (lb.y >= 0.0 && lb.y <= corner_len && abs(lb.x) <= thick) ||
-          (rb.y >= 0.0 && rb.y <= corner_len && abs(rb.x) <= thick);
+      // Connected Top Bracket:
+      bool is_top_bracket =
+        (anim_pos.x >= box.x && anim_pos.x <= box.z && abs(anim_pos.y - box.w) <= thick) ||
+        (lt.y <= 0.0 && lt.y >= -corner_len && abs(lt.x) <= thick) ||
+        (rt.y <= 0.0 && rt.y >= -corner_len && abs(rt.x) <= thick);
 
-        if (is_top_bracket || is_bottom_bracket) {
-          frag_color.rgb += active_cursor_color.rgb * water_fade * 0.45;
-        }
+      // Connected Bottom Bracket:
+      bool is_bottom_bracket =
+        (anim_pos.x >= box.x && anim_pos.x <= box.z && abs(anim_pos.y - box.y) <= thick) ||
+        (lb.y >= 0.0 && lb.y <= corner_len && abs(lb.x) <= thick) ||
+        (rb.y >= 0.0 && rb.y <= corner_len && abs(rb.x) <= thick);
+
+      if (is_top_bracket || is_bottom_bracket) {
+        frag_color.rgb += active_cursor_color.rgb * fade_val * 0.45;
       }
     }
 
