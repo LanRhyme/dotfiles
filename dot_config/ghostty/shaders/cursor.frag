@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Anti-Aliased Raindrop Ripple & Seamless Character Drop
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Vertical Line Ripple & Seamless Character Drop
 
 // Configurable Parameters:
 
@@ -118,30 +118,32 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Cursor Trailing Tail & Raindrop Water Ripple (Strictly when focused & active)
+  // 3. Animated Cursor Trailing Tail & Fine Vertical Line Ripple (Strictly when focused & active)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
-    // Fine Raindrop Water Ripple on Keypress (Silky smooth anti-aliased edge)
+    // Fine Vertical Line Ripple Animation on Keypress (竖线光效波纹，向两侧扩开)
     if (!is_shape_change && type_time > 0.0 && type_time < 0.20) {
       float drop_t = type_time / 0.20;
-      float dist = length(frag_coord - curr_center);
 
-      // Raindrop radius: delicate 16px max expansion
-      float primary_radius = drop_t * 16.0;
+      float dist_x = abs(frag_coord.x - curr_center.x);
+      float dist_y = abs(frag_coord.y - curr_center.y);
 
-      // Silky smooth gaussian ring
-      float ring = exp(-pow(dist - primary_radius, 2.0) / 6.0);
+      // Height constraint matching active cursor cell
+      float y_fade = smoothstep(curr.w * 0.65, curr.w * 0.15, dist_y);
 
-      // Smooth outer feather
-      float outer_feather = smoothstep(18.0, 10.0, dist);
+      if (y_fade > 0.0) {
+        // Vertical ripple lines expanding horizontally (0 to 14px max)
+        float line_radius = drop_t * 14.0;
+        float line_wave = exp(-pow(dist_x - line_radius, 2.0) / 4.0);
 
-      // Exponential water damping
-      float water_fade = pow(1.0 - drop_t, 2.0) * outer_feather;
+        // Exponential damping
+        float water_fade = pow(1.0 - drop_t, 2.0) * y_fade;
 
-      vec3 water_tint = iCurrentCursorColor.rgb;
-      if (length(water_tint) < 0.3) { water_tint = vec3(0.82, 0.84, 0.80); }
+        vec3 line_tint = iCurrentCursorColor.rgb;
+        if (length(line_tint) < 0.3) { line_tint = vec3(0.82, 0.84, 0.80); }
 
-      frag_color.rgb += water_tint * ring * water_fade * 0.18;
+        frag_color.rgb += line_tint * line_wave * water_fade * 0.22;
+      }
     }
 
     // Liquid Cursor Trailing Animation (Silky smooth anti-aliased edge)
