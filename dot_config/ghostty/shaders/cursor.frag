@@ -1,9 +1,12 @@
-// Ghostty Master Shader — Enhanced Aesthetics (Kinetic Text Recoil, Trailing Tail, Text Bloom, Vignette)
+// Ghostty Master Shader — Enhanced Aesthetics (Character Drop & Scale, Kinetic Text Recoil, Trailing Tail, Text Bloom, Vignette)
 
 // Configurable Parameters:
 
 // Animation duration in seconds (slower, ultra-smooth fluid movement).
 const float duration_seconds = 0.52;
+
+// Character entry drop & scale-down animation strength (0.0 to disable, 1.0 for drop-and-scale effect).
+const float character_drop_strength = 1.0;
 
 // Typing impact recoil strength (0.0 to disable, 1.0 for crisp mechanical typing recoil).
 const float typing_recoil_strength = 1.0;
@@ -81,11 +84,28 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
   vec2 render_uv = uv;
 
-  // 1. Kinetic Text Typing Recoil (Mechanical Screen & Text Impact Animation)
-  if (is_focused && typing_recoil_strength > 0.0 && type_time > 0.0 && type_time < 0.16) {
+  // 1. Newly Typed Character Drop & Scale-Down Entry Animation (字符下落与由大变小缩放入场动画)
+  if (is_focused && character_drop_strength > 0.0 && type_time > 0.0 && type_time < 0.20) {
+    float anim_t = type_time / 0.20;
+    float fall_ease = 1.0 - pow(1.0 - anim_t, 3.0); // easeOutCubic
+    float inv_t = 1.0 - fall_ease;
+
+    // Character Scale-down (1.25x -> 1.0x) & Vertical Drop (-5.0px -> 0.0px)
+    float scale = 1.0 + 0.25 * inv_t * character_drop_strength;
+    float drop_y = -5.0 * inv_t * character_drop_strength;
+
+    vec2 rel_pos = frag_coord - curr_center;
+    if (abs(rel_pos.x) < 35.0 && abs(rel_pos.y) < 35.0) {
+      vec2 anim_pos = curr_center + rel_pos / scale + vec2(0.0, drop_y);
+      render_uv = anim_pos / iResolution.xy;
+    }
+  }
+
+  // Kinetic Text Typing Recoil (Mechanical Screen & Text Impact Animation)
+  if (is_focused && typing_recoil_strength > 0.0 && type_time > 0.0 && type_time < 0.14) {
     float recoil_decay = exp(-type_time * 24.0);
-    float recoil_x = sin(type_time * 80.0) * 1.2 * recoil_decay * typing_recoil_strength;
-    float recoil_y = cos(type_time * 60.0) * 0.8 * recoil_decay * typing_recoil_strength;
+    float recoil_x = sin(type_time * 80.0) * 1.0 * recoil_decay * typing_recoil_strength;
+    float recoil_y = cos(type_time * 60.0) * 0.6 * recoil_decay * typing_recoil_strength;
     render_uv += vec2(recoil_x, recoil_y) / iResolution.xy;
   }
 
