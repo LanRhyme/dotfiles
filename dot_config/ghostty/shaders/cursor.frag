@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Enhanced Aesthetics (Character Drop & Scale, Kinetic Text Recoil, Trailing Tail, Text Bloom, Vignette)
+// Ghostty Master Shader — Enhanced Aesthetics (Character Drop & Scale, Fine Water Ripple, Trailing Tail, Text Bloom, Vignette)
 
 // Configurable Parameters:
 
@@ -8,11 +8,8 @@ const float duration_seconds = 0.52;
 // Character entry drop & scale-down animation strength (0.0 to disable, 1.0 for drop-and-scale effect).
 const float character_drop_strength = 1.0;
 
-// Typing impact recoil strength (0.0 to disable, 1.0 for crisp mechanical typing recoil).
-const float typing_recoil_strength = 1.0;
-
-// Typing impact pulse strength (0.0 to disable, 0.35 for crisp energy shockwave).
-const float typing_pulse_strength = 0.35;
+// Fine soft water ripple animation strength on typing (0.0 to disable, 0.18 for delicate water ring).
+const float typing_ripple_strength = 0.18;
 
 // Bloom / Glow strength around text (0.0 to disable, 0.06 for subtle modern glow).
 const float bloom_strength = 0.06;
@@ -101,25 +98,8 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     }
   }
 
-  // Kinetic Text Typing Recoil (Mechanical Screen & Text Impact Animation)
-  if (is_focused && typing_recoil_strength > 0.0 && type_time > 0.0 && type_time < 0.14) {
-    float recoil_decay = exp(-type_time * 24.0);
-    float recoil_x = sin(type_time * 80.0) * 1.0 * recoil_decay * typing_recoil_strength;
-    float recoil_y = cos(type_time * 60.0) * 0.6 * recoil_decay * typing_recoil_strength;
-    render_uv += vec2(recoil_x, recoil_y) / iResolution.xy;
-  }
-
   const vec4 color = texture2D(iChannel0, render_uv);
   frag_color = color;
-
-  // Newly Typed Character Energy Burst (Punchy text impact glow)
-  if (is_focused && type_time > 0.0 && type_time < 0.16) {
-    float dist_to_cursor = length(frag_coord - curr_center);
-    if (dist_to_cursor < 30.0) {
-      float energy = exp(-type_time * 18.0) * (1.0 - dist_to_cursor / 30.0) * 0.45;
-      frag_color.rgb += vec3(0.95, 0.90, 0.82) * energy;
-    }
-  }
 
   // 2. Text Bloom / Glow (Only when window is focused)
   if (is_focused && bloom_strength > 0.0) {
@@ -136,23 +116,22 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Trailing Tail & Typing Impact Pulse (Strictly when focused & active)
+  // 3. Animated Trailing Tail & Fine Soft Water Ripple (Strictly when focused & active)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
     const vec4 prev = bb(iPreviousCursor);
     const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
     const vec2 diff = curr_center - prev_center;
 
-    // Typing Impact Shockwave Pulse (Crisp mechanical energy ripple on key entry)
-    if (typing_pulse_strength > 0.0) {
-      if (type_time > 0.0 && type_time < 0.14) {
-        float wave_radius = type_time * 280.0;
-        float dist = length(frag_coord - curr_center);
-        float ring = exp(-pow(dist - wave_radius, 2.0) / 25.0);
-        float wave_fade = 1.0 - type_time / 0.14;
-        vec3 pulse_rgb = iCurrentCursorColor.rgb;
-        if (length(pulse_rgb) < 0.3) { pulse_rgb = vec3(0.85, 0.82, 0.75); }
-        frag_color.rgb += pulse_rgb * ring * wave_fade * typing_pulse_strength;
-      }
+    // Fine, Soft Water Ripple Animation on Keypress (细柔水波纹)
+    if (typing_ripple_strength > 0.0 && type_time > 0.0 && type_time < 0.28) {
+      float ripple_t = type_time / 0.28;
+      float wave_radius = ripple_t * 220.0;
+      float dist = length(frag_coord - curr_center);
+      float ring = exp(-pow(dist - wave_radius, 2.0) / 10.0);
+      float ripple_fade = pow(1.0 - ripple_t, 1.8);
+      vec3 ripple_rgb = iCurrentCursorColor.rgb;
+      if (length(ripple_rgb) < 0.3) { ripple_rgb = vec3(0.85, 0.82, 0.75); }
+      frag_color.rgb += ripple_rgb * ring * ripple_fade * typing_ripple_strength;
     }
 
     // Guard against focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
