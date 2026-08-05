@@ -1,0 +1,7 @@
+#!/bin/sh
+# Ghostty IME fix: bypass the fcitx5-gtk GTK IM module (ghostty #12679)
+# The fcitx5-gtk module requires proper key press/release forwarding, which
+# ghostty does not do, breaking the fcitx5 state machine on Wayland:
+# candidate window glitches, no background blur, stretched input rendering.
+# Falling back to the native Wayland text-input-v3 protocol fixes all of these.
+exec env -u GTK_IM_MODULE /usr/bin/ghostty "$@"
