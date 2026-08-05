@@ -1,4 +1,4 @@
-// Ghostty Master Shader — Ultra-Dynamic Liquid Cursor Trail, Raindrop Ripple & Character Drop Entry
+// Ghostty Master Shader — Silky Smooth Liquid Cursor Trail, Anti-Aliased Raindrop Ripple & Seamless Character Drop
 
 // Configurable Parameters:
 
@@ -31,6 +31,15 @@ vec4 alpha_blend(const vec4 x, const vec4 y) {
   const float a = mix(x.a, 1.0, y.a);
   const vec3 rgb = mix(y.a * y.rgb, x.rgb, x.a) / a;
   return vec4(rgb, a);
+}
+
+float dist_to_segment(vec2 P, vec2 A, vec2 B) {
+  vec2 AB = B - A;
+  float len_sq = dot(AB, AB);
+  if (len_sq == 0.0) return length(P - A);
+  float t_proj = clamp(dot(P - A, AB) / len_sq, 0.0, 1.0);
+  vec2 projection = A + t_proj * AB;
+  return length(P - projection);
 }
 
 bool quad_contains(const vec2 p, const vec2 a, const vec2 b, const vec2 c, const vec2 d) {
@@ -71,17 +80,20 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
   vec2 render_uv = uv;
 
-  // 1. Dynamic Character Drop & Scale-Down Entry Animation
+  // 1. Dynamic Character Drop & Scale-Down Entry Animation (Silky smooth radial edge falloff)
   if (is_focused && !is_shape_change && type_time > 0.0 && type_time < 0.22) {
     vec2 rel_pos = frag_coord - curr_center;
-    if (abs(rel_pos.x) < 35.0 && abs(rel_pos.y) < 35.0) {
+    float dist = length(rel_pos);
+    if (dist < 32.0) {
       float anim_t = type_time / 0.22;
       float ease = 1.0 - pow(1.0 - anim_t, 3.0); // easeOutCubic
       float inv_t = 1.0 - ease;
 
-      // 6.0px vertical drop + 1.30x scale down
-      float scale = 1.0 + 0.30 * inv_t;
-      float drop_y = -6.0 * inv_t;
+      // Smooth radial weight transition to zero at 32px boundary
+      float weight = smoothstep(32.0, 5.0, dist) * inv_t;
+
+      float scale = 1.0 + 0.25 * weight;
+      float drop_y = -5.0 * weight;
 
       vec2 anim_pos = curr_center + rel_pos / scale + vec2(0.0, drop_y);
       render_uv = anim_pos / iResolution.xy;
@@ -109,7 +121,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
   // 3. Animated Cursor Trailing Tail & Raindrop Water Ripple (Strictly when focused & active)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
 
-    // Fine Raindrop Water Ripple on Keypress (Strictly on active typing, NOT on focus gain)
+    // Fine Raindrop Water Ripple on Keypress (Silky smooth anti-aliased edge)
     if (!is_shape_change && type_time > 0.0 && type_time < 0.20) {
       float drop_t = type_time / 0.20;
       float dist = length(frag_coord - curr_center);
@@ -117,11 +129,14 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
       // Raindrop radius: delicate 16px max expansion
       float primary_radius = drop_t * 16.0;
 
-      // Super fine ring width
-      float ring = exp(-pow(dist - primary_radius, 2.0) / 4.0);
+      // Silky smooth gaussian ring
+      float ring = exp(-pow(dist - primary_radius, 2.0) / 6.0);
+
+      // Smooth outer feather
+      float outer_feather = smoothstep(18.0, 10.0, dist);
 
       // Exponential water damping
-      float water_fade = pow(1.0 - drop_t, 2.0);
+      float water_fade = pow(1.0 - drop_t, 2.0) * outer_feather;
 
       vec3 water_tint = iCurrentCursorColor.rgb;
       if (length(water_tint) < 0.3) { water_tint = vec3(0.82, 0.84, 0.80); }
@@ -129,7 +144,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
       frag_color.rgb += water_tint * ring * water_fade * 0.18;
     }
 
-    // Liquid Cursor Trailing Animation
+    // Liquid Cursor Trailing Animation (Silky smooth anti-aliased edge)
     if (!is_shape_change && diff != vec2(0.0, 0.0) && length(diff) > 2.0) {
       const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
 
@@ -163,8 +178,14 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
                         quad_contains(frag_coord, t_lt, t_lb, t_rb, t_rt);
 
         if (in_trail) {
-          // Trail opacity tuned to 70% max
-          vec4 trail_color = vec4(trail_rgb, fade * 0.70);
+          // Compute anti-aliased edge smoothing for liquid trail
+          vec2 tail_center = mix(prev_center, curr_center, t);
+          float dist_seg = dist_to_segment(frag_coord, tail_center, curr_center);
+          float max_rad = max(curr.z, curr.w) * 0.5;
+          float edge_aa = smoothstep(max_rad, max(0.0, max_rad - 2.0), dist_seg);
+
+          // Trail opacity tuned to 70% max with smooth anti-aliased edges
+          vec4 trail_color = vec4(trail_rgb, fade * 0.70 * mix(0.7, 1.0, edge_aa));
           frag_color = alpha_blend(trail_color, frag_color);
         }
       }
