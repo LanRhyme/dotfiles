@@ -596,21 +596,50 @@ BorderWidth=0
 def write_fastfetch(palette):
     if not FASTFETCH_CONFIG.exists():
         return
-    content = FASTFETCH_CONFIG.read_text()
-
-    content = re.sub(
-        r'"color"\s*:\s*\{[^}]*\}',
-        f'"color": {{ "keys": "{palette["iris"]}", "title": "{palette["text"]}" }}',
-        content,
-    )
-
-    if '"disk"' not in content:
-        content = content.replace(
-            '{ "type": "memory", "key": " \uf0e4 Memory" }',
-            '{ "type": "memory", "key": " \uf0e4 Memory" }, { "type": "disk", "key": " \uf0a0 Disk" }',
-        )
-
-    FASTFETCH_CONFIG.write_text(content)
+    sep = palette['overlay0']
+    config = f"""{{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {{
+        "type": "chafa",
+        "source": "/home/lanrhyme/.config/fastfetch/avatar.png",
+        "width": 40,
+        "height": 19,
+        "padding": {{ "top": 2, "right": 2 }}
+    }},
+    "display": {{
+        "separator": "  ",
+        "disableLinewrap": true,
+        "color": {{
+            "keys": "{palette['iris']}",
+            "title": "{palette['text']}"
+        }}
+    }},
+    "modules": [
+        {{ "type": "title", "color": {{ "user": "{palette['text']}", "at": "{palette['iris']}", "host": "{palette['pine']}" }} }},
+        {{ "type": "separator", "string": "─", "times": 40, "outputColor": "{sep}" }},
+        {{ "type": "os", "key": "  \uf30e OS" }},
+        {{ "type": "kernel", "key": "  \uf331 Kernel" }},
+        {{ "type": "uptime", "key": "  \uf017 Uptime" }},
+        {{ "type": "packages", "key": "  \uf2dc Packages" }},
+        {{ "type": "shell", "key": "  \uf489 Shell" }},
+        {{ "type": "terminal", "key": "  \uf120 Terminal" }},
+        {{ "type": "terminalfont", "key": "  \U000F0295 Font" }},
+        {{ "type": "de", "key": "  \uf35e DE" }},
+        {{ "type": "wm", "key": "  \uf2d2 WM" }},
+        {{ "type": "separator", "string": "─", "times": 40, "outputColor": "{sep}" }},
+        {{ "type": "host", "key": "  \U000F0A58 Host" }},
+        {{ "type": "cpu", "key": "  \uf2db CPU" }},
+        {{ "type": "gpu", "key": "  \uf26c GPU" }},
+        {{ "type": "memory", "key": "  \uf0e4 Memory" }},
+        {{ "type": "disk", "key": "  \uf0a0 Disk" }},
+        {{ "type": "display", "key": "  \U000F0359 Display" }},
+        {{ "type": "separator", "string": "─", "times": 40, "outputColor": "{sep}" }},
+        {{ "type": "localip", "key": "  \U000F0A60 Local IP" }},
+        {{ "type": "colors" }}
+    ]
+}}
+"""
+    FASTFETCH_CONFIG.write_text(config)
 
 ALACRITTY_THEME = Path.home() / ".config/alacritty/themes/noctalia.toml"
 
