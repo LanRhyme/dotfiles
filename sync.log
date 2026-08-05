@@ -1051,3 +1051,9 @@ To https://github.com/LanRhyme/dotfiles.git
  4 files changed, 91 insertions(+), 86 deletions(-)
 To https://github.com/LanRhyme/dotfiles.git
    4e6716f..edd160f  master -> master
+[master f7fc18a] auto: 2026-08-05-12:22:22
+ 7 files changed, 85 insertions(+), 3 deletions(-)
+ create mode 100644 dot_config/ghostty/config
+ create mode 100644 dot_config/ghostty/theme
+To https://github.com/LanRhyme/dotfiles.git
+   edd160f..f7fc18a  master -> master
