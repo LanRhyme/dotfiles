@@ -1,21 +1,12 @@
-// Ghostty Master Shader — Enhanced Aesthetics (Directional Beam Trail, Raindrop Ripple, Character Drop, Text Bloom, Vignette)
+// Ghostty Master Shader — Clean Smooth Liquid Cursor Trail (No Circles, No Distortion)
 
 // Configurable Parameters:
 
 // Animation duration in seconds (slower, ultra-smooth fluid movement).
 const float duration_seconds = 0.52;
 
-// Character entry drop & scale-down animation strength (0.0 to disable, 1.0 for drop-and-scale effect).
-const float character_drop_strength = 1.0;
-
-// Fine raindrop falling into water ripple strength on typing (0.0 to disable, 0.15 for delicate raindrop ring).
-const float typing_ripple_strength = 0.15;
-
 // Bloom / Glow strength around text (0.0 to disable, 0.06 for subtle modern glow).
 const float bloom_strength = 0.06;
-
-// Trailing tail light diffusion / scatter strength (faint & subtle, 0.08).
-const float trail_diffusion_strength = 0.08;
 
 // Vignette strength (0.0 to disable, 0.06 for subtle corner depth).
 const float vignette_strength = 0.06;
@@ -49,86 +40,39 @@ const float speed = 1.0 / duration_seconds;
 
 void mainImage(out vec4 frag_color, vec2 frag_coord) {
   const vec2 uv = frag_coord / iResolution.xy;
+  const vec4 color = texture2D(iChannel0, uv);
+  frag_color = color;
 
   // Check if window is focused and cursor is active
   bool is_focused = (iCurrentCursorColor.a > 0.1) && (iCurrentCursor.z > 0.0) && (iCurrentCursor.w > 0.0);
 
-  const vec4 curr = bb(iCurrentCursor);
-  const vec4 prev = bb(iPreviousCursor);
-
-  const vec2 curr_center = mix(curr.xy, curr.zw, 0.5);
-  const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
-  const vec2 diff = curr_center - prev_center;
-
-  // Detect focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
-  bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) || (abs(iCurrentCursor.w - iPreviousCursor.w) > 2.0);
-
-  float type_time = (iTimeCursorChange > 0.0) ? (iTime - iTimeCursorChange) : 1.0;
-  vec2 render_uv = uv;
-
-  // 1. Newly Typed Character Drop & Scale-Down Entry Animation (Strictly on active typing, NOT on focus gain)
-  if (is_focused && !is_shape_change && character_drop_strength > 0.0 && type_time > 0.0 && type_time < 0.20) {
-    float anim_t = type_time / 0.20;
-    float fall_ease = 1.0 - pow(1.0 - anim_t, 3.0); // easeOutCubic
-    float inv_t = 1.0 - fall_ease;
-
-    // Character Scale-down (1.25x -> 1.0x) & Vertical Drop (-5.0px -> 0.0px)
-    float scale = 1.0 + 0.25 * inv_t * character_drop_strength;
-    float drop_y = -5.0 * inv_t * character_drop_strength;
-
-    vec2 rel_pos = frag_coord - curr_center;
-    if (abs(rel_pos.x) < 35.0 && abs(rel_pos.y) < 35.0) {
-      vec2 anim_pos = curr_center + rel_pos / scale + vec2(0.0, drop_y);
-      render_uv = anim_pos / iResolution.xy;
-    }
-  }
-
-  const vec4 color = texture2D(iChannel0, render_uv);
-  frag_color = color;
-
-  // 2. Text Bloom / Glow (Only when window is focused)
+  // 1. Text Bloom / Glow (Only when window is focused)
   if (is_focused && bloom_strength > 0.0) {
     vec2 px = 1.5 / iResolution.xy;
-    vec4 bloom_sum = texture2D(iChannel0, render_uv + vec2(-px.x, -px.y)) * 0.0625 +
-                     texture2D(iChannel0, render_uv + vec2( 0.0,  -px.y)) * 0.125  +
-                     texture2D(iChannel0, render_uv + vec2( px.x, -px.y)) * 0.0625 +
-                     texture2D(iChannel0, render_uv + vec2(-px.x,   0.0)) * 0.125  +
-                     texture2D(iChannel0, render_uv + vec2( 0.0,    0.0)) * 0.25   +
-                     texture2D(iChannel0, render_uv + vec2( px.x,   0.0)) * 0.125  +
-                     texture2D(iChannel0, render_uv + vec2(-px.x,  px.y)) * 0.0625 +
-                     texture2D(iChannel0, render_uv + vec2( 0.0,   px.y)) * 0.125  +
-                     texture2D(iChannel0, render_uv + vec2( px.x,  px.y)) * 0.0625;
+    vec4 bloom_sum = texture2D(iChannel0, uv + vec2(-px.x, -px.y)) * 0.0625 +
+                     texture2D(iChannel0, uv + vec2( 0.0,  -px.y)) * 0.125  +
+                     texture2D(iChannel0, uv + vec2( px.x, -px.y)) * 0.0625 +
+                     texture2D(iChannel0, uv + vec2(-px.x,   0.0)) * 0.125  +
+                     texture2D(iChannel0, uv + vec2( 0.0,    0.0)) * 0.25   +
+                     texture2D(iChannel0, uv + vec2( px.x,   0.0)) * 0.125  +
+                     texture2D(iChannel0, uv + vec2(-px.x,  px.y)) * 0.0625 +
+                     texture2D(iChannel0, uv + vec2( 0.0,   px.y)) * 0.125  +
+                     texture2D(iChannel0, uv + vec2( px.x,  px.y)) * 0.0625;
     frag_color.rgb += bloom_sum.rgb * bloom_strength;
   }
 
-  // 3. Animated Trailing Tail & Fine Raindrop Water Ripple (Strictly when focused & active)
+  // 2. Animated Pure Liquid Cursor Trail (Strictly when focused & moving)
   if (is_focused && iPreviousCursor.z > 0.0 && iPreviousCursor.w > 0.0) {
+    const vec4 curr = bb(iCurrentCursor);
+    const vec4 prev = bb(iPreviousCursor);
 
-    // Fine Raindrop Falling into Water Ripple Physics Model (Strictly on active typing, NOT on focus gain)
-    if (!is_shape_change && typing_ripple_strength > 0.0 && type_time > 0.0 && type_time < 0.18) {
-      float drop_t = type_time / 0.18;
-      float dist = length(frag_coord - curr_center);
+    const vec2 curr_center = mix(curr.xy, curr.zw, 0.5);
+    const vec2 prev_center = mix(prev.xy, prev.zw, 0.5);
+    const vec2 diff = curr_center - prev_center;
 
-      // Raindrop radius: tiny expansion (0 to 12 pixels max!)
-      float primary_radius = drop_t * 12.0;
+    // Detect focus loss / gain cursor shape transition (e.g. beam <-> hollow box)
+    bool is_shape_change = (abs(iCurrentCursor.z - iPreviousCursor.z) > 2.0) || (abs(iCurrentCursor.w - iPreviousCursor.w) > 2.0);
 
-      // Super fine ring width (gaussian variance 3.0 - ultra delicate!)
-      float ring1 = exp(-pow(dist - primary_radius, 2.0) / 3.0);
-
-      // Natural water splash center droplet glint at impact (r < 3.0px)
-      float drop_glint = (dist < 3.0) ? (exp(-drop_t * 20.0) * 0.20) : 0.0;
-
-      // Rapid exponential water damping
-      float water_fade = pow(1.0 - drop_t, 2.2);
-      float raindrop_effect = (ring1 + drop_glint) * water_fade;
-
-      vec3 water_tint = iCurrentCursorColor.rgb;
-      if (length(water_tint) < 0.3) { water_tint = vec3(0.82, 0.84, 0.80); }
-
-      frag_color.rgb += water_tint * raindrop_effect * typing_ripple_strength;
-    }
-
-    // Directional Thin Beam Trailing Liquid Tail Animation
     if (!is_shape_change && diff != vec2(0.0, 0.0) && length(diff) > 2.0) {
       const float progress = min((iTime - iTimeCursorChange) * speed, 1.0);
 
@@ -156,12 +100,6 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
           vec4 trail_color = vec4(trail_rgb, fade * 0.70 * edge_smooth);
           frag_color = alpha_blend(trail_color, frag_color);
         }
-
-        // Faint, gentle 2D light diffusion strictly active during trail motion
-        if (trail_diffusion_strength > 0.0) {
-          float scatter = exp(-dist_seg * 0.25) * fade * trail_diffusion_strength;
-          frag_color.rgb += trail_rgb * scatter;
-        }
       }
     }
 
@@ -170,7 +108,7 @@ void mainImage(out vec4 frag_color, vec2 frag_coord) {
     }
   }
 
-  // 4. Subtle Vignette (Darken corners slightly for immersive depth)
+  // 3. Subtle Vignette (Darken corners slightly for immersive depth)
   if (vignette_strength > 0.0) {
     vec2 v_uv = uv * (1.0 - uv.yx);
     float vig = v_uv.x * v_uv.y * 15.0;
