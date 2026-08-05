@@ -6,7 +6,6 @@ font-feature = liga
 
 # Window & Aesthetics
 title = Ghostty@CachyOS
-background-opacity = 0.9
 window-padding-x = 16
 window-padding-y = 16
 window-padding-balance = true
@@ -14,7 +13,8 @@ window-padding-color = background
 window-decoration = true
 gtk-titlebar = false
 
-# Scrollback & Mouse
+# Scrollbar, Scrollback & Mouse
+scrollbar = system
 scrollback-limit = 10000
 mouse-hide-while-typing = true
 cursor-click-to-move = true
