@@ -38,8 +38,8 @@
     "npm:pi-deepseek-search",
     "npm:pi-simplify"
   ],
-  "defaultProvider": "opencode-go",
-  "defaultModel": "deepseek-v4-flash",
+  "defaultProvider": "sensenova",
+  "defaultModel": "sensenova-6.7-flash-lite",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false
 }
