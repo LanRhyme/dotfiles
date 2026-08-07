@@ -2076,6 +2076,27 @@ def write_krita_tvp(palette):
     if out_path.parent.exists():
         out_path.write_text(json.dumps(palette, indent=2))
 
+def write_bilibili_danmaku(palette):
+    config_dir = Path.home() / ".config" / "bilibili-pixel-danmaku"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    colors_file = config_dir / "morandi_colors.json"
+    
+    # We only output the keys needed by theme.py
+    theme_colors = {
+        "surface": palette["base"],
+        "surface_variant": palette["surface0"],
+        "surfaceContainerHigh": palette["surface1"],
+        "outlineVariant": palette["overlay0"],
+        "onSurface": palette["text"],
+        "onSurfaceVariant": palette["subtext"],
+        "primary": palette["primary"],
+        "tertiary": palette["gold"],
+        "error": palette["love"]
+    }
+    
+    with open(colors_file, "w", encoding="utf-8") as f:
+        json.dump(theme_colors, f, indent=2)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wallpaper", help="Path to current wallpaper for limine sync")
@@ -2143,6 +2164,11 @@ def main():
     write_antigravity(palette)
     write_ly(palette)
     
+    try:
+        write_bilibili_danmaku(palette)
+    except Exception as e:
+        print(f"Failed to write bilibili_danmaku theme: {e}")
+        
     apply_system_changes(args.wallpaper)
     print("Morandi theme generated and system changes applied successfully.")
 
