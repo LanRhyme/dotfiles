@@ -2081,17 +2081,23 @@ def write_bilibili_danmaku(palette):
     config_dir.mkdir(parents=True, exist_ok=True)
     colors_file = config_dir / "morandi_colors.json"
     
-    # We only output the keys needed by theme.py
+    # We output all keys needed by theme.py
     theme_colors = {
-        "surface": palette["base"],
-        "surface_variant": palette["surface0"],
-        "surfaceContainerHigh": palette["surface1"],
-        "outlineVariant": palette["overlay0"],
-        "onSurface": palette["text"],
-        "onSurfaceVariant": palette["subtext"],
-        "primary": palette["primary"],
-        "tertiary": palette["gold"],
-        "error": palette["love"]
+        "surface": palette.get("base", "#1a1b26"),
+        "surface_variant": palette.get("surface0", "#24283b"),
+        "surfaceContainerHigh": palette.get("surface1", "#2f3549"),
+        "surface2": palette.get("surface2", "#3b4261"),
+        "outlineVariant": palette.get("overlay0", "#414868"),
+        "crust": palette.get("crust", "#16161e"),
+        "onSurface": palette.get("text", "#c0caf5"),
+        "onSurfaceVariant": palette.get("subtext0", "#a9b1d6"),
+        "primary": palette.get("iris", "#7aa2f7"),
+        "primary_hover": palette.get("rose", "#89ddff"),
+        "tertiary": palette.get("gold", "#e0af68"),
+        "error": palette.get("love", "#f7768e"),
+        "pine": palette.get("pine", "#9ece6a"),
+        "foam": palette.get("foam", "#7dcfff"),
+        "iris": palette.get("iris", "#bb9af7")
     }
     
     with open(colors_file, "w", encoding="utf-8") as f:

@@ -17,7 +17,7 @@
     },
     "modules": [
         { "type": "title", "color": { "user": "#f2f2f2", "at": "#afac9c", "host": "#a8aba0" } },
-        { "type": "separator", "string": "─", "times": 40, "outputColor": "#65635e" },
+        { "type": "separator", "string": "─", "times": 40, "outputColor": "#64635f" },
         { "type": "os", "key": "   OS" },
         { "type": "kernel", "key": "   Kernel" },
         { "type": "uptime", "key": "   Uptime" },
@@ -27,14 +27,14 @@
         { "type": "terminalfont", "key": "  󰊕 Font" },
         { "type": "de", "key": "   DE" },
         { "type": "wm", "key": "   WM" },
-        { "type": "separator", "string": "─", "times": 40, "outputColor": "#65635e" },
+        { "type": "separator", "string": "─", "times": 40, "outputColor": "#64635f" },
         { "type": "host", "key": "  󰩘 Host" },
         { "type": "cpu", "key": "   CPU" },
         { "type": "gpu", "key": "   GPU" },
         { "type": "memory", "key": "   Memory" },
         { "type": "disk", "key": "   Disk" },
         { "type": "display", "key": "  󰍙 Display" },
-        { "type": "separator", "string": "─", "times": 40, "outputColor": "#65635e" },
+        { "type": "separator", "string": "─", "times": 40, "outputColor": "#64635f" },
         { "type": "localip", "key": "  󰩠 Local IP" },
         { "type": "colors", "symbol": "circle", "paddingLeft": 2 }
     ]
