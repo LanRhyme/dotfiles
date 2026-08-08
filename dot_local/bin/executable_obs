@@ -1,0 +1,4 @@
+#!/bin/bash
+# OBS Wayland 屏幕采集修复：强制走核显 (mesa EGL)
+# 根因：niri 用核显渲染分配 linear buffer，OBS 用 NVIDIA 渲染时无法导入（no more input formats）
+exec env -u __NV_PRIME_RENDER_OFFLOAD -u __GLX_VENDOR_LIBRARY_NAME __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json /usr/bin/obs "$@"
