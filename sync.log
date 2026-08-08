@@ -1400,3 +1400,8 @@ To https://github.com/LanRhyme/dotfiles.git
  2 files changed, 22 insertions(+), 12 deletions(-)
 To https://github.com/LanRhyme/dotfiles.git
    5b9fb25..0d30f4f  master -> master
+[master 8da184b] auto: 2026-08-08-20:00:00
+ 1 file changed, 4 insertions(+)
+To https://github.com/LanRhyme/dotfiles.git
+   0d30f4f..8da184b  master -> master
+chezmoi: /home/lanrhyme/.config/obs-studio/user.ini:84: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
