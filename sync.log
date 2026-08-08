@@ -1409,3 +1409,4 @@ chezmoi: /home/lanrhyme/.config/obs-studio/user.ini:84: Detected a Generic API K
  5 files changed, 10 insertions(+), 2 deletions(-)
 To https://github.com/LanRhyme/dotfiles.git
    8da184b..ae90b71  master -> master
+chezmoi: /home/lanrhyme/.config/obs-studio/user.ini:84: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
