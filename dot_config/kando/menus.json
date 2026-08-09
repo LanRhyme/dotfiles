@@ -9,6 +9,45 @@
         "iconTheme": "material-symbols-rounded",
         "children": [
           {
+            "type": "submenu",
+            "name": "视图",
+            "icon": "visibility",
+            "iconTheme": "material-symbols-rounded",
+            "children": [
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 50:1 50:0"
+                },
+                "name": "镜像画布",
+                "icon": "flip",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "X"
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 15:1 15:0"
+                },
+                "name": "切换面板",
+                "icon": "view_sidebar",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "Tab"
+              },
+              {
+                "type": "command",
+                "data": {
+                  "command": "sleep 0.3 && ydotool key 29:1 22:1 22:0 29:0"
+                },
+                "name": "色调调整",
+                "icon": "tune",
+                "iconTheme": "material-symbols-rounded",
+                "quickSelectKey": "H"
+              }
+            ],
+            "angle": 0
+          },
+          {
             "type": "command",
             "data": {
               "command": "sleep 0.3 && ydotool key 48:1 48:0"
@@ -17,7 +56,7 @@
             "icon": "stylus_pen",
             "iconTheme": "material-symbols-rounded",
             "quickSelectKey": "B",
-            "angle": 60
+            "angle": 45
           },
           {
             "type": "command",
@@ -28,7 +67,7 @@
             "icon": "eraser_size_4",
             "iconTheme": "material-symbols-rounded",
             "quickSelectKey": "2",
-            "angle": 90
+            "angle": 75
           },
           {
             "type": "command",
@@ -39,7 +78,18 @@
             "icon": "format_color_fill",
             "iconTheme": "material-symbols-rounded",
             "quickSelectKey": "F",
-            "angle": 150
+            "angle": 135
+          },
+          {
+            "type": "command",
+            "data": {
+              "command": "sleep 0.3 && ydotool key 29:1 20:1 20:0 29:0"
+            },
+            "name": "变换",
+            "icon": "transform",
+            "iconTheme": "material-symbols-rounded",
+            "quickSelectKey": "T",
+            "angle": 165
           },
           {
             "type": "command",
@@ -47,10 +97,10 @@
               "command": "sleep 0.3 && ydotool key 17:1 17:0"
             },
             "name": "魔法棒",
-            "icon": "auto_awesome",
+            "icon": "wand_stars",
             "iconTheme": "material-symbols-rounded",
             "quickSelectKey": "W",
-            "angle": 180
+            "angle": 195
           },
           {
             "type": "command",
@@ -61,7 +111,7 @@
             "icon": "nest_eco_leaf",
             "iconTheme": "material-symbols-rounded",
             "quickSelectKey": "L",
-            "angle": 210
+            "angle": 225
           },
           {
             "type": "command",
@@ -69,10 +119,10 @@
               "command": "sleep 0.3 && ydotool key 56:1 22:1 22:0 56:0"
             },
             "name": "套索",
-            "icon": "draw",
+            "icon": "lasso_select",
             "iconTheme": "material-symbols-rounded",
             "quickSelectKey": "U",
-            "angle": 240
+            "angle": 255
           },
           {
             "type": "submenu",
@@ -89,18 +139,7 @@
                 "icon": "water_drop",
                 "iconTheme": "material-symbols-rounded",
                 "quickSelectKey": "S",
-                "angle": 45
-              },
-              {
-                "type": "command",
-                "data": {
-                  "command": "sleep 0.3 && ydotool key 29:1 20:1 20:0 29:0"
-                },
-                "name": "变换",
-                "icon": "transform",
-                "iconTheme": "material-symbols-rounded",
-                "quickSelectKey": "T",
-                "angle": 75
+                "angle": 60
               },
               {
                 "type": "command",
@@ -111,7 +150,7 @@
                 "icon": "colorize",
                 "iconTheme": "material-symbols-rounded",
                 "quickSelectKey": "I",
-                "angle": 150
+                "angle": 165
               },
               {
                 "type": "command",
@@ -167,44 +206,6 @@
                 "iconTheme": "material-symbols-rounded",
                 "quickSelectKey": "C",
                 "angle": 360
-              }
-            ]
-          },
-          {
-            "type": "submenu",
-            "name": "视图",
-            "icon": "visibility",
-            "iconTheme": "material-symbols-rounded",
-            "children": [
-              {
-                "type": "command",
-                "data": {
-                  "command": "sleep 0.3 && ydotool key 50:1 50:0"
-                },
-                "name": "镜像画布",
-                "icon": "flip",
-                "iconTheme": "material-symbols-rounded",
-                "quickSelectKey": "X"
-              },
-              {
-                "type": "command",
-                "data": {
-                  "command": "sleep 0.3 && ydotool key 15:1 15:0"
-                },
-                "name": "切换面板",
-                "icon": "view_sidebar",
-                "iconTheme": "material-symbols-rounded",
-                "quickSelectKey": "Tab"
-              },
-              {
-                "type": "command",
-                "data": {
-                  "command": "sleep 0.3 && ydotool key 29:1 22:1 22:0 29:0"
-                },
-                "name": "色调调整",
-                "icon": "tune",
-                "iconTheme": "material-symbols-rounded",
-                "quickSelectKey": "H"
               }
             ]
           }
