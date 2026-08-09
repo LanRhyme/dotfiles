@@ -4,7 +4,8 @@
 
 ## 当前配置状态
 
-- **Noctalia 更新 (2026-08-09)**: `noctalia-git` 从 `5.0.0.r5069.ge41c99439` 升级到 `5.0.0.r5128.gad647ae1b`（AUR PKGBUILD 已审查：官方 GitHub noctalia-dev/noctalia main 分支，无危险操作）。paru 交互安装因 sudo 密码失败，改用 `pkexec pacman -U` 安装构建产物（`~/.cache/paru/clone/noctalia-git/`）。重启方式：kill noctalia 后不会自动重启（niri `spawn-sh-at-startup` 只在会话启动时执行），需手动 `nohup noctalia &` 拉起
+- **Waydroid 安装 (2026-08-09)**: `waydroid 1.6.3-1`（extra 官方源，pacman 安装 + `python-pyclip` 剪贴板支持）。**镜像下载绕过被墙的 SourceForge**：SourceForge 全节点直连/代理 <1kB/s，方案为请求 `/download` 拿 zenlayer 节点签名 URL（`zenlayer.dl.sourceforge.net/...?viasf=1&fid=...&e=...&st=...`，有效期约 1 小时）+ FlClash 代理 `curl -x http://127.0.0.1:7890 -C -` 下载到 `/var/lib/waydroid/cache_http/<filename>_<sha256>`（sha256 从 `ota.waydro.id` 的 JSON 获取），实测 500-650kB/s；system 800M（VANILLA）+ vendor 180M（MAINLINE）均校验通过后 `waydroid init` 秒过（缓存命中）。**容器**：`systemctl enable --now waydroid-container`，binder 走 binderfs（内核 CONFIG_ANDROID_BINDERFS=y，`/dev/binder` 符号链接正常）。**渲染**：Intel 硬件加速确认（`waydroid shell dumpsys SurfaceFlinger` → `GLES: Intel, Mesa Intel(R) Graphics (ADL GT2), OpenGL ES 3.2`），非 llvmpipe。**未用 NVIDIA**：hybrid 笔记本（iGPU 内屏 + RTX 3050 无任何输出端口，card0 下无输出节点）下 waydroid-nvidia 方案 README 明示 broken（gamescope 嵌套崩溃带走会话），故弃用；如后续需要 N 卡渲染只能 BIOS MUX 独显直连（COLORFUL X15 XS 22 是否有 MUX 未确认）。**坑**：pkexec polkit 认证在 niri 下卡死（`pkexec true` 也超时，polkit-kde-authentication-agent 对话框不弹），root 操作需用户手动 `sudo`；用户组只有 video（renderD12x 为 666 权限无碍）；多次超时遗留孤儿 `waydroid.py init` 进程需 `pkill -9 -f "waydroid.py init"` 清理
+- **Noctalia 更新 (2026-08-09): `noctalia-git` 从 `5.0.0.r5069.ge41c99439` 升级到 `5.0.0.r5128.gad647ae1b`（AUR PKGBUILD 已审查：官方 GitHub noctalia-dev/noctalia main 分支，无危险操作）。paru 交互安装因 sudo 密码失败，改用 `pkexec pacman -U` 安装构建产物（`~/.cache/paru/clone/noctalia-git/`）。重启方式：kill noctalia 后不会自动重启（niri `spawn-sh-at-startup` 只在会话启动时执行），需手动 `nohup noctalia &` 拉起
 - **显示管理器**: 已替换为 `greetd` + `noctalia-greeter` (Noctalia 官方原生图形化 Greeter)。通过 `greetd.service` 运行。其主题美化（壁纸、莫兰迪色板）和多显示器布局完全依赖于 Noctalia Shell 的图形界面同步功能（设置 -> Shell -> 安全 -> Noctalia Greeter -> Sync Now）。
 - **主题化**: 全局由 `~/.config/noctalia/morandi-gen.py` 处理（莫兰迪色系）。避免破坏 UI 密集型应用的结构化 CSS。具体情况具体分析，部分应用主题不由其管理，像是krita。
 - **Fastfetch 精致化 (2026-08-05)**: `write_fastfetch` 由局部补丁改为全量生成 `~/.config/fastfetch/config.jsonc`（模板注入 palette 色）。新布局：标题三色分区（user=text、at=iris、host=pine）、分隔线改用 `─`×40 并与 logo 等宽（色为 overlay0）、模块分三组（系统：OS/Kernel/Uptime/Packages/Shell/Terminal/Terminal Font/DE/WM；硬件：Host/CPU/GPU/Memory/Disk/Display；网络：Local IP）+ 底部 8 个圆形色点横向排列（symbol=circle，paddingLeft=2，默认 256 色索引 8-1 逆序）。图标：Host 从 `U+F2DB`（与 CPU 重复）换成 md-laptop `U+F0A58`，新增 Font `U+F0295`、Display `U+F0359`、Local IP `U+F0A60`。注意：源码中 5 位十六进制码点（≥U+F0000）必须用 8 位 `\U000FXXXX` 转义，`\U0000FXXXX`（9 位）会被 Python 截断成 `\U0000FXXX`+尾字符
@@ -53,6 +54,7 @@
 - **注意**: 升级新版时先 `pkexec pacman -R --noconfirm micyou-bin` 再装新包（conflicts 交互提示在 pkexec 下无法应答）
 
 ## MicYou Wi-Fi 连接问题修复 (2026-08-09)
+
 - **症状**: Linux 下 Wi-Fi 模式手机连不上电脑，Windows 正常
 - **根因**: UFW 防火墙 active（默认 deny incoming），只放行了 KDE Connect 的 1714:1764，MicYou 端口全被静默丢弃；Windows 首次运行会弹防火墙允许窗口故无此问题
 - **修复**: `pkexec bash -c 'ufw allow 8554/tcp && ufw allow 8555/udp && ufw allow 8443/tcp && ufw allow 5353/udp'`（8554 TCP 控制 + 8555 UDP 音频 + 8443 web 模式 + 5353 mDNS 发现），IPv4/v6 均添加
