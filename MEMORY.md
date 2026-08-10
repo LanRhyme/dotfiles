@@ -68,3 +68,13 @@
 - **安装方式**: `sudo pacman -S --noconfirm krita-plugin-gmic`（sudo 需密码，pkexec 在 niri 下会卡死）
 - **插件类型**: 原生 `kritaplugin`（非 pykrita），文件在 `/usr/lib/kritaplugins/krita_gmic_qt.so`，滤镜数据在 `/usr/share/gmic/`
 - **启用方法**: 需重启 Krita，在 设置→配置 Krita→插件管理器 勾选 GMic 启用
+
+## Krita GmicFilters 滤镜中心插件 (2026-08-10)
+
+- **项目**: `~/Projects/Krita-GmicFilters/`（git 已提交，LanRhyme 风格），安装于 `~/.local/share/krita/pykrita/gmic_filters/`（chezmoi 不管理 pykrita）
+- **功能**: G'MIC + Krita 原生滤镜中文面板，搜索/分类/收藏/参数记忆/自定义命令，18 个 G'MIC 滤镜（gmic 4.0.3 实测）+ 9 个 Krita 原生滤镜
+- **架构**: `__init__.py`（DockWidgetFactory 注册，DockRight）+ `docker.py`（主面板）+ `filter_db.py`（滤镜库）+ `gmic_runner.py`（CLI 执行与图像往返）+ `pixels.py`（像素<->QImage，8/16 位 RGB/RGBA/GRAY）+ `gmic_detector.py`（跨平台检测）+ `qt_compat.py`（PyQt5/6 兼容）+ `config.py`（QSettings：收藏/参数记忆）
+- **关键技术点**: ① gmic 会把 `-o` 输出选项吞成滤镜参数——所有内置滤镜必须带完整显式参数，且用 `-o[0]` 定点输出 ② 图像往返走临时 PNG（区域像素→QImage→gmic→写回 setPixelData，撤销由 Krita 记录）③ 检测 gmic 走 PATH+常见安装目录+手动路径，10s 缓存 ④ QSettings INI 返回 str，时间戳需 float() 强转 ⑤ PyQt6 槽内未处理异常会 qFatal 中止，参数面板 JSON 损坏需防御（get_params 校验 dict 类型）
+- **关键坑**: pykrita 插件的 `.desktop` 必须放在 `~/.local/share/krita/pykrita/` **根目录**（`<id>.desktop`），不能放插件目录内；格式必须用 `ServiceTypes=Krita/PythonPlugin`（非 X-KDE-ServiceTypes）+ `X-Python-2-Compatible=false`（非 X-Python-Version）。放错位置插件列表完全不显示；**Docker 类必须继承 `from krita import DockWidget`（QDockWidget）**，内容用 `setWidget(main_widget)` 装入，否则报 `TypeError: invalid result from DockWidgetFactory.createDockWidget()`
+- **状态**: 离屏 UI 测试全过，18 滤镜端到端执行全过；desktop 位置/格式已修复，**待用户重启 Krita 确认插件出现在列表**（kritarc 已写入 `enable_kritapykrita_gmic_filters=true`，备份在 ~/tmp/kritarc.bak.*）
+- **已知限制**: gmic 同步执行会短暂阻塞 UI（大图慢）；原生滤镜参数是尽力而为（属性名不匹配时用 Krita 默认参数）；drop_shadow/frame 等会改变输出尺寸，自动缩放回原区域
