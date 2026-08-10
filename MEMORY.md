@@ -20,7 +20,7 @@
 - **Alacritty 终端背景 (2026-08-04)**: 背景色 `term_bg` 已调低明度至贴近黑色——公式由 `l_b + 1` 改为 `max(l_b - 1, 4)`（l_b 为 base 明度），当前背景 `#181714`（L≈7.9，保留莫兰迪暖调，仍由 morandi-gen.py 动态生成）。此前尝试 `l_b - 6`（#0b0a09）过深已回退
 - **Niri 动画**: 在 `~/.config/niri/cfg/animation.kdl` 中调优为较慢、弹性轻柔的滑行（stiffness=180-220, damping-ratio=0.8），确保流畅的过渡手感
 - **Niri 窗口间距**: 在 `~/.config/niri/cfg/layout.kdl` 中从 12px 缩小到 8px，优化屏幕布局空间
-- **Niri 透明度**: 全局窗口规则设置 `opacity 0.9` + `blur true`（Krita 除外）。关键点: 必须设置 `draw-border-with-background false`，否则 niri 会在窗口后方渲染为实心矩形边框，透过半透明窗口显示出来，导致聚焦时窗口看起来不透明
+- **Niri 透明度**: 全局窗口规则设置 `opacity 0.98` + `blur true`（Krita 除外，另 Loupe/Kando/SPlayer 歌词也排除）。2026-08-10 从 0.9 → 0.95 → 0.98（用户偏好逐步调高）。关键点: 必须设置 `draw-border-with-background false`，否则 niri 会在窗口后方渲染为实心矩形边框，透过半透明窗口显示出来，导致聚焦时窗口看起来不透明。2026-08-10 曾尝试注释掉全部 opacity/blur 设置（用户后改主意），恢复后仅改 0.95→0.98，配置在 `~/.config/niri/config.kdl`（chezmoi 管理）
 - **Zen 浏览器 (Flatpak)**: 通过 `flatpak override` 配合 NVIDIA 环境变量（`__NV_PRIME_RENDER_OFFLOAD=1`、`__GLX_VENDOR_LIBRARY_NAME=nvidia` 等）实现 GPU 加速。fcitx5 主题修复通过 D-Bus talk 权限（`org.fcitx.Fcitx5`、`org.freedesktop.portal.Fcitx`）和对 `~/.local/share/fcitx5` 及 `~/.config/fcitx5` 的只读文件系统访问实现。Zen `user.js` 已强制开启 WebRender、DMA-BUF、硬件视频解码
 - **SPlayer-Next**: 通过 `splayer-next-bin` (AUR) 安装。二进制位于 `/opt/splayer-next/SPlayer-Next`，命令行启动命令 `splayer-next`。桌面文件路径已修正为 `/opt/splayer-next/SPlayer-Next`
 - **Fcitx5 输入法**: 皮肤已切换为 `bamboo-dark`（古典竹简花纹主题），由 `~/.config/noctalia/morandi-gen.py` 动态注入莫兰迪配色；候选词排列已调整为竖向（`Vertical Candidate List=True`）
