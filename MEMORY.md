@@ -78,3 +78,19 @@
 - **关键坑**: pykrita 插件的 `.desktop` 必须放在 `~/.local/share/krita/pykrita/` **根目录**（`<id>.desktop`），不能放插件目录内；格式必须用 `ServiceTypes=Krita/PythonPlugin`（非 X-KDE-ServiceTypes）+ `X-Python-2-Compatible=false`（非 X-Python-Version）。放错位置插件列表完全不显示；**Docker 类必须继承 `from krita import DockWidget`（QDockWidget）**，内容用 `setWidget(main_widget)` 装入，否则报 `TypeError: invalid result from DockWidgetFactory.createDockWidget()`
 - **状态**: 离屏 UI 测试全过，18 滤镜端到端执行全过；desktop 位置/格式已修复，**待用户重启 Krita 确认插件出现在列表**（kritarc 已写入 `enable_kritapykrita_gmic_filters=true`，备份在 ~/tmp/kritarc.bak.*）
 - **已知限制**: gmic 同步执行会短暂阻塞 UI（大图慢）；原生滤镜参数是尽力而为（属性名不匹配时用 Krita 默认参数）；drop_shadow/frame 等会改变输出尺寸，自动缩放回原区域
+
+## Krita-MobileUI 项目 (2026-08-11)
+
+- **项目**: `~/Projects/Krita-MobileUI`,为手机和平板打造的 Krita 移动端 UI,目标类似画世界 Pro + CSP 手机版双模式
+- **基础**: 官方 Krita QML tablet UI 原型 MR 2417 (timotheegiet, 321 文件),已从 invent.kde.org 的 timotheegiet fork 下载(proxy 127.0.0.1:7890 走 FlClash)
+- **架构**: 纯 QML UI(kritaTabletModule)+ 未来 C++ 核心集成。双模式:
+  - Simple 模式:手机竖屏,全屏画布+浮动底部栏,底部弹出 bottom sheet 面板,手势(捏合/边缘热区)
+  - Studio 模式:平板横屏,侧边工具栏+面板 dock
+  - uiMode 状态在 SharedProps (auto/simple/studio),auto 按屏幕尺寸检测(600px 阈值)
+- **关键文件**: `tabletUI/TabletUITest.qml`(qml 直接运行测试版)/ `TabletUI.qml`(编译版)/ `SimpleCanvasScreen.qml`(手机布局)/ `CanvasScreen.qml`(平板布局)/ `coreQML/SharedProps.qml`(全局单例)/ `coreQML/PanelSlide.qml`(滑入滑出)/ `coreQML/Pressable.qml`(弹性按压)/ `coreQML/GestureLayer.qml`(手势)/ `coreQML/SimpleButton.qml`(弹性反馈)
+- **运行**: `cd tabletUI && /usr/lib/qt6/bin/qml -I . TabletUITest.qml`(注意 PATH 里 qml 是 Qt5 的,必须用 /usr/lib/qt6/bin/qml);编译版 `cd tabletUI/build && cmake .. && make && ./kritaTablet`
+- **验证**: 双模式自动检测/手动切换全过;Simple 模式 400x800 加载无错;毛玻璃面板(高斯模糊 24px + 0.85 透明度)渲染正常;编译版运行正常
+- **已知坑**: ① qml 工具吞 console.log 输出,需 QT_FORCE_STDERR_LOGGING=1 + console.warn ② 图标资源已从损坏符号链接转为真实文件(原链接指向 ~/Projects/krita-source 的绝对路径,不可移植)③ MultiPointTouchArea 只有 touchUpdated 信号无 onTouchReleased ④ QtObject 不能直接含 Connections(需 Item 基类)⑤ layer.effect 需直接子级 GaussianBlur 实例
+- **Android 构建**: buildAPK.sh 需要 Qt for Android(未装)+ Android SDK(已就绪: ~/Android/Sdk, android-36, NDK 25/27);官方 MR 测过 Qt 6.6.3 + NDK 25.1 + android-33
+- **待办**: 阶段二手势完善、阶段三 C++ 集成、阶段四 Android APK、阶段五发布(详见 docs/ROADMAP.md)
+- **设计规范**: docs/DESIGN.md(莫兰迪配色、动效时长、触控规格)
