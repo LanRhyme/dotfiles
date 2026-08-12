@@ -79,6 +79,24 @@
 - **状态**: 离屏 UI 测试全过，18 滤镜端到端执行全过；desktop 位置/格式已修复，**待用户重启 Krita 确认插件出现在列表**（kritarc 已写入 `enable_kritapykrita_gmic_filters=true`，备份在 ~/tmp/kritarc.bak.*）
 - **已知限制**: gmic 同步执行会短暂阻塞 UI（大图慢）；原生滤镜参数是尽力而为（属性名不匹配时用 Krita 默认参数）；drop_shadow/frame 等会改变输出尺寸，自动缩放回原区域
 
+## ReveriePaint-native 笔刷引擎 (2026-08-13)
+
+- 阶段1完成: Krita 真实笔刷引擎集成 (commit 622cf58/2369cdf/2eb13f0)
+- 关键机制: 预设 .kpp 是自包含 PNG (内嵌 XML+笔刷), 16个在 krita/data/paintoppresets
+- 注册: register_static.cpp 编译进 kritadefaultpaintops_static, 避免模板跨 DSO vtable 错位崩溃
+  (在 harness 侧实例化 KisSimplePaintOpFactory 会让 kritaimage 内部虚调用错位段错误)
+- 渲染: KisBrushOp::paintLine + KisPaintInformation(压感) + KisFakeRunnableStrokeJobsExecutor
+  同步驱动异步 dab 管线 + doAsynchronousUpdate 取 ready dabs bitBlt (Krita 测试同款机制)
+- 桌面 harness 验证: 压力1.0->0.3 线宽38->2px, 软边正常 (offscreen + QT_FORCE_STDERR_LOGGING)
+- QApplication 在无头环境需 QT_QPA_PLATFORM=offscreen, 否则段错误
+- CMake 链接: kritalibpaintop(kritaui 依赖, APK +12MB) + kritadefaultpaintops_static
+  + kritacolorsmudgepaintop.so (MODULE 库无 lib 前缀, 需复制 lib 前缀版供 -l 链接,
+    AGP 会把 target_link_libraries 的 .so 路径剥成 -l)
+- AGP 自动收集 CMake NEEDED 依赖到 cxx obj (33个), jniLibs 只保留 AGP 漏的 14个
+- 笔刷参数: setPaintOpSize/Opacity/Flow, JNI/Kotlin/UI 全链路, 面板含缩略图网格
+- 16 预设全部可加载 (15 paintbrush + 1 colorsmudge)
+- 待: 真机验证(手机离线), 阶段2工具系统(KisTool 评估), 硬度/间距滑块(brush_definition XML)
+
 ## Krita-MobileUI 项目 (2026-08-11)
 
 - **项目**: `~/Projects/Krita-MobileUI`,为手机和平板打造的 Krita 移动端 UI,目标类似画世界 Pro + CSP 手机版双模式
