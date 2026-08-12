@@ -94,3 +94,129 @@
 - **Android 构建**: buildAPK.sh 需要 Qt for Android(未装)+ Android SDK(已就绪: ~/Android/Sdk, android-36, NDK 25/27);官方 MR 测过 Qt 6.6.3 + NDK 25.1 + android-33
 - **待办**: 阶段二手势完善、阶段三 C++ 集成、阶段四 Android APK、阶段五发布(详见 docs/ROADMAP.md)
 - **设计规范**: docs/DESIGN.md(莫兰迪配色、动效时长、触控规格)
+
+### 2026-08-12 22:40 手势三连根因(已修, commit c577c54)
+
+- 单击变双击根因:awaitLongPressOrCancellation 内部吞掉 UP 事件,返回 null 后 else 分支永远等不到 up,第一次点击丢失,第二次 down 才触发 onClick
+- 左滑根因:同一 UP 被吞问题 + 抽屉 AnimatedVisibility modifier 里 fillMaxSize 覆盖了 width(全宽)
+- 组缩进根因:Spacer(缩进)放在缩略图之后(名称右移),应放行最前(整行右移),depth*16dp
+- 新手势:完整事件流自处理(不用 awaitLongPressOrCancellation)——maxMoveSq 累计移动,elapsed>=400ms 且 maxMoveSq<=1.5x slop → 长按拖拽;movedSq>slop → 左滑;up 时 maxMoveSq<=slop → tap
+- C++ depth 语义:walk(root,0) 顶层 depth=0,组内=1;显示算法 collectBlock(0,n,-1)
+- 手机曾锁屏(NotificationShade 卡住),cmd statusbar collapse 无效,靠用户自行解锁
+
+### 2026-08-13 00:10 手势与交互修复 (commit bfe5249)
+
+- 新问题修复:点击已选中行的眼睛/折叠箭头会进二级页面 —— 根因:行手势覆盖整行,子元素(眼睛/箭头)点击时行手势也判定 tap;修复:interactiveEndPx 区域(缩进+箭头22dp+眼睛28dp)内的 down 直接 return@awaitEachGesture 交给子元素
+- 左滑/长按参数放宽:长按 slop 1.5x→2x touchSlop,左滑阈值 10dp→8dp
+- adb 实测验证过(bfe5249 前版本):左滑触发 SWIPE 日志+抽屉出现,长按触发 DRAG start/end;用户反馈仍不行,可能因从行左侧(眼睛区)操作或幅度不足
+- 拖拽落点日志:dragPos y=.. over=.. 已埋,用户测试时可抓 adb logcat -s LayerPanel
+- adb 测试流程(手机解锁时):tap 540,2300(+创建) -> tap 540,737(9:16预设) -> tap 849,137(图层按钮)
+- 注意:手机易锁屏(NotificationShade),adb 操作前检查 mCurrentFocus;用户可能在用手机时勿操作
+
+### 2026-08-13 00:40 长按根因确认与修复 (commit 52d5aed)
+
+- 长按拖拽失败真正根因:按住不动时系统不发 move 事件,时间戳检测(事件驱动)永不触发;adb 原地长按日志为空证实
+- 修复:回到 awaitLongPressOrCancellation(内部 suspendCancellableCoroutine+withTimeout,事件无关超时);长按成功时 performHapticFeedback(LongPress) 震动(画世界 Pro 逻辑:长按震动后可拖拽)
+- up 吞修正:awaitLongPressOrCancellation 返回 null 后,单击的 UP 已被吞,else 分支等不到 up → 挂起直到下一手势 down(change.id 不匹配 → break,无害);swipe 的 move 未被吞,正常累计
+- 眼睛进二级页面根因:interactiveEndPx 漏算行内 8dp padding,眼睛右边缘落在手势区;修复 = 8dp padding + 缩进 + 箭头22dp + 眼睛28dp + 4dp 余量
+- 手势最终结构:交互区跳过 -> awaitLongPressOrCancellation -> 长按(震动+拖拽)/ null(swipe 累计 reveal / tap 判定)
+
+### 2026-08-13 01:20 手势最终方案 (commit 788b5fd)
+
+- 决定性证据(logcat):用户长按拖拽其实触发正常(DRAG start haptic / dragPos y=619..334 / drag END),但 dragPos over=-1 null 全程 —— rowBounds 从未被填充(LayerRow 的 onGloballyPositioned 只更新本地 rowTop,没写列表级 rowBounds map)→ 落点永远算不出 → moveLayer 不执行
+- 左滑无 SWIPE 日志:awaitLongPressOrCancellation 检测移动时吞掉 move+up 事件,else 分支等不到事件 → 挂起 → 快速短滑全丢
+- 最终手势结构:
+  - 左滑:行上 detectHorizontalDragGestures(官方,先声明先收事件,consume 防 clickable 取消)
+  - 点击/长按:combinedClickable(onClick=选中/详情, onLongClick=震动+onDragStart)——官方实现,长按计时事件无关(按住不动也能触发)
+  - 拖拽移动:列表 Column 上 pointerInput(draggingFrom) + awaitPointerEventScope 循环(长按激活后接管后续 move,consume 防 verticalScroll 劫持),onGloballyPositioned 记 columnTop 换算全局 y
+  - rowBounds 填充:LayerRow 加 onBounds(top,bottom) 回调 → rowBounds[index]
+- 关键 API 坑:PointerInputScope 不继承 AwaitPointerEventScope,pointerInput 块内直接 awaitPointerEvent 报 Unresolved,必须 awaitPointerEventScope 包裹
+- 拖拽视觉反馈(动画一直都在,之前被 bug 掐死):dragLineAbove 插入线 2dp accent / dragOnGroup 组悬停 accent 30% 背景
+- 用户催"动画和 UI"——动画代码存在但 never triggered,修复后可见
+
+### 2026-08-13 01:50 拖拽/左滑/动画 (commit 已提交)
+
+- 拖拽"没效果"根因:只有2层(背景+颜料图层1)时,唯一拖拽目标=背景行 → C++ moveLayer guard 拒绝 toIndex=0 → 永不移动;修复:endDrag 里 target.first<=0 时 to=1(背景上方最低可动位置)
+- 图层移动动画:LazyColumn + items(key)+ Modifier.animateItem()(LazyItemScope 成员,无需 import;animateItem 是成员函数不是顶层扩展)
+- 左滑最终方案:行上完整事件循环 awaitFirstDown(requireUnconsumed=false)+ swiping 后 consume move(与 combinedClickable 共存,通过 consume 仲裁:swipe 消费 move → clickable 取消;tap 无移动 → clickable onClick;长按无移动 → clickable onLongClick)
+- detectHorizontalDragGestures 被弃用:与 combinedClickable 事件分发顺序冲突(down 被 clickable 消费后 horizontal 拿不到)
+- LayerRow 加 modifier 参数(animateItem 挂在根 Box)
+- 列表分隔线删除(divider 逻辑随 for 循环移除)
+
+### 2026-08-13 02:10 画世界Pro式拖拽动画 (commit 28b25a6)
+
+- 用户明确要的拖拽动画:长按浮起 -> 跟手移动 -> 其他行让位 -> 松手插入
+- 实现:
+  - displayList:拖拽时被拖行临时移到 dragTargetIdx(LazyColumn items + animateItem 自动让位动画)
+  - updateDragPos 算两件事:target(行中点之上=插入位)+ over(插入线/组高亮)
+  - LayerRow isDragging/dragFingerY 参数:graphicsLayer(translationY=手指-行中心, scale 1.05, shadowElevation 12dp, alpha 0.96)+ zIndex 2 浮起
+  - 松手 endDrag:真实 moveLayer -> vm.layers 更新 -> displayList 收敛(无跳变)
+- 左滑:方向检测(swipe 后 dx<0 即 reveal,不再累计阈值)+ DOWN/SWIPE 日志(android.util.Log.d)
+- 抽屉改 3 按钮:复制/独显(soloLayer)/删除(FolioLayers 风格,用户插件就是 3 按钮)
+- 待验证:左滑仍不显示则从 logcat 'LayerPanel' DOWN/SWIPE 日志定位(用户测试时抓)
+
+### 2026-08-13 02:40 拖拽统一 (commit da63191)
+
+- 用户 4 反馈:动画位置与实际插入不一致 / 松手选中被动行 / 可拖到背景下方 / 拖拽需 z 置顶显示虚影
+- 统一方案:单一目标 dragTargetIdx(显示插入位);endDrag 里 to = displayList.size - 1 - insert(displayList 视觉 top-first = m_layers 反转,计算在清理 drag state 前)
+- 背景保护:updateDragPos 里 clamp target <= bgVisual-1(bgVisual = displayList 中 index==0 的视觉位置)→ 被拖行永不落背景之下
+- 松手选中被拖行:endDrag 里 selectedIndex = from + vm.setCurrentLayer(from)
+- z 置顶:zIndex(10f) 移到 LayerRow 根 Box(modifier 开头);原 zIndex 在 Row 上(Box 内兄弟无效果,阴影被遮)
+- 插入线删除(让位动画即指示);保留组中间 30%-70% 区域 OnGroup 拖入(moveLayerToGroup)
+- to 计算验证:拖到视觉顶=3 / B 上方=2 / bg 上方=1(from==to 拒绝=无操作)全部一致;组内插入靠 C++ moveLayer 跨父处理
+
+### 2026-08-13 03:10 拖拽/左滑最终修复 (commit 1697919)
+
+- logcat 决定性证据:SWIPE reveal 日志触发但抽屉不显示 → 抽屉 UI 问题(AnimatedVisibility 在 LazyColumn row 内不可靠)→ 改常驻 Box + graphicsLayer alpha = revealFraction(行 offset 滑开露出)
+- 拖拽落点与动画不一致根因:updateDragPos 基于"重排后 rowBounds"有滞后 → 改数学映射 target = (fingerY - columnTop)/rowPx(行高固定),与 animateItem 让位完全同步;endDrag to = displayList.size-1-insert(先算后清理)
+- 浮起被遮挡:zIndex 在 LazyColumn item 内无效 → overlay 方案:LazyColumn 包进 Box,拖拽时列表内被拖行 alpha 0.4,Box 顶层渲染 LayerRowContent 浮起副本(offset 跟手 + scale 1.05 + shadowElevation 16dp)
+- LayerRowContent 抽取(行视觉:缩进线/箭头/眼睛/缩略图/名称/状态),LayerRow 只留手势(Box 上 pointerInput 左滑 + combinedClickable 点击/长按)+ 抽屉 + 内容调用
+- 背景保护:target clamp 到 bgVisual-1;拖到背景行上方 = 最低可动位置
+- 左滑手势(在 Box):awaitFirstDown(false) 完整事件循环,swipe 后 dx<0 即 reveal
+- git checkout 陷阱:checkout 恢复后之前的未提交修改全丢(抽屉/target/overlay 各做了一次半)
+- Kotlin 文件按行号重写陷阱:括号计数从 Row 的 ') {' 行开始(open_idx=va+2),@Composable 前缀保留(lines[:start-1] + new 含@Composable),lines[end-1:] 保留 DrawerAction 的 @Composable
+
+### 2026-08-13 03:35 抽屉命中/拖拽回跳修复 (commit 78f0d16)
+
+- 用户反馈:未左滑点击按钮区域仍有操作(常驻抽屉 alpha=0 时仍命中)+ 拖拽动画位置与实际不符
+- 抽屉修复:if (reveal) 才组合(闭合行不渲染不命中),reveal 后 alpha 淡入;之前常驻 Box + graphicsLayer alpha=0 的方案命中测试不受 alpha 影响(用户没左滑就能点到按钮)
+- 拖拽"动画位置不符"真正根因:松手瞬间 draggingFrom=-1 → displayList 回原始顺序 → 被拖行先飞回原位(动画)再飞到落点(第二段动画),用户感知位置不符
+- pendingOrder 冻结:endDrag 里 moveLayer 前 pendingOrder = displayList.map{it.index}(冻结拖拽临时顺序),displayList 优先 pendingOrder,LaunchedEffect(vm.layers) 释放(数据落地后无跳变)
+- 数学映射 target=(fingerY-columnTop)/rowPx + to=size-1-insert 已验证正确(拖顶=3/B上=2/bg上=1)
+
+### 2026-08-13 04:10 拖拽精确对齐+抽屉渲染修复 (commits e4dc82b, f6a7400, e35248b)
+- Krita moveNode(node, parent, newIndex) 真实语义(读 kis_node_facade.cpp):aboveThis = parent->at(newIndex-1)(移除前),add 到 aboveThis 上方 → node 落 aboveThis 移除后的 index;aboveThis==node 时直接 return false(无操作)
+- 落点下一格根因:moveNode 的"上方"是 m_layers 小索引方向(视觉下方),insert+1 方向搞反;正确:to = size-1-insert,向上拖(to>from)用 aboveThis = m_layers[to+1](越界→-1=树顶 lastChild),向下拖(to<from)用 aboveThis = m_layers[to]
+- 松手选错层:selectedIndex=from 在移动后索引变化,应 selectedIndex=to(移动后新索引)
+- moveLayerAbove(from, aboveIndex) 支持 aboveIndex==-1(加到 root 顶部,aboveNode=parent->lastChild())
+- logcat 决定性证据:SWIPE reveal idx=2 dx=-269..-417 触发正常 → 左滑手势没问题,是抽屉渲染问题
+- 抽屉修复:去掉 graphicsLayer alpha 淡入(疑似动画卡0,按钮可点不可见),行滑开 offset 改用 reveal 布尔(-drawerPx)不依赖 revealFraction 动画值
+
+### 2026-08-13 05:10 拖拽浮起跟手恢复 (commit 8730195)
+- 用户反馈:左滑按钮终于显示(zIndex 置顶修复生效),但浮起层吸附槽位版"动画没了"、落点问题延续
+- 关键领悟:用户要画世界Pro式"浮起跟手"(连续)而不是吸附槽位(跳变);落点 = 让位槽位(四舍五入 insert)
+- 落点数学链路(已验证全场景一致):insert 四舍五入(行上半插上方/下半插下方) -> to = displayList.size-1-insert -> aboveIdx = to>from ? to+1(越界-1=树顶removeNode+addNode) : to -> moveLayerAbove
+- 坐标空间:columnTop(LazyColumn boundsInRoot.top) == listTop(外层Box top),浮起 offset 用 dragFingerY - listTop - rowPx/2 跟手
+- 拖拽时行Box左滑pointerInput也会consume移动(swiping=true),但不影响面板级pointerInput(draggingFrom)接收事件(consume只标记不阻断)
+
+## ReveriePaint-native
+
+### 当前状态 (2026-08-12 22:00)
+
+- 图层组树形显示:displayRows 递归构建(兄弟逆序,组块保持,嵌套组支持),折叠过滤
+- 手势:行内单个 awaitEachGesture(awaitLongPressOrCancellation + swipe/tap 分支),带 LayerPanel Log.d 日志(adb logcat -s LayerPanel 可诊断)
+- 已知待验证:长按拖拽/左滑仍可能受 awaitLongPressOrCancellation 严格 slop 影响(400ms 内微动即取消),用户测试后从 logcat 确认
+- 二级页面:本地 selectedIndex state(不依赖异步 JNI currentLayerIndex)
+- 图标:全部 Tabler 多 path 完整提取;ic_flip_h/ic_flip_v/ic_merge_down 手绘;ic_check 新增
+- 不透明度滑块:ReSlider 高度 20dp 胶囊 + 拖动数值 Popup;详情页 50ms 节流
+- C++ moveLayer/moveLayerToGroup:KisNodeFacade::moveNode,背景/锁定保护,防组入自身
+- 行下方 sub-info:opacity<100% 或 blend≠normal 时显示 "N% · 模式名"(仿 FolioLayers)
+- 组二级页面:组显示专属操作(重命名/删除组),不显示图层操作
+- 手机当前锁屏:adb 模拟测试受阻,等待用户解锁后测试
+
+### 本轮 commit
+
+- 88e9a4d fix: 图层组树形显示, 手势统一处理, 二级页面本地选中
+
+**2026-08-12 v1.2.1 发布（提交 929658a, tag v1.2.1, Latest）**：修复 Krita 5.x（Qt5）图层树点击即崩溃——`QMouseEvent.position()` 是 Qt6 API，Qt5 只有 `pos()`，Windows 端 Krita 5 用户每次点击图层树都 AttributeError（崩溃点 mousePressEvent 里无条件 `_pen_log` 且在 super 调用前）。修复：① qt_compat.py 新增 `mouse_x`/`mouse_point` 兼容助手（hasattr 自动适配，同 SimpleHSVSliders v1.0.1 惯例）② docker.py 四处未守卫的 `event.position().toPoint()`（hover 日志/tree mousePress 日志/CUSTOM-DROP 日志/_finish_pen_drop）改走 mouse_point ③ `_make_mouse_event` 版本检测 `hasattr(QEvent,'Type')`→`hasattr(QMouseEvent,'position')`（QEvent.Type 在 PyQt5 同样存在，原判断 Qt5 下会误用六参构造器 TypeError——潜在第二崩溃点）④ `_event_is_pen_synth` 补 Qt5 的 QMouseEvent.MouseEventSource 回退。验证：py_compile + offscreen PyQt6 冒烟（真实 QMouseEvent 走 mouse_point 返回正确 QPoint、构造器分支、pen_synth 不抛）。另确认图层行左侧 select_btn 逻辑无 bug：ExtendedSelection 下 setSelected(True) 是增量选择不清其他项（PyQt6 实测 ['A','C']+B→['A','C','B']），行为特征=加选后 activeNode 同步为行序第一选中项（与插件内 Ctrl+Click 一致）。打包流程同 v1.2.0（~/tmp/folio-release-121/，19 文件含 4 native 库+desktop，排除 pycache/qml/qml_list.py/docker_test.py），下载回验 sha256 44d6604c... 一致。注意：v1.2.0 tag 之前只在 GitHub（本地缺失），发布前 git fetch origin --tags 补齐
+**2026-08-12 v1.2.1 重新发布（替换旧资产，tag 移至 947e8b2）**：用户（栗原白芷）实测反馈 PgUp/PgDn 切换当前图层时图层树不自动滚动。根因：600ms 轮询同步（_sync_with_krita→refresh_tree）只更新选中态不滚动，_sync_node_tree 的 setCurrentItem 无 ScrollHint 重载，Krita 真实环境下（刷新期间 item 重建+setUpdatesEnabled(False)）不跟随（offscreen 实测 setCurrentItem 默认会滚，Krita 环境差异无法复现）。修复（947e8b2）：refresh_tree 末尾新增_follow_active_layer_if_changed——仅 activeNode 变化时 scrollToItem(EnsureVisible)，避免轮询拉回用户手动浏览位置；_find_tree_item_by_uid 递归查找（3 层嵌套 offscreen 验证）；多选/用户滚动 0.5s 内/刷新中跳过；顺带加固 except 分支 Krita=None + itemWidget isinstance 收窄。用户要求"直接替换 1.2.1"不另起版本号：git tag -f v1.2.1 947e8b2（需 -m 否则触发 vi 编辑器报错）+ push :refs/tags/v1.2.1 删除远程 tag 再 push 新 tag + gh release delete --yes + 重新打包 + gh release create（同 URL）+ 下载回验 sha256 2747fdab... 一致。教训：git tag -f 重打注释 tag 必须带 -m/-F
