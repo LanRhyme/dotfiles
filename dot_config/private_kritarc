@@ -529,7 +529,7 @@ yPosition=22
 DockArea=2
 Locked=false
 height=458
-width=640
+width=319
 xPosition=0
 yPosition=22
 
@@ -592,7 +592,7 @@ yPosition=22
 [MainWindow][DockWidget PresetDocker]
 DockArea=1
 Locked=false
-height=263
+height=283
 width=294
 xPosition=0
 yPosition=22
@@ -768,7 +768,7 @@ yPosition=22
 [MainWindow][DockWidget quick_settings_docker]
 DockArea=1
 Locked=false
-height=135
+height=95
 width=294
 xPosition=0
 yPosition=22
@@ -776,8 +776,8 @@ yPosition=22
 [MainWindow][DockWidget sai_vhsv_picker]
 DockArea=1
 Locked=false
-height=295
-width=294
+height=458
+width=640
 xPosition=0
 yPosition=22
 

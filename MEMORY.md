@@ -199,6 +199,20 @@
 - 坐标空间:columnTop(LazyColumn boundsInRoot.top) == listTop(外层Box top),浮起 offset 用 dragFingerY - listTop - rowPx/2 跟手
 - 拖拽时行Box左滑pointerInput也会consume移动(swiping=true),但不影响面板级pointerInput(draggingFrom)接收事件(consume只标记不阻断)
 
+### 2026-08-13 05:40 拖拽落点真凶找到 (commit 965a6fc) — 桌面harness 9/9 PASS
+- KisNode::add(newNode, aboveThis) 真实实现(kis_node.cpp:469):idx = index(aboveThis) + 1,node 插到 aboveThis 上面一格(不是替换 aboveThis 位置)
+- 之前 to+1/to 公式的方向假设错(aboveThis 位置语义),向上拖总差一格
+- 正确公式(harness 9 场景全验证):to = size-1-insert;向上拖(to>from) aboveIdx = to;向下拖(to<from) aboveIdx = to-1;to==from 无操作
+- 树顶特例不再需要(to=size-1 时 aboveIdx=to=最顶层,add 到它上面=最顶)
+- harness 编译命令:g++ -std=c++17 -fno-operator-names -fPIC + Qt6/KF6(-I/usr/include/KF6 + 各 KF6 子目录)/krita libs 头文件/build-desktop 生成头(KoConfig.h, *_export.h)/Imath/half.h 等
+- newDocument 现在自带 bg+颜料图层1 两层,harness 需 removeLayer(1) 后加测试层
+
+### 2026-08-13 06:10 拖拽后幻影动画根因 (commit 77ace29)
+- 用户:拖拽落点正常了,但松手后列表又播放一遍动画(行错位重排)
+- 根因:pendingOrder 冻结顺序用 List<Int>(index) 存储,但 moveLayerAbove 落地后层索引变化(如 A 从 index1 移到 index2),恢复时 byIndex 按新索引映射错位(A/B 交换)触发 animateItem 幻影动画
+- 修复:pendingOrder 改存 List<String>(层名,移动后不变),恢复用 byName(associateBy name);同名层罕见可接受
+- pendingOrder 目的:松手后到 vm.layers 更新前保持拖拽顺序(避免行弹回原位再跳落点的双动画)
+
 ## ReveriePaint-native
 
 ### 当前状态 (2026-08-12 22:00)
