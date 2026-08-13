@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=PiDeck
-Comment=pi Agent 多会话桌面工作台
-Exec=/home/lanrhyme/.local/bin/pideck
-Icon=pideck
-Terminal=false
-Categories=Development;
-StartupWMClass=pi-desktop
