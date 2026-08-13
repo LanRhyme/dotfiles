@@ -90,7 +90,7 @@
 - 桌面 harness 验证: 压力1.0->0.3 线宽38->2px, 软边正常 (offscreen + QT_FORCE_STDERR_LOGGING)
 - QApplication 在无头环境需 QT_QPA_PLATFORM=offscreen, 否则段错误
 - CMake 链接: kritalibpaintop(kritaui 依赖, APK +12MB) + kritadefaultpaintops_static
-  + kritacolorsmudgepaintop.so (MODULE 库无 lib 前缀, 需复制 lib 前缀版供 -l 链接,
+  - kritacolorsmudgepaintop.so (MODULE 库无 lib 前缀, 需复制 lib 前缀版供 -l 链接,
     AGP 会把 target_link_libraries 的 .so 路径剥成 -l)
 - AGP 自动收集 CMake NEEDED 依赖到 cxx obj (33个), jniLibs 只保留 AGP 漏的 14个
 - 笔刷参数: setPaintOpSize/Opacity/Flow, JNI/Kotlin/UI 全链路, 面板含缩略图网格
@@ -203,6 +203,7 @@
 - 数学映射 target=(fingerY-columnTop)/rowPx + to=size-1-insert 已验证正确(拖顶=3/B上=2/bg上=1)
 
 ### 2026-08-13 04:10 拖拽精确对齐+抽屉渲染修复 (commits e4dc82b, f6a7400, e35248b)
+
 - Krita moveNode(node, parent, newIndex) 真实语义(读 kis_node_facade.cpp):aboveThis = parent->at(newIndex-1)(移除前),add 到 aboveThis 上方 → node 落 aboveThis 移除后的 index;aboveThis==node 时直接 return false(无操作)
 - 落点下一格根因:moveNode 的"上方"是 m_layers 小索引方向(视觉下方),insert+1 方向搞反;正确:to = size-1-insert,向上拖(to>from)用 aboveThis = m_layers[to+1](越界→-1=树顶 lastChild),向下拖(to<from)用 aboveThis = m_layers[to]
 - 松手选错层:selectedIndex=from 在移动后索引变化,应 selectedIndex=to(移动后新索引)
@@ -211,6 +212,7 @@
 - 抽屉修复:去掉 graphicsLayer alpha 淡入(疑似动画卡0,按钮可点不可见),行滑开 offset 改用 reveal 布尔(-drawerPx)不依赖 revealFraction 动画值
 
 ### 2026-08-13 05:10 拖拽浮起跟手恢复 (commit 8730195)
+
 - 用户反馈:左滑按钮终于显示(zIndex 置顶修复生效),但浮起层吸附槽位版"动画没了"、落点问题延续
 - 关键领悟:用户要画世界Pro式"浮起跟手"(连续)而不是吸附槽位(跳变);落点 = 让位槽位(四舍五入 insert)
 - 落点数学链路(已验证全场景一致):insert 四舍五入(行上半插上方/下半插下方) -> to = displayList.size-1-insert -> aboveIdx = to>from ? to+1(越界-1=树顶removeNode+addNode) : to -> moveLayerAbove
@@ -218,6 +220,7 @@
 - 拖拽时行Box左滑pointerInput也会consume移动(swiping=true),但不影响面板级pointerInput(draggingFrom)接收事件(consume只标记不阻断)
 
 ### 2026-08-13 05:40 拖拽落点真凶找到 (commit 965a6fc) — 桌面harness 9/9 PASS
+
 - KisNode::add(newNode, aboveThis) 真实实现(kis_node.cpp:469):idx = index(aboveThis) + 1,node 插到 aboveThis 上面一格(不是替换 aboveThis 位置)
 - 之前 to+1/to 公式的方向假设错(aboveThis 位置语义),向上拖总差一格
 - 正确公式(harness 9 场景全验证):to = size-1-insert;向上拖(to>from) aboveIdx = to;向下拖(to<from) aboveIdx = to-1;to==from 无操作
@@ -226,6 +229,7 @@
 - newDocument 现在自带 bg+颜料图层1 两层,harness 需 removeLayer(1) 后加测试层
 
 ### 2026-08-13 06:10 拖拽后幻影动画根因 (commit 77ace29)
+
 - 用户:拖拽落点正常了,但松手后列表又播放一遍动画(行错位重排)
 - 根因:pendingOrder 冻结顺序用 List<Int>(index) 存储,但 moveLayerAbove 落地后层索引变化(如 A 从 index1 移到 index2),恢复时 byIndex 按新索引映射错位(A/B 交换)触发 animateItem 幻影动画
 - 修复:pendingOrder 改存 List<String>(层名,移动后不变),恢复用 byName(associateBy name);同名层罕见可接受
@@ -252,3 +256,4 @@
 
 **2026-08-12 v1.2.1 发布（提交 929658a, tag v1.2.1, Latest）**：修复 Krita 5.x（Qt5）图层树点击即崩溃——`QMouseEvent.position()` 是 Qt6 API，Qt5 只有 `pos()`，Windows 端 Krita 5 用户每次点击图层树都 AttributeError（崩溃点 mousePressEvent 里无条件 `_pen_log` 且在 super 调用前）。修复：① qt_compat.py 新增 `mouse_x`/`mouse_point` 兼容助手（hasattr 自动适配，同 SimpleHSVSliders v1.0.1 惯例）② docker.py 四处未守卫的 `event.position().toPoint()`（hover 日志/tree mousePress 日志/CUSTOM-DROP 日志/_finish_pen_drop）改走 mouse_point ③ `_make_mouse_event` 版本检测 `hasattr(QEvent,'Type')`→`hasattr(QMouseEvent,'position')`（QEvent.Type 在 PyQt5 同样存在，原判断 Qt5 下会误用六参构造器 TypeError——潜在第二崩溃点）④ `_event_is_pen_synth` 补 Qt5 的 QMouseEvent.MouseEventSource 回退。验证：py_compile + offscreen PyQt6 冒烟（真实 QMouseEvent 走 mouse_point 返回正确 QPoint、构造器分支、pen_synth 不抛）。另确认图层行左侧 select_btn 逻辑无 bug：ExtendedSelection 下 setSelected(True) 是增量选择不清其他项（PyQt6 实测 ['A','C']+B→['A','C','B']），行为特征=加选后 activeNode 同步为行序第一选中项（与插件内 Ctrl+Click 一致）。打包流程同 v1.2.0（~/tmp/folio-release-121/，19 文件含 4 native 库+desktop，排除 pycache/qml/qml_list.py/docker_test.py），下载回验 sha256 44d6604c... 一致。注意：v1.2.0 tag 之前只在 GitHub（本地缺失），发布前 git fetch origin --tags 补齐
 **2026-08-12 v1.2.1 重新发布（替换旧资产，tag 移至 947e8b2）**：用户（栗原白芷）实测反馈 PgUp/PgDn 切换当前图层时图层树不自动滚动。根因：600ms 轮询同步（_sync_with_krita→refresh_tree）只更新选中态不滚动，_sync_node_tree 的 setCurrentItem 无 ScrollHint 重载，Krita 真实环境下（刷新期间 item 重建+setUpdatesEnabled(False)）不跟随（offscreen 实测 setCurrentItem 默认会滚，Krita 环境差异无法复现）。修复（947e8b2）：refresh_tree 末尾新增_follow_active_layer_if_changed——仅 activeNode 变化时 scrollToItem(EnsureVisible)，避免轮询拉回用户手动浏览位置；_find_tree_item_by_uid 递归查找（3 层嵌套 offscreen 验证）；多选/用户滚动 0.5s 内/刷新中跳过；顺带加固 except 分支 Krita=None + itemWidget isinstance 收窄。用户要求"直接替换 1.2.1"不另起版本号：git tag -f v1.2.1 947e8b2（需 -m 否则触发 vi 编辑器报错）+ push :refs/tags/v1.2.1 删除远程 tag 再 push 新 tag + gh release delete --yes + 重新打包 + gh release create（同 URL）+ 下载回验 sha256 2747fdab... 一致。教训：git tag -f 重打注释 tag 必须带 -m/-F
+**2026-08-13 v1.2.1 再次替换（tag 移至 7b41be1）**：Windows 用户（MSN）实测数位笔事件崩溃 AttributeError 'QPoint' object has no attribute 'toPoint'（docker.py_tablet_in_viewport L343）。根因：event.globalPos()（Qt5）直接返回 QPoint，代码统一 .toPoint()（QPointF 方法）——v1.2.1 只修了局部坐标 position，**全局坐标遗漏**。修复（7b41be1）：qt_compat 新增 mouse_global_point（Qt6 globalPosition()->QPointF 转 QPoint，Qt5 globalPos() 直接用），docker.py 两处（_handle_tablet_as_mouse L303、_tablet_in_viewport L341）改用助手去掉 .toPoint()；PyQt5 fallback 导入/krita 条件导入/FlowLayout 覆写加 type: ignore 标注（消除环境性静态误报，pi-lens 此后 Python clean）。offscreen 验证 Qt6 真实事件+Qt5 fallback 逻辑全过。**网络教训**：FlClash fake-ip 导致 git/gh TLS eof（间歇性）——curl 直连真实 IP 可通（github.com=20.205.243.166, api.github.com=20.205.243.168, uploads.github.com=20.205.243.161）；git 用 `-c http.curloptResolve=host:443:IP -c http.version=HTTP/1.1`（HTTP/1.1+重试循环成功率大增）；gh release 操作改用 curl --resolve 直连 API（删 release→POST releases→PATCH uploads assets），gh release delete 曾报 EOF 但实际生效需二次确认。asset 上传经 uploads.github.com 直连，下载回验 sha256 67c30e55... 一致
