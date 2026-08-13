@@ -10,7 +10,7 @@
   },
   "enableInstallTelemetry": false,
   "showCacheMissNotices": true,
-  "lastChangelogVersion": "0.83.0",
+  "lastChangelogVersion": "0.84.1",
   "packages": [
     "npm:pi-zentui",
     "npm:pi-open-tui",
@@ -41,5 +41,10 @@
   "defaultProvider": "opencode-go",
   "defaultModel": "deepseek-v4-flash",
   "defaultThinkingLevel": "high",
-  "hideThinkingBlock": false
+  "hideThinkingBlock": false,
+  "defaultProjectTrust": "ask",
+  "retry": {
+    "enabled": true,
+    "maxRetries": 3
+  }
 }

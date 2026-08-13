@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# PiDeck launcher
+# - native Wayland 后端（默认 XWayland 在 niri + xwayland-satellite 下窗口不映射）
+# - 清除 ELECTRON_RUN_AS_NODE（防止 npm/electron 上下文把二进制当纯 Node 跑）
+exec env -u ELECTRON_RUN_AS_NODE PIDECK_LINUX_DISPLAY_BACKEND=wayland \
+  /home/lanrhyme/Applications/PiDeck/pi-desktop "$@"
