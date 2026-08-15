@@ -432,26 +432,26 @@ ko_geometry=AdnQywADAAAAAAABAAAAGQAAB0wAAARAAAAAAQAAABkAAAdMAAAEQAAAAAAAAAAAB4AA
 [MainWindow][DockWidget AnimationCurvesDocker]
 DockArea=8
 Locked=false
-height=480
-width=640
+height=448
+width=1387
 xPosition=0
-yPosition=0
+yPosition=32
 
 [MainWindow][DockWidget ArrangeDocker]
 DockArea=2
 Locked=false
-height=264
-width=222
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget ArtisticColorSelector]
 DockArea=2
 Locked=false
-height=284
-width=334
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget BrushHudDocker]
 DockArea=2
@@ -464,18 +464,18 @@ yPosition=0
 [MainWindow][DockWidget ChannelDocker]
 DockArea=2
 Locked=false
-height=30
-width=100
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget ColorSelectorNg]
 DockArea=1
 Locked=false
-height=30
-width=100
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget CompositionDocker]
 DockArea=2
@@ -488,34 +488,34 @@ yPosition=22
 [MainWindow][DockWidget DigitalMixer]
 DockArea=2
 Locked=false
-height=30
-width=100
-xPosition=0
-yPosition=0
+height=175
+width=308
+xPosition=2
+yPosition=24
 
 [MainWindow][DockWidget GamutMask]
 DockArea=2
 Locked=false
-height=322
-width=363
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget GridDocker]
 DockArea=2
 Locked=false
-height=853
-width=1626
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget HistogramDocker]
 DockArea=2
 Locked=false
-height=30
-width=100
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget History]
 DockArea=2
@@ -536,18 +536,18 @@ yPosition=22
 [MainWindow][DockWidget LogDocker]
 DockArea=2
 Locked=false
-height=260
-width=400
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget LutDocker]
 DockArea=2
 Locked=false
-height=328
-width=357
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget MorandiCSPTimelineDocker]
 DockArea=8
@@ -560,10 +560,10 @@ yPosition=22
 [MainWindow][DockWidget OnionSkinsDocker]
 DockArea=8
 Locked=false
-height=282
-width=336
+height=379
+width=569
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget OverviewDocker]
 DockArea=2
@@ -576,18 +576,18 @@ yPosition=22
 [MainWindow][DockWidget PaletteDocker]
 DockArea=1
 Locked=false
-height=422
-width=340
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget PatternDocker]
 DockArea=2
 Locked=false
-height=291
-width=221
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget PresetDocker]
 DockArea=1
@@ -616,66 +616,66 @@ yPosition=22
 [MainWindow][DockWidget SmallColorSelector]
 DockArea=2
 Locked=false
-height=30
-width=100
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget Snapshot]
 DockArea=2
 Locked=false
-height=30
-width=100
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget SpecificColorSelector]
 DockArea=1
 Locked=false
-height=207
-width=268
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget StoryboardDocker]
 DockArea=2
 Locked=false
-height=561
-width=604
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget SvgSymbolCollectionDocker]
 DockArea=2
 Locked=false
-height=288
-width=291
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget TasksetDocker]
 DockArea=2
 Locked=false
-height=300
-width=400
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget TextProperties]
 DockArea=2
 Locked=false
-height=100
-width=0
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget TimelineDocker]
 DockArea=8
 Locked=false
-height=50
-width=100
+height=448
+width=961
 xPosition=0
-yPosition=0
+yPosition=32
 
 [MainWindow][DockWidget ToolBox]
 DockArea=1
@@ -688,18 +688,18 @@ yPosition=18
 [MainWindow][DockWidget TouchDocker]
 DockArea=2
 Locked=false
-height=341
-width=116
+height=458
+width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget WideGamutColorSelector]
 DockArea=2
 Locked=false
-height=480
+height=458
 width=640
 xPosition=0
-yPosition=0
+yPosition=22
 
 [MainWindow][DockWidget comics_project_manager_docker]
 DockArea=2
@@ -721,7 +721,7 @@ yPosition=22
 DockArea=2
 Locked=false
 height=458
-width=640
+width=319
 xPosition=0
 yPosition=22
 
