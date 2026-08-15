@@ -248,6 +248,15 @@
 
 ## ReveriePaint-native
 
+### 2026-08-15 手势/滤镜/性能轮次（agy 会话 9b61300c 中断后接续）
+
+- **关键修复（5712147）**：手势 release 处理原先在每次 down/move 事件执行（up 时 `pressed.isEmpty()` 直接 break 跳过），导致①每个 move 都触发 touchEnd 笔画无法连续绘制②拾色状态在抬手后残留。已把 release 块（touchEnd/拾色清理/双指三指撤销判定）移到抬起分支内，adb 实测事件序列修复
+- **取色偏移开关（2ea9a59）**：`eyedropperOffsetEnabled` 默认 true，取色点偏移 -48dp 防手指遮挡，设置面板颜色设置可关
+- **长按取色修复（074acbd）**：原激活检查只在 move 事件执行，按住不动无事件到达→取色器不出现；现 down 后启动延迟协程（独立 Main scope，delayed 到点激活，抬手/双指取消），保留 move 兜底
+- **同会话早前完成**：保存/载入加载中状态+二次确认+tabler 图标统一、滤镜面板外部点击不关、高斯/动感模糊黑边修复、真实曲线/亮度转不透明度/渐变映射/多级滤镜页面、浮雕去色修复、渲染/撤销性能优化、双指撤销/三指重做手势（默认启用不受笔模式影响）、长按拾色（5 段灵敏度默认 3）、操作 toast
+- **native 构建流程**：`scripts/build_native.sh`（两次 assembleDebug -PbuildNative，先 CMake 编译 jni 再补 jniLibsNativeEmpty 缺失库）；环境 QT_ANDROID_DIR=/opt/Qt6/6.6.3/android_arm64_v8a + KRITA_SRC_DIR=~/Projects/krita-source；增量重编仅 45s；**纯 Kotlin 改动直接 assembleDebug 即可**（预编译 jni 模式）
+- **待办**：图像增强其余滤镜（用户中断前保留原色变灰度问题未解决，说拆分后自愈过）；新功能未经真机验证（手机需解锁 adb 安装）
+
 ### 当前状态 (2026-08-12 22:00)
 
 - 图层组树形显示:displayRows 递归构建(兄弟逆序,组块保持,嵌套组支持),折叠过滤
