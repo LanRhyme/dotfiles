@@ -2,6 +2,8 @@
 
 本文件作为 AI 代理的实时上下文缓冲区，记录 LanRhyme 系统配置的当前状态、近期结构决策和进行中的任务，以确保会话间的平滑交接
 
+- **DeepSeek Harness 安装 (2026-08-16)**: `deepseek-harness-bin 0.1.0rc.6-2`（AUR，PKGBUILD 已审查：官方 npm registry `@deepseek-ai/dsh` 0.1.0-rc.6 + 官方 GitHub deepseek-ai/deepseek-harness，sha256 校验，prepare 仅 `npm install --global --allow-scripts=@deepseek-ai/dsh-subprocess-local,koffi,node-pty`，无危险操作）。上游 GitHub 0 releases 无预编译二进制，所有安装方式都要 npm 拉取数百 MB 依赖（含 @aws-sdk 全家桶，最终 337M）+ node-pty/koffi 原生编译。**安装要点**：paru 交互 sudo 无 TTY 失败（老问题），`npm_config_registry` 直连官方源 ~120KB/s（npmmirror 反而更慢 72KB/s，代理 7890 不可用），全量构建约 30-40 分钟（超时会被杀，需 nohup 后台 + 轮询 `~/tmp/deepseek-harness-build.log`）；装完 `pkexec pacman -U` 安装构建产物（**pkexec 不保留 cwd，必须绝对路径**）。已装：`/usr/bin/dsh`，`dsh --version` → 0.1.0-rc.6
+
 ## 当前配置状态
 
 - **OnlyOffice 安装 (2026-08-14)**: `onlyoffice-bin 9.4.0-1`（**CachyOS 官方仓库**，非 AUR，无需 PKGBUILD 审查，数字签名验证通过），命令 `sudo pacman -S cachyos/onlyoffice-bin`（sudo 需交互终端，pkexec 在 niri 下卡死）。自带依赖 `ttf-carlito 20230509-2`（Calibri 替代字体）。二进制 `/usr/bin/onlyoffice-desktopeditors`，版本 `9.4.0.129` 冒烟测试通过。可选依赖 gst-libav/gst-plugins-good 已装（内嵌视频播放），未装 libreoffice/otf-takao/ttf-ms-fonts（OpenSymbol/日文/微软字体）。desktop 文件 `onlyoffice-desktopeditors.desktop` 已注册。**主题化注意**：onlyoffice 未被 morandi-gen.py 管理，若需莫兰迪主题化须按规则扩展 `write_onlyoffice`（其主题走 `~/.config/onlyoffice/` 下 JSON/配置文件）
