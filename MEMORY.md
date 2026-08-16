@@ -253,6 +253,7 @@
 - **关键修复（5712147）**：手势 release 处理原先在每次 down/move 事件执行（up 时 `pressed.isEmpty()` 直接 break 跳过），导致①每个 move 都触发 touchEnd 笔画无法连续绘制②拾色状态在抬手后残留。已把 release 块（touchEnd/拾色清理/双指三指撤销判定）移到抬起分支内，adb 实测事件序列修复
 - **取色偏移开关（2ea9a59）**：`eyedropperOffsetEnabled` 默认 true，取色点偏移 -48dp 防手指遮挡，设置面板颜色设置可关
 - **长按取色修复（074acbd）**：原激活检查只在 move 事件执行，按住不动无事件到达→取色器不出现；现 down 后启动延迟协程（独立 Main scope，delayed 到点激活，抬手/双指取消），保留 move 兜底
+- **独显系统性重构（c8c43b3）**：彻底改为纯渲染端过滤——solo 不再修改任何 node 状态（visible/opacity/blend/inheritAlpha 零触碰），删除了 SoloBackup 快照/恢复机制；renderToBuffer 独显时用 compositeSoloProjection 手动合成 keep 层（目标+祖先+后代+背景，按栈序），raw mode 也是合成参数；solo 状态用 node 指针（免疫 index 漂移），sync 时目标被删自动取消否则重算 keep；图层面板非 keep 行仅 UI 显示隐藏；JNI 新增 soloActive/layerSoloKeep；删除废弃 direct 设置方法
 - **同会话早前完成**：保存/载入加载中状态+二次确认+tabler 图标统一、滤镜面板外部点击不关、高斯/动感模糊黑边修复、真实曲线/亮度转不透明度/渐变映射/多级滤镜页面、浮雕去色修复、渲染/撤销性能优化、双指撤销/三指重做手势（默认启用不受笔模式影响）、长按拾色（5 段灵敏度默认 3）、操作 toast
 - **native 构建流程**：`scripts/build_native.sh`（两次 assembleDebug -PbuildNative，先 CMake 编译 jni 再补 jniLibsNativeEmpty 缺失库）；环境 QT_ANDROID_DIR=/opt/Qt6/6.6.3/android_arm64_v8a + KRITA_SRC_DIR=~/Projects/krita-source；增量重编仅 45s；**纯 Kotlin 改动直接 assembleDebug 即可**（预编译 jni 模式）
 - **待办**：图像增强其余滤镜（用户中断前保留原色变灰度问题未解决，说拆分后自愈过）；新功能未经真机验证（手机需解锁 adb 安装）
