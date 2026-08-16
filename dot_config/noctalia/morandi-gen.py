@@ -111,10 +111,10 @@ def generate_palette(c):
     p["term_dim_magenta"] = morandi(blend(primary, "#c099ff", 0.4), 0.55, -18)
     p["term_dim_cyan"] = morandi(blend(primary, "#86e1fc", 0.4), 0.55, -18)
 
-    # Terminal background: tinted with primary theme color, darkened near black
+    # Terminal background: tinted with primary theme color, slightly lighter than base
     h_p, s_p, _ = hex_to_hsl(primary)
     h_b, s_b, l_b = hex_to_hsl(p["base"])
-    p["term_bg"] = hsl_to_hex(h_p, min(s_b + 4, 18), max(l_b - 1, 4))
+    p["term_bg"] = hsl_to_hex(h_p, min(s_b + 4, 18), max(l_b + 2, 4))
 
     return p
 
