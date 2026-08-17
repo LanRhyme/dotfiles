@@ -10,7 +10,7 @@
   },
   "enableInstallTelemetry": false,
   "showCacheMissNotices": true,
-  "lastChangelogVersion": "0.84.1",
+  "lastChangelogVersion": "0.84.2",
   "packages": [
     "npm:pi-zentui",
     "npm:pi-open-tui",
@@ -39,7 +39,7 @@
     "npm:pi-simplify"
   ],
   "defaultProvider": "opencode-go",
-  "defaultModel": "deepseek-v4-flash",
+  "defaultModel": "mimo-v2.5",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "defaultProjectTrust": "ask",
