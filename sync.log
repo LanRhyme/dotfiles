@@ -1753,3 +1753,6 @@ To https://github.com/LanRhyme/dotfiles.git
  2 files changed, 6 insertions(+)
 To https://github.com/LanRhyme/dotfiles.git
    b2c867e..42fd846  master -> master
+[master 26fd633] auto: 2026-08-17-12:00:02
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+致命错误：无法访问 'https://github.com/LanRhyme/dotfiles.git/'：Recv failure: 连接被对方重置
