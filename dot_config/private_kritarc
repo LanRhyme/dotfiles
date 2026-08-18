@@ -374,6 +374,10 @@ fillOpacitySpread=100
 outlineType=1
 patternTransformScale=100
 
+[KisToolPolygon]
+outlineType=1
+patternTransformScale=100
+
 [KisToolPolyline]
 outlineType=1
 patternTransformScale=100
@@ -406,6 +410,12 @@ massAmount=0.01
 
 [KritaShape/KisToolEllipse]
 fillType=1
+outlineType=1
+patternTransformScale=100
+roundCornersX=0
+roundCornersY=0
+
+[KritaShape/KisToolRectangle]
 outlineType=1
 patternTransformScale=100
 roundCornersX=0
@@ -924,7 +934,7 @@ enable_tvp_timeline=true
 enable_visual_timeline=true
 
 [sai_vhsv_picker]
-config={"mode": "v-hsv", "hue_style": "ring", "show_preview": true, "history_pos": "left", "history": ["#dfcbc0", "#21565e", "#d0bdb0", "#8b683f", "#baaea1", "#b0a191", "#c0b19f", "#aca7a0", "#352e26", "#3e362e", "#2b2621", "#332720", "#4e3f32", "#352f28", "#3a3229", "#2a251f", "#3e362d", "#ffffff", "#010101", "#f7f5f3", "#3f372e", "#4f3e30", "#9d5f36", "#953d04", "#bc7e55", "#beaa9d", "#d6c4ba", "#d6cdc8", "#d6cec9", "#d6bfb2", "#bda89d", "#fafafa", "#6c524b", "#aa9286", "#907d71", "#54403b", "#f1e5dd", "#ecded6", "#f8f6f5", "#757775", "#8f837e", "#e9e9e9", "#7e8187", "#8b8b91", "#7f8287", "#75787e", "#4b4b4e", "#54565b", "#7a7d82", "#d9c9c1", "#e6d6cf", "#3c342c", "#3a322a", "#37312a", "#352e28", "#4b4137", "#483e34", "#494036", "#3c332b", "#2c2722"]}
+config={"mode": "v-hsv", "hue_style": "ring", "show_preview": true, "history_pos": "left", "history": ["#7c533c", "#dfcbc0", "#21565e", "#d0bdb0", "#8b683f", "#baaea1", "#b0a191", "#c0b19f", "#aca7a0", "#352e26", "#3e362e", "#2b2621", "#332720", "#4e3f32", "#352f28", "#3a3229", "#2a251f", "#3e362d", "#ffffff", "#010101", "#f7f5f3", "#3f372e", "#4f3e30", "#9d5f36", "#953d04", "#bc7e55", "#beaa9d", "#d6c4ba", "#d6cdc8", "#d6cec9", "#d6bfb2", "#bda89d", "#fafafa", "#6c524b", "#aa9286", "#907d71", "#54403b", "#f1e5dd", "#ecded6", "#f8f6f5", "#757775", "#8f837e", "#e9e9e9", "#7e8187", "#8b8b91", "#7f8287", "#75787e", "#4b4b4e", "#54565b", "#7a7d82", "#d9c9c1", "#e6d6cf", "#3c342c", "#3a322a", "#37312a", "#352e28", "#4b4137", "#483e34", "#494036", "#3c332b"]}
 
 [theme]
 Theme=Morandi
