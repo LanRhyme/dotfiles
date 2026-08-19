@@ -1882,3 +1882,16 @@ To https://github.com/LanRhyme/dotfiles.git
  2 files changed, 29 insertions(+), 15 deletions(-)
 To https://github.com/LanRhyme/dotfiles.git
    d12ea3f..b5f3a93  master -> master
+[master 44131e2] auto: 2026-08-20-01:44:06
+ 10 files changed, 4 insertions(+), 1981 deletions(-)
+ delete mode 100644 dot_config/noctalia/plugins/micyou/BarWidget.qml
+ delete mode 100644 dot_config/noctalia/plugins/micyou/ControlCenterWidget.qml
+ delete mode 100644 dot_config/noctalia/plugins/micyou/Main.qml
+ delete mode 100644 dot_config/noctalia/plugins/micyou/Panel.qml
+ delete mode 100644 dot_config/noctalia/plugins/micyou/Settings.qml
+ delete mode 100644 dot_config/noctalia/plugins/micyou/i18n/en.json
+ delete mode 100644 dot_config/noctalia/plugins/micyou/i18n/zh-CN.json
+ delete mode 100644 dot_config/noctalia/plugins/micyou/manifest.json
+ delete mode 100644 dot_config/noctalia/plugins/micyou/service.luau
+To https://github.com/LanRhyme/dotfiles.git
+   b5f3a93..44131e2  master -> master
