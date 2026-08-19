@@ -1837,3 +1837,24 @@ To https://github.com/LanRhyme/dotfiles.git
  2 files changed, 5 insertions(+)
 To https://github.com/LanRhyme/dotfiles.git
    9ad50ff..44732e3  master -> master
+[master 37c59f4] auto: 2026-08-20-01:24:25
+ 22 files changed, 2629 insertions(+), 2 deletions(-)
+ create mode 100644 dot_config/noctalia/plugins/micyou/BarWidget.qml
+ create mode 100644 dot_config/noctalia/plugins/micyou/ControlCenterWidget.qml
+ create mode 100644 dot_config/noctalia/plugins/micyou/Main.qml
+ create mode 100644 dot_config/noctalia/plugins/micyou/Panel.qml
+ create mode 100644 dot_config/noctalia/plugins/micyou/README.md
+ create mode 100644 dot_config/noctalia/plugins/micyou/Settings.qml
+ create mode 100644 dot_config/noctalia/plugins/micyou/i18n/en.json
+ create mode 100644 dot_config/noctalia/plugins/micyou/i18n/zh-CN.json
+ create mode 100644 dot_config/noctalia/plugins/micyou/manifest.json
+ create mode 100644 dot_config/noctalia/plugins/micyou/micyou_service.luau
+ create mode 100644 dot_config/noctalia/plugins/micyou/panel.luau
+ create mode 100644 dot_config/noctalia/plugins/micyou/plugin.toml
+ create mode 100644 dot_config/noctalia/plugins/micyou/service.luau
+ create mode 100644 dot_config/noctalia/plugins/micyou/shortcut.luau
+ create mode 100644 dot_config/noctalia/plugins/micyou/translations/en.json
+ create mode 100644 dot_config/noctalia/plugins/micyou/translations/zh-Hans.json
+ create mode 100644 dot_config/noctalia/plugins/micyou/widget.luau
+To https://github.com/LanRhyme/dotfiles.git
+   44732e3..37c59f4  master -> master

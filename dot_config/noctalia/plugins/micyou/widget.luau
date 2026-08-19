@@ -1,5 +1,5 @@
 --!nonstrict
--- MicYou bar widget with volume ring and panel trigger
+-- MicYou bar widget with volume ring and center dot
 
 local state = "stopped"
 local isRunning = false
@@ -34,19 +34,27 @@ function render()
 
     if isRunning then
         barWidget.setVisible(true)
-        table.insert(children, ui.glyph({
-            name = isMuted and "microphone-off" or "microphone",
-            size = 18,
-            color = isMuted and "warning" or "primary",
-        }))
-        table.insert(children, ui.progress({
-            value = micVolume,
-            variant = "circle",
-            size = 16,
-            thickness = 2.5,
-            color = isMuted and "warning" or "primary",
-        }))
-        barWidget.setTooltip(string.format("MicYou: 运行中 (麦克风音量: %d%%)\n左键点击打开控制面板\n右键点击停止服务", math.floor(micVolume * 100)))
+        local ringColor = isMuted and "warning" or "primary"
+
+        -- Connected: Replace microphone icon with volume ring + center dot
+        local ringWithDot = ui.box({ width = 22, height = 22, align = "center", justify = "center" }, {
+            ui.progress({
+                value = micVolume,
+                shape = "ring",
+                size = 20,
+                thickness = 2.5,
+                color = ringColor,
+            }),
+            ui.label({
+                text = "•",
+                fontSize = 16,
+                baseline = "inkCentered",
+                color = ringColor,
+            }),
+        })
+
+        table.insert(children, ringWithDot)
+        barWidget.setTooltip(string.format("MicYou: 运行中 (音量: %d%%)\n左键点击打开控制面板\n右键点击停止服务", math.floor(micVolume * 100)))
     elseif state == "starting" or state == "stopping" then
         barWidget.setVisible(true)
         table.insert(children, ui.glyph({
@@ -68,7 +76,7 @@ function render()
     barWidget.render(container({ gap = 4, align = "center" }, children))
 end
 
-noctalia.setUpdateInterval(1000)
+noctalia.setUpdateInterval(500)
 
 function update()
     if isRunning then

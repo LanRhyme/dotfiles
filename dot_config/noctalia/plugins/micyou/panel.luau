@@ -2,9 +2,9 @@
 -- MicYou — interactive control panel
 
 local status = noctalia.state.get("status") or {}
-local isRunning = status.state == "running"
-local currentMode = status.mode or "wifi"
-local serverPid = status.pid or "-"
+local isRunning = false
+local currentMode = "wifi"
+local serverPid = "-"
 
 local function sendCommand(action, mode)
     noctalia.state.set("command", {
@@ -25,6 +25,14 @@ end
 
 noctalia.state.watch("status", applyStatus)
 
+function onOpen(_context)
+    applyStatus(noctalia.state.get("status"))
+end
+
+function onCloseClicked()
+    panel.close()
+end
+
 function onStartClicked()
     sendCommand("start", currentMode)
 end
@@ -42,7 +50,7 @@ end
 
 function onModeChanged(index)
     local modes = { "wifi", "usb", "web" }
-    currentMode = modes[index + 1] or "wifi"
+    currentMode = modes[(tonumber(index) or 0) + 1] or "wifi"
     render()
 end
 
@@ -54,36 +62,40 @@ function onLaunchGuiClicked()
     noctalia.runAsync("micyou-app &")
 end
 
-function onCloseClicked()
-    noctalia.togglePanel("lanrhyme/micyou:panel")
+function onToggleNs()
+    noctalia.runAsync("micyou settings set nsEnabled true 2>/dev/null || true")
 end
 
-function onToggleNs(val)
-    noctalia.runAsync(`micyou settings set nsEnabled {val and "true" or "false"}`)
+function onToggleAec()
+    noctalia.runAsync("micyou settings set aecEnabled true 2>/dev/null || true")
 end
 
-function onToggleAec(val)
-    noctalia.runAsync(`micyou settings set aecEnabled {val and "true" or "false"}`)
+function onToggleDereverb()
+    noctalia.runAsync("micyou settings set dereverbEnabled true 2>/dev/null || true")
 end
 
-function onToggleDereverb(val)
-    noctalia.runAsync(`micyou settings set dereverbEnabled {val and "true" or "false"}`)
+function onToggleVad()
+    noctalia.runAsync("micyou settings set vadEnabled true 2>/dev/null || true")
 end
 
-function onToggleVad(val)
-    noctalia.runAsync(`micyou settings set vadEnabled {val and "true" or "false"}`)
+function onToggleAgc()
+    noctalia.runAsync("micyou settings set agcEnabled true 2>/dev/null || true")
 end
 
-function onToggleAgc(val)
-    noctalia.runAsync(`micyou settings set agcEnabled {val and "true" or "false"}`)
-end
-
-function onToggleMute(val)
-    noctalia.runAsync(`micyou settings set mute {val and "true" or "false"}`)
+function onToggleMute()
+    noctalia.runAsync("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle 2>/dev/null || true")
 end
 
 function render()
     local modeIndex = (currentMode == "usb" and 1) or (currentMode == "web" and 2) or 0
+
+    local actionButtons = {}
+    if isRunning then
+        actionButtons[1] = ui.button({ text = "停止", glyph = "player-stop", variant = "danger", onClick = "onStopClicked" })
+        actionButtons[2] = ui.button({ glyph = "reload", variant = "secondary", tooltip = "重启服务", onClick = "onRestartClicked" })
+    else
+        actionButtons[1] = ui.button({ text = "启动服务", glyph = "player-play", variant = "primary", onClick = "onStartClicked" })
+    end
 
     panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch", padding = 16 }, {
         -- Header Row
@@ -99,7 +111,7 @@ function render()
                     }),
                 }),
                 ui.label({
-                    text = isRunning and `模式: {string.upper(currentMode)} · PID: {serverPid}` or "已准备就绪",
+                    text = isRunning and `连接模式: {string.upper(currentMode)} · PID: {serverPid}` or "服务未启动",
                     color = "on_surface_variant",
                     fontSize = 11,
                 }),
@@ -107,64 +119,58 @@ function render()
             ui.button({ glyph = "close", variant = "ghost", tooltip = "关闭", onClick = "onCloseClicked" }),
         }),
 
-        ui.divider(),
+        ui.separator({}),
 
-        -- Connection Mode & Main Control
+        -- Connection Mode & Service Controls
         ui.row({ align = "center", gap = 8 }, {
             ui.column({ flexGrow = 1, gap = 4 }, {
                 ui.label({ text = "连接方式", fontSize = 12, color = "on_surface_variant" }),
                 ui.select({
-                    options = { "Wi-Fi (局域网)", "USB (ADB 传输)", "Web (网页串流)" },
+                    options = { "Wi-Fi (局域网直连)", "USB (ADB 有线)", "Web (网页串流)" },
                     selectedIndex = modeIndex,
                     onChange = "onModeChanged",
                 }),
             }),
             ui.column({ gap = 4, align = "end" }, {
-                ui.label({ text = "状态控制", fontSize = 12, color = "on_surface_variant" }),
-                if isRunning then
-                    ui.row({ gap = 6 }, {
-                        ui.button({ text = "停止", glyph = "player-stop", variant = "danger", onClick = "onStopClicked" }),
-                        ui.button({ glyph = "reload", variant = "secondary", tooltip = "重启", onClick = "onRestartClicked" }),
-                    })
-                else
-                    ui.button({ text = "启动服务", glyph = "player-play", variant = "primary", onClick = "onStartClicked" })
+                ui.label({ text = "服务控制", fontSize = 12, color = "on_surface_variant" }),
+                ui.row({ gap = 6 }, actionButtons),
             }),
         }),
 
-        ui.divider(),
+        ui.separator({}),
 
-        -- Audio DSP Module Toggles
+        -- Audio Enhancement Module Toggles
         ui.label({ text = "音频增强处理", fontSize = 13, fontWeight = "bold" }),
-        ui.column({ gap = 6 }, {
+        ui.column({ gap = 8 }, {
             ui.row({ align = "center", justify = "space-between" }, {
                 ui.label({ text = "AI 智能降噪 (PureVox)" }),
-                ui.button({ text = "切换", variant = "ghost", onClick = "onToggleNs" }),
+                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleNs" }),
             }),
             ui.row({ align = "center", justify = "space-between" }, {
                 ui.label({ text = "声学回声消除 (AEC)" }),
-                ui.button({ text = "切换", variant = "ghost", onClick = "onToggleAec" }),
+                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleAec" }),
             }),
             ui.row({ align = "center", justify = "space-between" }, {
                 ui.label({ text = "空间去混响 (Dereverb)" }),
-                ui.button({ text = "切换", variant = "ghost", onClick = "onToggleDereverb" }),
+                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleDereverb" }),
             }),
             ui.row({ align = "center", justify = "space-between" }, {
                 ui.label({ text = "语音活动检测 (VAD)" }),
-                ui.button({ text = "切换", variant = "ghost", onClick = "onToggleVad" }),
+                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleVad" }),
             }),
             ui.row({ align = "center", justify = "space-between" }, {
                 ui.label({ text = "自动增益控制 (AGC)" }),
-                ui.button({ text = "切换", variant = "ghost", onClick = "onToggleAgc" }),
+                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleAgc" }),
             }),
             ui.row({ align = "center", justify = "space-between" }, {
-                ui.label({ text = "全局静音 (Mute)" }),
-                ui.button({ text = "切换", variant = "ghost", onClick = "onToggleMute" }),
+                ui.label({ text = "麦克风静音 (Mute)" }),
+                ui.button({ text = "静音/恢复", variant = "ghost", onClick = "onToggleMute" }),
             }),
         }),
 
-        ui.divider(),
+        ui.separator({}),
 
-        -- Extra Tools
+        -- Extra Tools Row
         ui.row({ align = "center", gap = 8 }, {
             ui.button({ flexGrow = 1, text = "TUI 终端模式", glyph = "terminal-2", variant = "secondary", onClick = "onLaunchTuiClicked" }),
             ui.button({ flexGrow = 1, text = "桌面端 GUI", glyph = "layout-dashboard", variant = "ghost", onClick = "onLaunchGuiClicked" }),
@@ -172,4 +178,4 @@ function render()
     }))
 end
 
-render()
+applyStatus(noctalia.state.get("status"))
