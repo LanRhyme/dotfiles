@@ -2,6 +2,7 @@
 
 本文件作为 AI 代理的实时上下文缓冲区，记录 LanRhyme 系统配置的当前状态、近期结构决策和进行中的任务，以确保会话间的平滑交接
 
+- **Android 手机环境隐藏与模块配置 (2026-08-19)**: 手机 Redmi K60 (`mondrian` / `ed3fdd92`，Android 16 / SDK 36，Kernel 5.10 Weil+ 内置 KernelSU Next)。完成环境隐匿装配：① 安装 `Hide My Applist 3.8.3`（HMA）并通过 Vector 2.2 激活系统作用域，预置 `Root-Hide` 黑名单模板（拦截 KSU Next、Vector、MT 管理器、Termux、各种 Hook 插件等 20 个敏感包名），并为支付宝、微信、CTID 认证、反诈、浙里办、12306、滴滴、高德、明日方舟、TapTap、B站、GMS 及检测工具自动应用该模板；② 安装 `Tricky Store 1.4.1`（5ec1cff，通过 ksud 刷入），配置 `/data/adb/tricky_store/target.txt` 涵盖 GMS、Vending、CTID、浙里办、反诈、12306、支付宝、微信等关键目标以支持 KeyMint/Keystore 硬件密钥伪装；③ 停用产生兼容告警的 `zygisk-assistant`，改由 Zygisk Next 1.4.5 自带的 Umount 机制处理 root 隐藏
 - **DeepSeek Harness 安装 (2026-08-16)**: `deepseek-harness-bin 0.1.0rc.6-2`（AUR，PKGBUILD 已审查：官方 npm registry `@deepseek-ai/dsh` 0.1.0-rc.6 + 官方 GitHub deepseek-ai/deepseek-harness，sha256 校验，prepare 仅 `npm install --global --allow-scripts=@deepseek-ai/dsh-subprocess-local,koffi,node-pty`，无危险操作）。上游 GitHub 0 releases 无预编译二进制，所有安装方式都要 npm 拉取数百 MB 依赖（含 @aws-sdk 全家桶，最终 337M）+ node-pty/koffi 原生编译。**安装要点**：paru 交互 sudo 无 TTY 失败（老问题），`npm_config_registry` 直连官方源 ~120KB/s（npmmirror 反而更慢 72KB/s，代理 7890 不可用），全量构建约 30-40 分钟（超时会被杀，需 nohup 后台 + 轮询 `~/tmp/deepseek-harness-build.log`）；装完 `pkexec pacman -U` 安装构建产物（**pkexec 不保留 cwd，必须绝对路径**）。已装：`/usr/bin/dsh`，`dsh --version` → 0.1.0-rc.6
 
 ## 当前配置状态
