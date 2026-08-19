@@ -18,11 +18,22 @@
 
   <br>
 
-  MicYou control and dynamic audio level monitor plugin for Noctalia 5 Shell
+  Official companion plugin for [MicYou](https://github.com/LanRhyme/MicYou) on Noctalia 5 Desktop Shell
 
-  Real-time audio level ring · Attached control panel · Background CLI daemon · Control Center shortcut
+  Real-time audio level ring · Attached control panel · Headless CLI daemon · Control Center shortcut
 
 </div>
+
+## Overview
+
+This plugin is an official companion component of the [MicYou](https://github.com/LanRhyme/MicYou) ecosystem, designed specifically for the Noctalia 5 desktop shell
+
+It brings native desktop status bar integration and streamlined service management for MicYou without needing to keep the full desktop GUI window open
+
+- **Status Bar Audio Meter**: Transforms the status bar icon into a real-time animated volume ring that dynamically pulses with your voice input
+- **Native Control Panel**: Click to open a lightweight attached panel to switch Wi-Fi, USB, and Web connection modes, adjust gain, and toggle AI noise reduction
+- **Headless Daemon Control**: Manages the low-overhead `micyou` background CLI service with zero unnecessary subprocess polling
+- **Control Center Integration**: Provides a quick toggle card in the Noctalia Control Center
 
 ## Screenshot
 
@@ -44,7 +55,7 @@
 
 ## Prerequisites
 
-Ensure `micyou` or `micyou-cli` is installed and accessible in your system `PATH`:
+This plugin relies on the `micyou` or `micyou-cli` core binary installed on your system:
 
 ```bash
 # Arch Linux (AUR)
@@ -77,24 +88,11 @@ widgets = [
 ]
 ```
 
-## How to Connect
-
-1. Click the status bar widget to open the control panel, select your preferred mode (Wi-Fi / USB / Web), and click **Start**
-2. Connect from your mobile device:
-   - **Wi-Fi Mode**: Connect your phone to the same local network, open the MicYou Android app, and tap **Wi-Fi** to connect
-   - **USB Mode**: Enable USB debugging on Android, connect the phone via USB cable, and tap **USB** in the app
-   - **Web Mode**: Scan the QR code or open the local address in any mobile browser without installing an app
-3. When speaking into the phone mic, the volume ring on the Noctalia status bar dynamically reflects voice loudness in real-time
-
 ## Gestures
 
 - Left Click: Toggle attached control panel
 - Right Click: Toggle service start or stop
 - Middle Click: Launch TUI terminal console
-
-## Main Project
-
-This plugin is part of the [MicYou](https://github.com/LanRhyme/MicYou) ecosystem
 
 ## License
 
