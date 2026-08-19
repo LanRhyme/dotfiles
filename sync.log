@@ -1895,3 +1895,8 @@ To https://github.com/LanRhyme/dotfiles.git
  delete mode 100644 dot_config/noctalia/plugins/micyou/service.luau
 To https://github.com/LanRhyme/dotfiles.git
    b5f3a93..44131e2  master -> master
+[master 87eb05a] auto: 2026-08-20-01:48:16
+ 4 files changed, 164 insertions(+), 19 deletions(-)
+ create mode 100644 dot_config/noctalia/plugins/micyou/README_zh-cn.md
+To https://github.com/LanRhyme/dotfiles.git
+   44131e2..87eb05a  master -> master

@@ -24,6 +24,12 @@
 
 </div>
 
+## Screenshot
+
+<div align="center">
+  <img src="img/screenshot.png" width="480" alt="MicYou Noctalia Plugin Screenshot" />
+</div>
+
 ## Features
 
 - Dynamic audio level ring replicated from Tauri AudioRing with 21 GPU-cached vector arc frames and lerp interpolation
@@ -36,15 +42,24 @@
 - Quick toggle shortcut card for Noctalia Control Center
 - Automatic Morandi theme color synchronization
 
+## Prerequisites
+
+Ensure `micyou` or `micyou-cli` is installed and accessible in your system `PATH`:
+
+```bash
+# Arch Linux (AUR)
+paru -S micyou-bin
+```
+
 ## Installation
 
-Clone or link this repository into your Noctalia plugins directory:
+1. Clone or link this repository into your Noctalia plugins directory:
 
 ```bash
 git clone https://github.com/LanRhyme/noctalia-plugin-micyou ~/.config/noctalia/plugins/micyou
 ```
 
-Enable the plugin in `~/.config/noctalia/settings.toml`:
+2. Enable the plugin in `~/.config/noctalia/settings.toml`:
 
 ```toml
 [plugins]
@@ -53,7 +68,7 @@ enabled = [
 ]
 ```
 
-Add the widget to your bar configuration in `~/.config/noctalia/settings.toml`:
+3. Add the widget to your bar configuration in `~/.config/noctalia/settings.toml`:
 
 ```toml
 [bar]
@@ -61,6 +76,15 @@ widgets = [
   "lanrhyme/micyou:widget"
 ]
 ```
+
+## How to Connect
+
+1. Click the status bar widget to open the control panel, select your preferred mode (Wi-Fi / USB / Web), and click **Start**
+2. Connect from your mobile device:
+   - **Wi-Fi Mode**: Connect your phone to the same local network, open the MicYou Android app, and tap **Wi-Fi** to connect
+   - **USB Mode**: Enable USB debugging on Android, connect the phone via USB cable, and tap **USB** in the app
+   - **Web Mode**: Scan the QR code or open the local address in any mobile browser without installing an app
+3. When speaking into the phone mic, the volume ring on the Noctalia status bar dynamically reflects voice loudness in real-time
 
 ## Gestures
 

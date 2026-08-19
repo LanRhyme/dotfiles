@@ -24,6 +24,12 @@
 
 </div>
 
+## 软件截图
+
+<div align="center">
+  <img src="img/screenshot.png" width="480" alt="MicYou Noctalia 插件截图" />
+</div>
+
 ## 主要功能
 
 - 复刻 Tauri 端 AudioRing 算法，基于 21 阶 GPU 纹理缓存矢量圆弧帧与 Lerp 插值实现丝滑的实时声音动态反馈
@@ -36,15 +42,24 @@
 - 控制中心快捷开关卡片支持
 - 全局自动同步当前桌面的莫兰迪动态配色
 
+## 环境依赖
+
+确保系统中已安装 `micyou` 或 `micyou-cli` 命令行工具并已加入系统 `PATH` 路径：
+
+```bash
+# Arch Linux (AUR)
+paru -S micyou-bin
+```
+
 ## 安装指南
 
-克隆或软链接本仓库至 Noctalia 插件目录：
+1. 克隆或软链接本仓库至 Noctalia 插件目录：
 
 ```bash
 git clone https://github.com/LanRhyme/noctalia-plugin-micyou ~/.config/noctalia/plugins/micyou
 ```
 
-在 `~/.config/noctalia/settings.toml` 中启用插件：
+2. 在 `~/.config/noctalia/settings.toml` 中启用插件：
 
 ```toml
 [plugins]
@@ -53,7 +68,7 @@ enabled = [
 ]
 ```
 
-在 `~/.config/noctalia/settings.toml` 中将小部件添加到状态栏：
+3. 在 `~/.config/noctalia/settings.toml` 中将小部件添加到状态栏：
 
 ```toml
 [bar]
@@ -61,6 +76,15 @@ widgets = [
   "lanrhyme/micyou:widget"
 ]
 ```
+
+## 连接与使用指南
+
+1. 左键点击状态栏 MicYou 图标展开控制面板，选择连接方式（Wi-Fi / USB / Web）并点击 **启动服务**
+2. 在手机端选择对应的连接协议：
+   - **Wi-Fi 模式**：手机与电脑连接同一局域网 Wi-Fi，打开 MicYou Android App 点击 **Wi-Fi 模式** 自动发现并连接
+   - **USB 模式**：Android 手机开启 USB 调试模式，使用数据线连接电脑，在 App 中点击 **USB 模式** 直连
+   - **Web 模式**：在电脑控制面板中启动后，用任意手机浏览器扫码或访问局域网地址即可开始收音，无需安装客户端
+3. 对准手机麦克风说话，Noctalia 状态栏上的音量环将根据说话声音电平实时张开并呈现动态回落
 
 ## 交互手势
 
