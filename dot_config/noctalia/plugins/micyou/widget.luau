@@ -1,15 +1,15 @@
 --!nonstrict
--- MicYou bar widget: exact replication of Tauri AudioRing (dynamic arc + center dot + background ring)
+-- MicYou bar widget: exact replication of Tauri AudioRing (smooth GPU-cached dynamic arc)
 
 local state = "stopped"
 local isRunning = false
 local isMuted = false
 local targetLevel = 0.0
 local smoothedLevel = 0.0
-local ringSvgPath = noctalia.expandPath("~/.local/state/noctalia/micyou_ring.svg")
 
 local primaryColor = "#89a484"
 local errorColor = "#fd4663"
+local ringsDir = noctalia.expandPath("~/.config/noctalia/plugins/micyou/rings")
 
 local function loadColors()
     local path = noctalia.expandPath("~/.config/noctalia/colors.json")
@@ -22,19 +22,25 @@ local function loadColors()
     end
 end
 
-local function generateSvg(level)
-    local color = if isMuted then errorColor else primaryColor
+local function generateRingFrames()
     local circumference = 219.9
-    local clamped = math.clamp(level, 0.0, 1.0)
-    local offset = circumference * (1.0 - clamped)
-
-    local svg = string.format([[<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22">
+    for i = 0, 20 do
+        local fraction = i / 20.0
+        local offset = circumference * (1.0 - fraction)
+        local svg = string.format([[<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22">
   <circle cx="50" cy="50" r="35" fill="none" stroke="%s" stroke-width="5" opacity="0.25"/>
   <circle cx="50" cy="50" r="35" fill="none" stroke="%s" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="%.2f" transform="rotate(-90 50 50)"/>
   <circle cx="50" cy="50" r="7" fill="%s"/>
-</svg>]], color, color, offset, color)
+</svg>]], primaryColor, primaryColor, offset, primaryColor)
+        noctalia.writeFile(string.format("%s/ring_%d.svg", ringsDir, i), svg)
+    end
 
-    noctalia.writeFile(ringSvgPath, svg)
+    local muteSvg = string.format([[<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22">
+  <circle cx="50" cy="50" r="35" fill="none" stroke="%s" stroke-width="5" opacity="0.25"/>
+  <circle cx="50" cy="50" r="35" fill="none" stroke="%s" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="219.9" transform="rotate(-90 50 50)"/>
+  <circle cx="50" cy="50" r="7" fill="%s"/>
+</svg>]], errorColor, errorColor, errorColor)
+    noctalia.writeFile(string.format("%s/ring_mute.svg", ringsDir), muteSvg)
 end
 
 local function checkMute()
@@ -71,14 +77,17 @@ function render()
 
     if isRunning then
         barWidget.setVisible(true)
-        generateSvg(smoothedLevel)
+        local frameIndex = math.clamp(math.floor(smoothedLevel * 20 + 0.5), 0, 20)
+        local svgPath = if isMuted
+            then string.format("%s/ring_mute.svg", ringsDir)
+            else string.format("%s/ring_%d.svg", ringsDir, frameIndex)
 
         table.insert(children, ui.image({
-            path = ringSvgPath,
+            path = svgPath,
             width = 22,
             height = 22,
         }))
-        barWidget.setTooltip("MicYou: 运行中 (实时音频输入)\n左键点击打开控制面板\n右键点击停止服务")
+        barWidget.setTooltip(string.format("MicYou: 运行中 (音量电平: %d%%)\n左键点击打开控制面板\n右键点击停止服务", math.floor(smoothedLevel * 100)))
     elseif state == "starting" or state == "stopping" then
         barWidget.setVisible(true)
         table.insert(children, ui.glyph({
@@ -104,9 +113,9 @@ noctalia.setUpdateInterval(33) -- 30 FPS smooth arc interpolation
 
 function update()
     if isRunning then
-        -- Smooth lerp interpolation identical to Tauri AudioRing.vue
+        -- Lerp interpolation matching Tauri AudioRing.vue
         local delta = targetLevel - smoothedLevel
-        if math.abs(delta) > 0.005 then
+        if math.abs(delta) > 0.01 then
             smoothedLevel = smoothedLevel + delta * 0.25
             render()
         elseif smoothedLevel ~= targetLevel then
@@ -129,5 +138,6 @@ function onMiddleClick()
 end
 
 loadColors()
+generateRingFrames()
 applyStatus(noctalia.state.get("status"))
 noctalia.state.watch("status", applyStatus)
