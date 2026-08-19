@@ -5,6 +5,23 @@ local status = noctalia.state.get("status") or {}
 local isRunning = false
 local currentMode = "wifi"
 local serverPid = "-"
+local gain = 15.0
+local nsEnabled = true
+
+local function readSettings()
+    local path = noctalia.expandPath("~/.config/micyou/settings.json")
+    local content = noctalia.readFile(path)
+    if content and content ~= "" then
+        local g = content:match('"gain":%s*([%d%.]+)')
+        if g then
+            gain = tonumber(g) or 15.0
+        end
+        local ns = content:match('"nsEnabled":%s*(%a+)')
+        if ns then
+            nsEnabled = (ns == "true")
+        end
+    end
+end
 
 local function sendCommand(action, mode)
     noctalia.state.set("command", {
@@ -20,12 +37,14 @@ local function applyStatus(newStatus)
         currentMode = status.mode or "wifi"
         serverPid = status.pid or "-"
     end
+    readSettings()
     render()
 end
 
 noctalia.state.watch("status", applyStatus)
 
 function onOpen(_context)
+    readSettings()
     applyStatus(noctalia.state.get("status"))
 end
 
@@ -54,36 +73,26 @@ function onModeChanged(index)
     render()
 end
 
+function onGainChanged(val)
+    local num = tonumber(val) or 15
+    gain = num
+    noctalia.runAsync(`micyou settings set gain {num}`)
+    render()
+end
+
+function onNsToggled(checked)
+    local val = (checked == true or checked == 1 or checked == "true")
+    nsEnabled = val
+    noctalia.runAsync(`micyou settings set nsEnabled {val and "true" or "false"}`)
+    render()
+end
+
 function onLaunchTuiClicked()
     sendCommand("launch-tui")
 end
 
 function onLaunchGuiClicked()
     noctalia.runAsync("micyou-app &")
-end
-
-function onToggleNs()
-    noctalia.runAsync("micyou settings set nsEnabled true 2>/dev/null || true")
-end
-
-function onToggleAec()
-    noctalia.runAsync("micyou settings set aecEnabled true 2>/dev/null || true")
-end
-
-function onToggleDereverb()
-    noctalia.runAsync("micyou settings set dereverbEnabled true 2>/dev/null || true")
-end
-
-function onToggleVad()
-    noctalia.runAsync("micyou settings set vadEnabled true 2>/dev/null || true")
-end
-
-function onToggleAgc()
-    noctalia.runAsync("micyou settings set agcEnabled true 2>/dev/null || true")
-end
-
-function onToggleMute()
-    noctalia.runAsync("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle 2>/dev/null || true")
 end
 
 function render()
@@ -97,10 +106,10 @@ function render()
         actionButtons[1] = ui.button({ text = "启动服务", glyph = "player-play", variant = "primary", onClick = "onStartClicked" })
     end
 
-    panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch", padding = 16 }, {
+    panel.render(ui.column({ flexGrow = 1, gap = 14, align = "stretch", padding = 16 }, {
         -- Header Row
         ui.row({ align = "center", gap = 8 }, {
-            ui.glyph({ name = isRunning and "microphone" or "microphone-off", size = 24, color = isRunning and "primary" or "on_surface_variant" }),
+            ui.glyph({ name = isRunning and "circle-dot" or "microphone-off", size = 24, color = isRunning and "primary" or "on_surface_variant" }),
             ui.column({ flexGrow = 1, gap = 2 }, {
                 ui.row({ align = "center", gap = 6 }, {
                     ui.label({ text = "MicYou 麦克风", fontSize = 16, fontWeight = "bold" }),
@@ -139,32 +148,31 @@ function render()
 
         ui.separator({}),
 
-        -- Audio Enhancement Module Toggles
-        ui.label({ text = "音频增强处理", fontSize = 13, fontWeight = "bold" }),
-        ui.column({ gap = 8 }, {
+        -- Audio Controls: Gain Slider & AI Noise Suppression Switch
+        ui.column({ gap = 10 }, {
+            -- Gain Slider
             ui.row({ align = "center", justify = "space-between" }, {
-                ui.label({ text = "AI 智能降噪 (PureVox)" }),
-                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleNs" }),
+                ui.label({ text = "麦克风增益 (Gain)", fontWeight = "bold", fontSize = 13 }),
+                ui.label({ text = string.format("%d dB", math.floor(gain)), color = "primary", fontWeight = "bold", fontSize = 13 }),
             }),
-            ui.row({ align = "center", justify = "space-between" }, {
-                ui.label({ text = "声学回声消除 (AEC)" }),
-                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleAec" }),
+            ui.slider({
+                value = gain,
+                min = 0,
+                max = 30,
+                step = 1,
+                onChange = "onGainChanged",
             }),
+
+            -- AI Noise Suppression Switch
             ui.row({ align = "center", justify = "space-between" }, {
-                ui.label({ text = "空间去混响 (Dereverb)" }),
-                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleDereverb" }),
-            }),
-            ui.row({ align = "center", justify = "space-between" }, {
-                ui.label({ text = "语音活动检测 (VAD)" }),
-                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleVad" }),
-            }),
-            ui.row({ align = "center", justify = "space-between" }, {
-                ui.label({ text = "自动增益控制 (AGC)" }),
-                ui.button({ text = "开关", variant = "ghost", onClick = "onToggleAgc" }),
-            }),
-            ui.row({ align = "center", justify = "space-between" }, {
-                ui.label({ text = "麦克风静音 (Mute)" }),
-                ui.button({ text = "静音/恢复", variant = "ghost", onClick = "onToggleMute" }),
+                ui.column({ gap = 2 }, {
+                    ui.label({ text = "AI 智能降噪 (PureVox)", fontWeight = "bold", fontSize = 13 }),
+                    ui.label({ text = "实时过滤环境噪音与杂音", color = "on_surface_variant", fontSize = 11 }),
+                }),
+                ui.toggle({
+                    checked = nsEnabled,
+                    onChange = "onNsToggled",
+                }),
             }),
         }),
 
@@ -178,4 +186,5 @@ function render()
     }))
 end
 
+readSettings()
 applyStatus(noctalia.state.get("status"))

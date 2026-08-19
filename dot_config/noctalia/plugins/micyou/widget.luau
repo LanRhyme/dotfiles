@@ -1,20 +1,18 @@
 --!nonstrict
--- MicYou bar widget with volume ring and center dot
+-- MicYou bar widget: dynamic circle-dot volume ring when connected
 
 local state = "stopped"
 local isRunning = false
-local micVolume = 1.0
 local isMuted = false
 
-local function sampleMicVolume()
+local function checkMute()
     noctalia.runAsync("wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null", function(res)
         if res.exitCode == 0 and res.stdout then
-            local val = res.stdout:match("Volume:%s*([%d%.]+)")
-            if val then
-                micVolume = math.clamp(tonumber(val) or 1.0, 0.0, 1.0)
+            local muted = (res.stdout:find("%[MUTED%]") ~= nil)
+            if muted ~= isMuted then
+                isMuted = muted
+                render()
             end
-            isMuted = (res.stdout:find("%[MUTED%]") ~= nil)
-            render()
         end
     end)
 end
@@ -36,25 +34,13 @@ function render()
         barWidget.setVisible(true)
         local ringColor = isMuted and "warning" or "primary"
 
-        -- Connected: Replace microphone icon with volume ring + center dot
-        local ringWithDot = ui.box({ width = 22, height = 22, align = "center", justify = "center" }, {
-            ui.progress({
-                value = micVolume,
-                shape = "ring",
-                size = 20,
-                thickness = 2.5,
-                color = ringColor,
-            }),
-            ui.label({
-                text = "•",
-                fontSize = 16,
-                baseline = "inkCentered",
-                color = ringColor,
-            }),
-        })
-
-        table.insert(children, ringWithDot)
-        barWidget.setTooltip(string.format("MicYou: 运行中 (音量: %d%%)\n左键点击打开控制面板\n右键点击停止服务", math.floor(micVolume * 100)))
+        -- Connected: Render dynamic circle-dot ring
+        table.insert(children, ui.glyph({
+            name = "circle-dot",
+            size = 20,
+            color = ringColor,
+        }))
+        barWidget.setTooltip("MicYou: 运行中\n左键点击打开控制面板\n右键点击停止服务")
     elseif state == "starting" or state == "stopping" then
         barWidget.setVisible(true)
         table.insert(children, ui.glyph({
@@ -76,11 +62,11 @@ function render()
     barWidget.render(container({ gap = 4, align = "center" }, children))
 end
 
-noctalia.setUpdateInterval(500)
+noctalia.setUpdateInterval(1000)
 
 function update()
     if isRunning then
-        sampleMicVolume()
+        checkMute()
     end
 end
 
