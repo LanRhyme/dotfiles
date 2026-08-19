@@ -1,0 +1,42 @@
+{
+  "name": "MicYou",
+  "description": "Control and monitor MicYou audio service in CLI mode",
+  "widget": {
+    "running": "MicYou Service Running",
+    "stopped": "MicYou Service Stopped",
+    "starting": "Starting MicYou...",
+    "stopping": "Stopping MicYou..."
+  },
+  "shortcut": {
+    "running": "MicYou Running",
+    "stopped": "MicYou Service"
+  },
+  "notify": {
+    "started": "MicYou service started",
+    "stopped": "MicYou service stopped",
+    "launch-failed": "Failed to launch MicYou CLI"
+  },
+  "settings": {
+    "default_mode": {
+      "label": "Default Mode",
+      "description": "Connection protocol used when starting service",
+      "options": {
+        "wifi": "Wi-Fi",
+        "usb": "USB (ADB)",
+        "web": "Web"
+      }
+    },
+    "default_port": {
+      "label": "Default Audio Port",
+      "description": "TCP control port (UDP port is port+1)"
+    },
+    "terminal_command": {
+      "label": "Terminal Command Prefix",
+      "description": "Command used to launch TUI console"
+    },
+    "hide_inactive": {
+      "label": "Hide When Inactive",
+      "description": "Only show bar icon when service is running"
+    }
+  }
+}

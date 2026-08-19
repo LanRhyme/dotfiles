@@ -1,0 +1,2 @@
+--!nonstrict
+-- MicYou background service

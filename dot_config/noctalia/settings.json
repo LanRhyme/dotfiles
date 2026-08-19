@@ -242,6 +242,20 @@
                     "id": "plugin:kde-connect"
                 },
                 {
+                    "defaultSettings": {
+                        "autoStart": false,
+                        "barClickAction": "panel",
+                        "defaultMode": "wifi",
+                        "defaultPort": 8554,
+                        "executablePath": "",
+                        "hideInactive": false,
+                        "iconColor": "none",
+                        "pollInterval": 3000,
+                        "terminalCommand": "ghostty -e"
+                    },
+                    "id": "plugin:micyou"
+                },
+                {
                     "displayMode": "onhover",
                     "iconColor": "none",
                     "id": "Volume",

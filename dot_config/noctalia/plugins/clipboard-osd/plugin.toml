@@ -1,7 +1,7 @@
 id = "antigravity/clipboard-osd"
 name = "Clipboard OSD"
 version = "1.0.0"
-min_noctalia = "5.0.0"
+plugin_api = 3
 author = "Antigravity"
 description = "Shows an OSD when clipboard content is copied."
 

@@ -1,0 +1,40 @@
+{
+  "id": "micyou",
+  "name": "MicYou",
+  "version": "1.0.0",
+  "minNoctaliaVersion": "4.4.0",
+  "author": "LanRhyme",
+  "official": false,
+  "license": "GPL-3.0",
+  "repository": "https://github.com/LanRhyme/MicYou",
+  "description": "Control and monitor MicYou audio service in CLI mode, manage connection modes, DSP settings, PipeWire virtual mic, and ADB devices",
+  "tags": [
+    "Bar",
+    "Panel",
+    "Audio",
+    "Utility"
+  ],
+  "entryPoints": {
+    "main": "Main.qml",
+    "barWidget": "BarWidget.qml",
+    "controlCenterWidget": "ControlCenterWidget.qml",
+    "panel": "Panel.qml",
+    "settings": "Settings.qml"
+  },
+  "dependencies": {
+    "plugins": []
+  },
+  "metadata": {
+    "defaultSettings": {
+      "executablePath": "",
+      "terminalCommand": "ghostty -e",
+      "autoStart": false,
+      "pollInterval": 3000,
+      "defaultMode": "wifi",
+      "defaultPort": 8554,
+      "barClickAction": "panel",
+      "hideInactive": false,
+      "iconColor": "none"
+    }
+  }
+}

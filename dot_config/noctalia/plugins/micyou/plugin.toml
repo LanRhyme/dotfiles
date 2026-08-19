@@ -1,0 +1,68 @@
+id = "lanrhyme/micyou"
+name = "MicYou"
+version = "1.0.0"
+plugin_api = 3
+author = "lanrhyme"
+license = "GPL-3.0"
+tags = ["audio", "microphone", "utility"]
+icon = "microphone"
+description = "Control and monitor MicYou audio service in CLI mode"
+
+[[setting]]
+key = "default_mode"
+type = "select"
+label_key = "settings.default_mode.label"
+default = "wifi"
+description_key = "settings.default_mode.description"
+options = [
+  { value = "wifi", label_key = "settings.default_mode.options.wifi" },
+  { value = "usb", label_key = "settings.default_mode.options.usb" },
+  { value = "web", label_key = "settings.default_mode.options.web" },
+]
+
+[[setting]]
+key = "default_port"
+type = "int"
+label_key = "settings.default_port.label"
+description_key = "settings.default_port.description"
+default = 8554
+min = 1024
+max = 65535
+
+[[setting]]
+key = "terminal_command"
+type = "string"
+label_key = "settings.terminal_command.label"
+description_key = "settings.terminal_command.description"
+default = "ghostty -e"
+
+[[setting]]
+key = "hide_inactive"
+type = "bool"
+label_key = "settings.hide_inactive.label"
+description_key = "settings.hide_inactive.description"
+default = false
+
+# Headless background service managing MicYou CLI process and status channel
+[[service]]
+id = "service"
+entry = "micyou_service.luau"
+
+# Attached panel for full MicYou controls
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 440
+height = 420
+placement = "attached"
+open_near_click = true
+
+# Bar widget displaying mic status and quick click actions
+[[widget]]
+id = "widget"
+entry = "widget.luau"
+
+# Control center quick tile
+[[shortcut]]
+id = "toggle"
+entry = "shortcut.luau"

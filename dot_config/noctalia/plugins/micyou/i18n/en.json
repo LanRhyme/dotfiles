@@ -1,0 +1,86 @@
+{
+  "name": "MicYou",
+  "description": "Control and monitor MicYou audio service in CLI mode, manage connection modes, DSP audio chain, PipeWire virtual mic, and ADB devices",
+  "messages": {
+    "not-installed": "MicYou CLI binary not found",
+    "not-installed-desc": "Please ensure micyou is in PATH or configure the path in plugin settings",
+    "starting": "Starting MicYou service...",
+    "stopping": "Stopping MicYou service...",
+    "service-started": "MicYou service started",
+    "service-stopped": "MicYou service stopped",
+    "service-error": "MicYou Service Error",
+    "service-crashed": "MicYou CLI exited with error code: ",
+    "stopped-tooltip": "MicYou: Stopped\nClick to manage"
+  },
+  "panel": {
+    "refresh": "Refresh",
+    "start": "Start CLI",
+    "stop": "Stop",
+    "restart": "Restart",
+    "mode": "Mode",
+    "mode-select": "Connection Mode",
+    "port": "Audio Port",
+    "output-device": "Output Device",
+    "launchers": "Quick Launchers",
+    "launch-tui": "Launch TUI",
+    "launch-gui": "Launch GUI",
+    "status": {
+      "running": "MicYou Service Running",
+      "stopped": "Service Stopped",
+      "stopped-hint": "Runs background audio server via CLI with minimal memory footprint"
+    },
+    "pipewire": {
+      "ready": "PipeWire Virtual Microphone Ready",
+      "auto": "PipeWire virtual sink will be created automatically on start"
+    },
+    "tabs": {
+      "service": "Service",
+      "dsp": "Audio DSP",
+      "adb": "ADB Devices",
+      "logs": "Live Logs"
+    },
+    "dsp": {
+      "gain": "Input Gain",
+      "ns": "AI Noise Suppression (PureVox)",
+      "ns-desc": "Neural network based background noise reduction",
+      "aec": "Acoustic Echo Cancellation (AEC)",
+      "aec-desc": "Eliminates speaker playback echo",
+      "dereverb": "Spatial Dereverberation",
+      "dereverb-desc": "Reduces room acoustic reverberation",
+      "vad": "Voice Activity Detection (VAD)",
+      "vad-desc": "Automatically suppresses background noise during silence",
+      "agc": "Automatic Gain Control (AGC)",
+      "agc-desc": "Balances input volume level dynamically",
+      "mute": "Mute Microphone",
+      "mute-desc": "Pause audio transmission output",
+      "buffer": "Output Buffer Size"
+    },
+    "adb": {
+      "title": "Connected Android Devices",
+      "empty": "No ADB devices detected\nConnect phone via USB and enable USB debugging"
+    },
+    "logs": {
+      "title": "CLI Realtime Logs",
+      "config-dir": "Open Config Dir",
+      "clear": "Clear"
+    }
+  },
+  "settings": {
+    "saved": "MicYou settings saved",
+    "executable-path": "MicYou Executable Path",
+    "executable-path-desc": "Leave empty to auto-detect PATH or cargo build targets",
+    "terminal-cmd": "Terminal Command",
+    "terminal-cmd-desc": "Terminal emulator command used to launch TUI dashboard",
+    "default-mode": "Default Connection Mode",
+    "default-mode-desc": "Connection protocol used when starting service",
+    "default-port": "Default Audio Port",
+    "default-port-desc": "TCP control port (UDP streaming port is port + 1)",
+    "bar-click-action": "Bar Icon Left Click Action",
+    "bar-click-action-desc": "Choose whether clicking bar icon opens panel or toggles service",
+    "auto-start": "Auto-start MicYou CLI on launch",
+    "auto-start-desc": "Start background CLI service automatically when Noctalia starts",
+    "hide-inactive": "Hide icon when inactive",
+    "hide-inactive-desc": "Only show bar icon when MicYou service is running or starting",
+    "poll-interval": "Status Poll Interval"
+  }
+}

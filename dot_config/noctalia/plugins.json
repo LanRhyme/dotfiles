@@ -51,6 +51,14 @@
     "antigravity/clipboard-osd": {
       "enabled": true,
       "sourceUrl": "my-local"
+    },
+    "micyou": {
+      "enabled": true,
+      "sourceUrl": "my-local"
+    },
+    "lanrhyme/micyou": {
+      "enabled": true,
+      "sourceUrl": "my-local"
     }
   },
   "version": 2

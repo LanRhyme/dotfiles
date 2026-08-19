@@ -1,0 +1,42 @@
+{
+  "name": "MicYou",
+  "description": "通过 CLI 模式控制与监控 MicYou 音频服务",
+  "widget": {
+    "running": "MicYou 服务运行中",
+    "stopped": "MicYou 服务已停止",
+    "starting": "正在启动 MicYou...",
+    "stopping": "正在停止 MicYou..."
+  },
+  "shortcut": {
+    "running": "MicYou 运行中",
+    "stopped": "MicYou 服务"
+  },
+  "notify": {
+    "started": "MicYou 服务已启动",
+    "stopped": "MicYou 服务已停止",
+    "launch-failed": "MicYou 启动失败，请检查可执行文件"
+  },
+  "settings": {
+    "default_mode": {
+      "label": "默认连接模式",
+      "description": "启动服务时默认采用的连接协议",
+      "options": {
+        "wifi": "Wi-Fi (局域网直连)",
+        "usb": "USB (ADB 有线)",
+        "web": "Web (扫码连接)"
+      }
+    },
+    "default_port": {
+      "label": "默认音频端口",
+      "description": "TCP 控制端口 (UDP 流端口为端口+1)"
+    },
+    "terminal_command": {
+      "label": "终端启动前缀",
+      "description": "用于唤起 TUI 控制台的终端命令"
+    },
+    "hide_inactive": {
+      "label": "未运行时隐藏",
+      "description": "仅在 MicYou 运行时显示状态栏图标"
+    }
+  }
+}
