@@ -1,5 +1,5 @@
 --!nonstrict
--- MicYou — headless service managing CLI daemon and state channels
+-- MicYou — headless background service managing CLI daemon and state channels
 
 noctalia.setUpdateInterval(1000)
 
@@ -90,14 +90,25 @@ local function startServer(overrideMode)
     local bin = resolveCliBinary()
 
     log(`starting server: bin={bin} mode={mode} port={port}`)
-    local launchCmd = `{bin} serve --mode {mode} --port {port} >/dev/null 2>&1 &`
+    local launchCmd = `{bin} serve --mode {mode} --port {port}`
 
-    if noctalia.runAsync(launchCmd) then
-        noctalia.notify(noctalia.tr("name"), noctalia.tr("notify.started") .. ` ({mode})`)
-    else
-        state = "stopped"
-        noctalia.notifyError(noctalia.tr("name"), noctalia.tr("notify.launch-failed"))
-    end
+    noctalia.runStream(launchCmd, function(line)
+        if not line then return end
+        local lvl = line:match("%[level%]%s*(%d+)")
+        if lvl then
+            local num = tonumber(lvl) or 0
+            noctalia.state.set("audio_level", num)
+        end
+        if line:find("%[mic%] connected") then
+            state = "running"
+            updateStatusChannel()
+        elseif line:find("%[server%] stopped") then
+            state = "stopped"
+            updateStatusChannel()
+        end
+    end)
+
+    noctalia.notify(noctalia.tr("name"), noctalia.tr("notify.started") .. ` ({mode})`)
     checkStatus()
 end
 
@@ -112,6 +123,7 @@ local function stopServer()
     noctalia.notify(noctalia.tr("name"), noctalia.tr("notify.stopped"))
     state = "stopped"
     serverPid = nil
+    noctalia.state.set("audio_level", 0)
     updateStatusChannel()
 end
 
