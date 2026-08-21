@@ -8,6 +8,7 @@ image/png=org.gnome.Loupe.desktop
 x-scheme-handler/discord-1216669957799018608=discord-1216669957799018608.desktop
 x-scheme-handler/zcode=zcode.desktop
 text/markdown=dev.zed.Zed.desktop
+x-scheme-handler/opencode=ai.opencode.desktop.desktop
 
 [Added Associations]
 application/yaml=neovide.desktop;
