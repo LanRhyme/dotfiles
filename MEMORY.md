@@ -31,10 +31,10 @@
 - Fcitx5：bamboo-dark 皮肤（morandi-gen 动态注入）、竖排候选；5.1.21 起支持 niri ext-background-effect 候选框模糊
 - Fastfetch：write_fastfetch 全量生成 config.jsonc（标题三色分区 + 模块三组 + 8 圆形色点）；**源码中 ≥U+F0000 的码点必须写 8 位 `\U000FXXXX` 转义**（`\U0000FXXXX` 9 位会被 Python 截断）
 - Noctalia 重启方法：`pkill -f noctalia` 后 `setsid nohup noctalia > ~/tmp/noctalia-restart.log 2>&1 < /dev/null & disown`（kill 后 niri spawn-sh-at-startup 不重拉）
-- OBS：屏幕采集修复 = 覆盖 `/usr/share/applications/com.obsproject.Studio.desktop` Exec 强制 mesa EGL 核显渲染：`env -u __NV_PRIME_RENDER_OFFLOAD -u __GLX_VENDOR_LIBRARY_NAME __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json obs`（根因 Optimus 下 niri 核显 linear buffer 只能 EGL_EXTERNAL 导入而 OBS 要 GL_TEXTURE_2D）；代价 NVENC 不可用改核显 QSV（iHD + vpl-gpu-rt 已装）；grim 截图走 wlr-screencopy 不受影响
+- OBS：屏幕采集修复 = 覆盖 `/usr/share/applications/com.obsproject.Studio.desktop` Exec 强制 mesa EGL 核显渲染：`env -u __NV_PRIME_RENDER_OFFLOAD -u __GLX_VENDOR_LIBRARY_NAME __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json obs`（根因 Optimus 下 niri 核显 linear buffer 只能 EGL_EXTERNAL 导入而 OBS 要 GL_TEXTURE_2D）；代价 NVENC 不可用改核显 QSV（iHD + vpl-gpu-rt 已装）；grim 截图走 wlr-screencopy 不受影响；**2026-08-25 推流失败修复**：obs-studio-browser 升到 32.2.1-3 后 NVENC 检测直接 `outdated_driver`（nvidia-580xx 580.173 legacy 分支过旧）模块不加载，但配置残留 `obs_nvenc_h264_tex` 致 rtmp_output 找不到编码器启动失败（日志特征：启动时 Encoder ID not found ×2 → 开始推流时 rtmp_output failed），B 站插件侧正常；已把 basic.ini [AdvOut] 直播/录像编码器改为 `obs_qsv11_v2`（chezmoi 已同步），若 QSV 异常备选 VAAPI H.264（ffmpeg_vaapi_tex 可用）
 - obs-bilibili-stream：手动编译装于 `~/.config/obs-studio/plugins/bilibili-stream-for-obs/bin/64bit/`，已应用上游未合并 PR #27（B 站 2026-08 改版扫码登录 crossDomain ticket 解析 + Set-Cookie 大小写 strncasecmp）；**升级插件后需重新打补丁**（源码 `~/tmp/obs-bilibili-stream/`，cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_FRONTEND_API=ON -DENABLE_QT=ON）
 - Zen 浏览器 (Flatpak)：flatpak override 注入 NVIDIA PRIME 渲染变量实现 GPU 加速；user.js 强制 WebRender/DMA-BUF/硬件视频解码；fcitx5 主题经 D-Bus portal 权限 + 只读访问 fcitx5 目录
-- SPlayer-Next：二进制 `/opt/splayer-next/SPlayer-Next`，命令 `splayer-next`，desktop 文件路径已修正
+- SPlayer-Next：AUR `splayer-next-bin`（K-Black 维护，repack 上游官方 .pacman，无钩子已审查），2026-08-25 升至 1.0.0-8；二进制 `/opt/SPlayer-Next/SPlayer-Next`（大写），命令软链 `/usr/bin/splayer-next` 已由包托管，desktop 文件自带正确路径无需手改；Electron 43.2.0；升级遇旧手动软链冲突用 `--overwrite "/usr/bin/splayer-next"` 接管；构建副本与源包在 `~/tmp/splayer-next-update/`
 - slugcatpet 桌宠（`~/Projects/slugcatpet`）：GTK3 窗口必须用 Layer.TOP（Overlay 会盖住全屏内容故不可见性反转处理）；niri 26.x focused-window 输出的 window_size 嵌套于 layout 对象内（envwatch.py 已兼容）
 
 ## 项目
