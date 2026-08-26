@@ -5,7 +5,7 @@
 
 ## 最近动态
 
-- **K60 刷 NexusHyper OS4 前置准备 (2026-08-26, 进行中)**: 决定从 Infinity-X 3.12 换 `~/刷机/mondrian-ota_images-v3.0.5-OS4.0.0.22.XMNCNXM-user-17.0.zip等5个文件/` 全家桶（酷安 d2u8_S6h3e/NexusHyper，官方中国底 OS4.0.0.22 / Android 17，卡线一体）；主包 zip 完整性 46 文件全过、两 .bat 脚本已审（GBK 编码需 iconv 转 GB18030；纯 fastboot 序列无网络操作）；**从三方 ROM 必须走清数据路径（一键刷机）**，保留数据版仅限同底包直升；脚本全量刷 27 个底层分区含 modem/xbl（配套固件升级，注意 ARB 回滚风险）+ 双内核选择（y=三方 boot_a 内置 root 方案/n=官方 boot_b）；配套模块：TrickyStore v1.4.1 + TS-Enhancer、KSU 管理器 v3.2.5 + Magic Mount 元模块、OS4 堆叠小部件修复（装后需 su 手动 pm install MIUIPersonalAssistantPhoneOS4.apk）、精简版/极限精简版（KernelSU 模块，恢复脚本在 zip 内）。Linux 线刷脚本 `~/tmp/k60-os4-prep/flash-os4-linux.sh`（已翻译审查过的 bat 流程，super 解压到 ~/tmp 非内存盘）、设备备份脚本 `device-backup.sh` 待手机插 USB 执行：拉 wetype_data.tgz(362M)/wetype_ext.tgz/prox_backup/fix_prox.sh、导 HMA config.json、TS target.txt、模块清单。刷前检查项：电量充足（曾低至 11%）、fastboot getvar antiversion 记录、刷后 prox 验证与隐匿链重建照抄旧条目
+- **K60 刷 NexusHyper OS4 恢复完成 (2026-08-26)**: 已完成全量 27 个底层固件 + super + cust + 三方内核 `boot_a.img` 刷入；42GB `DataBackup` 与全套配套模块/APK 已全量推回手机 `/sdcard/DataBackup` 与 `/sdcard/Download/NexusHyper_OS4_Modules/`；待用户安装 KernelSU 管理器与 DataBackup 进行应用与数据还原
 
 - **K60 功耗诊断：min_refresh_rate 锁 120 是主因 (2026-08-26)**: B站统计 5W 实为屏幕背锅——解码正常走 c2.qti.hevc.low_latency 硬解，但 `system min_refresh_rate=120` 强制全程 1440p+120Hz 不降档（scene-daemon 在跑，疑似 Scene 所设）；次因=B站播放管线反复 flush 抖帧（ijkservice 瞬时 139% CPU）、SystemUI RenderThread 瞬时 73%（与 NotificationShade 卡顿旧疾同源，复测已回落非持续）；电池 784 循环、充电 44°C，容量估计余 85%；处理顺序：还原 min_refresh_rate=60 观察 → 必要时 LSPosed 停 freEnhance 隔离验证 → 仍差再考虑换电池；结论为功耗主因不在 Infinity-X ROM，暂缓刷澎湃 OS4
 
