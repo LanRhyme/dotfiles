@@ -5,10 +5,9 @@
 
 ## 最近动态
 
-- **K60 刷 NexusHyper OS4 环境隐藏与模块生效定案 (2026-08-27, 成功)**:
-  - **数位板触控修复**：[`patch-inline-trackmotion`](https://github.com/LanRhyme/patch-inline-trackmotion) 模块已加载运行，日志证实成功命中 HyperOS 4（`libinputflinger.so` 偏移 `0x4510e8`），`tbz` 指令已成功替换为 NOP（`0xd503201f`），触控修复正常工作；
-  - **环境隐藏全量恢复**：已通过 ADB Root 执行 `restore-env-config.sh`，恢复 TrickyStore 全量密钥数据库、`keybox.xml`、`target.txt`（17 个目标），恢复 HMA-OSS 22 个应用 Root-Hide 配置与权限属主（uid 10304），恢复距离传感器修复脚本；相关应用已强制重启加载配置；
-  - **Vector 模块生态**：已下载并安装 `dev.hyperears` (HyperEars v2.5.0)，并为 Vector 管理器授予 `REQUEST_INSTALL_PACKAGES` 权限。
+- **K60 柔光玻璃材质与控制中心高斯模糊修复 (2026-08-27, 成功)**:
+  - **项目清理**：自研 `MaterialCenter` 实验项目已完整从工作区删除并从手机彻底卸载清理；
+  - **柔光玻璃与高斯模糊修复**：重置 `use_control_center=1` 并开启 `background_blur_enable`、`is_bionics_enabled`、`window_blur_enabled`、`persist.sys.background_blur_supported=true`、`persist.sys.high_end_gfx=true`；已重新激活 `HyperBackground` 与 `HyperCeiler` 模块，真机截图核验高斯模糊与柔光玻璃材质已恢复正常渲染。
 
 - **K60 功耗诊断：min_refresh_rate 锁 120 是主因 (2026-08-26)**: B站统计 5W 实为屏幕背锅——解码正常走 c2.qti.hevc.low_latency 硬解，但 `system min_refresh_rate=120` 强制全程 1440p+120Hz 不降档（scene-daemon 在跑，疑似 Scene 所设）；次因=B站播放管线反复 flush 抖帧（ijkservice 瞬时 139% CPU）、SystemUI RenderThread 瞬时 73%（与 NotificationShade 卡顿旧疾同源，复测已回落非持续）；电池 784 循环、充电 44°C，容量估计余 85%；处理顺序：还原 min_refresh_rate=60 观察 → 必要时 LSPosed 停 freEnhance 隔离验证 → 仍差再考虑换电池；结论为功耗主因不在 Infinity-X ROM，暂缓刷澎湃 OS4
 
