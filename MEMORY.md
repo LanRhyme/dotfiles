@@ -5,6 +5,10 @@
 
 ## 最近动态
 
+- **Noctalia 桌面外壳升级至最新 Git 构建 (2026-08-28, 成功)**:
+  - 通过 AUR 源码经 PKGBUILD 安全审查后构建安装 `noctalia-git 5.0.0.r5346.g5f90d2efd-1`（v5.0.0-beta.10-2-g5f90d2efd52d）；
+  - 进程平滑重载运行，保留原有莫兰迪全局配色、自定义快捷键与插件生态支持。
+
 - **K60 柔光玻璃材质与控制中心高斯模糊修复 (2026-08-27, 成功)**:
   - **项目清理**：自研 `MaterialCenter` 实验项目已完整从工作区删除并从手机彻底卸载清理；
   - **柔光玻璃与高斯模糊修复**：重置 `use_control_center=1` 并开启 `background_blur_enable`、`is_bionics_enabled`、`window_blur_enabled`、`persist.sys.background_blur_supported=true`、`persist.sys.high_end_gfx=true`；已重新激活 `HyperBackground` 与 `HyperCeiler` 模块，真机截图核验高斯模糊与柔光玻璃材质已恢复正常渲染。
