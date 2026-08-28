@@ -2109,48 +2109,6 @@ def write_bilibili_danmaku(palette):
     with open(colors_file, "w", encoding="utf-8") as f:
         json.dump(theme_colors, f, indent=2)
 
-def write_denial(palette):
-    denial_settings_path = Path.home() / ".config/denial/settings.json"
-    if not denial_settings_path.parent.exists():
-        denial_settings_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    settings = {}
-    if denial_settings_path.exists():
-        try:
-            with open(denial_settings_path, "r", encoding="utf-8") as f:
-                settings = json.load(f)
-        except Exception:
-            settings = {}
-
-    if "appearance" not in settings:
-        settings["appearance"] = {}
-    
-    iris_hex = palette.get("iris", "#89a484").lstrip("#")
-    if len(iris_hex) == 6:
-        accent_int = int("FF" + iris_hex, 16)
-    else:
-        accent_int = 4291869951
-
-    settings["appearance"]["accentSource"] = "custom"
-    settings["appearance"]["customAccentColor"] = accent_int
-    settings["appearance"]["colorSchemePreference"] = "preferDark"
-    settings["appearance"]["focusedWindowOpacity"] = 0.98
-    settings["appearance"]["unfocusedWindowOpacity"] = 0.98
-    settings["appearance"]["windowRadius"] = 8.0
-    settings["appearance"]["backdropBlurEnabled"] = True
-
-    if "touchpad" not in settings:
-        settings["touchpad"] = {}
-    settings["touchpad"]["naturalScrollEnabled"] = True
-    settings["touchpad"]["tapToClickEnabled"] = True
-    settings["touchpad"]["scrollSpeedFactor"] = 1.0
-
-    try:
-        with open(denial_settings_path, "w", encoding="utf-8") as f:
-            json.dump(settings, f, indent=2)
-    except Exception as e:
-        print(f"Failed to write denial settings: {e}")
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wallpaper", help="Path to current wallpaper for limine sync")
@@ -2165,7 +2123,6 @@ def main():
 
     palette = generate_palette(colors)
     write_niri(palette)
-    write_denial(palette)
     write_mango(palette)
     write_starship(palette)
     write_fcitx5(palette)
