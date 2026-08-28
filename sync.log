@@ -2229,3 +2229,17 @@ To https://github.com/LanRhyme/dotfiles.git
  2 files changed, 5 insertions(+), 1 deletion(-)
 To https://github.com/LanRhyme/dotfiles.git
    d5a061b..2e35743  master -> master
+[master bbbe487] auto: 2026-08-28-14:40:49
+ 13 files changed, 295 insertions(+)
+ create mode 100644 dot_config/hypr/animations.conf
+ create mode 100644 dot_config/hypr/appearance.conf
+ create mode 100644 dot_config/hypr/autostart.conf
+ create mode 100644 dot_config/hypr/colors.conf
+ create mode 100644 dot_config/hypr/env.conf
+ create mode 100644 dot_config/hypr/hyprland.conf
+ create mode 100644 dot_config/hypr/input.conf
+ create mode 100644 dot_config/hypr/keybinds.conf
+ create mode 100644 dot_config/hypr/monitors.conf
+ create mode 100644 dot_config/hypr/rules.conf
+To https://github.com/LanRhyme/dotfiles.git
+   2e35743..bbbe487  master -> master
