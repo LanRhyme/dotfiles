@@ -92,11 +92,11 @@
 - **Antigravity**：AUR 包滞后需手动维护（本地已至 2.9.1，git clone AUR 仓库改 pkgver/_build + updpkgsums + makepkg -f，本地副本 `~/tmp/antigravity-pkgbuild/`，下载 URL 形如 storage.googleapis.com/antigravity-public/antigravity-hub/<ver>-<build>/linux-x64/Antigravity.tar.gz）；agy CLI 独立 ELF（~/.local/bin/agy，agy update 自管理不随 pacman）；`antigravity --version` 输出的是内置 node 版本非应用版本
 - **Sunshine + Moonlight**：`sunshine 2026.724` + `moonlight-qt 6.1.0` 已装并配置；KMS 抓屏权限 `cap_sys_admin+ep` 已赋权给 `/usr/bin/sunshine`；服务为 systemd 用户服务 `app-dev.lizardbyte.app.Sunshine.service`（已设开机自启并启动）；**ufw 放行端口**：47984/47989/47990/48010 tcp 与 47998/47999/48000/48002/48010 udp；Web 控制台在 `https://localhost:47990`
 - **OnlyOffice**：cachyos 官方源 onlyoffice-bin（非 AUR 无需审查）；未主题化，如需按规则扩展 write_onlyoffice
-- **COSMIC Desktop**：`cosmic-session 1.7.0`（System76 全 Rust 现代桌面环境与平铺合成器）；会话入口 `/usr/share/wayland-sessions/cosmic.desktop`
 - **PiDeck**：已完全卸载勿重装（若将来重装：下载 --resolve 直连 US IP + `-C -` 续传；启动必须 PIDECK_LINUX_DISPLAY_BACKEND=wayland；ELECTRON_RUN_AS_NODE=1 上下文会让其二进制静默退出）
 
 ## 已弃用/已删除
 
+- **COSMIC Desktop**：System76 桌面环境，试用后已完全卸载清理
 - **Denial**：Flutter + Rust Wayland 合成器，因早期 Linux Impeller 渲染微卡顿与 CJK 候选框生态不完善，已完全卸载清理
 - **lpigui**（`~/Project/lpigui`）：pichamber 改造的 Vue GUI，已弃用被 pi-web 取代
 - **Krita-MorandiTimeline**：已删除，备份 `~/tmp/Krita-MorandiTimeline-backup-20260803.tar.gz`
