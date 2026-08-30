@@ -7,6 +7,24 @@
     "capture": {
         "selectionHistory": [
             {
+                "h": 1079,
+                "w": 1919,
+                "x": 0,
+                "y": 0
+            },
+            {
+                "h": 628,
+                "w": 800,
+                "x": 267,
+                "y": 194
+            },
+            {
+                "h": 720,
+                "w": 1153,
+                "x": 197,
+                "y": 282
+            },
+            {
                 "h": 1075,
                 "w": 1911,
                 "x": 8,
@@ -132,10 +150,10 @@
     },
     "windows": {
         "hotkeys": {
-            "capture": "Ctrl+Alt+S"
+            "capture": "Meta+Print"
         },
         "tray": {
-            "enabled": false
+            "enabled": true
         }
     }
 }

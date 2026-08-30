@@ -2374,3 +2374,12 @@ To https://github.com/LanRhyme/dotfiles.git
  1 file changed, 4 insertions(+)
 To https://github.com/LanRhyme/dotfiles.git
    5cfc13c..3b38bbf  master -> master
+[master 07ebddc] auto: 2026-08-31-00:00:02
+ 8 files changed, 104 insertions(+), 335 deletions(-)
+ delete mode 100644 dot_config/cava/config
+ create mode 100644 dot_config/cava/private_config
+ delete mode 100644 dot_config/gtk-3.0/gtk.css
+ create mode 100644 dot_config/gtk-3.0/private_gtk.css
+ delete mode 100644 dot_config/gtk-4.0/gtk.css
+ create mode 100644 dot_config/gtk-4.0/private_gtk.css
+致命错误：could not read Username for 'https://github.com': 没有那个设备或地址

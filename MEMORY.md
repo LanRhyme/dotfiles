@@ -5,6 +5,22 @@
 
 ## 最近动态
 
+- **Caelestia KDE Shell 窗口缩略图黑屏修复 (2026-08-31, 进行中)**:
+  - 根因：`~/.config/environment.d/nvidia.conf` 全局设置 `__NV_PRIME_RENDER_OFFLOAD=1` + `__GLX_VENDOR_LIBRARY_NAME=nvidia`，导致 quickshell 使用 NVIDIA GPU 渲染，而 KWin 在 Intel GPU 上运行，PipeWire DMA-BUF 共享失败致缩略图全黑
+  - 修复：移除 nvidia.conf 中的 PRIME offload 变量，保留 `QT_X11_NO_MITSHM=1`；需注销重新登录生效
+  - 保留 `LIBVA_DRIVER_NAME=nvidia`（硬件视频解码）
+
+- **Caelestia KDE Shell 完整安装 (2026-08-30~31)**:
+  - 安装 plasma-desktop 6.7.4-1.1 + plasmazones 3.4.2-1（替代 krohnkite）
+  - 克隆 caelestia-dots-kde 仓库到 ~/tmp/caelestia-dots-kde/
+  - 从源码编译 caelestia-shell 2.4.0（依赖 networkmanager-qt + aubio），手动修复 cmake install 路径问题（/usr/usr/ → /usr/）
+  - 部署 caelestia 配置：自启动、快捷键（Meta+Return 终端、Meta+Print 截图）、Fcitx5、cliphist
+  - 截图从 spectacle 改为 mark-shot（tray 模式运行）
+  - 安装 hdcy 中文翻译字典（523 处翻译）
+  - 自定义会话：~/.local/bin/start-kwin-caelestia.sh + ~/.config/wayland-sessions/kwin-caelestia.desktop
+  - 精简 KDE：卸载 plasma-desktop、baloo、powerdevil 等节省约 75MB（保留 kwin、plasma-workspace、plasmazones、caelestia-shell）
+  - Noctalia greeter 已可发现 Plasma 会话（plasma.desktop 在 /usr/share/wayland-sessions/）
+
 - **mark-shot 截图工具 FFmpeg 兼容性修复 (2026-08-30, 成功)**:
   - 旧手动安装的 `~/.local/bin/mark-shot`（8月9日编译）链接 FFmpeg 7.x (libavformat.so.62)，系统已升级至 FFmpeg 9.0 (libavformat.so.63) 致动态库加载失败；
   - 通过 AUR `mark-shot 0.1.49-1` 源码构建安装至 `/usr/bin/mark-shot`，并清理 `~/.local/bin/` 下残留旧副本；
@@ -49,6 +65,7 @@
 - Noctalia 重启方法：`pkill -f noctalia` 后 `setsid nohup noctalia > ~/tmp/noctalia-restart.log 2>&1 < /dev/null & disown`（kill 后 niri spawn-sh-at-startup 不重拉）
 - OBS：屏幕采集修复 = 覆盖 `/usr/share/applications/com.obsproject.Studio.desktop` Exec 强制 mesa EGL 核显渲染：`env -u __NV_PRIME_RENDER_OFFLOAD -u __GLX_VENDOR_LIBRARY_NAME __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json obs`（根因 Optimus 下 niri 核显 linear buffer 只能 EGL_EXTERNAL 导入而 OBS 要 GL_TEXTURE_2D）；代价 NVENC 不可用改核显 QSV（iHD + vpl-gpu-rt 已装）；grim 截图走 wlr-screencopy 不受影响；**2026-08-25 推流失败修复**：obs-studio-browser 升到 32.2.1-3 后 NVENC 检测直接 `outdated_driver`（nvidia-580xx 580.173 legacy 分支过旧）模块不加载，但配置残留 `obs_nvenc_h264_tex` 致 rtmp_output 找不到编码器启动失败（日志特征：启动时 Encoder ID not found ×2 → 开始推流时 rtmp_output failed），B 站插件侧正常；已把 basic.ini [AdvOut] 直播/录像编码器改为 `obs_qsv11_v2`（chezmoi 已同步），若 QSV 异常备选 VAAPI H.264（ffmpeg_vaapi_tex 可用）
 - obs-bilibili-stream：手动编译装于 `~/.config/obs-studio/plugins/bilibili-stream-for-obs/bin/64bit/`，已应用上游未合并 PR #27（B 站 2026-08 改版扫码登录 crossDomain ticket 解析 + Set-Cookie 大小写 strncasecmp）；**升级插件后需重新打补丁**（源码 `~/tmp/obs-bilibili-stream/`，cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_FRONTEND_API=ON -DENABLE_QT=ON）
+- Caelestia KDE Shell：KWin 6.7.4 合成器 + caelestia-shell 2.4.0（Quickshell），精简安装（无 plasmashell/systemsettings），配置于 ~/.config/quickshell/caelestia/；自定义会话 ~/.local/bin/start-kwin-caelestia.sh（noctalia greeter 可选）；窗口缩略图依赖 PipeWire + zkde_screencast_unstable_v1，**全局 NVIDIA PRIME offload 环境变量会导致黑屏**（已从 nvidia.conf 移除）
 - Zen 浏览器 (Flatpak)：flatpak override 注入 NVIDIA PRIME 渲染变量实现 GPU 加速；user.js 强制 WebRender/DMA-BUF/硬件视频解码；fcitx5 主题经 D-Bus portal 权限 + 只读访问 fcitx5 目录
 - SPlayer-Next：AUR `splayer-next-bin`（K-Black 维护，repack 上游官方 .pacman，无钩子已审查），2026-08-25 升至 1.0.0-8；二进制 `/opt/SPlayer-Next/SPlayer-Next`（大写），命令软链 `/usr/bin/splayer-next` 已由包托管，desktop 文件自带正确路径无需手改；Electron 43.2.0；升级遇旧手动软链冲突用 `--overwrite "/usr/bin/splayer-next"` 接管；构建副本与源包在 `~/tmp/splayer-next-update/`
 - slugcatpet 桌宠（`~/Projects/slugcatpet`）：GTK3 窗口必须用 Layer.TOP（Overlay 会盖住全屏内容故不可见性反转处理）；niri 26.x focused-window 输出的 window_size 嵌套于 layout 对象内（envwatch.py 已兼容）
