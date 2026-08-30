@@ -5,6 +5,14 @@
         "fullscreenDefaultTool": "pen"
     },
     "capture": {
+        "selectionHistory": [
+            {
+                "h": 1074,
+                "w": 1917,
+                "x": 1,
+                "y": 0
+            }
+        ],
         "wayland": {
             "kde": {
                 "kwinScreenshot": {

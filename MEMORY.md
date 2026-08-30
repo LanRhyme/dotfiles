@@ -5,6 +5,10 @@
 
 ## 最近动态
 
+- **mark-shot 截图工具 FFmpeg 兼容性修复 (2026-08-30, 成功)**:
+  - 旧手动安装的 `~/.local/bin/mark-shot`（8月9日编译）链接 FFmpeg 7.x (libavformat.so.62)，系统已升级至 FFmpeg 9.0 (libavformat.so.63) 致动态库加载失败；
+  - 通过 AUR `mark-shot 0.1.49-1` 源码构建安装至 `/usr/bin/mark-shot`，并清理 `~/.local/bin/` 下残留旧副本；
+
 - **Noctalia 桌面外壳升级至最新 Git 构建 (2026-08-28, 成功)**:
   - 通过 AUR 源码经 PKGBUILD 安全审查后构建安装 `noctalia-git 5.0.0.r5346.g5f90d2efd-1`（v5.0.0-beta.10-2-g5f90d2efd52d）；
   - 进程平滑重载运行，保留原有莫兰迪全局配色、自定义快捷键与插件生态支持。
@@ -98,6 +102,7 @@
 - **OnlyOffice**：cachyos 官方源 onlyoffice-bin（非 AUR 无需审查）；未主题化，如需按规则扩展 write_onlyoffice
 - **Hyprland**：`hyprland 0.56.2-1` + `xdg-desktop-portal-hyprland` + `hyprlock` + `hypridle`；模块化配置于 `~/.config/hypr/`，莫兰迪配色经 `morandi-gen.py` 的 `write_hyprland` 动态注入 `colors.conf`；已编译并启用官方全景工作区概览插件 `hyprexpo`（Super+Z 触发 3x3 Expo 概览，Alt+Tab 触发 Noctalia 窗口切换器）；支持 144Hz 弹性流体贝塞尔动画与焦点透明度平滑过渡
 - **PiDeck**：已完全卸载勿重装（若将来重装：下载 --resolve 直连 US IP + `-C -` 续传；启动必须 PIDECK_LINUX_DISPLAY_BACKEND=wayland；ELECTRON_RUN_AS_NODE=1 上下文会让其二进制静默退出）
+- **mark-shot**：AUR `mark-shot 0.1.49-1` 源码构建（`/usr/bin/mark-shot`），截图+标注+OCR+滚动截图+录屏工具；niri 快捷键 `Mod+Print`；配置 `~/.config/mark-shot/config.json`（windowDetection 用 niri DMS、OCR 走 rapidocr-onnxruntime venv）；GNOME Shell 扩展 `mark-shot-scroll-helper@snemc.org` 用于滚动截图预览面板；**FFmpeg soname 升级时需重编译**（依赖 libavformat/libavcodec 等 .so）
 
 ## 已弃用/已删除
 
