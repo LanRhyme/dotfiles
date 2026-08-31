@@ -5,6 +5,12 @@
 
 ## 最近动态
 
+- **Caelestia Shell 仿 Noctalia 配置与左侧栏适配 (2026-08-31, 成功)**:
+  - 调整 `~/.config/caelestia/shell.json` 将状态栏设为左侧纵向布局（`bar.position: "left"`）
+  - 布局分区对齐 Noctalia：顶部（Logo/时钟/CPU负载/内存/活动窗口）、中部（工作区）、底部（托盘/通知指示器/音频网络电池状态图标/电源）
+  - 同步常用应用列表（Ghostty、Firefox、Zen、QQ、SPlayer、VSCode、Antigravity、Krita、OBS、Nautilus 等）
+  - 启用毛玻璃模糊与浮岛视觉（`blur: true`, `islands: true`）
+
 - **Caelestia KDE Shell 窗口缩略图黑屏修复 (2026-08-31, 进行中)**:
   - 根因：`~/.config/environment.d/nvidia.conf` 全局设置 `__NV_PRIME_RENDER_OFFLOAD=1` + `__GLX_VENDOR_LIBRARY_NAME=nvidia`，导致 quickshell 使用 NVIDIA GPU 渲染，而 KWin 在 Intel GPU 上运行，PipeWire DMA-BUF 共享失败致缩略图全黑
   - 修复：移除 nvidia.conf 中的 PRIME offload 变量，保留 `QT_X11_NO_MITSHM=1`；需注销重新登录生效
