@@ -5,6 +5,10 @@
 
 ## 最近动态
 
+- **Noctalia 桌面外壳升级至最新 Git 构建 (2026-08-31, 成功)**:
+  - 经 PKGBUILD 安全审查后从源码构建升级至 `noctalia-git 5.0.0.r5361.gf840b01ba-1`（v5.0.0-beta.10-17-gf840b01baf16）
+  - 平滑重载运行（PID 102049），左侧状态栏、莫兰迪配色与全部插件正常运作
+
 - **桌面外壳恢复为 Noctalia 与 DMS 清理 (2026-08-31, 成功)**:
   - 卸载 `dms-shell`、`dms-shell-niri` 与 `dgop` 软件包
   - 清理 `~/.config/DankMaterialShell`、`~/.local/state/DankMaterialShell` 与相关缓存
