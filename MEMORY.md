@@ -5,11 +5,10 @@
 
 ## 最近动态
 
-- **DankMaterialShell (DMS) 安装与 Niri 左侧状态栏配置 (2026-08-31, 成功)**:
-  - 安装官方仓库包 `dms-shell` (1.5.3-1) 与 `dms-shell-niri` (1.5.3-1)，替换为官方 `quickshell` (0.3.1-1.1)
-  - 启动 DMS 守护进程并设置为 Niri 左侧纵向状态栏（`dms ipc call bar setPosition "id" "default" "left"`）
-  - 原生支持 Niri 的工作区流、聚焦窗口、Spotlight 搜索启动器、控制中心、剪贴板、性能监视等
-  - 彻底清理旧版 Caelestia 用户残留文件
+- **桌面外壳恢复为 Noctalia 与 DMS 清理 (2026-08-31, 成功)**:
+  - 卸载 `dms-shell`、`dms-shell-niri` 与 `dgop` 软件包
+  - 清理 `~/.config/DankMaterialShell`、`~/.local/state/DankMaterialShell` 与相关缓存
+  - 重启并全面恢复 Noctalia 桌面外壳（左侧状态栏、莫兰迪配色、插件全套就绪）
 
 - **Caelestia KDE Shell 窗口缩略图黑屏修复 (2026-08-31, 进行中)**:
   - 根因：`~/.config/environment.d/nvidia.conf` 全局设置 `__NV_PRIME_RENDER_OFFLOAD=1` + `__GLX_VENDOR_LIBRARY_NAME=nvidia`，导致 quickshell 使用 NVIDIA GPU 渲染，而 KWin 在 Intel GPU 上运行，PipeWire DMA-BUF 共享失败致缩略图全黑
