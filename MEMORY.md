@@ -5,6 +5,10 @@
 
 ## 最近动态
 
+- **Minecraft (Lunar Client) 独显启动与 Flatpak NVIDIA 驱动修复 (2026-08-31, 成功)**:
+  - 根因：配置 KDE 时移除了 `environment.d/nvidia.conf` 中的全局 PRIME offload 变量致 Flatpak 沙盒不再继承独显环境变量，同时 Flatpak 运行时 NVIDIA 驱动（580.173.02）落后于宿主机（580.178.04）
+  - 修复：安装 Flatpak `org.freedesktop.Platform.GL.nvidia-580-178-04` 与 32 位运行库，并通过 `flatpak override --user` 为 Lunar Client 注入 `__NV_PRIME_RENDER_OFFLOAD=1`、`__GLX_VENDOR_LIBRARY_NAME=nvidia` 与 `__VK_LAYER_NV_optimus=NVIDIA_only`
+
 - **Noctalia 桌面外壳升级至最新 Git 构建 (2026-08-31, 成功)**:
   - 经 PKGBUILD 安全审查后从源码构建升级至 `noctalia-git 5.0.0.r5361.gf840b01ba-1`（v5.0.0-beta.10-17-gf840b01baf16）
   - 平滑重载运行（PID 102049），左侧状态栏、莫兰迪配色与全部插件正常运作
