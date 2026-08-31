@@ -5,10 +5,11 @@
 
 ## 最近动态
 
-- **Caelestia Shell 还原默认质感与左侧栏适配 (2026-08-31, 成功)**:
-  - 还原 `~/.config/caelestia/shell.json` 为原生默认配置，仅保留 `bar.position: "left"`
-  - 保留 Caelestia 原汁原味的设计语言、间距与组件比例
-  - 已在 Niri 会话中重启加载运行
+- **Caelestia Shell 清理与移除 (2026-08-31, 成功)**:
+  - 停止并清理 quickshell / caelestia 进程与残留服务
+  - 清理 `~/.config/quickshell/caelestia`、`~/.config/caelestia`、`~/.local/bin/caelestia*` 及 build 缓存
+  - 恢复 Noctalia 正常运行状态
+  - 准备迁移/评估 Niri 原生支持的 DankMaterialShell (dms-shell-niri 1.5.3)
 
 - **Caelestia KDE Shell 窗口缩略图黑屏修复 (2026-08-31, 进行中)**:
   - 根因：`~/.config/environment.d/nvidia.conf` 全局设置 `__NV_PRIME_RENDER_OFFLOAD=1` + `__GLX_VENDOR_LIBRARY_NAME=nvidia`，导致 quickshell 使用 NVIDIA GPU 渲染，而 KWin 在 Intel GPU 上运行，PipeWire DMA-BUF 共享失败致缩略图全黑
