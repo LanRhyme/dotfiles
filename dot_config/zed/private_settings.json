@@ -1,188 +1,31 @@
-// Zed settings
-//
-// For information on how to configure Zed, see the Zed
-// documentation: https://zed.dev/docs/configuring-zed
-//
-// To see all of Zed's default settings without changing your
-// custom settings, run `zed: open default settings` from the
-// command palette (cmd-shift-p / ctrl-shift-p)
 {
-  "language_models": {
-    "openai_compatible": {
-      "NVIDIA": {
-        "api_url": "https://integrate.api.nvidia.com/v1",
-        "available_models": [
-          {
-            "name": "minimaxai/minimax-m2.7",
-            "display_name": "MiniMax M2.7",
-            "max_tokens": 200000,
-            "max_output_tokens": 32000,
-            "reasoning_effort": "medium",
-            "capabilities": {
-              "tools": true,
-              "images": false,
-              "parallel_tool_calls": false,
-              "prompt_cache_key": false,
-              "chat_completions": true,
-              "interleaved_reasoning": false,
-              "max_tokens_parameter": false
-            }
-          },
-          {
-            "name": "deepseek-ai/deepseek-v4-pro",
-            "display_name": "DeepSeek V4 Pro",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "deepseek-ai/deepseek-v4-flash",
-            "display_name": "DeepSeek V4 Flash",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "z-ai/glm-5.2",
-            "display_name": "GLM 5.2",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "moonshotai/kimi-k2.6",
-            "display_name": "Kimi K2.6",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "mistralai/mistral-large-3-675b-instruct-2512",
-            "display_name": "Mistral Large 3 675B",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "nvidia/nemotron-3-ultra-550b-a55b",
-            "display_name": "Nemotron Ultra 550B",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "nvidia/nemotron-3-super-120b-a12b",
-            "display_name": "Nemotron Super 120B",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "meta/llama-3.3-70b-instruct",
-            "display_name": "Llama 3.3 70B",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "qwen/qwen3-next-80b-a3b-instruct",
-            "display_name": "Qwen3 Next 80B",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "qwen/qwen3.5-397b-a17b",
-            "display_name": "Qwen3.5 397B",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192
-          },
-          {
-            "name": "openai/gpt-oss-120b",
-            "display_name": "GPT-OSS 120B",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192,
-            "reasoning_effort": "medium",
-            "capabilities": {
-              "tools": true,
-              "images": false,
-              "parallel_tool_calls": false,
-              "prompt_cache_key": false,
-              "chat_completions": true,
-              "interleaved_reasoning": true,
-              "max_tokens_parameter": false
-            }
-          },
-          {
-            "name": "stepfun-ai/step-3.7-flash",
-            "display_name": "Step 3.7 Flash",
-            "max_tokens": 131072,
-            "max_output_tokens": 8192,
-            "reasoning_effort": "medium",
-            "capabilities": {
-              "tools": true,
-              "images": false,
-              "parallel_tool_calls": false,
-              "prompt_cache_key": false,
-              "chat_completions": true,
-              "interleaved_reasoning": true,
-              "max_tokens_parameter": false
-            }
-          }
-        ]
-      }
-    }
-  },
   "agent": {
     "default_model": {
-      "provider": "NVIDIA",
+      "enable_thinking": false,
       "model": "moonshotai/kimi-k2.6",
-      "enable_thinking": false
+      "provider": "NVIDIA"
     },
     "dock": "right",
     "favorite_models": [],
     "model_parameters": []
   },
-  "terminal": {
-    "font_size": 14.0,
-    "cursor_shape": "underline",
-    "blinking": "on"
-  },
-  "telemetry": {
-    "diagnostics": false,
-    "metrics": false
-  },
-  "project_panel": {
-    "dock": "left",
-    "git_status": true,
-    "auto_reveal_entries": false,
-    "auto_fold_dirs": false
-  },
-  "outline_panel": {
-    "git_status": true
-  },
-  "tabs": {
-    "git_status": true
-  },
-  "git_panel": {
-    "dock": "left",
-    "button": true
-  },
-  "lsp_document_links": false,
-  "sticky_scroll": {
-    "enabled": false
-  },
-  "gutter": {
-    "folds": false,
-    "runnables": false
-  },
-  "minimap": {
-    "show": "always"
-  },
-  "scrollbar": {
-    "axes": {
-      "horizontal": false,
-      "vertical": false
-    }
-  },
-  "rounded_selection": false,
+  "auto_indent_on_paste": false,
   "autosave": {
     "after_delay": {
       "milliseconds": 1000
     }
   },
+  "base_keymap": "VSCode",
   "buffer_font_family": "JetbrainsMono NF",
+  "buffer_font_size": 20.0,
+  "buffer_font_weight": 300,
+  "context_servers": {
+    "lean-ctx": {
+      "args": [],
+      "command": "/usr/bin/lean-ctx",
+      "env": {}
+    }
+  },
   "file_types": {
     "cmake": [
       "CMakeLists.txt",
@@ -192,25 +35,181 @@
       ".clang*"
     ]
   },
-  "auto_indent_on_paste": false,
-  "linked_edits": true,
-  "show_whitespaces": "none",
-  "line_ending": "prefer_lf",
+  "git_panel": {
+    "button": true,
+    "dock": "left"
+  },
+  "gutter": {
+    "folds": false,
+    "runnables": false
+  },
+  "hard_tabs": false,
   "indent_guides": {
     "enabled": false
   },
+  "language_models": {
+    "openai_compatible": {
+      "NVIDIA": {
+        "api_url": "https://integrate.api.nvidia.com/v1",
+        "available_models": [
+          {
+            "capabilities": {
+              "chat_completions": true,
+              "images": false,
+              "interleaved_reasoning": false,
+              "max_tokens_parameter": false,
+              "parallel_tool_calls": false,
+              "prompt_cache_key": false,
+              "tools": true
+            },
+            "display_name": "MiniMax M2.7",
+            "max_output_tokens": 32000,
+            "max_tokens": 200000,
+            "name": "minimaxai/minimax-m2.7",
+            "reasoning_effort": "medium"
+          },
+          {
+            "display_name": "DeepSeek V4 Pro",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "deepseek-ai/deepseek-v4-pro"
+          },
+          {
+            "display_name": "DeepSeek V4 Flash",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "deepseek-ai/deepseek-v4-flash"
+          },
+          {
+            "display_name": "GLM 5.2",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "z-ai/glm-5.2"
+          },
+          {
+            "display_name": "Kimi K2.6",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "moonshotai/kimi-k2.6"
+          },
+          {
+            "display_name": "Mistral Large 3 675B",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "mistralai/mistral-large-3-675b-instruct-2512"
+          },
+          {
+            "display_name": "Nemotron Ultra 550B",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "nvidia/nemotron-3-ultra-550b-a55b"
+          },
+          {
+            "display_name": "Nemotron Super 120B",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "nvidia/nemotron-3-super-120b-a12b"
+          },
+          {
+            "display_name": "Llama 3.3 70B",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "meta/llama-3.3-70b-instruct"
+          },
+          {
+            "display_name": "Qwen3 Next 80B",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "qwen/qwen3-next-80b-a3b-instruct"
+          },
+          {
+            "display_name": "Qwen3.5 397B",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "qwen/qwen3.5-397b-a17b"
+          },
+          {
+            "capabilities": {
+              "chat_completions": true,
+              "images": false,
+              "interleaved_reasoning": true,
+              "max_tokens_parameter": false,
+              "parallel_tool_calls": false,
+              "prompt_cache_key": false,
+              "tools": true
+            },
+            "display_name": "GPT-OSS 120B",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "openai/gpt-oss-120b",
+            "reasoning_effort": "medium"
+          },
+          {
+            "capabilities": {
+              "chat_completions": true,
+              "images": false,
+              "interleaved_reasoning": true,
+              "max_tokens_parameter": false,
+              "parallel_tool_calls": false,
+              "prompt_cache_key": false,
+              "tools": true
+            },
+            "display_name": "Step 3.7 Flash",
+            "max_output_tokens": 8192,
+            "max_tokens": 131072,
+            "name": "stepfun-ai/step-3.7-flash",
+            "reasoning_effort": "medium"
+          }
+        ]
+      }
+    }
+  },
+  "line_ending": "prefer_lf",
+  "linked_edits": true,
+  "lsp_document_links": false,
+  "minimap": {
+    "show": "always"
+  },
+  "outline_panel": {
+    "git_status": true
+  },
+  "project_panel": {
+    "auto_fold_dirs": false,
+    "auto_reveal_entries": false,
+    "dock": "left",
+    "git_status": true
+  },
+  "rounded_selection": false,
+  "scrollbar": {
+    "axes": {
+      "horizontal": false,
+      "vertical": false
+    }
+  },
+  "show_whitespaces": "none",
   "soft_wrap": "editor_width",
-  "hard_tabs": false,
+  "sticky_scroll": {
+    "enabled": false
+  },
   "tab_size": 4,
-  "base_keymap": "VSCode",
+  "tabs": {
+    "git_status": true
+  },
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "terminal": {
+    "blinking": "on",
+    "cursor_shape": "underline",
+    "font_size": 14.0
+  },
+  "theme": {
+    "dark": "Morandi",
+    "light": "Morandi",
+    "mode": "dark"
+  },
   "ui_font_family": "JetbrainsMono NF",
   "ui_font_size": 14,
-  "ui_font_weight": 300,
-  "buffer_font_size": 20.0,
-  "buffer_font_weight": 300,
-  "theme": {
-    "mode": "dark",
-    "light": "Morandi",
-    "dark": "Morandi"
-  }
+  "ui_font_weight": 300
 }

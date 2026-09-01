@@ -16,3 +16,10 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 # Added by Antigravity CLI installer
 export PATH="/home/lanrhyme/.local/bin:$PATH"
 . "$HOME/.cargo/env"
+
+# >>> lean-ctx agent aliases >>>
+alias claude='LEAN_CTX_AGENT=1 BASH_ENV="$HOME/.bashenv" claude'
+alias codebuddy='LEAN_CTX_AGENT=1 BASH_ENV="$HOME/.bashenv" codebuddy'
+alias codex='LEAN_CTX_AGENT=1 BASH_ENV="$HOME/.bashenv" codex'
+alias gemini='LEAN_CTX_AGENT=1 BASH_ENV="$HOME/.bashenv" gemini'
+# <<< lean-ctx agent aliases <<<
