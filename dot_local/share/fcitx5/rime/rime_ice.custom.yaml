@@ -1,7 +1,7 @@
 # 添加了模糊音的自定义配置文件 rime_ice.custom.yaml
 # https://github.com/Mark24Code/rime-auto-deploy/issues/1
 patch:
-  # 移除 Emoji 滤镜
+  # 候选词过滤（移除 Emoji，启用汉英释义提示）
   engine/filters:
     - lua_filter@*corrector
     - reverse_lookup_filter@radical_reverse_lookup
@@ -10,11 +10,12 @@ patch:
     - lua_filter@*pin_cand_filter
     - lua_filter@*long_word_filter
     - lua_filter@*reduce_english_filter
+    - lua_filter@*zh2en_filter
     - simplifier@traditionalize
     - lua_filter@*search@radical_pinyin
     - uniquifier
 
-  # 移除 Emoji 开关
+  # 方案状态开关（移除 Emoji，增加汉英释义开关）
   switches:
     - name: ascii_mode
       states: [ 中, Ａ ]
@@ -22,6 +23,9 @@ patch:
       states: [ ¥, $ ]
     - name: traditionalization
       states: [ 简, 繁 ]
+    - name: zh2en
+      states: [ 译关, 译开 ]
+      reset: 1
     - name: full_shape
       states: [ 半角, 全角 ]
     - name: search_single_char
