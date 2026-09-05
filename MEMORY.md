@@ -6,8 +6,8 @@
 ## 最近动态
 
 - **Fcitx5-Rime 输入法调频优化、Emoji 移除、词库更新与汉英释义精简瘦身 (2026-09-05, 成功)**:
-  - 根因：建筑物标绘工作致使「号」（552次）与「钟」（93次）等词频异常膨胀，挤压常用词「好」与「中」；Rime-ice 默认挂载 simplifier@emoji 滤镜致候选词混入大量表情；初始引入朗道全量词典（48.4万词）导致生僻词、化学及生化拉丁术语冗余且内存开销偏高
-  - 修复：全量备份词库后清理 rime_ice.userdb 及 sync 用户词库中的标绘高频条目（号、钟、空房、罗岭），使「好」与「中」回归候选首位；在 rime_ice.custom.yaml 覆写 engine/filters 移除 simplifier@emoji 并在 switches 移除 emoji 开关；全量同步上游 rime-ice 最新 HEAD（2026-09 提交 fbb516b）；通过 CC-CEDICT 规范现代词库融合 Rime-ice 基础高频词（词频>=500）与口语/技术词典，构建 14 万精选汉英对照库并彻底剔除 34 万条冷僻生化、拉丁名及过长碎片短语（Fcitx5 内存降回 66MB，载入仅 0.22s，F4 可按需切换 `[译关/译开]`）；修改已同步提交至 chezmoi 并平滑重载生效
+  - 根因：建筑物标绘工作致使「号」（552次）与「钟」（93次）等词频异常膨胀，挤压常用词「好」与「中」；Rime-ice 默认挂载 simplifier@emoji 滤镜致候选词混入大量表情；初始引入朗道全量词典（48.4万词）导致生僻词、化学及生化拉丁术语冗余；纯学术字典缺失日常口语/方位/应答短语（如不大行、还可以、在这等）
+  - 修复：全量备份词库后清理 rime_ice.userdb 及 sync 用户词库中的标绘高频条目（号、钟、空房、罗岭），使「好」与「中」回归候选首位；在 rime_ice.custom.yaml 覆写 engine/filters 移除 simplifier@emoji 并在 switches 移除 emoji 开关；全量同步上游 rime-ice 最新 HEAD（2026-09 提交 fbb516b）；通过 CC-CEDICT 规范现代词库融合 Rime-ice 基础高频词（词频>=500），专项补充 330+ 条高频日常口语与方位应答短语（如不大行、还可以、在这、在哪儿、快好了、没事了等），构建 140,652 条实用汉英对照库并彻底剔除 34 万条冷僻生化/机械术语（载入仅 0.22s，F4 可按需切换 `[译关/译开]`）；修改已同步提交至 chezmoi 并平滑重载生效
 
 - **Minecraft (Lunar Client) 独显启动与 Flatpak NVIDIA 驱动修复 (2026-08-31, 成功)**:
   - 根因：配置 KDE 时移除了 `environment.d/nvidia.conf` 中的全局 PRIME offload 变量致 Flatpak 沙盒不再继承独显环境变量，同时 Flatpak 运行时 NVIDIA 驱动（580.173.02）落后于宿主机（580.178.04）
