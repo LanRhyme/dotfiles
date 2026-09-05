@@ -2570,3 +2570,8 @@ To https://github.com/LanRhyme/dotfiles.git
  create mode 100644 dot_local/share/applications/bilibili-pixel-danmaku.desktop
 To https://github.com/LanRhyme/dotfiles.git
    6fd3dba..4bd7800  master -> master
+[master 18b48b7] auto: 2026-09-05-22:00:01
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+To https://github.com/LanRhyme/dotfiles.git
+   4bd7800..18b48b7  master -> master
+chezmoi: /home/lanrhyme/.config/obs-studio/user.ini:85: Detected a potential hardcoded password literal, which may expose account credentials.
