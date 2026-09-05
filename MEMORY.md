@@ -121,7 +121,7 @@
 
 ### 其他项目
 - **Pi Codex GUI**（已完成交付）：`~/Project/pi-codex-gui`，Tauri 2 桌面壳 + bridge.js 协议适配（spawn `pi --mode rpc`）；遗留两坑值得记：bridge 转发扩展 UI 事件必须 `{ ...ev, type: 'ui_request' }`（spread 顺序反了 type 被覆盖致前端全部对话框失效）；RPC 模式下 `ctx.ui.custom()` 返回 undefined 不可用
-- **bilibili-pixel-danmaku**：`~/Projects/bilibili-pixel-danmaku`，PySide6 弹幕助手；莫兰迪主题经 `~/.config/bilibili-pixel-danmaku/morandi_colors.json` + QFileSystemWatcher 热更新；异步重连循环退避 3/5/10/15/20/30s + ws 半死检测（90s 无数据判失效）；aiohttp 的 `session.get/ws_connect` 返回 awaitable+contextmanager 双重对象，async with 不会自动 await coroutine
+- **bilibili-pixel-danmaku**：`~/Projects/bilibili-pixel-danmaku`，PySide6 弹幕助手；莫兰迪主题经 `~/.config/bilibili-pixel-danmaku/morandi_colors.json` + QFileSystemWatcher 热更新；异步重连循环退避 3/5/10/15/20/30s + ws 半死检测（90s 无数据判失效）；aiohttp 的 `session.get/ws_connect` 返回 awaitable+contextmanager 双重对象，async with 不会自动 await coroutine；已创建桌面启动项 `~/.local/share/applications/bilibili-pixel-danmaku.desktop` 并交由 chezmoi 管理
 - **Pi Agent TUI**：`~/.pi/agent` 已深度主题化（zentui/open-tui 扩展，OpenCode 风格 ASCII Logo），配色由 morandi-gen.py 的 write_pi 动态同步
 
 ## 安装与服务
