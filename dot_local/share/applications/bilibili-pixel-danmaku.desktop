@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Bilibili Pixel Danmaku
+Name[zh_CN]=B站像素风弹幕姬
+Comment=莫兰迪像素风 B 站直播弹幕助手
+Exec=/home/lanrhyme/Projects/bilibili-pixel-danmaku/run.sh
+Path=/home/lanrhyme/Projects/bilibili-pixel-danmaku
+Icon=io.github.msojocs.bilibili
+Terminal=false
+Type=Application
+Categories=Network;AudioVideo;
+StartupWMClass=BilibiliPixelDanmaku
