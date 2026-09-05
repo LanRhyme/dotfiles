@@ -5,6 +5,10 @@
 
 ## 最近动态
 
+- **Fcitx5-Rime 输入法调频优化、Emoji 移除与词库全量更新 (2026-09-05, 成功)**:
+  - 根因：建筑物标绘工作致使「号」（552次）与「钟」（93次）等词频异常膨胀，挤压常用词「好」与「中」；Rime-ice 默认挂载 simplifier@emoji 滤镜致候选词混入大量表情；词库版本自 2026-02 起 7 个月未同步导致词汇偏旧
+  - 修复：全量备份词库后清理 rime_ice.userdb 及 sync 用户词库中的标绘高频条目（号、钟、空房、罗岭），使「好」与「中」回归候选首位；在 rime_ice.custom.yaml 覆写 engine/filters 移除 simplifier@emoji 并在 switches 移除 emoji 开关，同步提交至 chezmoi；将本地 rime-ice 仓库全量同步至上游最新 HEAD（2026-09 最新提交 fbb516b，增改 3 万+ 行基础与扩展词库），保留个人配置与 userdb 重新编译部署并平滑重启 Fcitx5
+
 - **Minecraft (Lunar Client) 独显启动与 Flatpak NVIDIA 驱动修复 (2026-08-31, 成功)**:
   - 根因：配置 KDE 时移除了 `environment.d/nvidia.conf` 中的全局 PRIME offload 变量致 Flatpak 沙盒不再继承独显环境变量，同时 Flatpak 运行时 NVIDIA 驱动（580.173.02）落后于宿主机（580.178.04）
   - 修复：安装 Flatpak `org.freedesktop.Platform.GL.nvidia-580-178-04` 与 32 位运行库，并通过 `flatpak override --user` 为 Lunar Client 注入 `__NV_PRIME_RENDER_OFFLOAD=1`、`__GLX_VENDOR_LIBRARY_NAME=nvidia` 与 `__VK_LAYER_NV_optimus=NVIDIA_only`
@@ -73,7 +77,7 @@
 - 主题引擎：`~/.config/noctalia/morandi-gen.py` 统一生成莫兰迪配色（已有 write_ghostty/write_fastfetch/write_fcitx5/write_pi/write_bilibili_danmaku 等函数）；**新应用主题化必须扩展此脚本**（添加 write_<app> 并在 main() 调用），不得直改应用配置；wine 应用与 krita 不走它
 - Niri：动画 stiffness 180-220 / damping-ratio 0.8 弹性轻柔滑行（cfg/animation.kdl）；窗口间距 8px（cfg/layout.kdl）；全局 opacity 0.98 + blur true（**draw-border-with-background false 必设**否则聚焦显实心边框；Krita/Loupe/Kando/SPlayer 歌词排除）
 - Ghostty：已全面替代 Alacritty（旧配置与 dotfiles 已全量清理）；输入法修复靠 wrapper `~/.local/bin/ghostty`（`env -u GTK_IM_MODULE`，chezmoi `dot_local/bin/executable_ghostty`，覆盖 niri 快捷键/launcher/mango 全部入口；根因 ghostty 不转发 key release 使 fcitx5-gtk 模块状态机异常）；term_bg 公式 `max(l_b+0, 4)` 当前 #171b17；集成 Master GLSL 光标着色器 + scrollbar system + calt/liga 连字
-- Fcitx5：bamboo-dark 皮肤（morandi-gen 动态注入）、竖排候选；5.1.21 起支持 niri ext-background-effect 候选框模糊
+- Fcitx5：bamboo-dark 皮肤（morandi-gen 动态注入）、竖排候选；方案为 rime_ice（雾凇拼音），已移除 emoji 滤镜与标绘残留高频词；5.1.21 起支持 niri ext-background-effect 候选框模糊
 - Fastfetch：write_fastfetch 全量生成 config.jsonc（标题三色分区 + 模块三组 + 8 圆形色点）；**源码中 ≥U+F0000 的码点必须写 8 位 `\U000FXXXX` 转义**（`\U0000FXXXX` 9 位会被 Python 截断）
 - Noctalia 重启方法：`pkill -f noctalia` 后 `setsid nohup noctalia > ~/tmp/noctalia-restart.log 2>&1 < /dev/null & disown`（kill 后 niri spawn-sh-at-startup 不重拉）
 - OBS：屏幕采集修复 = 覆盖 `/usr/share/applications/com.obsproject.Studio.desktop` Exec 强制 mesa EGL 核显渲染：`env -u __NV_PRIME_RENDER_OFFLOAD -u __GLX_VENDOR_LIBRARY_NAME __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json obs`（根因 Optimus 下 niri 核显 linear buffer 只能 EGL_EXTERNAL 导入而 OBS 要 GL_TEXTURE_2D）；代价 NVENC 不可用改核显 QSV（iHD + vpl-gpu-rt 已装）；grim 截图走 wlr-screencopy 不受影响；**2026-08-25 推流失败修复**：obs-studio-browser 升到 32.2.1-3 后 NVENC 检测直接 `outdated_driver`（nvidia-580xx 580.173 legacy 分支过旧）模块不加载，但配置残留 `obs_nvenc_h264_tex` 致 rtmp_output 找不到编码器启动失败（日志特征：启动时 Encoder ID not found ×2 → 开始推流时 rtmp_output failed），B 站插件侧正常；已把 basic.ini [AdvOut] 直播/录像编码器改为 `obs_qsv11_v2`（chezmoi 已同步），若 QSV 异常备选 VAAPI H.264（ffmpeg_vaapi_tex 可用）
