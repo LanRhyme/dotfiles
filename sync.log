@@ -2641,3 +2641,6 @@ github.com/cli/cli/v2/internal/keyring.Get.func1()
 created by github.com/cli/cli/v2/internal/keyring.Get in goroutine 1
 	github.com/cli/cli/v2/internal/keyring/keyring.go:42 +0xde
 致命错误：could not read Username for 'https://github.com': 没有那个设备或地址
+[master 1d073cf] auto: 2026-09-09-12:00:02
+ 1 file changed, 21 insertions(+)
+致命错误：could not read Username for 'https://github.com': 没有那个设备或地址
