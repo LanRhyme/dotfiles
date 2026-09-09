@@ -2620,3 +2620,24 @@ To https://github.com/LanRhyme/dotfiles.git
  1 file changed, 4 insertions(+)
 To https://github.com/LanRhyme/dotfiles.git
    6a0ec30..2c03c66  master -> master
+[master 86d9af6] auto: 2026-09-08-22:00:01
+ 1 file changed, 4 insertions(+)
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0x28 pc=0x55589ff8c5c3]
+
+goroutine 8 [running]:
+github.com/zalando/go-keyring/secret_service.(*SecretService).handlePrompt(0x1d3173642090, {0x1d31742460f9, 0x22})
+	github.com/zalando/go-keyring@v0.2.8/secret_service/secret_service.go:209 +0x4e3
+github.com/zalando/go-keyring/secret_service.(*SecretService).Unlock(0x1d3173642090, {0x5558a0c2bf5a, 0x29})
+	github.com/zalando/go-keyring@v0.2.8/secret_service/secret_service.go:114 +0x1dd
+github.com/zalando/go-keyring.secretServiceProvider.findItem({}, 0x1d3173642090, {0x1d31737ed9e0, 0xd}, {0x1d31737f26d8, 0x8})
+	github.com/zalando/go-keyring@v0.2.8/keyring_unix.go:62 +0x105
+github.com/zalando/go-keyring.secretServiceProvider.Get({}, {0x1d31737ed9e0, 0xd}, {0x1d31737f26d8, 0x8})
+	github.com/zalando/go-keyring@v0.2.8/keyring_unix.go:111 +0x93
+github.com/zalando/go-keyring.Get(...)
+	github.com/zalando/go-keyring@v0.2.8/keyring.go:39
+github.com/cli/cli/v2/internal/keyring.Get.func1()
+	github.com/cli/cli/v2/internal/keyring/keyring.go:44 +0x6c
+created by github.com/cli/cli/v2/internal/keyring.Get in goroutine 1
+	github.com/cli/cli/v2/internal/keyring/keyring.go:42 +0xde
+致命错误：could not read Username for 'https://github.com': 没有那个设备或地址
