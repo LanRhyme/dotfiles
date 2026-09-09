@@ -8,11 +8,12 @@
 - **微信键盘表情面板颜文字二级分类、底栏响应与混淆反射全量修复 (2026-09-09, 成功)**:
   - 架构：`WeType-Kaomoji`（Xposed 模块，LibXposed API 102，目标包 `com.tencent.wetype` 3.5.3，测试机 ed3fdd92）
   - 二级分类：在 `ImeEmojiBoardView` 顶栏注入横向滑动 Pill Chip 胶囊分类栏（常用、可爱、萌宠、治愈、开心、傲娇、委屈、无奈、惊讶、生气、日常），点击精准跳转对应列，列表水平滑动同步高亮当前分类
-  - 反射崩溃修复：`ImeEmojiBoardView` 内部 `emojiTitle`/`container`/`rightContainer` 属 Kotlin 懒加载私有字段（底层字段名为 `z`/`C`/`E`），改用 getter 方法反射（`getEmojiTitle()`、`getContainer()` 等）与字段回退并包裹 `runCatching`，根除 `NoSuchFieldException` 导致的底栏协程中断与分类栏消失
-  - 滚动混淆适配：`WxLinearLayoutManager` 的 `findFirstVisibleItemPosition` 实为混淆方法 `q()`，`scrollToPositionWithOffset` 为 `R(pos, offset)`，封装安全方法根除滚动时每帧抛出 `NoSuchMethodException`
-  - 触控通道解禁：移除 `ImeEmojiPagerView` 上的 `onTouchEvent` 与 `canScrollHorizontally` 强行拦截，仅保留 `onInterceptTouchEvent -> false` 与页面索引锁定，恢复底栏和表情列表的原生顺畅滑动体验
+  - Jadx 别名陷阱与单例反射修复：Jadx 反编译生成的 `f40254a`/`f40445a` 为去重混淆别名，真实 DEX 字段为 `a`，新增 `getSingletonInstance` 动态多重安全探测根除 `NoSuchFieldException`，确保协程不中断且注入必定执行
+  - 列表偏移与底栏双重累加修复：`w.C` 注入首位后原子化位移 `emojiTypeIndexMap` 现有项，消除原 `d0`/`S` 双重挂钩导致的索引重叠与越界，实现分类跳转与原生 Emoji 顺畅交互
+  - 顶栏视觉重叠清理：颜文字激活时彻底隐藏 `customEmojiButton`（定制表情按钮）、`mDivider`（分割线）、`rightContainer`（快捷开关）与 `emojiShowContainer`，胶囊栏宽度撑满 100%，消除文字重叠与开关遮挡
+  - 触控通道解禁：移除 `ImeEmojiPagerView` 上的强行拦截，仅保留 `onInterceptTouchEvent -> false` 阻断推荐表情页面滑动，恢复底栏和表情列表的原生顺畅滑动体验
   - 挤压与高度修复：挂钩 `u.d` 视图复用对称重置消除 Emoji 挤压变形，动态查询 `a1.O()` 满高分列消除底部空白
-  - 数据扩充：超 180+ 条高可爱度颜文字，全分类填充完毕，已编译安装并热重载生效
+  - 数据扩充：超 250+ 条高可爱度颜文字（11 分类 50 列），已编译安装并热重载生效，无任何异常闪退
 
 - **Fcitx5-Rime 输入法调频优化、Emoji 移除、词库更新与汉英释义精简瘦身 (2026-09-05, 成功)**:
   - 根因：建筑物标绘工作致使「号」（552次）与「钟」（93次）等词频异常膨胀，挤压常用词「好」与「中」；Rime-ice 默认挂载 simplifier@emoji 滤镜致候选词混入大量表情；初始引入朗道全量词典（48.4万词）导致生僻词、化学及生化拉丁术语冗余；纯学术字典缺失日常口语/方位/代词/开发短语
