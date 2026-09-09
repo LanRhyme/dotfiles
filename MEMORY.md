@@ -5,6 +5,11 @@
 
 ## 最近动态
 
+- **微信键盘 Emoji 渲染失真与颜文字复用池隔离修复 (2026-09-09, 成功)**:
+  - 根因：微信键盘表情适配器 `x.java` 的 `getItemViewType` 对普通文本项统一返回 0，导致 RecyclerView 复用池与 105dp 颜文字共享 `u.java` ViewHolder，在滚动复用重置时破坏原生皮肤缩放与文字尺寸
+  - 修复：Hook `com.tencent.wetype.plugin.hld.emoji.x.getItemViewType`，为颜文字分列单独分配专属 `VIEW_TYPE_KAOMOJI`（88），从 RecyclerView 底层彻底隔离复用池；`u.d` 仅处理颜文字并移除脆弱的 `else` 重置逻辑，原生 Emoji 保持 100% 原生渲染
+  - 源码与构建已推送到远程仓库 `LanRhyme/WeType-Kaomoji`，真机编译部署验证通过
+
 - **微信键盘表情面板颜文字二级分类、底栏响应与混淆反射全量修复 (2026-09-09, 成功)**:
   - 架构：`WeType-Kaomoji`（Xposed 模块，LibXposed API 102，目标包 `com.tencent.wetype` 3.5.3，测试机 ed3fdd92）
   - 二级分类：在 `ImeEmojiBoardView` 顶栏注入横向滑动 Pill Chip 胶囊分类栏（常用、可爱、萌宠、治愈、开心、傲娇、委屈、无奈、惊讶、生气、日常），点击精准跳转对应列，列表水平滑动同步高亮当前分类
@@ -103,7 +108,10 @@
 - 微信键盘表情面板颜文字注入与分类增强 Xposed 模块
 - 界面布局：保留官方原版底部横向标签栏与按键交互布局
 - 颜文字注入：`w.C` 首位插入分列数据，`a1.b0`/`a1.a0` 移除 `sticker`（推荐表情）并将 `kaomoji` 置于首位默认展示，`a1.d0`/`a1.S`/`a1.P` 同步双向位置偏移
-- 数据集：`KaomojiDefaultData.kt` 扩充 150+ 萌系颜文字（11 分类）
+- 复用池隔离：`x.getItemViewType` 为颜文字返回独立 `VIEW_TYPE_KAOMOJI`（88），根除与标准 Emoji 复用池交叉污染
+- 顶栏分类：`ImeEmojiBoardView` 注入胶囊芯片导航栏，支持点击跨分类精准跳转与滑动跟随高亮
+- 数据集：`KaomojiDefaultData.kt` 扩充 250+ 萌系颜文字（11 分类 50 列）
+- 远程仓库：`https://github.com/LanRhyme/WeType-Kaomoji`
 - 构建与部署：`./gradlew assembleDebug` + `adb install -r app/build/outputs/apk/debug/app-debug.apk` + `adb shell pkill -9 -f com.tencent.wetype`
 
 ### pi-web / pi-neostudio — `~/Projects/pi-web`
