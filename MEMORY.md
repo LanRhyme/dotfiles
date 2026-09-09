@@ -5,13 +5,14 @@
 
 ## 最近动态
 
-- **微信键盘表情面板颜文字二级分类、布局紧凑化与滑动拦截全量修复 (2026-09-09, 成功)**:
+- **微信键盘表情面板颜文字二级分类、底栏响应与混淆反射全量修复 (2026-09-09, 成功)**:
   - 架构：`WeType-Kaomoji`（Xposed 模块，LibXposed API 102，目标包 `com.tencent.wetype` 3.5.3，测试机 ed3fdd92）
   - 二级分类：在 `ImeEmojiBoardView` 顶栏注入横向滑动 Pill Chip 胶囊分类栏（常用、可爱、萌宠、治愈、开心、傲娇、委屈、无奈、惊讶、生气、日常），点击精准跳转对应列，列表水平滑动同步高亮当前分类
-  - 挤压修复：挂钩 `u.d` 补全 ViewHolder 视图复用对称重置逻辑，非颜文字时恢复原生 `normalWidth`、移除 padding 并重设原生 Emoji 字号，彻底解决 Emoji 相互挤压与缩放形变
-  - 滑动拦截：挂钩 `ImeEmojiPagerView` 的 `onInterceptTouchEvent`、`onTouchEvent` 与 `canScrollHorizontally` 强制返回 `false`，锁定页面至 Page 1，彻底杜绝左划唤出推荐表情页面
-  - 满高填充：挂钩动态查询 `a1.O()` 获取屏幕真实行数（spanCount），采用无缝连续分列，消除底部纵向空白区域
-  - 数据扩充：补充超 180+ 条高可爱度颜文字，全分类填充完毕，已编译并推送到真机热重载生效
+  - 反射崩溃修复：`ImeEmojiBoardView` 内部 `emojiTitle`/`container`/`rightContainer` 属 Kotlin 懒加载私有字段（底层字段名为 `z`/`C`/`E`），改用 getter 方法反射（`getEmojiTitle()`、`getContainer()` 等）与字段回退并包裹 `runCatching`，根除 `NoSuchFieldException` 导致的底栏协程中断与分类栏消失
+  - 滚动混淆适配：`WxLinearLayoutManager` 的 `findFirstVisibleItemPosition` 实为混淆方法 `q()`，`scrollToPositionWithOffset` 为 `R(pos, offset)`，封装安全方法根除滚动时每帧抛出 `NoSuchMethodException`
+  - 触控通道解禁：移除 `ImeEmojiPagerView` 上的 `onTouchEvent` 与 `canScrollHorizontally` 强行拦截，仅保留 `onInterceptTouchEvent -> false` 与页面索引锁定，恢复底栏和表情列表的原生顺畅滑动体验
+  - 挤压与高度修复：挂钩 `u.d` 视图复用对称重置消除 Emoji 挤压变形，动态查询 `a1.O()` 满高分列消除底部空白
+  - 数据扩充：超 180+ 条高可爱度颜文字，全分类填充完毕，已编译安装并热重载生效
 
 - **Fcitx5-Rime 输入法调频优化、Emoji 移除、词库更新与汉英释义精简瘦身 (2026-09-05, 成功)**:
   - 根因：建筑物标绘工作致使「号」（552次）与「钟」（93次）等词频异常膨胀，挤压常用词「好」与「中」；Rime-ice 默认挂载 simplifier@emoji 滤镜致候选词混入大量表情；初始引入朗道全量词典（48.4万词）导致生僻词、化学及生化拉丁术语冗余；纯学术字典缺失日常口语/方位/代词/开发短语
