@@ -5,6 +5,11 @@
 
 ## 最近动态
 
+- **微信键盘表情面板恢复原版底栏并保留颜文字首位与推荐表情移除 (2026-09-09, 成功)**:
+  - 架构：`WeType-Kaomoji`（Xposed 模块，LibXposed API 102，目标包 `com.tencent.wetype` 3.5.3）
+  - 调整：因原版自绘按键系统与竖向重塑冲突，已回退竖向侧边栏改动，完整恢复微信键盘原版底部横向导航栏及原生按键交互布局；保持移除 `sticker`（推荐表情）标签；保持颜文字标签（`kaomoji`）置于底栏首位并设为默认打开；扩充 150+ 萌系颜文字库正常注入
+  - 部署：已编译并通过 ADB 推送安装至 Redmi K60，微信键盘后台进程已重载生效
+
 - **Fcitx5-Rime 输入法调频优化、Emoji 移除、词库更新与汉英释义精简瘦身 (2026-09-05, 成功)**:
   - 根因：建筑物标绘工作致使「号」（552次）与「钟」（93次）等词频异常膨胀，挤压常用词「好」与「中」；Rime-ice 默认挂载 simplifier@emoji 滤镜致候选词混入大量表情；初始引入朗道全量词典（48.4万词）导致生僻词、化学及生化拉丁术语冗余；纯学术字典缺失日常口语/方位/代词/开发短语
   - 修复：全量备份词库后清理 rime_ice.userdb 及 sync 用户词库中的标绘高频条目（号、钟、空房、罗岭），使「好」与「中」回归候选首位；在 rime_ice.custom.yaml 覆写 engine/filters 移除 simplifier@emoji 并在 switches 移除 emoji 开关；全量同步上游 rime-ice 最新 HEAD（2026-09 提交 fbb516b）；通过 CC-CEDICT 规范现代词库融合 Rime-ice 基础高频词（词频>=500），两轮累计专项扩充 730+ 条高频日常口语、代词系表、人际协作与开发短语（如不大行、还可以、在这、我的、这是、帮我看看、跑测试、修bug、踩坑等），构建 140,957 条高质量实用汉英对照库并彻底剔除 34 万条冷僻生化/机械术语（载入仅 0.22s，F4 可按需切换 `[译关/译开]`）；修改已同步提交至 chezmoi 并平滑重载生效
@@ -88,6 +93,13 @@
 - slugcatpet 桌宠（`~/Projects/slugcatpet`）：GTK3 窗口必须用 Layer.TOP（Overlay 会盖住全屏内容故不可见性反转处理）；niri 26.x focused-window 输出的 window_size 嵌套于 layout 对象内（envwatch.py 已兼容）
 
 ## 项目
+
+### WeType-Kaomoji — `~/Projects/WeType-Kaomoji`（Kotlin + LibXposed API 102，目标微信键盘 3.5.3，测试机 ed3fdd92）
+- 微信键盘表情面板颜文字注入与分类增强 Xposed 模块
+- 界面布局：保留官方原版底部横向标签栏与按键交互布局
+- 颜文字注入：`w.C` 首位插入分列数据，`a1.b0`/`a1.a0` 移除 `sticker`（推荐表情）并将 `kaomoji` 置于首位默认展示，`a1.d0`/`a1.S`/`a1.P` 同步双向位置偏移
+- 数据集：`KaomojiDefaultData.kt` 扩充 150+ 萌系颜文字（11 分类）
+- 构建与部署：`./gradlew assembleDebug` + `adb install -r app/build/outputs/apk/debug/app-debug.apk` + `adb shell pkill -9 -f com.tencent.wetype`
 
 ### pi-web / pi-neostudio — `~/Projects/pi-web`
 - 基于 agegr/pi-web 的 pi agent Web UI（Next.js 16 + React 19 + Tailwind 4，端口 30141），版本自 v1.0.0 起独立语义化（与上游 0.8.x 脱钩），npm 包 `pi-neostudio` + GitHub Release 双发布
