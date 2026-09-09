@@ -115,6 +115,7 @@
 - 数据集：`KaomojiDefaultData.kt` 扩充 250+ 萌系颜文字（11 分类 50 列）
 - 源码仓库：`https://github.com/LanRhyme/WeType-Kaomoji`
 - 模块仓库：`https://github.com/Xposed-Modules-Repo/io.github.lanrhyme.wetypekaomoji`（Release Tag: `1-1.0.0`）
+- 架构指南：仓库根目录已维护 `AGENTS.md` 详细记录逆向设计、Hook 点、混淆陷阱与发布规范
 - 构建与部署：`./gradlew assembleRelease` + `adb install -r app/build/outputs/apk/release/app-release.apk` + `adb shell pkill -9 -f com.tencent.wetype`
 
 ### pi-web / pi-neostudio — `~/Projects/pi-web`
