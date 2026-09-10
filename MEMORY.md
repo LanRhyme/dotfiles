@@ -5,6 +5,23 @@
 
 ## 最近动态
 
+- **B站人脸验证风控处置与环境配置收敛 (2026-09-10, 归档)**:
+  - 决策：针对金融级活体/人脸风控（蚂蚁金服 APSE 深度综合云端风控），转由原生纯净设备（一加平板）完成认证
+  - 配置恢复（改回）：
+    - Vector：已将 B 站（`tv.danmaku.bili`）重新加入 `fuckbiliads`（mid 8）作用域，恢复正常的客户端去广告 Hook
+    - 开发者选项与 USB 调试：保持常开，确保开发与 adb 联机顺畅
+  - 正向增强保留（保留）：
+    - Zygisk Next：保留 `memory-type anonymous`（匿名内存加载）与 `enforce-denylist enabled`，全局隐藏 Zygisk 映射，增强微信/银行/游戏等全系统隐匿性
+    - 目录权限加固：保留 `/data/local/tmp` 的 `771` 权限及无敏感包状态，防止非 root 进程枚举
+    - Tricky Store：保留 `tv.danmaku.bili` 与 `com.eg.android.AlipayGphone` 在 `target.txt` / `sys.txt` 中，保障硬件 Keystore Bootloader 伪装生效
+
+- **Redmi K60 (mondrian) 系统升级至 NexusHyper v4.0.12 及相机版本机型不匹配弹窗退出修复与模块开源发布 (2026-09-10, 成功)**:
+  - 刷机更新：从 NexusHyper 上一版本平滑刷入 `P-mondrian-ota_images-v4.0.12-OS4.0.0.7.XMNCNXM-user-17.0.zip`（Android 17 / HyperOS 4 移植版，内核 5.10.237-Fuutao-Qn_miao），保留用户数据、KernelSU 与全部 9 个激活模块
+  - 模块核验：确认 `/home/lanrhyme/刷机` 内的 `一定要装的管理器、元模块.zip` 与 `修复OS4堆叠小部件-需解压.zip` 在刷机前已处于激活状态，无需重复安装
+  - 相机闪退根因：移植包相机 `MiuiCamera.apk`（v1+6.2.000570.1）启动时在 `com.android.camera.Camera.java:5094` 校验 `G6.c.w()`，内部调用 `G6.e.g()` 通过 `R7.c.a(Build.DEVICE).newInstance()` 反射构建机型配置；移植包与系统属性校验未适配导致校验失败抛出异常，进入 catch 分支置 `f2302a = Boolean.TRUE`，进而向 `ActivityBase` 发送 Message 11 唤起 `CameraExitHintDialogFragment`（type 4），提示「当前相机版本和机型不匹配，应用将在2s后退出」并在倒计时后强退
+  - 修复方案：开发规范 Xposed 模块 `MiuiCamera-Fix`（`io.github.lanrhyme.camerafix`），通过 Vector/LSPosed 拦截 `G6.c.w()` 恒定返回 `false`，挂钩 `G6.e.g()` 强制修正 `f2302a = Boolean.FALSE`，并在 `ActivityBase` 的 Handler 中拦截过滤 Message 11；真机安装并配置 Vector 作用域后，相机取景框、焦段切换、徕卡画质及快门拍摄已全面恢复正常且持续运行无闪退
+  - 开源发布：本地项目初始化于 `~/Projects/MiuiCamera-Fix`，采用 Gradle + Kotlin DSL 构建；源码已推送到 GitHub 仓库 `LanRhyme/MiuiCamera-Fix`，并完成首次发布 `v1.0.0` Release，附带构建产物 `app-release.apk`
+
 - **微信键盘 Emoji 渲染失真与颜文字复用池隔离修复及模块仓库发布 (2026-09-09, 成功)**:
   - 根因：微信键盘表情适配器 `x.java` 的 `getItemViewType` 对普通文本项统一返回 0，导致 RecyclerView 复用池与 105dp 颜文字共享 `u.java` ViewHolder，在滚动复用重置时破坏原生皮肤缩放与文字尺寸
   - 修复：Hook `com.tencent.wetype.plugin.hld.emoji.x.getItemViewType`，为颜文字分列单独分配专属 `VIEW_TYPE_KAOMOJI`（88），从 RecyclerView 底层彻底隔离复用池；`u.d` 仅处理颜文字并移除脆弱的 `else` 重置逻辑，原生 Emoji 保持 100% 原生渲染
@@ -104,6 +121,14 @@
 - slugcatpet 桌宠（`~/Projects/slugcatpet`）：GTK3 窗口必须用 Layer.TOP（Overlay 会盖住全屏内容故不可见性反转处理）；niri 26.x focused-window 输出的 window_size 嵌套于 layout 对象内（envwatch.py 已兼容）
 
 ## 项目
+
+### MiuiCamera-Fix — `~/Projects/MiuiCamera-Fix`（Java + Xposed API 82，目标小米相机 com.android.camera，测试机 ed3fdd92）
+- 小米澎湃OS移植包相机机型与版本校验不匹配强退修复 Xposed 模块
+- 包名与应用ID：`io.github.lanrhyme.camerafix`
+- 修复点：Hook `G6.c.w()` 返回 `false`，Hook `G6.e.g()` 修正状态位 `f2302a = Boolean.FALSE`，Hook `ActivityBase` Handler 拦截丢弃 Message 11 退出消息
+- 源码仓库：`https://github.com/LanRhyme/MiuiCamera-Fix`
+- 模块发布：`https://github.com/LanRhyme/MiuiCamera-Fix/releases/tag/v1.0.0`
+- 构建与部署：`./gradlew assembleRelease` + `adb install -r app/build/outputs/apk/release/app-release.apk`
 
 ### WeType-Kaomoji — `~/Projects/WeType-Kaomoji`（Kotlin + LibXposed API 102，目标微信键盘 3.5.3，测试机 ed3fdd92）
 - 微信键盘表情面板颜文字注入与分类增强 Xposed 模块
