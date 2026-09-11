@@ -5,6 +5,17 @@
 
 ## 最近动态
 
+- **一加平板2 Pro (OPD2508) 解锁、升级与KowSU Pro Root环境就绪 (2026-09-11, 就绪)**:
+  - 资产准备：已在 `~/刷机/一加平板2Pro/` 完成全量资产筹备
+    - `镜像准备/boot_kowsu_pro.img`：已借用 K60 注入 KPM 内核补丁，合成搭载 SuSFS 2.3.0 + KSU 3.3.0 (UAPI=2) 的 GKI 6.6.118 定制 Boot 镜像，Fastboot 一键直刷
+    - `镜像准备/boot_stock_A33.img` 与 `init_boot_stock_A33.img`：官方 A.33 纯净提取备份，用于保底救砖
+    - `镜像准备/KowSU_Pro_v3.3.0-99.apk`：已提取适配 UAPI=2 的专用管理器
+    - `必备模块合集/`：已从 K60 提取同步 Vector (v2.2 3080)、Vector Manager、Zygisk Next、Tricky Store、TS Enhancer Extreme、HMA-OSS 与 YABP 防卡米救砖模块
+  - 核心机制定论：
+    - 解锁通道：ColorOS 15 无需深度测试 App，开启 OEM 解锁后直接 `fastboot flashing unlock` 秒解；若出厂为 ColorOS 16 则走深度测试审核通道
+    - ARB 熔断铁律：严禁降级回旧系统，升级至 ColorOS 16 A.33 后不可往回刷，防止硬件 e-fuse 熔断变砖
+    - 架构禁忌：不刷且无需第三方 Recovery (OrangeFox/TWRP)，靠 Fastboot 直刷与 YABP 模块自愈
+
 - **B站人脸验证风控处置与环境配置收敛 (2026-09-10, 归档)**:
   - 决策：针对金融级活体/人脸风控（蚂蚁金服 APSE 深度综合云端风控），转由原生纯净设备（一加平板）完成认证
   - 配置恢复（改回）：
