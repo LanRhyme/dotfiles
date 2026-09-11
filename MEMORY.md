@@ -10,7 +10,7 @@
     - `镜像准备/boot_kowsu_pro.img`：已借用 K60 注入 KPM 内核补丁，合成搭载 SuSFS 2.3.0 + KSU 3.3.0 (UAPI=2) 的 GKI 6.6.118 定制 Boot 镜像，Fastboot 一键直刷
     - `镜像准备/boot_stock_A33.img` 与 `init_boot_stock_A33.img`：官方 A.33 纯净提取备份，用于保底救砖
     - `镜像准备/KowSU_Pro_v3.3.0-99.apk`：已提取适配 UAPI=2 的专用管理器
-    - `必备模块合集/`：已归档 Vector (v2.2 3080)、Vector Manager、Zygisk Next、Tricky Store、TS Enhancer Extreme、HMA-OSS、YABP 防砖模块、LuckyTool (v1.3.4)、CorePatch (v4.9)、fuckbiliads、JamesDSP (v6.0) 以及触控与手写笔报点采样增强补丁 (patch-trackmotion / disable-stylus-blocker)
+    - `必备模块合集/`：已归档 Vector (v2.2 3080)、Vector Manager、Zygisk Next、Tricky Store、TS Enhancer Extreme、HMA-OSS、YABP 防砖模块、LuckyTool (v1.3.4)、CorePatch (v4.9)、fuckbiliads 与 JamesDSP (v6.0)
   - 核心机制定论：
     - 解锁通道：ColorOS 15 无需深度测试 App，开启 OEM 解锁后直接 `fastboot flashing unlock` 秒解；若出厂为 ColorOS 16 则走深度测试审核通道
     - ARB 熔断铁律：严禁降级回旧系统，升级至 ColorOS 16 A.33 后不可往回刷，防止硬件 e-fuse 熔断变砖
