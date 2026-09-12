@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import subprocess
+import sys
+
+DEFAULT_HMA_PKG = "org.frknkrc44.hma_oss"
+SYSTEM_CONFIG_PATH = "/data/misc/hide_my_applist_aimdadlejpdcwkeh/config.json"
+TRICKY_STORE_PATH = "/data/adb/tricky_store/target.txt"
+
+DEFAULT_ROOT_APPS = [
+    "com.kowx712.kowsupro",
+    "org.matrix.vector.manager",
+    "com.luckyzyx.luckytool",
+    "com.coderstory.toolkit",
+    "me.bingyue.fuckbiliads",
+    "org.frknkrc44.hma_oss",
+    "com.rifsxd.ksunext",
+]
+
+def run_adb(cmd_list, device=None, check=True):
+    base = ["adb"]
+    if device:
+        base.extend(["-s", device])
+    full_cmd = base + cmd_list
+    res = subprocess.run(full_cmd, capture_output=True, text=True)
+    if check and res.returncode != 0:
+        err = res.stderr.strip() or res.stdout.strip()
+        raise RuntimeError(f"ADB 命令失败 ({' '.join(full_cmd)}): {err}")
+    return res
+
+def run_adb_shell(shell_cmd, device=None, check=True):
+    return run_adb(["shell", shell_cmd], device=device, check=check)
+
+def get_devices():
+    res = run_adb(["devices"])
+    lines = res.stdout.strip().splitlines()[1:]
+    devices = [l.split()[0] for l in lines if l.strip() and "device" in l]
+    return devices
+
+def get_initial_config():
+    return {
+        "configVersion": 93,
+        "detailLog": False,
+        "errorOnlyLog": False,
+        "maxLogSize": 512,
+        "forceMountData": True,
+        "disableActivityLaunchProtection": False,
+        "altAppDataIsolation": False,
+        "altVoldAppDataIsolation": False,
+        "skipSystemAppDataIsolation": True,
+        "packageQueryWorkaround": False,
+        "webViewProtection": True,
+        "templates": {
+            "root_hide": {
+                "isWhitelist": False,
+                "appList": list(DEFAULT_ROOT_APPS),
+            }
+        },
+        "settingsTemplates": {},
+        "disabledHooks": [],
+        "ignoredPackagesForPresets": [],
+        "scope": {},
+    }
+
+def build_scope_entry(template_name="root_hide", extra_apps=None):
+    apps = list(extra_apps if extra_apps is not None else DEFAULT_ROOT_APPS)
+    return {
+        "useWhitelist": False,
+        "excludeSystemApps": True,
+        "hideInstallationSource": True,
+        "hideSystemInstallationSource": False,
+        "excludeTargetInstallationSource": False,
+        "invertActivityLaunchProtection": False,
+        "excludeVoldIsolation": False,
+        "restrictedZygotePermissions": [],
+        "applyTemplates": [template_name],
+        "applyPresets": [],
+        "applySettingTemplates": [],
+        "applySettingsPresets": [],
+        "extraAppList": apps,
+        "extraOppositeAppList": [],
+    }
+
+def read_remote_config(device=None):
+    res = run_adb_shell(f"cat {SYSTEM_CONFIG_PATH} 2>/dev/null", device=device, check=False)
+    content = res.stdout.strip()
+    if content:
+        try:
+            return json.loads(content)
+        except Exception:
+            pass
+    hma_data_path = f"/data/user/0/{DEFAULT_HMA_PKG}/files/config.json"
+    res2 = run_adb_shell(f"cat {hma_data_path} 2>/dev/null", device=device, check=False)
+    content2 = res2.stdout.strip()
+    if content2:
+        try:
+            return json.loads(content2)
+        except Exception:
+            pass
+    return get_initial_config()
+
+def read_tricky_store(device=None):
+    res = run_adb_shell(f"cat {TRICKY_STORE_PATH} 2>/dev/null", device=device, check=False)
+    lines = [line.strip() for line in res.stdout.splitlines() if line.strip()]
+    return lines
+
+def write_tricky_store(pkgs, device=None):
+    lines = "\n".join(pkgs) + "\n"
+    tmp_path = "/data/local/tmp/tricky_store_target.txt"
+    run_adb_shell(f"cat << 'EOF' > {tmp_path}\n{lines}EOF", device=device)
+    run_adb_shell(f"cp {tmp_path} {TRICKY_STORE_PATH} && chmod 644 {TRICKY_STORE_PATH} && rm {tmp_path}", device=device)
+
+def deploy_config(config, device=None):
+    config_json = json.dumps(config, indent=2, ensure_ascii=False)
+    tmp_path = "/data/local/tmp/hma_config_deploy.json"
+    run_adb_shell(f"cat << 'EOF' > {tmp_path}\n{config_json}\nEOF", device=device)
+
+    setup_cmd = f"""
+    SYSTEM_CONF="{SYSTEM_CONFIG_PATH}"
+    mkdir -p "$(dirname "$SYSTEM_CONF")"
+    cp "{tmp_path}" "$SYSTEM_CONF"
+    chown system:system "$SYSTEM_CONF"
+    chmod 600 "$SYSTEM_CONF"
+    chcon u:object_r:system_data_file:s0 "$SYSTEM_CONF" 2>/dev/null || true
+
+    HMA_PKG="{DEFAULT_HMA_PKG}"
+    USER_FILES="/data/user/0/$HMA_PKG/files"
+    if [ -d "$USER_FILES" ]; then
+        HMA_UID=$(stat -c "%u" "/data/data/$HMA_PKG" 2>/dev/null || dumpsys package "$HMA_PKG" | grep userId= | head -n1 | cut -d= -f2)
+        HMA_CTX=$(stat -c "%C" "$USER_FILES" 2>/dev/null)
+        USER_CONF="$USER_FILES/config.json"
+        cp "{tmp_path}" "$USER_CONF"
+        if [ -n "$HMA_UID" ]; then
+            chown "$HMA_UID:$HMA_UID" "$USER_CONF"
+        fi
+        chmod 600 "$USER_CONF"
+        if [ -n "$HMA_CTX" ]; then
+            chcon "$HMA_CTX" "$USER_CONF" 2>/dev/null || true
+        fi
+    fi
+    rm -f "{tmp_path}"
+    am force-stop "$HMA_PKG"
+    """
+    run_adb_shell(setup_cmd, device=device)
+
+def list_scopes(device=None):
+    cfg = read_remote_config(device)
+    scopes = cfg.get("scope", {})
+    tricky = read_tricky_store(device)
+    print("=== HMA-OSS 保护作用域列表 ===")
+    if not scopes:
+        print("(暂无受保护应用)")
+    else:
+        for pkg, opt in scopes.items():
+            tpls = ",".join(opt.get("applyTemplates", []))
+            extra_cnt = len(opt.get("extraAppList", []))
+            in_tricky = "是" if pkg in tricky else "否"
+            print(f"- {pkg}: 模板=[{tpls}], 额外隐藏数={extra_cnt}, TrickyStore={in_tricky}")
+
+def add_packages(pkgs, device=None):
+    cfg = read_remote_config(device)
+    if "templates" not in cfg:
+        cfg["templates"] = {}
+    if "root_hide" not in cfg["templates"]:
+        cfg["templates"]["root_hide"] = {
+            "isWhitelist": False,
+            "appList": list(DEFAULT_ROOT_APPS),
+        }
+    else:
+        app_list = cfg["templates"]["root_hide"].get("appList", [])
+        for app in DEFAULT_ROOT_APPS:
+            if app not in app_list:
+                app_list.append(app)
+        cfg["templates"]["root_hide"]["appList"] = app_list
+
+    if "scope" not in cfg:
+        cfg["scope"] = {}
+
+    tricky = read_tricky_store(device)
+    tricky_updated = False
+
+    for pkg in pkgs:
+        cfg["scope"][pkg] = build_scope_entry("root_hide")
+        if pkg not in tricky:
+            tricky.append(pkg)
+            tricky_updated = True
+        print(f"已为应用加入防检测列表: {pkg}")
+
+    deploy_config(cfg, device)
+    if tricky_updated:
+        write_tricky_store(tricky, device)
+
+    for pkg in pkgs:
+        run_adb_shell(f"am force-stop {pkg} 2>/dev/null || true", device=device, check=False)
+    print("配置已写入并重载 HMA 服务与 Tricky Store")
+
+def remove_packages(pkgs, device=None):
+    cfg = read_remote_config(device)
+    scopes = cfg.get("scope", {})
+    tricky = read_tricky_store(device)
+    tricky_updated = False
+
+    removed = []
+    for pkg in pkgs:
+        if pkg in scopes:
+            del scopes[pkg]
+            removed.append(pkg)
+        if pkg in tricky:
+            tricky.remove(pkg)
+            tricky_updated = True
+
+    if not removed and not tricky_updated:
+        print("未在保护名单中找到指定应用")
+        return
+
+    deploy_config(cfg, device)
+    if tricky_updated:
+        write_tricky_store(tricky, device)
+
+    for pkg in removed:
+        print(f"已从防检测列表移除: {pkg}")
+    print("配置已更新并重载生效")
+
+def main():
+    parser = argparse.ArgumentParser(description="Android 应用防检测环境快速配置工具 (HMA-OSS + Tricky Store)")
+    parser.add_argument("-s", "--device", help="ADB 设备序列号")
+    parser.add_argument("-l", "--list", action="store_true", help="列出当前受保护的应用列表")
+    parser.add_argument("-r", "--remove", action="store_true", help="从防检测列表中移除指定应用")
+    parser.add_argument("packages", nargs="*", help="目标应用包名 (支持多个)")
+
+    args = parser.parse_args()
+
+    devices = get_devices()
+    if not devices:
+        print("错误: 未检测到连接的 ADB 设备")
+        sys.exit(1)
+
+    device = args.device
+    if not device:
+        if len(devices) == 1:
+            device = devices[0]
+        else:
+            print(f"错误: 存在多个设备，请使用 -s 指定: {', '.join(devices)}")
+            sys.exit(1)
+
+    if args.list:
+        list_scopes(device)
+        return
+
+    if not args.packages:
+        parser.print_help()
+        return
+
+    if args.remove:
+        remove_packages(args.packages, device)
+    else:
+        add_packages(args.packages, device)
+
+if __name__ == "__main__":
+    main()
