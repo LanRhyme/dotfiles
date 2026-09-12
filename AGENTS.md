@@ -53,27 +53,25 @@
 
 ## 9. 移动设备系统更新与 Root 维护规范
 
-### 9.1 通用前置准则与全生命周期规范
-- **全生命周期闭环**: 代理在介入任何移动设备更新任务时，必须严格执行「更新前提取备份与镜像校验 → 更新中标准刷入流程 → 更新后自动恢复 Zygisk/Vector/HMA 隐匿链」
-- **镜像备份铁律**: 刷机或更新前，必须通过 Root Shell 提取原厂当前槽位的官方纯净底包镜像，归档保存在电脑本地对应机型目录（如 `~/刷机/<机型>/原厂备份/`）与设备内部存储，严禁在无底包备份状态下盲目刷入修改后镜像
-- **后置复验检查单**:
-  - 执行 `/data/adb/ksu/bin/znctl status`，确认 Zygisk Next 的 `enforce_denylist` 处于 `disabled`（值为 0），防止普通应用被隔离无法注入 Vector
-  - 检查 Vector 守护进程服务脚本 `/data/adb/modules/zygisk_vector/service.sh`，确保使用 `unshare -m` 而非 toybox 不支持的 `--propagation slave`
-  - 运行 `android-hide-app -l` 校验目标应用（如金融、游戏）的防检测名单与 Tricky Store 目标列表完整性
-  - 彻底排查不兼容的遗留模块，坚决避免因 Android 大版本更新（如 Android 16/17）导致系统服务崩溃
+### 9.1 通用更新准则与标准流程
+- **标准更新流（不保 Root 更新）**: 默认采用「官方系统正常 OTA / 刷入更新（不保 Root） → 重启进入新版本系统校验正常启动 → 从对应底包/OTA 提取新版 boot 镜像并修补 Root → Fastboot 刷入修补镜像恢复 Root」的标准流程
+- **模块与配置自然继承**: 模块与防检测配置均位于 `/data` 分区（`/data/adb/modules/`、`/data/misc/hide_my_applist_...`、Tricky Store 目标列表），系统更新保留数据时无需重装模块，Root 恢复后自动重载继承
+- **底包备份铁律**: 修补前必须将官方原厂纯净 boot 镜像归档至电脑本地对应机型目录（如 `~/刷机/<机型>/原厂备份/`），严禁未备份原厂镜像盲目刷入
+- **更新后快速核验单**:
+  - 执行 `/data/adb/ksu/bin/znctl status`，确认 Zygisk Next 的 `enforce_denylist` 处于 `disabled`（值为 0），防止应用跳过注入
+  - 检查 Vector 守护进程服务脚本 `/data/adb/modules/zygisk_vector/service.sh`，确保为 `unshare -m`
+  - 运行 `android-hide-app -l` 核对敏感应用防检测名单与 Tricky Store 目标列表
 
 ### 9.2 红米 K60 (mondrian / ed3fdd92) 专属流程
 - **系统架构**: Android 17 / HyperOS 4 移植版（NexusHyper / 官方底包 OS4.0.0.7.XMNCNXM），内核 5.10.252-dirty，KernelSU-Next (LKM GKI2)
-- **更新前准备**:
-  - 从 OTA 增量或完整包中解压 `images/boot_a.img` 或 `boot.img`
-  - 使用对应内核版本与 `android12-5.10` KMI，将 KernelSU-Next LKM 驱动与专属签名注入底包，生成 `boot_ksunext_*.img`（严禁使用签名不匹配的旧 LKM 驱动，否则触发 Seccomp 拦截报未安装）
-  - 本地与手机保留修补后镜像及原厂纯净镜像备份
-- **更新与刷入流程**:
-  - 在 Fastboot 模式下直刷修改后的 boot 镜像到目标分区（如 `fastboot flash boot_ab boot_ksunext_*.img`）
-  - 开机后进入 adb 检查并更新 `/data/adb/ksud` 二进制版本
+- **更新与 Root 恢复流程**:
+  - 正常刷入系统更新包并重启开机，确认新版本正常引导
+  - 从对应更新包解压提取新版本官方纯净 `boot_a.img` 或 `boot.img` 归档备份
+  - 匹配当前内核版本与 `android12-5.10` KMI，将 KernelSU-Next LKM 驱动与专属签名注入底包生成 `boot_ksunext_*.img`
+  - Fastboot 刷入 `fastboot flash boot_ab boot_ksunext_*.img`，开机后进入 adb 确认 `/data/adb/ksud` 版本
 - **专属避坑与注意事项**:
-  - **模块 API 审查**: Android 17 (SDK 37) 环境下，硬编码判断 `SDK_INT <= 36` 的旧模块（如 Thanox）会触发 NPE 崩溃，严禁开机自启；OEM 应用（如相机）更新后混淆类名变更需适配更新 Hook 点
-  - **虚拟距离传感器修复**: 该机型采用 Goodix 触摸固件与 xiaomi_touch 融合的虚拟距离传感器，若日常使用出现亮屏/灭屏误触发，执行 `su -c sh /data/local/tmp/fix_prox.sh` 并重启
+  - **模块兼容审查**: Android 17 (SDK 37) 环境下，硬编码判断 `SDK_INT <= 36` 的旧模块（如 Thanox）会触发 NPE 崩溃闪退，切勿开启
+  - **虚拟距离传感器修复**: 该机型采用 Goodix 触摸固件与 xiaomi_touch 融合的虚拟距离传感器，日常若有亮屏/灭屏误触发，执行 `su -c sh /data/local/tmp/fix_prox.sh` 并重启
   - **ADB 交互规范**: 锁屏抽屉易卡住，执行 adb 指令前先核对 `dumpsys window mCurrentFocus`，用户使用前台操作手机时绝不抢占界面
 
 ### 9.3 一加平板 2 Pro (OPD2413 / c84b9192) 核心规范
@@ -82,9 +80,8 @@
   - **严禁跨版本或降级刷机**: 严禁执行任何低版本降级操作，防止触发高通骁龙 8 至尊版与 OPPO 硬件级 ARB (Anti-Rollback) 硬件熔断变砖，检测到降级需求必须直接阻断
   - **严禁刷入第三方 Recovery**: 平板依赖官方 ColorOS Recovery 与双槽位（Slot A/B）无缝升级机制，第三方 Recovery 会破坏 OTA 校验链与加密分区，必须永久使用官方 Recovery
   - **严禁使用手机端防误触与触控旁路补丁**: 严禁安装 `patch-trackmotion`、`disable-stylus-blocker` 等外挂触控模块，此类补丁会破坏平板原生防误触算法并导致手写笔压感失效
-- **更新前准备与镜像打包标准**:
-  - 备份提取：更新前必须从活动槽位（`boot_b`/`init_boot_b`）完整提取官方底包，归档至 `~/刷机/一加平板2Pro/原厂备份/`
-  - **AVB 2.0 校验尾部注入**: 骁龙 8 至尊版 ABL 强校验标准 AVB 签名，替换定制内核时必须使用 raw ARM64 `Image` 并调用 `avbtool add_hash_footer` 注入 Hash Footer（boot 分区尺寸严格设定为 96MB / 100663296 字节）
-- **音频系统与防检测更新要点**:
-  - **音频架构红线**: ColorOS 16 采用 AIDL Audio Effect HAL 架构，旧版 JamesDSP (HIDL 架构) 存在断代冲突会导致系统音频服务崩溃闪退，系统更新后严禁安装遗留 JamesDSP 模块
-  - **一键防检测恢复**: 系统更新后直接调用 `android-hide-app` 校验或快速重新注入《三角洲行动》等关键应用的防检测规则，无需任何屏幕触摸交互
+- **更新与 Root 恢复流程**:
+  - 通过官方 ColorOS 系统更新完成标准 OTA 升级并重启确认正常开机（保留数据）
+  - 从对应更新包（payload.bin 提取）或 Root Shell 活动槽位提取新版本官方纯净 `boot` / `init_boot` 底包归档至 `~/刷机/一加平板2Pro/原厂备份/`
+  - 替换定制内核时必须使用 raw ARM64 `Image`，通过 `avbtool add_hash_footer` 注入 AVB 2.0 校验尾部（boot 分区尺寸严格设定为 96MB / 100663296 字节）
+  - Fastboot 刷入修补后镜像恢复 Root，重启后直接使用 `android-hide-app -l` 校验防检测环境正常继承
