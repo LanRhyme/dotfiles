@@ -23,13 +23,20 @@
   - 部署：Fastboot 直刷 `boot_ab` 分区，更新 `/data/adb/ksud` 为 3.3.0，手机重启后 KernelSU-Next 管理器全面识别（工作中 LKM GKI2，已恢复全部 11 个授权与 9 个激活模块，Zygisk/Vector 正常运作）
   - 备份：产物存档于电脑 `~/tmp/k60_root/boot_ksunext_v3.3.0.img` 与手机 `/sdcard/Download/boot_ksunext_v3.3.0.img`
 
-- **一加平板2 Pro (OPD2508) 解锁、升级与 KowSU Pro Root 环境就绪 (2026-09-11, 就绪)**:
-  - 资产准备：已在 `~/刷机/一加平板2Pro/` 完成全量资产筹备
-    - `镜像准备/boot_kowsu_pro.img`：借用 K60 注入 KPM 内核补丁，合成搭载 SuSFS 2.3.0 + KSU 3.3.0 (UAPI=2) 的 GKI 6.6.118 定制 Boot 镜像，Fastboot 一键直刷
-    - `镜像准备/boot_stock_A33.img` 与 `init_boot_stock_A33.img`：官方 A.33 纯净提取备份，用于保底救砖
-    - `镜像准备/KowSU_Pro_v3.3.0-99.apk`：已提取适配 UAPI=2 的专用管理器
-    - `必备模块合集/`：已归档 Vector (v2.2 3080)、Vector Manager、Zygisk Next、Tricky Store、TS Enhancer Extreme、HMA-OSS、YABP 防砖模块、LuckyTool (v1.3.4)、CorePatch (v4.9)、fuckbiliads 与 JamesDSP (v6.0)
-  - 核心机制：ColorOS 15 开启 OEM 解锁后直接 `fastboot flashing unlock` 秒解；升级 ColorOS 16 A.33 后严禁降级防止 ARB 硬件熔断；不刷第三方 Recovery，靠 Fastboot 直刷与 YABP 自愈
+- **一加平板2 Pro (OPD2413 / c84b9192) 解锁、KowSU Pro Root 与隐匿模块链全量部署 (2026-09-12, 成功)**:
+  - 机型纠偏：真机为骁龙 8 至尊版 (SM8750 / sun 平台)，设备代号 OPD2413 (OP615EL1)，非天玑版 OPD2508
+  - 解锁流程：ColorOS 16 Wi-Fi 平板无需手机端深度测试 APK，开发者选项勾选 OEM 解锁后直接 `fastboot flashing unlock` 物理音量键确认秒解
+  - 内核与 Root：
+    - 采用古塵 SpiderDroid GKI 6.6.118 (sun 平台定制内核)，内置 KernelSU (35706) 与 SuSFS 2.3.0
+    - 打包标准：骁龙 8 至尊版 ABL 强依赖标准 AVB 2.0 校验尾部，必须使用 raw ARM64 `Image` 并由 `avbtool add_hash_footer` 注入 Hash Footer（分区尺寸 96MB 100663296 字节）
+    - 管理器：部署 KowSU Pro v3.3.0-99 (35700-2)，已启用 ADB Root、传统 SU 命令、隐藏 SELinux 与内核级卸载模块
+  - 原厂备份：提权后完整提取 `boot_b` 与 `init_boot_b` 官方纯净底包镜像，存档于 `~/刷机/一加平板2Pro/原厂备份/`
+  - 模块与隐匿环境：
+    - 基础框架：YABP 防砖模块 + Zygisk Next 1.5.0（已配置匿名内存 anonymous memory 模式）
+    - 隐匿与 Hook：Vector v2.2 (3080) + Tricky Store v1.4.1 + TS Enhancer Extreme + HMA-OSS Zygisk
+    - 激活 Xposed 模块：LuckyTool v1.3.4、CorePatch v4.9、fuckbiliads
+    - 音频引擎：JamesDSP v6.0 (ThePBone Material UI，适配 64 位纯净库)
+    - 硬件防损防范：坚决杜绝手机端防误触/外挂触控板模块，平板原生防误触与手写笔压感完好保留
 
 - **B站人脸验证风控处置与环境配置收敛 (2026-09-10, 归档)**:
   - 决策：针对金融级活体/人脸风控（蚂蚁金服 APSE 深度综合云端风控），转由原生纯净设备（一加平板）完成认证
@@ -57,10 +64,13 @@
 - 距离传感器：XiaoMi(V1.1) 虚拟 prox = Goodix 触摸固件 + xiaomi_touch 模块融合；SSC 自动降阈值导致误触发时，执行 `su -c sh /data/local/tmp/fix_prox.sh` 后整机重启
 - adb 要点：易锁屏且 NotificationShade 卡住需手动解锁；操作前核对 `dumpsys window mCurrentFocus`；用户使用手机时切勿抢占操作
 
-### 一加平板2 Pro (OPD2508)
-- 系统：ColorOS 15 / 16 (A.33)，内核 GKI 6.6.118，Root 方案 KowSU Pro v3.3.0 (UAPI=2) + SuSFS 2.3.0
-- 刷机资产：位于 `~/刷机/一加平板2Pro/`（`boot_kowsu_pro.img` 定制镜像、`boot_stock_A33.img` 官方原包、`KowSU_Pro_v3.3.0-99.apk` 管理器、必备模块合集）
-- 机制铁律：ColorOS 15 直接 `fastboot flashing unlock` 秒解（ColorOS 16 需深度测试）；升级 ColorOS 16 A.33 后严禁降级防止 ARB e-fuse 熔断变砖；不刷第三方 Recovery，靠 Fastboot 直刷与 YABP 防砖自愈
+### 一加平板2 Pro (OPD2413 / c84b9192)
+- 硬件规格：骁龙 8 至尊版 (SM8750P / sun 平台)，Wi-Fi 版无需深度测试 APK，OEM 解锁后 Fastboot 秒解
+- 系统内核：ColorOS 16 (Android 16 / SDK 36)，SpiderDroid GKI 6.6.118 (sun 定制)，KowSU Pro v3.3.0 (35700-2 / UAPI=2) + 内核内置 SuSFS 2.3.0
+- 原厂备份：位于 `~/刷机/一加平板2Pro/原厂备份/`（`stock_boot.img` 96MB、`stock_init_boot.img` 8MB）
+- 模块链：YABP、Zygisk Next (匿名内存)、Vector (API 102)、Tricky Store + TS Enhancer Extreme、HMA-OSS Zygisk、JamesDSP (ThePBone)
+- 激活 Xposed：LuckyTool v1.3.4、CorePatch v4.9、fuckbiliads
+- 禁忌红线：严禁刷入第三方 Recovery；严禁跨版本/降级刷机触发 ARB 熔断；严禁使用手机端防误触或手写笔旁路模块（`patch-trackmotion`、`disable-stylus-blocker`）以保护平板原生防误触与手写笔功能
 
 ## 桌面环境
 
