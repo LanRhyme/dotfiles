@@ -70,6 +70,12 @@
 - 原厂备份：位于 `~/刷机/一加平板2Pro/原厂备份/`（`stock_boot.img` 96MB、`stock_init_boot.img` 8MB）
 - 模块链：YABP、Zygisk Next (匿名内存)、Vector (API 102)、Tricky Store + TS Enhancer Extreme、HMA-OSS Zygisk (JamesDSP 因 Android 16 AIDL 架构不兼容已移除)
 - 激活 Xposed：LuckyTool v1.3.4、CorePatch v4.9、fuckbiliads
+- 游戏防检测 (三角洲行动 com.tencent.tmgp.dfm)：
+  - 内核层：KernelSU `kernel_umount`、`selinux_hide`、`avc_spoof` 特性全开并持久化保存
+  - 属性伪装：TS Enhancer Extreme 伪装 `green` 与锁 bootloader
+  - 密钥认证：Tricky Store `target.txt` 纳入名单
+  - 作用域隔离：Vector Xposed 白名单机制对游戏零注入
+  - 应用列表隐藏：HMA-OSS 直写双路径配置（`/data/misc/hide_my_applist_aimdadlejpdcwkeh/config.json` 属主 `system:system` 600 与 `/data/user/0/org.frknkrc44.hma_oss/files/config.json` 属主 `u0_a346:u0_a346` 600），屏蔽 KowSU Pro、Vector、LuckyTool、CorePatch、fuckbiliads、HMA-OSS
 - 禁忌红线：严禁刷入第三方 Recovery；严禁跨版本/降级刷机触发 ARB 熔断；严禁使用手机端防误触或手写笔旁路模块（`patch-trackmotion`、`disable-stylus-blocker`）以保护平板原生防误触与手写笔功能
 
 ## 桌面环境
