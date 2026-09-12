@@ -35,7 +35,7 @@
     - 基础框架：YABP 防砖模块 + Zygisk Next 1.5.0（已配置匿名内存 anonymous memory 模式）
     - 隐匿与 Hook：Vector v2.2 (3080) + Tricky Store v1.4.1 + TS Enhancer Extreme + HMA-OSS Zygisk
     - 激活 Xposed 模块：LuckyTool v1.3.4、CorePatch v4.9、fuckbiliads
-    - 音频引擎：JamesDSP v6.0 (ThePBone Material UI，适配 64 位纯净库)
+    - 音频引擎处置：JamesDSP v6.0 (2023-11) 仅适配旧版 Android 13/14 HIDL 音频架构，与 ColorOS 16 骁龙 8 至尊版 AIDL Audio Effect HAL 架构断代冲突，已彻底卸载模块与应用以保持系统音频纯净
     - 硬件防损防范：坚决杜绝手机端防误触/外挂触控板模块，平板原生防误触与手写笔压感完好保留
 
 - **B站人脸验证风控处置与环境配置收敛 (2026-09-10, 归档)**:
@@ -68,7 +68,7 @@
 - 硬件规格：骁龙 8 至尊版 (SM8750P / sun 平台)，Wi-Fi 版无需深度测试 APK，OEM 解锁后 Fastboot 秒解
 - 系统内核：ColorOS 16 (Android 16 / SDK 36)，SpiderDroid GKI 6.6.118 (sun 定制)，KowSU Pro v3.3.0 (35700-2 / UAPI=2) + 内核内置 SuSFS 2.3.0
 - 原厂备份：位于 `~/刷机/一加平板2Pro/原厂备份/`（`stock_boot.img` 96MB、`stock_init_boot.img` 8MB）
-- 模块链：YABP、Zygisk Next (匿名内存)、Vector (API 102)、Tricky Store + TS Enhancer Extreme、HMA-OSS Zygisk、JamesDSP (ThePBone)
+- 模块链：YABP、Zygisk Next (匿名内存)、Vector (API 102)、Tricky Store + TS Enhancer Extreme、HMA-OSS Zygisk (JamesDSP 因 Android 16 AIDL 架构不兼容已移除)
 - 激活 Xposed：LuckyTool v1.3.4、CorePatch v4.9、fuckbiliads
 - 禁忌红线：严禁刷入第三方 Recovery；严禁跨版本/降级刷机触发 ARB 熔断；严禁使用手机端防误触或手写笔旁路模块（`patch-trackmotion`、`disable-stylus-blocker`）以保护平板原生防误触与手写笔功能
 
