@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **Redmi K60 (mondrian) Android 17 (SDK 37) 系统更新后 Zygisk / Vector 框架及 Xposed 模块故障排查与修复 (2026-09-12, 成功)**:
+  - 现象：系统小版本更新至 Android 17 / SDK 37 后，Thanox 闪退、普通应用（微信输入法、B站、相机等）未能成功加载 Xposed 模块
+  - 根因分析：
+    - Thanox 崩溃：代码写死最高适配至 SDK 36，遇到 SDK 37 时 `getXposedHookZygoteInitForSdk` 返回 null 触发 NPE，已彻底卸载并停用 Thanox
+    - Vector 自启失败：官方模块包 `service.sh` 包含 Android toybox `unshare` 不支持的 `--propagation slave` 参数，导致守护进程开机无法拉起；修正为 `unshare -m` 后自启恢复
+    - 模块未注入普通应用：Zygisk Next 默认开启了 `enforce_denylist`（值为 1），导致 Zygote 在 fork 普通应用进程时直接跳过 Zygisk 注入
+  - 修复与重刷：
+    - 从 GitHub 下载最新纯净版 `Zygisk-Next-1.5.0-843-5217106-release.zip` 与 `Vector-v2.2-3080-Release.zip`，通过 `ksud module install` 纯净重刷并清除字节修改
+    - 修复 `service.sh` 为 `unshare -m "$MODDIR/daemon" ...`
+    - 执行 `/data/adb/ksu/bin/znctl enforce-denylist disabled`，永久写入 `/data/adb/zygisksu/denylist_enforce`（置 0）关闭黑名单排除
+    - 现场实测验证 SystemUI、微信输入法（WeTypeHook + WeTypeKaomoji）、B 站（fuckbiliads）、相机（MiuiCamera-Fix）、系统服务（CorePatch + HyperCeiler + InxLocker）均已成功注入运行
+
 - **Redmi K60 (mondrian) 系统更新后 KernelSU-Next (v3.3.0) 镜像提取与 Root 恢复 (2026-09-12, 成功)**:
   - 根因：刷入底包 `P-mondrian-ota_images-v4.0.12-OS4.0.0.7.XMNCNXM-user-17.0.zip` 内置 `boot_a.img` 携带旧版官方 KernelSU LKM（v3.2.6/32601），硬编码官方签名导致 KernelSU-Next 管理器（v3.3.0/33214）被 Seccomp 拦截报未安装且版本低于 33188
   - 修复：官方底包提取 `images/boot_a.img`，利用 `android12-5.10` KMI 与 `5.10.252-dirty` 注入 KernelSU-Next v3.3.0 LKM 驱动与专属签名，生成 `boot_ksunext_v3.3.0.img`
@@ -40,7 +52,7 @@
 
 ### Redmi K60 (mondrian / ed3fdd92)
 - 系统：Android 17 / HyperOS 4 移植版（ROM: NexusHyper v4.0.12，底包 OS4.0.0.7.XMNCNXM，内核 5.10.252-dirty），KernelSU-Next v3.3.0 (LKM GKI2) root
-- 隐匿链：内核无 SUSFS，防检测依赖 HMA-OSS (`org.frknkrc44.hma_oss`) Root-Hide scope；敏感应用必须加入 scope（照抄 `com.tencent.mm` 配置）；配置位于 `/data/user/0/org.frknkrc44.hma_oss/files/config.json`（权限 u0_a518 + 600）；搭配 YABP 自动救砖与 Thanox 后台管理
+- 隐匿链：内核无 SUSFS，防检测依赖 HMA-OSS (`org.frknkrc44.hma_oss`) Root-Hide scope；敏感应用必须加入 scope（照抄 `com.tencent.mm` 配置）；配置位于 `/data/user/0/org.frknkrc44.hma_oss/files/config.json`（权限 u0_a518 + 600）；搭配 YABP 自动救砖；Thanox 已弃用卸载；Zygisk Next 必须保持 `enforce-denylist disabled`（防止普通应用被隔离无法注入 Vector）；Vector 的 `service.sh` 需使用 `unshare -m`（不可用 `--propagation slave`）
 - 自研模块：`MiuiCamera-Fix`（修复相机机型校验闪退）、`freEnhance`（导航沉浸、Niagara 图标弹簧、多任务居中模糊）
 - 距离传感器：XiaoMi(V1.1) 虚拟 prox = Goodix 触摸固件 + xiaomi_touch 模块融合；SSC 自动降阈值导致误触发时，执行 `su -c sh /data/local/tmp/fix_prox.sh` 后整机重启
 - adb 要点：易锁屏且 NotificationShade 卡住需手动解锁；操作前核对 `dumpsys window mCurrentFocus`；用户使用手机时切勿抢占操作
@@ -130,3 +142,8 @@
 - **Git**：`git tag -f` 重打注释 tag 必须带 `-m` 或 `-F` 防 vi 卡死；覆盖发布采用删远程 tag 重新 push 并重建 GitHub Release
 - **adb 与多层 shell**：`su -c` 内嵌复杂变量与转义时写成本地脚本 push 后执行；抓取日志前必须 `logcat -c` 清除缓冲区防止历史日志干扰
 - **Hindsight 残留处理**：`uvx daemon start` 异常退出会遗留孤儿进程锁定 `.cache/uv/.lock`，kill 后需手动删除 lock 文件
+- **Android 17 (SDK 37) 与 KernelSU-Next / Zygisk Next / Vector 保留 Root 更新要点**：
+  - 1. **Root 镜像注入**：OTA 后若 LKM 签名不匹配或被 Seccomp 拦截，需从官方底包提取 `boot_a.img`，利用 `android12-5.10` KMI 与当前内核版本号注入 KernelSU-Next LKM 驱动与专属签名后 Fastboot 直刷
+  - 2. **Zygisk Next 黑名单排查**：若应用无法加载模块，核对 `/data/adb/ksu/bin/znctl status` 中的 `enforce_denylist`，必须执行 `znctl enforce-denylist disabled`（置 0）以防应用被跳过注入
+  - 3. **Vector 守护进程**：若 `cli status` 报 Socket Failure，检查 `service.sh` 中是否残留 toybox 不支持的 `unshare --propagation slave`，统一修正为 `unshare -m`
+  - 4. **Xposed 模块兼容性**：旧模块若写死判断 `SDK_INT <= 36` 会抛出 NPE（如 Thanox），需停用或反编译 smali 将 SDK 版本识别限制在 36 并做判空保护；相机等 OEM 应用小版本更新可能会变更混淆字段名，需同步反编译更新 Hook 点
