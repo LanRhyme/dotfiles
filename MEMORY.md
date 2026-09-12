@@ -5,6 +5,12 @@
 
 ## 最近动态
 
+- **Redmi K60 (mondrian) 系统更新后 KernelSU-Next (v3.3.0) 镜像提取与 Root 恢复 (2026-09-12, 成功)**:
+  - 根因：系统刷入底包 `P-mondrian-ota_images-v4.0.12-OS4.0.0.7.XMNCNXM-user-17.0.zip` 内置 `boot_a.img` 携带旧版官方 KernelSU LKM（v3.2.6/32601），硬编码官方签名导致 KernelSU-Next 管理器（v3.3.0/33214）被 Seccomp 拦截报未安装且版本低于 33188
+  - 修复：解压官方底包提取 `images/boot_a.img`，利用 `android12-5.10` KMI 与 `5.10.252-dirty` 契合版本注入 KernelSU-Next v3.3.0 LKM 驱动与专属管理器签名，生成定制 `boot_ksunext_v3.3.0.img`
+  - 部署：Fastboot 直刷 `boot_ab` 分区，更新 `/data/adb/ksud` 为 3.3.0，手机重启后 KernelSU-Next 管理器全面识别（工作中 LKM GKI2，已恢复全部 11 个授权与 9 个激活模块，Zygisk/Vector 正常运作）
+  - 备份：产物存档于电脑 `~/tmp/k60_root/boot_ksunext_v3.3.0.img` 与手机 `/sdcard/Download/boot_ksunext_v3.3.0.img`
+
 - **一加平板2 Pro (OPD2508) 解锁、升级与KowSU Pro Root环境就绪 (2026-09-11, 就绪)**:
   - 资产准备：已在 `~/刷机/一加平板2Pro/` 完成全量资产筹备
     - `镜像准备/boot_kowsu_pro.img`：已借用 K60 注入 KPM 内核补丁，合成搭载 SuSFS 2.3.0 + KSU 3.3.0 (UAPI=2) 的 GKI 6.6.118 定制 Boot 镜像，Fastboot 一键直刷
