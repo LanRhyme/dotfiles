@@ -5,6 +5,7 @@ dot_config/noctalia/plugins/github-feed/cache/
 dot_config/opencode/node_modules/
 dot_config/opencode/opencode.json
 dot_config/frp/frpc.toml
+dot_config/dufs/config.yaml
 dot_config/obs-studio/logs/
 dot_config/obs-studio/profiler_data/
 dot_config/obs-studio/updates/

@@ -5,6 +5,12 @@
 
 ## 最近动态
 
+- **局域网 WebDAV 服务 (Dufs) 部署与自启动 (2026-09-14, 成功)**:
+  - 需求：搭建局域网 WebDAV 服务，用于手机端开源阅读（Legado）同步书架配置及多端日常备份
+  - 架构：安装 AUR `dufs-bin 0.46.0-2`（已做 PKGBUILD 静态安全审查），数据根目录 `~/WebDAV`（预设 `reader` 与 `backup`）
+  - 权限与安全：全私有 Basic 认证（用户 `lanrhyme`），密码配置位于 `~/.config/dufs/config.yaml`（权限 600，已加入 `.chezmoiignore` 杜绝泄露）
+  - 服务与自启：编写 systemd user 服务 `dufs.service`，配合 `loginctl enable-linger lanrhyme` 保证开机无需登录即可常驻后台；ufw 放行 5000/tcp；服务配置纳入 chezmoi 托管
+
 - **Redmi K60 (mondrian) Android 17 (SDK 37) 系统更新后 Zygisk / Vector 框架及 Xposed 模块故障排查与修复 (2026-09-12, 成功)**:
   - 现象：系统小版本更新至 Android 17 / SDK 37 后，Thanox 闪退、普通应用（微信输入法、B站、相机等）未能成功加载 Xposed 模块
   - 根因分析：
@@ -133,6 +139,7 @@
 
 ## 安装与服务
 
+- **Dufs (WebDAV)**：AUR 包 `dufs-bin 0.46.0-2`；数据根目录 `~/WebDAV`（含 `reader/`、`backup/`）；监听端口 `5000/tcp`（全私有 Basic 认证，用户 `lanrhyme`）；配置文件 `~/.config/dufs/config.yaml`（权限 600）；systemd user 服务 `dufs.service` 自启动并开启 linger 常驻；ufw 放行 5000/tcp
 - **MicYou**：本地包 `micyou 2.0.0.alpha.1-1`；Noctalia 插件开源于 `lanrhyme/micyou`；手机端安装于 K60；ufw 放行 8554/tcp、8555/udp、8443/tcp、5353/udp
 - **企业微信**：deepin Wine 版 `com.qq.weixin.work.deepin`，容器位于 `~/.deepinwine/Deepin-WXWork`，启动脚本 `/opt/apps/com.qq.weixin.work.deepin/files/run.sh`
 - **Waydroid**：Android 16 (LineageOS 23.2)，开启 Intel iGPU/GBM 加速；依赖 UFW 规则 `sudo ufw allow in on waydroid0`；脚本位于 `~/tmp/a16/`
