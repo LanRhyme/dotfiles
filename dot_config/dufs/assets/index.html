@@ -7,82 +7,86 @@
   <noscript>
     <meta http-equiv="refresh" content="0; url=?noscript">
   </noscript>
-  <title>LanRhyme's WebDAV</title>
   <link rel="icon" type="image/x-icon" href="__ASSETS_PREFIX__favicon.ico">
+  <title>LanRhyme's WebDAV</title>
   <style>
 /* ==========================================================
-   DUFS - NEOBRUTALISM THEME (新粗野主义设计风格)
-   Designed for LanRhyme's WebDAV & File Manager
+   DUFS - PURE SHARP NEOBRUTALISM THEME (纯粹直角新粗野主义)
+   100% Zero Border Radius | Stark Black Borders | Hard Shadows
    ========================================================== */
 
 :root {
-  /* Light Mode (Neobrutalism Warm Paper) */
-  --bg: #f8f6f0;
+  /* Light Mode */
+  --bg: #f9f8f4;
   --card-bg: #ffffff;
-  --text: #121212;
-  --text-muted: #555555;
-  --border: #121212;
-  --shadow: 4px 4px 0px #121212;
-  --shadow-sm: 2px 2px 0px #121212;
-  --shadow-hover: 5px 5px 0px #121212;
-  --shadow-active: 1px 1px 0px #121212;
+  --text: #000000;
+  --text-muted: #444444;
+  --border: #000000;
+  --shadow: 4px 4px 0px #000000;
+  --shadow-sm: 2px 2px 0px #000000;
+  --shadow-lg: 6px 6px 0px #000000;
 
-  /* Accent Palette */
-  --accent-yellow: #ffe600;
-  --accent-cyan: #5ce1e6;
-  --accent-coral: #ff6b6b;
-  --accent-green: #70e000;
-  --accent-purple: #c77dff;
-  --accent-blue: #3a86ff;
-  
-  --th-bg: #ffe600;
-  --row-hover: #fff9db;
-  --table-border: 2.5px solid var(--border);
+  /* Stark Punchy Accents */
+  --accent-yellow: #ffea00;
+  --accent-cyan: #00f0ff;
+  --accent-pink: #ff5e7e;
+  --accent-green: #00e676;
+  --accent-purple: #b388ff;
+  --accent-orange: #ff9100;
+
+  --th-bg: #ffea00;
+  --row-hover: #fff59d;
+  --border-width: 2.5px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark Mode (Cyber Neobrutalism) */
-    --bg: #121316;
-    --card-bg: #1c1d22;
-    --text: #f4f4f5;
+    /* Dark Mode (Cyber Stark Brutalism) */
+    --bg: #0d0e12;
+    --card-bg: #16171d;
+    --text: #ffffff;
     --text-muted: #a1a1aa;
-    --border: #e4e4e7;
+    --border: #ffffff;
     --shadow: 4px 4px 0px #000000;
     --shadow-sm: 2px 2px 0px #000000;
-    --shadow-hover: 5px 5px 0px #000000;
-    --shadow-active: 1px 1px 0px #000000;
+    --shadow-lg: 6px 6px 0px #000000;
 
-    --accent-yellow: #facc15;
+    --accent-yellow: #fde047;
     --accent-cyan: #22d3ee;
-    --accent-coral: #f87171;
+    --accent-pink: #f43f5e;
     --accent-green: #4ade80;
     --accent-purple: #c084fc;
-    --accent-blue: #60a5fa;
+    --accent-orange: #fb923c;
 
     --th-bg: #27272a;
-    --row-hover: #2a2b32;
-    --table-border: 2.5px solid #3f3f46;
+    --row-hover: #262730;
+    --border-width: 2.5px;
   }
 }
 
 * {
   box-sizing: border-box;
+  /* 严格遵循纯粹粗野主义：直角无圆角 */
+  border-radius: 0 !important;
 }
 
 html {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  line-height: 1.6;
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", Consolas, "Segoe UI", system-ui, monospace;
+  line-height: 1.5;
   color: var(--text);
   background-color: var(--bg);
-  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1.5px, transparent 0);
-  background-size: 24px 24px;
-  background-position: -12px -12px;
+  /* 极简网格底纹 */
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 @media (prefers-color-scheme: dark) {
   html {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1.5px, transparent 0);
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   }
 }
 
@@ -97,35 +101,33 @@ body {
 }
 
 /* ==========================================================
-   Header Bar (Floating Card)
+   Header Box (直角粗黑框顶栏)
    ========================================================== */
 .head {
   max-width: 1200px;
-  margin: 1.2rem auto;
-  padding: 0.75rem 1.25rem;
+  margin: 1.25rem auto;
+  padding: 0.8rem 1.2rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.8rem;
   background-color: var(--card-bg);
-  border: 2.5px solid var(--border);
-  border-radius: 12px;
+  border: var(--border-width) solid var(--border);
   box-shadow: var(--shadow);
   position: sticky;
   top: 1rem;
   z-index: 100;
-  transition: all 0.15s ease;
 }
 
-/* Breadcrumb Navigation */
+/* Breadcrumb Navigation (直角色块标签) */
 .breadcrumb {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 0.4rem;
+  letter-spacing: -0.02em;
 }
 
 .breadcrumb > a {
@@ -133,10 +135,10 @@ body {
   text-decoration: none;
   background: var(--bg);
   border: 2px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 8px;
+  padding: 3px 8px;
   box-shadow: 2px 2px 0px var(--border);
-  transition: transform 0.1s, box-shadow 0.1s;
+  font-weight: 700;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 
 .breadcrumb > a:hover {
@@ -147,24 +149,30 @@ body {
 }
 
 .breadcrumb > a:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px var(--border);
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--border);
 }
 
 .breadcrumb > b {
-  color: var(--text);
-  background: var(--accent-cyan);
   color: #000;
+  background: var(--accent-cyan);
   border: 2px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 8px;
+  padding: 3px 10px;
   box-shadow: 2px 2px 0px var(--border);
+  font-weight: 900;
+}
+
+@media (prefers-color-scheme: dark) {
+  .breadcrumb > b {
+    color: #000;
+    background: var(--accent-cyan);
+  }
 }
 
 .breadcrumb > .separator {
-  color: var(--text-muted);
-  font-weight: 800;
-  padding: 0 0.15rem;
+  color: var(--border);
+  font-weight: 900;
+  padding: 0 0.1rem;
 }
 
 .breadcrumb svg {
@@ -175,7 +183,7 @@ body {
 }
 
 /* ==========================================================
-   Toolbox Buttons (Neobrutal Tactile Blocks)
+   Toolbox Buttons (直角硬核实体按键)
    ========================================================== */
 .toolbox {
   display: flex;
@@ -186,26 +194,25 @@ body {
 .toolbox .control,
 .toolbox > a.control {
   cursor: pointer;
-  height: 36px;
-  min-width: 36px;
-  padding: 0 8px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0 10px;
   background-color: var(--card-bg);
   color: var(--text);
-  border: 2px solid var(--border);
-  border-radius: 8px;
+  border: var(--border-width) solid var(--border);
   box-shadow: var(--shadow-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  font-weight: 700;
-  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 900;
+  transition: all 0.08s ease;
 }
 
 .toolbox .control:hover,
 .toolbox > a.control:hover {
   transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-hover);
+  box-shadow: var(--shadow);
   background-color: var(--accent-yellow);
   color: #000;
 }
@@ -213,7 +220,7 @@ body {
 .toolbox .control:active,
 .toolbox > a.control:active {
   transform: translate(2px, 2px);
-  box-shadow: var(--shadow-active);
+  box-shadow: 0px 0px 0px var(--border);
 }
 
 .toolbox .control svg {
@@ -225,7 +232,7 @@ body {
 }
 
 .toolbox .delete-file:hover {
-  background-color: var(--accent-coral) !important;
+  background-color: var(--accent-pink) !important;
 }
 
 .toolbox .move-file:hover {
@@ -246,25 +253,23 @@ body {
 }
 
 /* ==========================================================
-   Search Bar
+   Search Bar (直角输入框)
    ========================================================== */
 .searchbar {
   display: flex;
   align-items: center;
-  width: 250px;
-  height: 36px;
+  width: 240px;
+  height: 38px;
   background-color: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 8px;
+  border: var(--border-width) solid var(--border);
   box-shadow: var(--shadow-sm);
   padding: 0 8px;
-  transition: all 0.15s ease;
+  transition: all 0.08s ease;
 }
 
 .searchbar:focus-within {
   transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-hover);
-  border-color: var(--border);
+  box-shadow: var(--shadow);
   background-color: var(--card-bg);
 }
 
@@ -282,19 +287,18 @@ body {
 .searchbar #search {
   width: 100%;
   height: 100%;
+  font-family: inherit;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   background: transparent;
   border: none;
   outline: none;
 }
 
-.searchbar #search::placeholder {
-  color: var(--text-muted);
-}
-
-/* Right Toolbox (User & Login) */
+/* ==========================================================
+   Right Toolbox (用户状态与保存)
+   ========================================================== */
 .toolbox-right {
   margin-left: auto;
   display: flex;
@@ -305,32 +309,32 @@ body {
 .logout-btn,
 .login-btn {
   cursor: pointer;
-  height: 36px;
+  height: 38px;
   padding: 0 12px;
   background: var(--accent-purple);
   color: #000;
-  border: 2px solid var(--border);
-  border-radius: 999px;
+  border: var(--border-width) solid var(--border);
   box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
   gap: 6px;
-  font-weight: 800;
-  font-size: 0.9rem;
-  transition: all 0.1s ease;
+  font-weight: 900;
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+  transition: all 0.08s ease;
 }
 
 .logout-btn:hover,
 .login-btn:hover {
   transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-hover);
-  filter: brightness(1.08);
+  box-shadow: var(--shadow);
+  background-color: var(--accent-pink);
 }
 
 .logout-btn:active,
 .login-btn:active {
   transform: translate(2px, 2px);
-  box-shadow: var(--shadow-active);
+  box-shadow: 0px 0px 0px var(--border);
 }
 
 .logout-btn svg,
@@ -340,21 +344,20 @@ body {
 
 .save-btn {
   cursor: pointer;
-  height: 36px;
-  padding: 0 12px;
+  height: 38px;
+  padding: 0 14px;
   background: var(--accent-green);
   color: #000;
-  border: 2px solid var(--border);
-  border-radius: 8px;
+  border: var(--border-width) solid var(--border);
   box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
-  font-weight: 800;
-  transition: all 0.1s ease;
+  font-weight: 900;
+  transition: all 0.08s ease;
 }
 
 /* ==========================================================
-   Main Content & Paths Table
+   Main Table (硬核直角表格)
    ========================================================== */
 .main {
   max-width: 1200px;
@@ -362,45 +365,38 @@ body {
   padding: 0;
 }
 
-.index-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
 .empty-folder {
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
   text-align: center;
-  padding: 3rem 1rem;
+  padding: 4rem 1rem;
   background: var(--card-bg);
-  border: 2.5px dashed var(--border);
-  border-radius: 12px;
+  border: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .paths-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   background-color: var(--card-bg);
-  border: 2.5px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
+  border: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
-  transition: box-shadow 0.2s ease;
 }
 
 .paths-table th {
   padding: 12px 16px;
-  font-size: 0.85rem;
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #000;
   background-color: var(--th-bg);
-  border-bottom: 2.5px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
+  border-right: 1.5px solid var(--border);
   white-space: nowrap;
 }
 
@@ -410,6 +406,10 @@ body {
   }
 }
 
+.paths-table th:last-child {
+  border-right: none;
+}
+
 .paths-table th a {
   color: inherit;
   text-decoration: none;
@@ -417,21 +417,23 @@ body {
   align-items: center;
 }
 
-.paths-table th a:hover {
-  text-decoration: underline;
-}
-
 .paths-table td {
-  padding: 10px 16px;
-  border-bottom: 1.5px solid rgba(0, 0, 0, 0.08);
+  padding: 11px 16px;
+  border-bottom: 2px solid var(--border);
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
   white-space: nowrap;
   font-size: 0.95rem;
 }
 
 @media (prefers-color-scheme: dark) {
   .paths-table td {
-    border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid #333640;
   }
+}
+
+.paths-table td:last-child {
+  border-right: none;
 }
 
 .paths-table tbody tr:last-child td {
@@ -439,11 +441,17 @@ body {
 }
 
 .paths-table tbody tr {
-  transition: background-color 0.1s ease;
+  transition: background-color 0.05s ease;
 }
 
 .paths-table tbody tr:hover {
   background-color: var(--row-hover);
+}
+
+@media (prefers-color-scheme: dark) {
+  .paths-table tbody tr:hover {
+    color: #fff;
+  }
 }
 
 /* File Name Link */
@@ -453,7 +461,7 @@ body {
 
 .path a {
   color: var(--text);
-  font-weight: 700;
+  font-weight: 800;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -465,8 +473,8 @@ body {
 }
 
 .path a:hover {
-  color: var(--accent-blue);
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 .path svg {
@@ -479,22 +487,20 @@ body {
 }
 
 .paths-table .cell-mtime {
-  width: 140px;
+  width: 150px;
   color: var(--text-muted);
-  font-family: ui-monospace, SFMono-Regular, monospace;
   font-size: 0.88rem;
+  font-weight: 600;
 }
 
 .paths-table .cell-size {
   width: 90px;
   text-align: right;
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 800;
   font-size: 0.88rem;
 }
 
-/* Row Action Buttons */
+/* Row Action Buttons (小直角按键) */
 .paths-table .cell-actions {
   width: 100px;
   display: flex;
@@ -504,15 +510,14 @@ body {
 
 .action-btn {
   cursor: pointer;
-  padding: 3px 6px;
+  padding: 4px 6px;
   background: var(--bg);
   border: 1.5px solid var(--border);
-  border-radius: 6px;
   box-shadow: 1.5px 1.5px 0px var(--border);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.1s ease;
+  transition: all 0.05s ease;
 }
 
 .action-btn:hover {
@@ -537,28 +542,26 @@ body {
    ========================================================== */
 .uploaders-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   background: var(--card-bg);
-  border: 2.5px solid var(--border);
-  border-radius: 12px;
+  border: var(--border-width) solid var(--border);
   box-shadow: var(--shadow);
-  margin-bottom: 1rem;
-  overflow: hidden;
+  margin-bottom: 1.25rem;
 }
 
 .uploaders-table th {
   padding: 10px 16px;
-  background: var(--accent-coral);
+  background: var(--accent-pink);
   color: #000;
-  font-weight: 800;
-  border-bottom: 2.5px solid var(--border);
+  font-weight: 900;
+  text-transform: uppercase;
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .uploaders-table td {
-  padding: 8px 16px;
-  font-weight: 600;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 10px 16px;
+  font-weight: 700;
+  border-bottom: 1.5px solid var(--border);
 }
 
 /* ==========================================================
@@ -567,28 +570,25 @@ body {
 .editor {
   width: 100%;
   height: calc(100vh - 6.5rem);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: inherit;
   font-size: 0.95rem;
   line-height: 1.6;
   color: var(--text);
   background: var(--card-bg);
-  border: 2.5px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
+  border: var(--border-width) solid var(--border);
+  box-shadow: var(--shadow-lg);
   outline: none;
-  padding: 1rem;
+  padding: 1.25rem;
   resize: vertical;
 }
 
 .not-editable {
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  font-weight: 700;
-  color: var(--accent-coral);
-  padding: 1rem;
-  border: 2px solid var(--border);
-  border-radius: 8px;
+  font-weight: 800;
+  color: var(--accent-pink);
+  padding: 1.25rem;
+  border: var(--border-width) solid var(--border);
   background: var(--card-bg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow);
   margin-bottom: 1rem;
 }
 
@@ -612,7 +612,7 @@ body {
   }
 
   .paths-table {
-    box-shadow: 3px 3px 0px var(--border);
+    box-shadow: 4px 4px 0px var(--border);
   }
 
   .paths-table th,
@@ -625,7 +625,7 @@ body {
     max-width: calc(100vw - 200px);
   }
 }
-</style>
+  </style>
 </head>
 
 <body>
