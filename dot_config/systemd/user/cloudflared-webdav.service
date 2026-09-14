@@ -1,0 +1,13 @@
+[Unit]
+Description=Cloudflare Tunnel for WebDAV
+After=network-online.target dufs.service
+Wants=network-online.target dufs.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/cloudflared tunnel run webdav
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
