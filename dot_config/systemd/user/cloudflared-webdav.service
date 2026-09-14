@@ -5,7 +5,7 @@ Wants=network-online.target dufs.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/cloudflared tunnel run webdav
+ExecStart=/usr/bin/cloudflared tunnel --protocol http2 run webdav
 Restart=always
 RestartSec=5
 
