@@ -63,15 +63,17 @@
   - 运行 `android-hide-app -l` 核对敏感应用防检测名单与 Tricky Store 目标列表
 
 ### 9.2 红米 K60 (mondrian / ed3fdd92) 专属流程
-- **系统架构**: Android 17 / HyperOS 4 移植版（NexusHyper / 官方底包 OS4.0.0.7.XMNCNXM），内核 5.10.252-dirty，KernelSU-Next (LKM GKI2)
-- **更新与 Root 恢复流程**:
-  - 正常刷入系统更新包并重启开机，确认新版本正常引导
-  - 从对应更新包解压提取新版本官方纯净 `boot_a.img` 或 `boot.img` 归档备份
-  - 匹配当前内核版本与 `android12-5.10` KMI，将 KernelSU-Next LKM 驱动与专属签名注入底包生成 `boot_ksunext_*.img`
-  - Fastboot 刷入 `fastboot flash boot_ab boot_ksunext_*.img`，开机后进入 adb 确认 `/data/adb/ksud` 版本
+- **系统架构**: ColorOS 16.1 / Android 16（ClearSkys 移植版，基底 OnePlus Ace 6），内核 5.10.246-AetherKernel，SukiSU (LKM 40796 / UAPI=0) + 内核内置 KPM
+- **底包与授权凭据**:
+  - 原厂全量底层备份归档至 `~/刷机/k60/原厂备份/`（含 EFS/基带 `modemst1/2`、`fsg/fsc`、校准 `persist/persistbak`、`devinfo` 及原厂 HyperOS 4 双槽位镜像）
+  - 主板 ID 授权验证机制：本机主板 ID `0x0000043bfce1db8a`，授权凭据写入 `/mi_ext/product/etc/security/verificationlist.bin`（SHA-256 Token），验证补丁含 Zip 伪加密，需清除中心目录加密位
+- **模块链与隐匿生态**:
+  - 基础框架：YABP 防砖模块 + Zygisk Next (匿名内存模式，enforce-denylist 保持 0)
+  - 隐匿与 Hook：Vector v2.2 (API 102，service.sh 修正为 `unshare -m`) + Tricky Store v1.4.1 + TS Enhancer Extreme (内置 keybox) + HMA-OSS Zygisk
+  - 激活 Xposed 模块：LuckyTool v1.3.4、CorePatch v4.9、InxLocker（作用域 android/0，配套 InstallerX Revived 锁定系统默认安装器）
 - **专属避坑与注意事项**:
-  - **模块兼容审查**: Android 17 (SDK 37) 环境下，硬编码判断 `SDK_INT <= 36` 的旧模块（如 Thanox）会触发 NPE 崩溃闪退，切勿开启
-  - **虚拟距离传感器修复**: 该机型采用 Goodix 触摸固件与 xiaomi_touch 融合的虚拟距离传感器，日常若有亮屏/灭屏误触发，执行 `su -c sh /data/local/tmp/fix_prox.sh` 并重启
+  - **SukiSU 管理器协议匹配**: 内核驱动版本为 40796 (UAPI=0)，必须使用匹配的 v4.1.3 (Build 40796) 管理器，严禁使用 4.2.0 (UAPI=2) 以防下发内核隐匿配置失败
+  - **跨底包刷机与数据擦除**: 从 HyperOS 等其他系统跨版本刷入时必须在 TWRP 格式化 Data 分区（f2fs）并重建 Metadata（ext4），刷完后立即卡刷验证补丁方可通过二屏
   - **ADB 交互规范**: 锁屏抽屉易卡住，执行 adb 指令前先核对 `dumpsys window mCurrentFocus`，用户使用前台操作手机时绝不抢占界面
 
 ### 9.3 一加平板 2 Pro (OPD2413 / c84b9192) 核心规范

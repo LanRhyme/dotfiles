@@ -71,8 +71,10 @@
 ### Redmi K60 (mondrian / ed3fdd92)
 - 系统：ColorOS 16.1 / Android 16（ROM: ClearSkys 20260830 移植版，基底 OnePlus Ace 6，内核 5.10.246-AetherKernel），SukiSU Boot root
 - 底层备份：位于 `~/刷机/k60/原厂备份/`（EFS/基带 `modemst1/2`、`fsg/fsc`，校准 `persist/persistbak`，`devinfo`，HyperOS 4 双槽位 `boot/vendor_boot/dtbo/recovery/vbmeta` 全套原厂镜像）
+- 模块链：YABP、Zygisk Next (匿名内存模式，enforce-denylist 已置 0)、Vector (已修复 service.sh 为 unshare -m)、Tricky Store + TS Enhancer Extreme (内置 keybox)、HMA-OSS Zygisk
+- 激活 Xposed：LuckyTool v1.3.4、CorePatch v4.9、InxLocker（已启用并绑定 android/0，配套 InstallerX Revived 锁定默认安装器）、fuckbiliads
 - 授权机制：轻量主板 ID 验证（本机 ID `0x0000043bfce1db8a`），授权凭据位于 `/mi_ext/product/etc/security/verificationlist.bin`（SHA-256 token `9a033082...`）；补丁包采用 Zip 伪加密，消除中心目录标志位后卡刷成功
-- 数据恢复：Data 分区已全新格式化为 f2fs，Metadata 格式化为 ext4，初次开机需等待初始化向导并经 DataBackup 恢复数据
+- 数据恢复：Data 分区已全新格式化为 f2fs，Metadata 格式化为 ext4，应用与数据恢复由 DataBackup 托管回传至 `/sdcard/DataBackup/`
 - adb 要点：操作前核对 `dumpsys window mCurrentFocus`；用户使用手机时切勿抢占操作
 
 ### 一加平板2 Pro (OPD2413 / c84b9192)
@@ -80,7 +82,7 @@
 - 系统内核：ColorOS 16 (Android 16 / SDK 36)，SpiderDroid GKI 6.6.118 (sun 定制)，KowSU Pro v3.3.0 (35700-2 / UAPI=2) + 内核内置 SuSFS 2.3.0
 - 原厂备份：位于 `~/刷机/一加平板2Pro/原厂备份/`（`stock_boot.img` 96MB、`stock_init_boot.img` 8MB）
 - 模块链：YABP、Zygisk Next (匿名内存)、Vector (API 102)、Tricky Store + TS Enhancer Extreme、HMA-OSS Zygisk (JamesDSP 因 Android 16 AIDL 架构不兼容已移除)
-- 激活 Xposed：LuckyTool v1.3.4、CorePatch v4.9、fuckbiliads
+- 激活 Xposed：LuckyTool v1.3.4、CorePatch v4.9、fuckbiliads、InxLocker（已启用并绑定 android/0，配套 InstallerX Revived 锁定默认安装器）
 - 游戏防检测 (三角洲行动 com.tencent.tmgp.dfm)：
   - 内核层：KernelSU `kernel_umount`、`selinux_hide`、`avc_spoof` 特性全开并持久化保存
   - 属性伪装：TS Enhancer Extreme 伪装 `green` 与锁 bootloader
