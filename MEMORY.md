@@ -5,6 +5,11 @@
 
 ## 最近动态
 
+- **Redmi K60 (mondrian) 底层完整备份与 ColorOS 16.1 (Android 16) 全量 Fastboot 刷入与授权补丁卡刷 (2026-09-14, 成功)**:
+  - 底层备份：刷机前通过 ADB Root 提取基带校准（`modemst1/2`、`fsg/fsc`）、硬件与传感器校准（`persist`、`persistbak`）、设备信息（`devinfo`）及原厂 HyperOS 4 引导恢复全量镜像（`boot_a/b`、`vendor_boot_a/b`、`dtbo_a/b`、`recovery_a/b`、`vbmeta`），全量归档至 `~/刷机/k60/原厂备份/`
+  - 固件刷写：解压 `super.img.zst`（8.5GB），编写并运行 Linux Fastboot 原生刷机脚本 `flash_coloros.sh`，向双槽位全量写入 VAB 底层固件、`dtbo`、定制 Recovery、`super` 核心镜像及修补了 KPM 的 SukiSU Boot 镜像，并清除 metadata 与 userdata
+  - 授权补丁解密与刷入：分析发现 `VerificationPatchV2_20260914.zip` 采用了 Zip 伪加密技术（中心目录通用标记位第 0 位置 1 假报密码），清除标志位后恢复标准 Zip 格式，由 TWRP 成功刷入 `/tmp/patch.zip`，向 `/mi_ext/product/etc/security/verificationlist.bin` 写入授权 Token（`9a033082...`），并在 TWRP 中重建格式化 Data (f2fs) 与 Metadata (ext4)
+
 - **局域网 WebDAV 服务 (Dufs) 部署与自启动 (2026-09-14, 成功)**:
   - 需求：搭建局域网 WebDAV 服务，用于手机端开源阅读（Legado）同步书架配置及多端日常备份
   - 架构：安装 AUR `dufs-bin 0.46.0-2`（已做 PKGBUILD 静态安全审查），数据根目录 `~/WebDAV`（预设 `reader` 与 `backup`）
@@ -64,11 +69,11 @@
 ## 设备
 
 ### Redmi K60 (mondrian / ed3fdd92)
-- 系统：Android 17 / HyperOS 4 移植版（ROM: NexusHyper v4.0.12，底包 OS4.0.0.7.XMNCNXM，内核 5.10.252-dirty），KernelSU-Next v3.3.0 (LKM GKI2) root
-- 隐匿链：内核无 SUSFS，防检测依赖 HMA-OSS (`org.frknkrc44.hma_oss`) Root-Hide scope；敏感应用必须加入 scope（照抄 `com.tencent.mm` 配置）；配置位于 `/data/user/0/org.frknkrc44.hma_oss/files/config.json`（权限 u0_a518 + 600）；搭配 YABP 自动救砖；Thanox 已弃用卸载；Zygisk Next 必须保持 `enforce-denylist disabled`（防止普通应用被隔离无法注入 Vector）；Vector 的 `service.sh` 需使用 `unshare -m`（不可用 `--propagation slave`）
-- 自研模块：`MiuiCamera-Fix`（修复相机机型校验闪退）、`freEnhance`（导航沉浸、Niagara 图标弹簧、多任务居中模糊）
-- 距离传感器：XiaoMi(V1.1) 虚拟 prox = Goodix 触摸固件 + xiaomi_touch 模块融合；SSC 自动降阈值导致误触发时，执行 `su -c sh /data/local/tmp/fix_prox.sh` 后整机重启
-- adb 要点：易锁屏且 NotificationShade 卡住需手动解锁；操作前核对 `dumpsys window mCurrentFocus`；用户使用手机时切勿抢占操作
+- 系统：ColorOS 16.1 / Android 16（ROM: ClearSkys 20260830 移植版，基底 OnePlus Ace 6，内核 5.10.246-AetherKernel），SukiSU Boot root
+- 底层备份：位于 `~/刷机/k60/原厂备份/`（EFS/基带 `modemst1/2`、`fsg/fsc`，校准 `persist/persistbak`，`devinfo`，HyperOS 4 双槽位 `boot/vendor_boot/dtbo/recovery/vbmeta` 全套原厂镜像）
+- 授权机制：轻量主板 ID 验证（本机 ID `0x0000043bfce1db8a`），授权凭据位于 `/mi_ext/product/etc/security/verificationlist.bin`（SHA-256 token `9a033082...`）；补丁包采用 Zip 伪加密，消除中心目录标志位后卡刷成功
+- 数据恢复：Data 分区已全新格式化为 f2fs，Metadata 格式化为 ext4，初次开机需等待初始化向导并经 DataBackup 恢复数据
+- adb 要点：操作前核对 `dumpsys window mCurrentFocus`；用户使用手机时切勿抢占操作
 
 ### 一加平板2 Pro (OPD2413 / c84b9192)
 - 硬件规格：骁龙 8 至尊版 (SM8750P / sun 平台)，Wi-Fi 版无需深度测试 APK，OEM 解锁后 Fastboot 秒解
