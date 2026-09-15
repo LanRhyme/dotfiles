@@ -2841,3 +2841,9 @@ To https://github.com/LanRhyme/dotfiles.git
  3 files changed, 18 insertions(+), 10 deletions(-)
 To https://github.com/LanRhyme/dotfiles.git
    3b010d7..062e12f  master -> master
+[master f3d9176] auto: 2026-09-15-12:00:01
+ 1 file changed, 4 insertions(+)
+To https://github.com/LanRhyme/dotfiles.git
+   062e12f..f3d9176  master -> master
+chezmoi: /home/lanrhyme/.config/gh/hosts.yml:6: Discovered a GitHub OAuth Access Token, posing a risk of compromised GitHub account integrations and data leaks.
+chezmoi: /home/lanrhyme/.config/gh/hosts.yml:8: Discovered a GitHub OAuth Access Token, posing a risk of compromised GitHub account integrations and data leaks.
