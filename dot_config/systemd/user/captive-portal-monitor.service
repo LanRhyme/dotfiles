@@ -1,0 +1,13 @@
+[Unit]
+Description=Captive Portal Detection Monitor
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/captive-portal-monitor.sh
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=graphical-session.target
