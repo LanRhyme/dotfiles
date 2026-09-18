@@ -5,11 +5,13 @@
 
 ## 最近动态
 
-- **Captive Portal 自动检测与浏览器打开 (2026-09-17, 成功)**:
-  - 需求：连接需要登录的网络时自动打开浏览器，并在 Noctalia 状态栏显示通知
-  - 实现：编写 `~/.local/bin/captive-portal-monitor.sh` 监控 NetworkManager 连接状态
-  - 服务：systemd user 服务 `captive-portal-monitor.service` 开机自启
-  - 功能：检测到 PORTAL 状态自动打开浏览器 + 通知提醒；检测到 LIMITED 状态显示网络受限通知
+- **Captive Portal 自动检测与浏览器打开 (2026-09-18, 修复完成)**:
+  - 需求：连接需要认证的网络时自动弹出登录页面，并在 Noctalia 状态栏/通知中心显示提醒
+  - 根因排查：原 bash 脚本匹配小写输出（`portal`）失败（写死大写 `PORTAL`）、`dbus-monitor` 仅监听全局 `StateChanged` 错失异步连通性更新、缺少启动自检、`DOMAIN` 字段非法
+  - 重构实现：改用 Python + `gi.repository.NM` 原生绑定，基于 GLib MainLoop 事件监听，无 CPU 轮询
+  - 智能探测：捕获 HTTP 302/307 `Location` 跳转直达真实认证页，兼容 `PORTAL` 与误报 `LIMITED`
+  - 防抖与自愈：单次网络连接仅弹窗一次，认证中（PORTAL）启动 5s 轻量轮询检测登录状态，认证成功（FULL）后弹通知并自动停止轮询
+  - 服务管理：`captive-portal-monitor.service` 常驻后台，附带 `captive-portal-open` 便捷手动打开命令
 
 - **Redmi K60 (mondrian) 底层完整备份与 ColorOS 16.1 (Android 16) 全量 Fastboot 刷入与授权补丁卡刷 (2026-09-14, 成功)**:
   - 底层备份：刷机前通过 ADB Root 提取基带校准（`modemst1/2`、`fsg/fsc`）、硬件与传感器校准（`persist`、`persistbak`）、设备信息（`devinfo`）及原厂 HyperOS 4 引导恢复全量镜像（`boot_a/b`、`vendor_boot_a/b`、`dtbo_a/b`、`recovery_a/b`、`vbmeta`），全量归档至 `~/刷机/k60/原厂备份/`
