@@ -158,7 +158,10 @@
 - **MicYou**：本地包 `micyou 2.0.0.alpha.1-1`；Noctalia 插件开源于 `lanrhyme/micyou`；手机端安装于 K60；ufw 放行 8554/tcp、8555/udp、8443/tcp、5353/udp
 - **企业微信**：deepin Wine 版 `com.qq.weixin.work.deepin`，容器位于 `~/.deepinwine/Deepin-WXWork`，启动脚本 `/opt/apps/com.qq.weixin.work.deepin/files/run.sh`
 - **Waydroid**：Android 16 (LineageOS 23.2)，开启 Intel iGPU/GBM 加速；依赖 UFW 规则 `sudo ufw allow in on waydroid0`；脚本位于 `~/tmp/a16/`
-- **DeepSeek Harness**：`dsh 0.1.0rc.6-2`（/usr/bin/dsh）；Superpower 预设位于 `~/.dsh/.agent-presets/superpower/`
+- **DeepSeek Harness**：`dsh 0.1.0rc.6-2`（/usr/bin/dsh）；Superpower 预设位于 `~/.dsh/.agent-presets/superpower/`；LLM 路由配置在 `~/.dsh/settings.yaml` 的 `llm-pi-ai.providers`（密钥只存 `~/.dsh/.credentials.yaml`，配置里用 `apiKeyEnv` 引用）；已接入 WFClub 中转 `https://api.wfclub.fun/v1`（route `openai`，默认模型 `deepseek-ai/DeepSeek-V4.1-Flash`）
+  - baseURL 必须写成不带 `/chat/completions` 的 `https://…/v1`：SDK 自行拼接该路径，且模型发现固定请求 `${baseURL}/models`
+  - 模型 id 必须取中转站 `/v1/models` 返回的真实值，自造别名会 `model_not_found`
+  - 模型默认 `input` 仅为 `["text"]`，要识图须在 model 条目显式加 `input: [text, image]`；已对 `deepseek-ai/DeepSeek-V4.1-Flash` 开启并实测可用
 - **Antigravity**：AUR 包滞后需手动维护（本地 2.9.1，构建于 `~/tmp/antigravity-pkgbuild/`）；网络直连易超时，依赖 FlClash TUN 透明代理正常连通；CLI 为 `~/.local/bin/agy`
 - **Sunshine + Moonlight**：`sunshine 2026.724`（赋权 `cap_sys_admin+ep`，systemd 服务开机自启）+ `moonlight-qt 6.1.0`；ufw 放行 47984/47989/47990/48010 tcp 与 47998/47999/48000/48002/48010 udp；控制台 `https://localhost:47990`
 - **OnlyOffice**：cachyos 官方源 `onlyoffice-bin`
