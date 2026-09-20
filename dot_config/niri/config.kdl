@@ -82,6 +82,18 @@ window-rule {
 	}
 }
 
+window-rule {
+	match app-id="cs2"
+	match app-id="gamescope"
+	opacity 1.0
+	geometry-corner-radius 0
+	clip-to-geometry false
+	background-effect {
+		blur false
+	}
+	open-fullscreen true
+}
+
 cursor {
     xcursor-theme "Bibata-Modern-Classic"
     xcursor-size 16
