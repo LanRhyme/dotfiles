@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **Redmi K60 (mondrian) Material You for ColorOS 模块未生效排查与 MagicMount 目录结构修复 (2026-09-25, 修复完成)**:
+  - 现象：安装 Material You for ColorOS 模块后系统界面无任何变化
+  - 根因分析：
+    - 模块文件均为静态 RRO（`isStatic=true`），目标路径为 `/product/overlay/`
+    - KSU 默认安装器将 `system/product` 移动至模块根目录 `product` 并创建软链接 `system/product -> ../product`
+    - 元模块 `magic_mount_rs` 仅扫描模块目录下的 `system` 树，在根挂载检查时捕获到 `product (Symlink)`，判定无法在 `/` 建立 tmpfs 抛出 `cannot create tmpfs on /, ignore: product`，导致 28 个覆盖层 APK 全部被跳过，实际挂载数为 0
+  - 修复处置：
+    - 移除模块内部 `system/product` 软链接，将 `product` 真实目录移回 `system/product/`
+    - 补丁 `magic_mount_rs/metainstall.sh`，注释强制剥离 `system/$part` 的循环，避免后续模块安装再次破坏目录层级
+    - 验证 `magic_mount_rs` 挂载逻辑，实测 28 个 overlay APK 已成功覆盖挂载至 `/product/overlay`，需设备重启使 PMS/OMS 重新载入静态覆盖层
+    - 样式调整：已将配置切换为 `systemui_style="1"`（Monet 莫奈胶囊样式），并将覆盖层替换为 `SystemUI_dual_monet.apk`，重新挂载完毕
+
 - **Captive Portal 自动检测与浏览器打开 (2026-09-18, 修复完成)**:
   - 需求：连接需要认证的网络时自动弹出登录页面，并在 Noctalia 状态栏/通知中心显示提醒
   - 根因排查：原 bash 脚本匹配小写输出（`portal`）失败（写死大写 `PORTAL`）、`dbus-monitor` 仅监听全局 `StateChanged` 错失异步连通性更新、缺少启动自检、`DOMAIN` 字段非法
@@ -157,6 +169,7 @@
 
 ## 安装与服务
 
+- **Xiaomi MiMo Desktop**：AUR 包 `mimo-desktop 26.909.91205-1`；官方 Linux x64 deb 打包，二进制 `/opt/Xiaomi MiMo/xiaomi-mimo-desktop`，命令 `mimo-desktop`；软件包已于 `~/tmp/mimo-desktop-aur/` 完成安全审查与构建
 - **Dufs (WebDAV) & Cloudflare Tunnel**：AUR 包 `dufs-bin 0.46.0-2`；数据根目录 `~/WebDAV`（含 `reader/`、`backup/`）；监听本地 `5000/tcp`（全私有 Basic 认证，用户 `lanrhyme`）；配置文件 `~/.config/dufs/config.yaml`（权限 600）；搭配 Cloudflare Tunnel（`cloudflared-webdav.service`）绑定公网域名 `https://webdav.lanrhyme.top/`；systemd user 服务常驻自启（开启 linger），全网络环境直连免改 IP
 - **MicYou**：本地包 `micyou 2.0.0.alpha.1-1`；Noctalia 插件开源于 `lanrhyme/micyou`；手机端安装于 K60；ufw 放行 8554/tcp、8555/udp、8443/tcp、5353/udp
 - **企业微信**：deepin Wine 版 `com.qq.weixin.work.deepin`，容器位于 `~/.deepinwine/Deepin-WXWork`，启动脚本 `/opt/apps/com.qq.weixin.work.deepin/files/run.sh`
