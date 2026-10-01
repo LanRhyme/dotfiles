@@ -5441,3 +5441,36 @@ remote:
 To https://github.com/LanRhyme/dotfiles.git
  ! [remote rejected] master -> master (push declined due to repository rule violations)
 错误：无法推送一些引用到 'https://github.com/LanRhyme/dotfiles.git'
+[master 5071256] auto: 2026-10-01-15:42:35
+ 1 file changed, 33 insertions(+)
+remote: error: GH013: Repository rule violations found for refs/heads/master.        
+remote: 
+remote: - GITHUB PUSH PROTECTION        
+remote:   —————————————————————————————————————————        
+remote:     Resolve the following violations before pushing again        
+remote: 
+remote:     - Push cannot contain secrets        
+remote: 
+remote:             
+remote:      (?) Learn how to resolve a blocked push        
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push        
+remote:             
+remote:      (?) This repository does not have Secret Scanning enabled, but is eligible. Enable Secret Scanning to view and manage detected secrets.        
+remote:      Visit the repository settings page, https://github.com/LanRhyme/dotfiles/settings/security_analysis        
+remote:             
+remote:             
+remote:       —— GitHub OAuth Access Token —————————————————————————        
+remote:        locations:        
+remote:          - commit: fe55345196ae355dc854061877fb53e6096a4fcd        
+remote:            path: dot_config/gh/private_hosts.yml:5        
+remote:          - commit: fe55345196ae355dc854061877fb53e6096a4fcd        
+remote:            path: dot_config/gh/private_hosts.yml:7        
+remote:             
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.        
+remote:        https://github.com/LanRhyme/dotfiles/security/secret-scanning/unblock-secret/3K2xkIRQgWtXPwZ47zkvORZ37bA        
+remote:             
+remote: 
+remote: 
+To https://github.com/LanRhyme/dotfiles.git
+ ! [remote rejected] master -> master (push declined due to repository rule violations)
+错误：无法推送一些引用到 'https://github.com/LanRhyme/dotfiles.git'
