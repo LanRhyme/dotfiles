@@ -5,6 +5,13 @@
 
 ## 最近动态
 
+- **MicYou 主仓库迁移至 MicYou-Dev 组织 (2026-10-01, 迁移完成)**:
+  - 迁移目标：由 `LanRhyme/MicYou` 完整迁移至官方组织 `MicYou-Dev/MicYou`
+  - 标识兼容：保留应用包名及 Bundle Identifier `com.lanrhyme.micyou` 不变，确保现有用户升级平滑、数据与权限不丢失
+  - 代码与配置同步：批量更新 Issue 模板、README、FAQ、文档、示例插件及客户端检查更新/贡献者接口地址至 `MicYou-Dev/MicYou`
+  - 本地与远程同步：本地 Git remote origin 地址更新为 `https://github.com/MicYou-Dev/MicYou.git`，改动已提交并推送至新仓库 master 分支
+
+
 - **代理客户端切换为 Bettbox (2026-10-01, 双客户端共存过渡)**:
   - 架构：安装 AUR `bettbox-bin 1.19.3-1`（Flutter + Mihomo 内核，二进制 `/usr/share/Bettbox/Bettbox`，软链接 `/usr/bin/Bettbox`）
   - 数据迁移：全量同步 `~/.local/share/com.follow.clash/` 订阅（`profiles/`）、数据库（`database.sqlite`）与 GEO 规则库至 `~/.local/share/com.appshub.bettbox/`
