@@ -164,7 +164,7 @@
 ### ReveriePaint-native — `~/Projects/ReveriePaint-native`
 - 笔刷与手势引擎绘画软件（Kotlin + C++/Krita 核心，包名 `com.reverie.paint`，测试机 ed3fdd92）
 - 笔刷：KisBrushOp::paintLine + KisFakeRunnableStrokeJobsExecutor 同步驱动异步管线；静态注册 kritadefaultpaintops_static 防 DSO 段错误
-- 图层架构：手势消费仲裁与 combinedClickable 共存；列表级长按接管拖拽；松手冻结 pendingOrder 存层名 List<String> 防索引错位；KisNode 语义向上拖 insert 上方，向下拖 insert 下方
+- 图层架构：手势消费仲裁与 combinedClickable 共存；列表级长按接管拖拽；松手冻结 pendingOrder 存层名 List<String> 防索引错位；KisNode 语义向上拖 insert 上方，向下拖 insert 下方；collapsedGroupNames 提升至 ViewModel 并在 .revp extraJson 中持久化；editTargetLayers 自动将选中图层组递归展开为所有后代图层供变换/液化/滤镜统一操作；isLayerEffectivelyHidden 级联检查父组可见性并拦截绘制；向下合并解除源层剪裁通道限制并原子化事务与图层移除，图层组合并修正坐标偏移至 ext.topLeft() 并原子化撤销
 - 构建：`scripts/build_native.sh`（QT_ANDROID_DIR=/opt/Qt6/6.6.3/android_arm64_v8a，增量编译约 45s；纯 Kotlin 改动直接 assembleDebug）
 
 ### Krita 插件套件
