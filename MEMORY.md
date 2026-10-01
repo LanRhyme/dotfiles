@@ -5,6 +5,12 @@
 
 ## 最近动态
 
+- **代理客户端切换为 Bettbox (2026-10-01, 双客户端共存过渡)**:
+  - 架构：安装 AUR `bettbox-bin 1.19.3-1`（Flutter + Mihomo 内核，二进制 `/usr/share/Bettbox/Bettbox`，软链接 `/usr/bin/Bettbox`）
+  - 数据迁移：全量同步 `~/.local/share/com.follow.clash/` 订阅（`profiles/`）、数据库（`database.sqlite`）与 GEO 规则库至 `~/.local/share/com.appshub.bettbox/`
+  - 权限与提权：内核 `BettboxCore` 具备 SUID root 权限（`-rwsr-sr-x`），支持 Niri 下免密启用 TUN 模式
+  - 共存策略：调整配置关闭 Bettbox 启动自动连接代理与 TUN（`autoRun=False`、`systemProxy=False`、`vpnProps.enable=False`），避免与当前运行的 FlClash 冲突，供随时在前端切换
+
 - **Redmi K60 (mondrian) Material You for ColorOS 模块未生效排查与 MagicMount 目录结构修复 (2026-09-25, 修复完成)**:
   - 现象：安装 Material You for ColorOS 模块后系统界面无任何变化
   - 根因分析：
@@ -169,6 +175,7 @@
 
 ## 安装与服务
 
+- **Bettbox & FlClash**：AUR 包 `bettbox-bin 1.19.3-1` 与 `flclash-bin 0.8.93-1`；数据位于 `~/.local/share/com.appshub.bettbox/`；BettboxCore 内置 SUID root 免密启动 TUN；当前保留双客户端共存，待完全习惯后可卸载 flclash-bin
 - **Xiaomi MiMo Desktop**：AUR 包 `mimo-desktop 26.909.91205-2`；官方 Linux deb 打包，二进制 `/opt/Xiaomi MiMo/xiaomi-mimo-desktop`，命令 `mimo-desktop`；针对官方包漏打 `node-machine-id` 导致登录缺失 `deviceId` 报错「参数错误」的问题，已在 PKGBUILD 的 `package()` 中通过直接读取 `/etc/machine-id` 补丁修复 `app.asar`
 - **Dufs (WebDAV) & Cloudflare Tunnel**：AUR 包 `dufs-bin 0.46.0-2`；数据根目录 `~/WebDAV`（含 `reader/`、`backup/`）；监听本地 `5000/tcp`（全私有 Basic 认证，用户 `lanrhyme`）；配置文件 `~/.config/dufs/config.yaml`（权限 600）；搭配 Cloudflare Tunnel（`cloudflared-webdav.service`）绑定公网域名 `https://webdav.lanrhyme.top/`；systemd user 服务常驻自启（开启 linger），全网络环境直连免改 IP
 - **MicYou**：本地包 `micyou 2.0.0.alpha.1-1`；Noctalia 插件开源于 `lanrhyme/micyou`；手机端安装于 K60；ufw 放行 8554/tcp、8555/udp、8443/tcp、5353/udp
