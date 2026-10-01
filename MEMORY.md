@@ -163,8 +163,12 @@
 
 ### ReveriePaint-native — `~/Projects/ReveriePaint-native`
 - 笔刷与手势引擎绘画软件（Kotlin + C++/Krita 核心，包名 `com.reverie.paint`，测试机 ed3fdd92）
-- 笔刷：KisBrushOp::paintLine + KisFakeRunnableStrokeJobsExecutor 同步驱动异步管线；静态注册 kritadefaultpaintops_static 防 DSO 段错误
+- 笔刷：KisBrushOp::paintLine + KisFakeRunnableStrokeJobsExecutor 同步驱动异步管线；静态注册 kritadefaultpaintops_static 防 DSO 段错误；ensurePresetInfo 与 parseKppAttributes 兼容 Krita 5 OpacityUseCurve/FlowUseCurve/SizeUseCurve 无 PressureOpacity 标签预设，loadBrushPreset 归一化补全 settings 压感开关防 KisOpacityOption 曲线跳过，computeEffectivePressure 移除 brushPressureSize 错误缩放防止无尺寸压感笔刷压感被锁死为 1.0，setBrushPressureDynamics 隔离 OpacityValue/FlowValue 基底参数杜绝压感覆盖导致的笔刷隐形或流量清空；updateKppBytes 自动补全 ABR 导入预设缺失的压感传感器与曲线 XML，支持 transfer/paintDynamics 多版本 Photoshop 描述符键值解析
 - 图层架构：手势消费仲裁与 combinedClickable 共存；列表级长按接管拖拽；松手冻结 pendingOrder 存层名 List<String> 防索引错位；KisNode 语义向上拖 insert 上方，向下拖 insert 下方；collapsedGroupNames 提升至 ViewModel 并在 .revp extraJson 中持久化；editTargetLayers 自动将选中图层组递归展开为所有后代图层供变换/液化/滤镜统一操作；isLayerEffectivelyHidden 级联检查父组可见性并拦截绘制；向下合并解除源层剪裁通道限制并原子化事务与图层移除，图层组合并修正坐标偏移至 ext.topLeft() 并原子化撤销
+- 工具栏：内容溢出时上下边缘叠加轻柔渐变遮罩，初始与滑动时唤醒上下呼吸微动箭头提示可滚动，静止 2.5 秒后平滑淡化为边缘极简指示圆点且不拦截工具点击
+- 快捷键与外接键盘：StylusDriver 与手写笔 Adapter 增加 isStylusKeyEvent 判定，阻断 PageUp/PageDown 等键盘按键被误拦截吞噬；keyEventToString 兼容 Meta (Command/Win) 与 Ctrl 统一映射，补全 NumPadEnter/Backspace/方向键等映射；handleKeyEvent 引入长按连发节流与单次触发限制，笔刷缩放限频 50ms、撤销重做限频 200ms，离散动作长按不连发；applyTool 增加当前工具瞬时退出避免冗余重载；undo/redo 改为 runCore(render=false) 消除单次撤销双重渲染卡顿，并遵从 undoToastEnabled；Settings 录制弹窗期间由 isShortcutRecordingActive 旁路全局快捷键拦截
+- 手势与拾色：解除 canEyedrop 对 !penOnlyMode 的限制，笔模式下单指长按画布吸色与手写笔吸色完全并存；ACTION_MOVE 增加长按等待期容差检测，位移在 moveSlopPx 内拦截平移与画线保持画面稳定，超阈值时取消长按并无缝转为单指平移（开启平移时）或忽略防误触；ACTION_UP 拦截笔模式短触画线杜绝误触打点
+- 渲染引擎与投影管线：renderToBuffer 将同步合成条件扩展至包含 !m_dirtyRect.isEmpty()，确保画笔抬笔帧及任何脏区均由 compositeLayersRange 毫秒级闭环同步合成；touchStrokeEnd 与 strokeAirbrushTick 移除 endDev->setDirty 与 target->setDirty 调用，杜绝 Krita 后台异步调度器在后台并发 clear 投影瓦片引发的章鱼式抽动与 64x64 方块底色脏块
 - 构建：`scripts/build_native.sh`（QT_ANDROID_DIR=/opt/Qt6/6.6.3/android_arm64_v8a，增量编译约 45s；纯 Kotlin 改动直接 assembleDebug）
 
 ### Krita 插件套件
