@@ -3,7 +3,45 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
-## 最近动态
+- **ReveriePaint 快捷操作悬浮面板与自定义配置系统 (2026-10-02, 实现完成)**:
+  - 功能定位：在工具体系中新增独立工具「快捷操作」（Tool.SHORTCUT），在侧边工具条 ToolRail 与全部工具 AllToolsPanel 中提供直达入口，点击即呼出悬浮面板并联动高亮状态
+  - 核心操作生态：全面支持 13 项高频绘画操作，包括锁定视角（固定缩放与旋转）、水平/垂直翻转画布、居中回正复位、撤销、重做、画笔与橡皮擦互切、上个工具互切、快速吸色、交换前背景色、笔刷尺寸增大/减小、Alpha透明锁（保护透明度）、新建图层、复制图层、向下合并、清空图层等，所有动作均具备实时状态反馈与激活高亮
+  - 自适应形态与交互：支持横向单排胶囊、纵向单排胶囊、2列/3列圆角矩形自适应排布；顶部配备精巧微触把手，支持自由拖拽平移与一键微缩折叠为悬浮小胶囊球；深度集成 Morandi 配色系统与实时高斯毛玻璃效果（hazeChild）；在 CanvasTouchView 中接入边界命中防误画保护
+  - 自由定制与持久化：浮窗右上角齿轮一键打开自定义配置弹窗，支持勾选增删动作、切换排布样式、开关按钮文字标签以及恢复默认配置，窗口坐标、折叠状态与配置项全链路自动持久化至本地 paint_prefs
+
+- **ReveriePaint 界面动效速度设置与极速模式支持 (2026-10-02, 优化完成)**:
+  - 需求背景：部分创作者在作画过程中需要极致敏捷的界面反馈，标准弹簧动效（约 200ms）在频繁切面板与弹窗时略显滞重，期望支持 <= 0.1s 的极速动效或完全关闭
+  - 核心架构重构：扩展 `Motion.kt` 动效令牌总线，定义 `UiAnimationSpeed`（标准 NORMAL、极速 FAST、关闭 OFF 三档）；入场 `enterSpring()` 与出场 `exitTween(baseMillis)` 全面动态适配当前档位；极速档出场时间缩短为 80ms（<= 0.1s），入场弹簧刚度提升至 1200f/1500f 实现干脆利落收敛，关闭档直接采用 `snap()` 达到零延迟瞬时响应
+  - 面板退场统一：重构 `PaintingPage` 中的画笔、图层、设置、色卡、更多工具、时间轴面板及常态参考窗口，将写死的 `tween(200)` / `tween(180)` 全量替换为 `Motion.exitTween`
+  - 设置与持久化：在通用设置「界面动效速度」分段选项中接入三档切换，并持久化到 `paint_prefs`（键名 `uiAnimationSpeed`），启动时由 `PaintViewModel` 自动恢复并同步到 `Motion.currentSpeed`
+
+- **ReveriePaint 创建画布预览缓动曲线修复与中心瞬移消除 (2026-10-02, 优化完成)**:
+  - 根因定位：原预览动画采用弹簧曲线（spring DampingRatioMediumBouncy），切换不同画幅比例时有回弹与非单调迟滞感；且原布局在 fitsInside 条件突变时用外层 Row/Column 替换居中 Box，导致预览框在第一帧发生中心点横向/纵向位移突跳（瞬移）
+  - 曲线重构：改用纯减速 out-only 缓动曲线（LinearOutSlowInEasing, 280ms），首帧以最大响应初速度启动，平滑单调收敛归位
+  - 结构锁定：将画布预览框永久锚定在容器几何中心（Alignment.Center），尺寸过窄或过扁时的分辨率文字以框体边界为参考依附展示，杜绝容器重排引起的中心瞬移
+
+- **ReveriePaint 边缘侧滑返回手势与起笔防误画优化 (2026-10-02, 优化完成)**:
+  - 根因定位：原代码在 API 29+ 启用了全屏全高度左右边缘手势排除区（systemGestureExclusionRects），导致平板端系统侧滑返回手势被全屏强制阻断；且手指贴近边缘按下时立即触发 handleToolDown 抢占事件并在侧滑返回触发时残留误画线条
+  - 智能手势策略与独立开关：在设置-通用中增加「允许边缘侧滑返回」开关（allowEdgeBackGesture），并在 PaintViewModel 中与返回键行为（BackKeyAction）智能联动；仅当用户主动关闭或返回键设为无行为且无浮层展开时才全高度排除手势以防误触，其余情况释放手势排除区让系统原生侧滑正常响应
+  - 手指边缘起笔缓冲与防误画：在 CanvasTouchView 中对边缘 32dp 内的手指触控引入 180ms/滑动容差缓冲判定；若系统识别为侧滑返回派发 ACTION_CANCEL，则静默取消且绝不触发 handleToolDown 污染画布与撤销栈；若用户为垂直画线或持续移动则自动补偿落笔并平滑绘制；压感笔（Stylus）完全不受限制支持贴边作画
+
+- **ReveriePaint 图层重命名冲突修复与 UI 交互升级 (2026-10-02, 优化完成)**:
+  - 根因定位：硬件键盘事件由 `MainActivity.dispatchKeyEvent` 拦截处理，当 `isTextInputActive` 为假时自动走全局快捷键管线，导致重命名输入框内按下 Delete / Backspace 时触发 `removeLayer` 误删图层
+  - 全局输入防护：在 `PaintViewModel` 引入输入框活跃计数器 `pushTextInputActive`/`popTextInputActive`，新增 `TextInputGuard` 声明式守卫组件并在所有文本编辑与重命名弹窗（图层、笔刷预设/分组、色卡、选区、文字工具）中全局接入；`PaintingPage` 根容器键盘分发增加输入态旁路保护
+  - 快捷交互升级：在图层列表 `LayerRow` 图层名称上增加双击（Double-tap）手势，支持双击直接调起重命名弹窗，同时与原详情页入口无缝并存
+  - 弹窗 UI 质感与校验：重命名弹窗升级为独立 Morandi 对话框，打开时通过 `FocusRequester` 自动聚焦并全选文本；右侧增加一键清空按钮；支持软硬件键盘 `Enter` 快捷确认与 `Esc` 取消；限制最大 40 字符并禁止全空白名称提交
+
+- **ReveriePaint 笔刷面板冷启即时加载优化 (2026-10-02, 优化完成)**:
+  - 根因定位：冷启笔刷加载原先在 Compose 首帧绘制后的 LaunchedEffect 才迟滞启动，且每次都要遍历检查 500+ 个 assets 文件，导致用户快速进入画布打开笔刷面板时数据尚未就绪，左侧仅剩 3 个分类、右侧触发 filtered.isEmpty() 呈现空状态
+  - 启动预热：在 MainActivity.onCreate 完成引擎注册后立即并发预热 loadBrushPresets，充分利用 UI 渲染与测量窗口期
+  - 资产快路径：针对已释放资源的普通启动跳过 500+ 个 assets 文件的解压与遍历检查，资产准备耗时从 1 秒锐减至 1 毫秒；对 assets 内置名称建立内存缓存，杜绝主线程与 JNI 多次重入扫描
+  - 面板兜底与状态指示：当笔刷尚在载入时，左侧分类栏自动使用 BUILT_IN_BRUSH_GROUPS 兜底占位防止结构闪变坍塌；右侧预设列表展示微动加载指示器与文本提示，数据就绪后平滑无缝过渡
+
+- **ReveriePaint 崩溃诊断引擎优化与 Native 信号捕获 (2026-10-02, 优化完成)**:
+  - 根因定位：原系统仅具备 Java 层的 Thread.setDefaultUncaughtExceptionHandler，当底层 C++/Krita 核心发生 SIGSEGV 段错误或 SIGABRT 断言崩溃时，进程被 Linux 内核直接杀死，Java 异常捕获机制无法触发，导致崩溃目录完全为空
+  - Native 信号捕获器：实现 ReverieCrashHandler (C++)，基于 sigaction 全面拦截 SIGSEGV/SIGABRT/SIGBUS/SIGFPE/SIGILL，分配 128KB sigaltstack 独立备用栈；全链路严格遵循 async-signal-safe 规范（无动态内存分配，纯 open/write/close 系统调用）；利用 _Unwind_Backtrace 与 dladdr 实时解析抓取 48 帧 Native 符号栈，记录 ARM64 核心寄存器与 si_addr，并重新抛出信号生成 tombstone
+  - 操作轨迹环形缓冲区：实现 Breadcrumbs 诊断轨迹追踪，在 JVM 与 Native 端分别维护容量 25 条的环形缓冲区，对页面切换、工具选择、笔刷加载、图层增删与撤销重做进行轻量低开销埋点
+  - 启动诊断与导出弹窗：MainActivity 启动阶段异步检测未提示过的崩溃日志；弹出 Morandi 风格的 CrashReportDialog 诊断弹窗，支持完整日志展开预览、一键复制剪贴板、系统分享面板以及基于 MediaStore 导出至公共目录 Download/ReveriePaint_CrashReports/
 
 - **MicYou 主仓库迁移至 MicYou-Dev 组织 (2026-10-01, 迁移完成)**:
   - 迁移目标：由 `LanRhyme/MicYou` 完整迁移至官方组织 `MicYou-Dev/MicYou`
@@ -169,6 +207,7 @@
 - 快捷键与外接键盘：StylusDriver 与手写笔 Adapter 增加 isStylusKeyEvent 判定，阻断 PageUp/PageDown 等键盘按键被误拦截吞噬；keyEventToString 兼容 Meta (Command/Win) 与 Ctrl 统一映射，补全 NumPadEnter/Backspace/方向键等映射；handleKeyEvent 引入长按连发节流与单次触发限制，笔刷缩放限频 50ms、撤销重做限频 200ms，离散动作长按不连发；applyTool 增加当前工具瞬时退出避免冗余重载；undo/redo 改为 runCore(render=false) 消除单次撤销双重渲染卡顿，并遵从 undoToastEnabled；Settings 录制弹窗期间由 isShortcutRecordingActive 旁路全局快捷键拦截
 - 手势与拾色：解除 canEyedrop 对 !penOnlyMode 的限制，笔模式下单指长按画布吸色与手写笔吸色完全并存；ACTION_MOVE 增加长按等待期容差检测，位移在 moveSlopPx 内拦截平移与画线保持画面稳定，超阈值时取消长按并无缝转为单指平移（开启平移时）或忽略防误触；ACTION_UP 拦截笔模式短触画线杜绝误触打点
 - 渲染引擎与投影管线：renderToBuffer 将同步合成条件扩展至包含 !m_dirtyRect.isEmpty()，确保画笔抬笔帧及任何脏区均由 compositeLayersRange 毫秒级闭环同步合成；touchStrokeEnd 与 strokeAirbrushTick 移除 endDev->setDirty 与 target->setDirty 调用，杜绝 Krita 后台异步调度器在后台并发 clear 投影瓦片引发的章鱼式抽动与 64x64 方块底色脏块
+- 崩溃诊断引擎：接入 ReverieCrashHandler (C++) 信号安全拦截器 (SIGSEGV/SIGABRT/SIGBUS/SIGFPE/SIGILL) 与 128KB 独立信号备用栈，捕获 48 帧 Native 符号栈与 ARM64 寄存器状态；Java 层集成 Thread.UncaughtExceptionHandler；双端搭载容量 25 条的 Breadcrumbs 环形操作轨迹；启动阶段自动触发未读日志检测并弹出 Morandi 诊断弹窗，支持一键复制、系统分享与 MediaStore 公共 Downloads 目录导出
 - 构建：`scripts/build_native.sh`（QT_ANDROID_DIR=/opt/Qt6/6.6.3/android_arm64_v8a，增量编译约 45s；纯 Kotlin 改动直接 assembleDebug）
 
 ### Krita 插件套件
