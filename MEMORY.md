@@ -3,6 +3,12 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
+- **ReveriePaint 选区 Procreate 风格动态斑马纹与流动蚂蚁线升级及增加选区失效修复 (2026-10-02, 实现完成)**:
+  - 增加选区失效根因排查与修复：进入选区工具后画出首个选区，使用「增加」模式追加新选区时旧选区被冲掉；排查发现三重诱因：1. `loadToolOptions` 仅恢复 Kotlin 变量未向 C++ 底层下发 `setSelectionMode` 导致 native 默认为 SelReplace (0)；2. `applyTool` 切入选区工具时未同步模式；3. C++ 底层 `selectShape` 与 `selectPolygon` 依赖 `hasSelection()` 且 `selectedExactRect()` 未及时缓存时误判为空强行 fallback 为替换；在 `applyTool` 与 `loadToolOptions` 建立向 C++ 实时同步机制，并在 C++ 底层对 `oldMask` 实施直接非零像素安全扫描，彻底根除新旧选区追加丢失问题
+  - 矢量选区轮廓提取管道：在 C++ 端新增 `ReverieCore::selectionOutline()` 与 JNI 导出，直接调用 Krita `KisPixelSelection::outline()` 获取高精度封闭多边形轮廓顶点向量，以紧凑整型数组序列化回传给 Kotlin 并在 `buildSelectionOverlayLocked` 转换缓存为 Compose 矢量 `Path`（自动对齐文档与视口坐标），实现缩放旋转无损零光栅化失真
+  - Procreate 风格动态流动斑马纹：重构 `CanvasOverlay` 选区视觉表现，在选区工具组（`ToolGroup.SELECTION`）内对未选区遮罩采用 45 度斜向动态流动半透明斑马纹（宽 12px 炭黑暗条纹与宽 12px 透亮条纹平铺无缝交错），通过 Skia `saveLayer` 配合 `PorterDuff.Mode.DST_IN` 实时镂空选中区域，并结合画布缩放/旋转逆变换保持物理屏幕 1:1 像素密度与严格 45 度视角；切到画笔/橡皮擦/涂抹等非选区工具时自动隐藏斑马纹遮罩，释放作画视野
+  - 动态黑白交替流动蚂蚁线：无论在选区工具内还是切出至常规绘画工具，只要存在活动选区，选区边缘均常驻显示动态流动的黑白交替虚线蚂蚁线；在编选区（实时套索、折线套索、多边形选择、矩形/椭圆框选）全链路统一接入单帧无限流动时间线（LinearEasing 1200ms 无缝循环），并在无活动选区时旁路读取零重绘开销
+
 - **ReveriePaint 变形预览与图层缩略图未预乘透明度泛光过曝修复 (2026-10-02, 修复完成)**:
   - 根因排查（Issue #33）：套索后调起变换工具时，半透明及边缘抗锯齿画笔笔画在变换预览阶段呈现 100% 刺眼纯白及杂边泛光（过曝发光），变换提交后即恢复正常；排查确认 Krita 的 `KisPaintDevice` 底层使用直通透明度（Straight Alpha），C++ 预览提取（`startTransformPreview`）及图层缩略图（`renderLayerThumb`、`renderKeyframeThumb`、`renderKeyframeFull`）直接采用非预乘格式 `QImage::Format_RGBA8888` 导出并拷入 Android `Bitmap.Config.ARGB_8888`；由于 Android Skia Canvas 与硬件加速渲染管线默认设定 `hasPremultiplied() == true`，在 `SRC_OVER` 混合阶段按预乘公式 `dst_rgb = src_rgb + dst_rgb * (1 - src_a)` 进行运算，导致未预乘的 RGB 颜色被未衰减全额累加，产生强烈的加色泛光过曝现象
   - 变形预览预乘与 ARM NEON 矢量加速：在 `ReverieCoreInternal.h` 实现高效矢量化转换函数 `blitBgraToRgbaPremultipliedFast`，利用 ARM NEON `vld4_u8` 将直通 BGRA 像素拆分至独立寄存器，通过 `vmull_u8` 与定点精度舍入公式 `((val + 128) + ((val + 128) >> 8)) >> 8` 极速完成透明度预乘并对调 B/R 通道，最后由 `vst4_u8` 重新交织存入 `QImage::Format_RGBA8888_Premultiplied` 图像，实现零开销高质量像素预乘；在 Kotlin 端同步显式标记 `b.setPremultiplied(true)`
