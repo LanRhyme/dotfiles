@@ -231,7 +231,7 @@
 - 工具栏：内容溢出时上下边缘叠加轻柔渐变遮罩，初始与滑动时唤醒上下呼吸微动箭头提示可滚动，静止 2.5 秒后平滑淡化为边缘极简指示圆点且不拦截工具点击
 - 快捷键与外接键盘：StylusDriver 与手写笔 Adapter 增加 isStylusKeyEvent 判定，阻断 PageUp/PageDown 等键盘按键被误拦截吞噬；keyEventToString 兼容 Meta (Command/Win) 与 Ctrl 统一映射，补全 NumPadEnter/Backspace/方向键等映射；handleKeyEvent 引入长按连发节流与单次触发限制，笔刷缩放限频 50ms、撤销重做限频 200ms，离散动作长按不连发；applyTool 增加当前工具瞬时退出避免冗余重载；undo/redo 改为 runCore(render=false) 消除单次撤销双重渲染卡顿，并遵从 undoToastEnabled；Settings 录制弹窗期间由 isShortcutRecordingActive 旁路全局快捷键拦截
 - 手势与拾色：解除 canEyedrop 对 !penOnlyMode 的限制，笔模式下单指长按画布吸色与手写笔吸色完全并存；ACTION_MOVE 增加长按等待期容差检测，位移在 moveSlopPx 内拦截平移与画线保持画面稳定，超阈值时取消长按并无缝转为单指平移（开启平移时）或忽略防误触；ACTION_UP 拦截笔模式短触画线杜绝误触打点
-- 渲染引擎与投影管线：renderToBuffer 将同步合成条件扩展至包含 !m_dirtyRect.isEmpty()，确保画笔抬笔帧及任何脏区均由 compositeLayersRange 毫秒级闭环同步合成；touchStrokeEnd 与 strokeAirbrushTick 移除 endDev->setDirty 与 target->setDirty 调用，杜绝 Krita 后台异步调度器在后台并发 clear 投影瓦片引发的章鱼式抽动与 64x64 方块底色脏块
+- 渲染引擎与投影管线：renderToBuffer 在后台异步调度器活跃时强制 waitForDone 阻塞等待合并完成，空闲时才由 compositeLayersRange 毫秒级同步合成笔画与预览脏区，彻底根除多线程并发读写 projection 瓦片导致的 KisTiledExtentManager SIGABRT 闪退；setLayerOpacityDirect 移除高频 setDirty 改由快速同步预览合成，setLayerOpacity 与 setLayerBlendMode 提交后等待合并收敛；touchStrokeEnd 与 strokeAirbrushTick 移除 endDev->setDirty 与 target->setDirty 调用杜绝章鱼式抽动与 64x64 方块底色脏块
 - 崩溃诊断引擎：接入 ReverieCrashHandler (C++) 信号安全拦截器 (SIGSEGV/SIGABRT/SIGBUS/SIGFPE/SIGILL) 与 128KB 独立信号备用栈，捕获 48 帧 Native 符号栈与 ARM64 寄存器状态；Java 层集成 Thread.UncaughtExceptionHandler；双端搭载容量 25 条的 Breadcrumbs 环形操作轨迹；启动阶段自动触发未读日志检测并弹出 Morandi 诊断弹窗，支持一键复制、系统分享与 MediaStore 公共 Downloads 目录导出
 - 构建：`scripts/build_native.sh`（QT_ANDROID_DIR=/opt/Qt6/6.6.3/android_arm64_v8a，增量编译约 45s；纯 Kotlin 改动直接 assembleDebug）
 
