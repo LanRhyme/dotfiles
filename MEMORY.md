@@ -3,6 +3,11 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
+- **ReveriePaint 变形预览与图层缩略图未预乘透明度泛光过曝修复 (2026-10-02, 修复完成)**:
+  - 根因排查（Issue #33）：套索后调起变换工具时，半透明及边缘抗锯齿画笔笔画在变换预览阶段呈现 100% 刺眼纯白及杂边泛光（过曝发光），变换提交后即恢复正常；排查确认 Krita 的 `KisPaintDevice` 底层使用直通透明度（Straight Alpha），C++ 预览提取（`startTransformPreview`）及图层缩略图（`renderLayerThumb`、`renderKeyframeThumb`、`renderKeyframeFull`）直接采用非预乘格式 `QImage::Format_RGBA8888` 导出并拷入 Android `Bitmap.Config.ARGB_8888`；由于 Android Skia Canvas 与硬件加速渲染管线默认设定 `hasPremultiplied() == true`，在 `SRC_OVER` 混合阶段按预乘公式 `dst_rgb = src_rgb + dst_rgb * (1 - src_a)` 进行运算，导致未预乘的 RGB 颜色被未衰减全额累加，产生强烈的加色泛光过曝现象
+  - 变形预览预乘与 ARM NEON 矢量加速：在 `ReverieCoreInternal.h` 实现高效矢量化转换函数 `blitBgraToRgbaPremultipliedFast`，利用 ARM NEON `vld4_u8` 将直通 BGRA 像素拆分至独立寄存器，通过 `vmull_u8` 与定点精度舍入公式 `((val + 128) + ((val + 128) >> 8)) >> 8` 极速完成透明度预乘并对调 B/R 通道，最后由 `vst4_u8` 重新交织存入 `QImage::Format_RGBA8888_Premultiplied` 图像，实现零开销高质量像素预乘；在 Kotlin 端同步显式标记 `b.setPremultiplied(true)`
+  - 图层与关键帧缩略图预乘修正：将 `ReverieCoreIO.cpp` 中的 `renderLayerThumb` 输出画布格式从 `Format_RGBA8888` 升级为 `Format_RGBA8888_Premultiplied`，利用 Qt 绘图引擎直接在缩略图采样与绘制阶段完成高质量预乘合成；同步将 `ReverieCoreAnimation.cpp` 中的关键帧缩略图 `renderKeyframeThumb` 与洋葱皮全帧导出 `renderKeyframeFull` 升级为预乘格式，彻底根治图层面板透明棋盘格背景上的白色泛光杂边与描边过曝瑕疵
+
 - **ReveriePaint 快捷笔刷悬浮面板与常用画笔管理工具 (2026-10-02, 实现完成)**:
   - 工具体系与独立入口：在 `Tool` 枚举体系中新增专用视图类工具「快捷笔刷」（`Tool.QUICK_BRUSH`），在侧边工具条 `ToolRail` 与全部工具面板 `AllToolsPanel` 中提供独立入口，点击即呼出悬浮面板并联动高亮状态
   - 极简单行胶囊悬浮窗：实现 `QuickBrushWindow`，默认以极简横向单行流线胶囊呈现常用画笔缩略图；支持横向与纵向两种单列布局形态切换，支持自由拖拽平移与屏幕边缘边界自适应吸附防出界；支持一键折叠收缩为半透明悬浮微球，点击微球丝滑展开
@@ -221,7 +226,7 @@
 
 ### ReveriePaint-native — `~/Projects/ReveriePaint-native`
 - 笔刷与手势引擎绘画软件（Kotlin + C++/Krita 核心，包名 `com.reverie.paint`，测试机 ed3fdd92）
-- 笔刷：KisBrushOp::paintLine + KisFakeRunnableStrokeJobsExecutor 同步驱动异步管线；静态注册 kritadefaultpaintops_static 防 DSO 段错误；ensurePresetInfo 与 parseKppAttributes 兼容 Krita 5 OpacityUseCurve/FlowUseCurve/SizeUseCurve 无 PressureOpacity 标签预设，loadBrushPreset 归一化补全 settings 压感开关防 KisOpacityOption 曲线跳过，computeEffectivePressure 移除 brushPressureSize 错误缩放防止无尺寸压感笔刷压感被锁死为 1.0，setBrushPressureDynamics 隔离 OpacityValue/FlowValue 基底参数杜绝压感覆盖导致的笔刷隐形或流量清空；updateKppBytes 自动补全 ABR 导入预设缺失的压感传感器与曲线 XML，支持 transfer/paintDynamics 多版本 Photoshop 描述符键值解析
+- 笔刷：KisBrushOp::paintLine + KisFakeRunnableStrokeJobsExecutor 同步驱动异步管线；静态注册 kritadefaultpaintops_static 防 DSO 段错误；ensurePresetInfo 与 parseKppAttributes 兼容 Krita 5 OpacityUseCurve/FlowUseCurve/SizeUseCurve 无 PressureOpacity 标签预设，loadBrushPreset 归一化补全 settings 压感开关防 KisOpacityOption 曲线跳过，computeEffectivePressure 移除 brushPressureSize 错误缩放防止无尺寸压感笔刷压感被锁死为 1.0，setBrushPressureDynamics 隔离 OpacityValue/FlowValue 基底参数杜绝压感覆盖导致的笔刷隐形或流量清空；updateKppBytes 自动补全 ABR 导入预设缺失的压感传感器与曲线 XML，支持 transfer/paintDynamics 多版本 Photoshop 描述符键值解析；ScratchpadCanvas 试画栏改用 awaitEachGesture 零延迟捕获单击打点与笔画起点并读取 historical 高频采样点，按弧长均匀插值步进 dabs 且距离余量无缝跨线段累加，彻底解决手绘采样率间隔造成的线条断裂成点阵虚线问题
 - 图层架构：手势消费仲裁与 combinedClickable 共存；列表级长按接管拖拽；松手冻结 pendingOrder 存层名 List<String> 防索引错位；KisNode 语义向上拖 insert 上方，向下拖 insert 下方；collapsedGroupNames 提升至 ViewModel 并在 .revp extraJson 中持久化；editTargetLayers 自动将选中图层组递归展开为所有后代图层供变换/液化/滤镜统一操作；isLayerEffectivelyHidden 级联检查父组可见性并拦截绘制；向下合并解除源层剪裁通道限制并原子化事务与图层移除，图层组合并修正坐标偏移至 ext.topLeft() 并原子化撤销
 - 工具栏：内容溢出时上下边缘叠加轻柔渐变遮罩，初始与滑动时唤醒上下呼吸微动箭头提示可滚动，静止 2.5 秒后平滑淡化为边缘极简指示圆点且不拦截工具点击
 - 快捷键与外接键盘：StylusDriver 与手写笔 Adapter 增加 isStylusKeyEvent 判定，阻断 PageUp/PageDown 等键盘按键被误拦截吞噬；keyEventToString 兼容 Meta (Command/Win) 与 Ctrl 统一映射，补全 NumPadEnter/Backspace/方向键等映射；handleKeyEvent 引入长按连发节流与单次触发限制，笔刷缩放限频 50ms、撤销重做限频 200ms，离散动作长按不连发；applyTool 增加当前工具瞬时退出避免冗余重载；undo/redo 改为 runCore(render=false) 消除单次撤销双重渲染卡顿，并遵从 undoToastEnabled；Settings 录制弹窗期间由 isShortcutRecordingActive 旁路全局快捷键拦截
