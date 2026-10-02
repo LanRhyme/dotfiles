@@ -3,10 +3,18 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
-- **ReveriePaint 选区 Procreate 风格动态斑马纹与流动蚂蚁线升级及增加选区失效修复 (2026-10-02, 实现完成)**:
+- **ReveriePaint v1.4.0 版本发布与全量架构升级 (2026-10-02, 发布完成)**:
+  - 版本号与构建体系：版本号自 1.3.10 (27) 升级至 1.4.0 (28)，打标签 `v1.4.0` 并推送至 GitHub 触发 Release 打包工作流
+  - 核心功能升级集成：集成快捷笔刷悬浮面板、快捷操作悬浮面板、防崩溃快照恢复系统、Procreate 风格动态流动斑马纹选区与黑白相间矢量流动蚂蚁线系统、界面动效速度设置三档调节、边缘侧滑返回手势与起笔防误画优化
+  - 核心崩溃与视觉修复：修复多步撤销 Swap 溢出崩溃、Android MotionPredictor 原生 Abort 崩溃、渲染线程与后台异步合并器（KisAsyncMerger）写瓦片竞态崩溃、变换预览与图层缩略图 NEON 矢量加速透明度预乘泛光过曝修复，并通过 -PbuildNative 重编最新 native 动态库与符号注入
+
+- **ReveriePaint 选区 Procreate 风格动态斑马纹与流动蚂蚁线升级及创建后不显示修复 (2026-10-02, 实现完成)**:
   - 增加选区失效根因排查与修复：进入选区工具后画出首个选区，使用「增加」模式追加新选区时旧选区被冲掉；排查发现三重诱因：1. `loadToolOptions` 仅恢复 Kotlin 变量未向 C++ 底层下发 `setSelectionMode` 导致 native 默认为 SelReplace (0)；2. `applyTool` 切入选区工具时未同步模式；3. C++ 底层 `selectShape` 与 `selectPolygon` 依赖 `hasSelection()` 且 `selectedExactRect()` 未及时缓存时误判为空强行 fallback 为替换；在 `applyTool` 与 `loadToolOptions` 建立向 C++ 实时同步机制，并在 C++ 底层对 `oldMask` 实施直接非零像素安全扫描，彻底根除新旧选区追加丢失问题
+  - 选区创建完成后不显示与流动蚂蚁线丢失修复：排查定位用户在创建选区后画面无显示的深层根因：1. `buildSelectionOverlayLocked` 在后台渲染线程直接向 Compose 状态 `selectionOutlinePath` 赋值，缺少 Snapshot apply 导致主线程无法感知变更，引入 `@Volatile pendingSelectionOutlinePath` 并在主线程 `after = { ... }` 回调安全发布，同时接入向量兜底路径 fallbackPath；2. Gradle 构建系统默认使用 `third_party/android-native-libs/libreverie_jni.so` 预编译二进制，此前在 C++ 新增的 `selectionOutline()` 导出符号未编入 prebuilt SO，导致 JNI 调用触发静默异常或中断，使用 `-PbuildNative` 重新编译 native 库并同步更新 prebuilt SO，并在 Kotlin 端增加容错捕获；3. 斑马纹维持低对比度 Procreate 原生柔和质感（暗阶 18% 对亮阶 8%）；4. 覆盖安装后关闭后台旧进程残留，确保设备启动时完整载入全新 native 动态库与 DEX
   - 矢量选区轮廓提取管道：在 C++ 端新增 `ReverieCore::selectionOutline()` 与 JNI 导出，直接调用 Krita `KisPixelSelection::outline()` 获取高精度封闭多边形轮廓顶点向量，以紧凑整型数组序列化回传给 Kotlin 并在 `buildSelectionOverlayLocked` 转换缓存为 Compose 矢量 `Path`（自动对齐文档与视口坐标），实现缩放旋转无损零光栅化失真
-  - Procreate 风格动态流动斑马纹：重构 `CanvasOverlay` 选区视觉表现，在选区工具组（`ToolGroup.SELECTION`）内对未选区遮罩采用 45 度斜向动态流动半透明斑马纹（宽 12px 炭黑暗条纹与宽 12px 透亮条纹平铺无缝交错），通过 Skia `saveLayer` 配合 `PorterDuff.Mode.DST_IN` 实时镂空选中区域，并结合画布缩放/旋转逆变换保持物理屏幕 1:1 像素密度与严格 45 度视角；切到画笔/橡皮擦/涂抹等非选区工具时自动隐藏斑马纹遮罩，释放作画视野
+  - Procreate 风格动态流动斑马纹与低对比度调优：重构 `CanvasOverlay` 选区视觉表现，在选区工具组（`ToolGroup.SELECTION`）内对未选区遮罩采用 45 度斜向动态流动半透明斑马纹，复刻 Procreate 水印般的微光暗影质感；通过 Skia `saveLayer` 配合 `PorterDuff.Mode.DST_IN` 实时镂空选中区域，并结合画布缩放/旋转逆变换保持物理屏幕 1:1 像素密度与严格 45 度视角；切到画笔/橡皮擦/涂抹等非选区工具时自动隐藏斑马纹遮罩，释放作画视野
+  - 选区创建全流程 Procreate 风格化：在套索绘制（自由/折线）、多边形、矩形与椭圆创建拖拽全阶段，彻底移除高对比彩色填充（accent/红/绿），统一接入反向实时斑马纹预览管线；在离屏缓冲层（Skia `saveLayer`）预填全屏动态斑马纹，在拖拽与绘制未闭合或预览路径内部实时以 `PorterDuff.Mode.CLEAR` 极速镂空透明像素，实现画笔绘制区域内部原作清晰透出、选区外侧即时被动态斑马纹遮蔽的原生交互体验；减选模式直接在路径上覆写斑马纹，交集模式采用 API 26+ `clipOutPath` / `clipOutRect`，创建中几何轮廓全链路无缝同步黑白交替流动蚂蚁线与起点闭合圆点
+  - 选区蒙版设置精简：完全移除通用设置页面冗余的「选区蒙版颜色」预设色卡与自定义拾色器弹窗，保留「选区蒙版不透明度」滑块并动态调制斑马纹整体透光度
   - 动态黑白交替流动蚂蚁线：无论在选区工具内还是切出至常规绘画工具，只要存在活动选区，选区边缘均常驻显示动态流动的黑白交替虚线蚂蚁线；在编选区（实时套索、折线套索、多边形选择、矩形/椭圆框选）全链路统一接入单帧无限流动时间线（LinearEasing 1200ms 无缝循环），并在无活动选区时旁路读取零重绘开销
 
 - **ReveriePaint 变形预览与图层缩略图未预乘透明度泛光过曝修复 (2026-10-02, 修复完成)**:
