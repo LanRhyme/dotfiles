@@ -3,6 +3,21 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
+- **ReveriePaint 快捷笔刷悬浮面板与常用画笔管理工具 (2026-10-02, 实现完成)**:
+  - 工具体系与独立入口：在 `Tool` 枚举体系中新增专用视图类工具「快捷笔刷」（`Tool.QUICK_BRUSH`），在侧边工具条 `ToolRail` 与全部工具面板 `AllToolsPanel` 中提供独立入口，点击即呼出悬浮面板并联动高亮状态
+  - 极简单行胶囊悬浮窗：实现 `QuickBrushWindow`，默认以极简横向单行流线胶囊呈现常用画笔缩略图；支持横向与纵向两种单列布局形态切换，支持自由拖拽平移与屏幕边缘边界自适应吸附防出界；支持一键折叠收缩为半透明悬浮微球，点击微球丝滑展开
+  - 默认屏幕居中定位与防出界钳位：重构快捷笔刷浮窗与快捷操作浮窗（`QuickActionWindow`）的初始坐标定位体系，将写死的偏角硬编码（60f/200f/280f）升级为未初始化/首次打开自动居中（`[screenWidth - width] / 2`）；在 `onSizeChanged` 与拖动全阶段引入屏幕边界动态钳位，彻底消除横竖屏翻转、形态展开折叠或初始化时悬浮窗半卡在屏幕边缘的问题
+  - 即时切笔与就近微型气泡：点击任意画笔缩略图即时触发 `applyTool(Tool.BRUSH.id)` 与 `selectBrushPreset(preset.index)`，当前生效画笔呈现莫兰迪主题高亮光环与微弱缩放；悬浮窗旁自适应弹出就近微型 Toast 气泡展示画笔名称与分组信息，1.2 秒后平滑渐隐，给予精准操作反馈
+  - 常用画笔管理与秒开优化：重构 `QuickBrushManageDialog`，剥离 500+ 全库预设重复扫描与分组计算，弹窗调起耗时从卡顿骤降至毫秒级瞬开；移除弹窗内冗余的库浏览添加模块，替换为优雅的极简操作提示横幅（引导在画笔面板星标或长按添加），并提供一键直达画笔面板快捷入口；保留常用笔刷列表的精细化上移、下移与移除管理
+  - 面板最大长度与滚动浏览：新增 `quickBrushMaxLength` 设置（默认 6，支持 3~16 步进与 4/6/8/10/12 快速档位切换），当常用画笔数量超过设定的最大长度时，胶囊浮窗尺寸严格锁定在最大长度并在内部自动启用平滑滚动（LazyRow / LazyColumn），未超限时流线自适应贴合
+  - 防误触拦截保护：在 `CanvasTouchView` 中注册快捷笔刷浮窗的实时动态几何边界，浮窗处于展开或折叠态时均严格拦截触控事件，防止拖动浮窗或点选画笔时在底层画布残留误画线条
+
+- **ReveriePaint 防崩溃应急保存机制与最近自动保存快照恢复系统 (2026-10-02, 实现完成)**:
+  - 无感绘画防卡顿保存门控：重构 `checkAutoSave` 触发管线，支持「5分钟定期兜底（伴随轻量 Toast）」与「25笔画/重大操作空闲静默快照（无 Toast）」双轨策略；严格执行三重门控阻断机制，在触控绘画进行中（`isInteracting`）、多指手势形变中（`isTransformActive`）、引擎队列非空（`pendingCoreOps > 0`）、滤镜预览活跃或落笔刚结束未满 4 秒（`sinceStrokeEnd < 4000ms`）时全面阻断保存触发，且在 `runCore` 执行前置再次复核，彻底杜绝自动保存抢占主线程或阻塞笔画导致掉帧卡顿
+  - 崩溃应急拯救与 Native 标记：在 Java 层未捕获异常退出前（`CrashHandler.uncaughtException`）通过同步调用 `PaintViewModel.currentInstance?.emergencySaveOnCrash()` 抢救当前作画草稿并写入持久快照；在 C++ Native 崩溃拦截器（`ReverieCrashHandler.cpp`）中使用严格 async-signal-safe 系统调用向日志目录落盘 `CRASH_MARKER` 标记文件
+  - 异常退出恢复对话框：在 `MainActivity` 启动流中异步扫描 `CRASH_MARKER` 与未落盘抢救草稿，检测到异常退出时弹出 Morandi 风格的 `CrashRecoveryDialog`，展示作品名称、备份时间与体积，支持一键恢复进画布或清理标记
+  - 最近自动保存快照面板：实现 `AutoSaveHistoryManager` 滑动窗口持久化管理（严格保留最近 5 个独立工程快照），自动提取缩略图并生成元数据索引；在通用设置「自动保存」分组中新增「最近自动保存快照」入口，呼出 `RecentAutoSavesDialog` 支持查看快照卡片、缩略图、时间和体积，支持单项删除、一键清空，并提供「载入画布覆盖」与「新建为画廊副本」双恢复流程（带未保存改动防覆盖确认）
+
 - **ReveriePaint 多步撤销Swap溢出崩溃与输入预测器原生Abort闪退修复 (2026-10-02, 修复完成)**:
   - 崩溃一根因与修复（Krita Swap与连续撤销）：用户连续撤销（25x Undo）时底层触发 `qFatal("KisChunkAllocator: out of swap space")` 导致 SIGABRT 进程自杀；排查发现 Krita 原生 `memorySoftLimitPercent` 默认仅为 2%（大内存设备上仅数十 MB 就会强制触发后台 `KisTileDataSwapper` 将历史撤销切片落盘到 flash），且 `KisChunkAllocator::getChunk` 在 swap 块耗尽时粗暴调用 `qFatal` 导致应用闪退；修复方案：在 `kis_chunk_allocator.cpp` 中将 `qFatal` 替换为 `qWarning` 并返回无效 chunk，在 `kis_swapped_data_store.cpp` 中对无效 chunk 优雅降级直接保留在内存中不强行释放（`trySwapOutTileData` 返回 false），在 `kis_image_config.cpp` 将默认软限制大幅调高至 50% 并将 `maxSwapSize` 默认提升至 8GB；在 ReveriePaint 端新增 `configureTileEngine` 明确配置应用专属 `cache/swap` 目录并联动软硬限制，在启动阶段自动异步清理历史残留的 `KRITA_SWAP_FILE_*` 僵尸文件（立清 360+ 个堆积文件，释放 80MB+ 缓存空间），安装自定义 `reverieQtMessageHandler` 将底层日志转发至 Logcat
   - 崩溃二根因与修复（Android MotionPredictor 原生 Abort）：用户使用导入画笔作画时在主线程触发 `libinput.so` 的 `android::MotionPredictor::record` 闪退；根因为 Android 14+ 系统的 `android.view.MotionPredictor` 底层依赖设备厂商内置的 TfLite 预测模型，在部分非原生/第三方 ROM 上模型缺失或硬件驱动不匹配时触发 C++ `LOG_ALWAYS_FATAL_IF` 强行 abort，Java 层的 try-catch 无法捕获；修复方案：彻底移除 `CanvasTouchView` 中对 `android.view.MotionPredictor` 的冗余回退调用，在 OPPO/一加等支持设备上维持官方验证的 `OplusMotionPredictor`，其余机型依靠引擎自带插值与平滑，彻底消除跨品牌机型的原生崩溃隐患
