@@ -3,11 +3,16 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
+- **ReveriePaint 多步撤销Swap溢出崩溃与输入预测器原生Abort闪退修复 (2026-10-02, 修复完成)**:
+  - 崩溃一根因与修复（Krita Swap与连续撤销）：用户连续撤销（25x Undo）时底层触发 `qFatal("KisChunkAllocator: out of swap space")` 导致 SIGABRT 进程自杀；排查发现 Krita 原生 `memorySoftLimitPercent` 默认仅为 2%（大内存设备上仅数十 MB 就会强制触发后台 `KisTileDataSwapper` 将历史撤销切片落盘到 flash），且 `KisChunkAllocator::getChunk` 在 swap 块耗尽时粗暴调用 `qFatal` 导致应用闪退；修复方案：在 `kis_chunk_allocator.cpp` 中将 `qFatal` 替换为 `qWarning` 并返回无效 chunk，在 `kis_swapped_data_store.cpp` 中对无效 chunk 优雅降级直接保留在内存中不强行释放（`trySwapOutTileData` 返回 false），在 `kis_image_config.cpp` 将默认软限制大幅调高至 50% 并将 `maxSwapSize` 默认提升至 8GB；在 ReveriePaint 端新增 `configureTileEngine` 明确配置应用专属 `cache/swap` 目录并联动软硬限制，在启动阶段自动异步清理历史残留的 `KRITA_SWAP_FILE_*` 僵尸文件（立清 360+ 个堆积文件，释放 80MB+ 缓存空间），安装自定义 `reverieQtMessageHandler` 将底层日志转发至 Logcat
+  - 崩溃二根因与修复（Android MotionPredictor 原生 Abort）：用户使用导入画笔作画时在主线程触发 `libinput.so` 的 `android::MotionPredictor::record` 闪退；根因为 Android 14+ 系统的 `android.view.MotionPredictor` 底层依赖设备厂商内置的 TfLite 预测模型，在部分非原生/第三方 ROM 上模型缺失或硬件驱动不匹配时触发 C++ `LOG_ALWAYS_FATAL_IF` 强行 abort，Java 层的 try-catch 无法捕获；修复方案：彻底移除 `CanvasTouchView` 中对 `android.view.MotionPredictor` 的冗余回退调用，在 OPPO/一加等支持设备上维持官方验证的 `OplusMotionPredictor`，其余机型依靠引擎自带插值与平滑，彻底消除跨品牌机型的原生崩溃隐患
+
 - **ReveriePaint 快捷操作悬浮面板与自定义配置系统 (2026-10-02, 实现完成)**:
   - 功能定位：在工具体系中新增独立工具「快捷操作」（Tool.SHORTCUT），在侧边工具条 ToolRail 与全部工具 AllToolsPanel 中提供直达入口，点击即呼出悬浮面板并联动高亮状态
   - 核心操作生态：全面支持 13 项高频绘画操作，包括锁定视角（固定缩放与旋转）、水平/垂直翻转画布、居中回正复位、撤销、重做、画笔与橡皮擦互切、上个工具互切、快速吸色、交换前背景色、笔刷尺寸增大/减小、Alpha透明锁（保护透明度）、新建图层、复制图层、向下合并、清空图层等，所有动作均具备实时状态反馈与激活高亮
   - 自适应形态与交互：支持横向单排胶囊、纵向单排胶囊、2列/3列圆角矩形自适应排布；顶部配备精巧微触把手，支持自由拖拽平移与一键微缩折叠为悬浮小胶囊球；深度集成 Morandi 配色系统与实时高斯毛玻璃效果（hazeChild）；在 CanvasTouchView 中接入边界命中防误画保护
-  - 自由定制与持久化：浮窗右上角齿轮一键打开自定义配置弹窗，支持勾选增删动作、切换排布样式、开关按钮文字标签以及恢复默认配置，窗口坐标、折叠状态与配置项全链路自动持久化至本地 paint_prefs
+  - 居中回正与就近反馈优化：重构 CanvasTouchView.animateFitCanvas 平滑复位动画，联动最短旋转角差（shortestDelta）与交互状态解锁，彻底修复居中回正无响应问题；新增悬浮窗自适应就近微型 Toast 提示，单列模式贴边侧出、横向与网格模式居中顶出/底出，伴随平滑弹簧伸缩与渐隐动效，点击动作即时给予局部视觉确认且不遮挡作画手势
+  - 配置弹窗莫兰迪色彩统一、阴影内渗修复与实时预览卡片恢复：排查定位边缘与内部 box 色彩不一致根因为 Column 修饰符链中 .shadow() 误置于 .background() 之后，导致 Compose 提升层将 20dp 投射阴影直接渲染在面板底色上造成外圈 padding 区域色值异常发暗变脏（24, 24, 26），内部子项区域又呈现纯正 panel 底色（30, 29, 34）形成视觉断层框；修正为标准 shadow -> clip -> background -> glassBorder 链条，阴影完全投射到弹窗外部遮罩层，弹窗内外边缘实现 100% 纯正均一的 Morandi.panel 配色；完整恢复实时微缩效果预览卡片（QuickActionsPreviewCard），底色统一采用 Morandi.panelHi，实时响应排布模式（横向/纵向/网格）与文字标签显隐；平板双列模式左侧收拢排布设置与实时预览、右侧收拢已启用排序与候选池，手机分段 Tab 模式无缝联动，全配置持久化至 paint_prefs
 
 - **ReveriePaint 界面动效速度设置与极速模式支持 (2026-10-02, 优化完成)**:
   - 需求背景：部分创作者在作画过程中需要极致敏捷的界面反馈，标准弹簧动效（约 200ms）在频繁切面板与弹窗时略显滞重，期望支持 <= 0.1s 的极速动效或完全关闭
