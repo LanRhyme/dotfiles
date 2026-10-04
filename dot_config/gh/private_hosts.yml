@@ -1,7 +1,5 @@
 github.com:
     git_protocol: https
     users:
-        LanRhyme:
-            oauth_token: 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
+        LanRhyme: {}
     user: LanRhyme
-    oauth_token: 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
