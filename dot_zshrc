@@ -69,3 +69,28 @@ alias codebuddy='LEAN_CTX_AGENT=1 BASH_ENV="$HOME/.bashenv" codebuddy'
 alias codex='LEAN_CTX_AGENT=1 BASH_ENV="$HOME/.bashenv" codex'
 alias gemini='LEAN_CTX_AGENT=1 BASH_ENV="$HOME/.bashenv" gemini'
 # <<< lean-ctx agent aliases <<<
+
+# Proxy configuration for local proxy (FlClash)
+export http_proxy="http://127.0.0.1:7890"
+export https_proxy="http://127.0.0.1:7890"
+export all_proxy="socks5://127.0.0.1:7890"
+export NO_PROXY="localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16"
+export no_proxy="$NO_PROXY"
+export HTTP_PROXY="$http_proxy"
+export HTTPS_PROXY="$https_proxy"
+export ALL_PROXY="$all_proxy"
+
+proxy_on() {
+    export http_proxy="http://127.0.0.1:7890"
+    export https_proxy="http://127.0.0.1:7890"
+    export all_proxy="socks5://127.0.0.1:7890"
+    export HTTP_PROXY="$http_proxy"
+    export HTTPS_PROXY="$https_proxy"
+    export ALL_PROXY="$all_proxy"
+    echo "Proxy enabled (127.0.0.1:7890)"
+}
+
+proxy_off() {
+    unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
+    echo "Proxy disabled"
+}
