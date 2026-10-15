@@ -3,6 +3,11 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
+- **IntelliJ IDEA 界面语言切换为简体中文 (2026-10-15, 配置完成)**:
+  - 根因：Arch Linux 官方仓库 `intellij-idea-community-edition` (Build IC-262.10968.63) 采用开源源码构建，未内置专有语言包且插件商店因构建号兼容性校验过滤了语言包
+  - 插件部署：提取官方中文语言包（Chinese (Simplified) Language Pack / `com.intellij.zh`），解除 `until-build` 兼容性约束后部署至 `~/.local/share/JetBrains/IdeaIC2026.2/zh/lib/zh.jar`
+  - 本地化配置：在 `~/.config/JetBrains/IdeaIC2026.2/options/ide.general.xml` 配置 `LocalizationStateService` 为 `zh-CN`，在 `~/.config/JetBrains/IdeaIC2026.2/idea64.vmoptions` 写入 `-Duser.language=zh` 与 `-Duser.country=CN`
+
 - **ReveriePaint v1.4.0 版本发布与全量架构升级 (2026-10-02, 发布完成)**:
   - 版本号与构建体系：版本号自 1.3.10 (27) 升级至 1.4.0 (28)，打标签 `v1.4.0` 并推送至 GitHub 触发 Release 打包工作流
   - 核心功能升级集成：集成快捷笔刷悬浮面板、快捷操作悬浮面板、防崩溃快照恢复系统、Procreate 风格动态流动斑马纹选区与黑白相间矢量流动蚂蚁线系统、界面动效速度设置三档调节、边缘侧滑返回手势与起笔防误画优化

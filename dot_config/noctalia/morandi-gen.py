@@ -1861,6 +1861,424 @@ def write_vscode(palette):
     print(f"VSCode Morandi theme written to {ext_path} and {user_path}")
 
 
+def write_idea(palette):
+    """Generate IntelliJ IDEA Morandi UI theme and editor color scheme."""
+    import zipfile
+    base = palette["base"].lstrip("#")
+    text = palette["text"].lstrip("#")
+    surface0 = palette["surface0"].lstrip("#")
+    surface1 = palette["surface1"].lstrip("#")
+    surface2 = palette["surface2"].lstrip("#")
+    overlay0 = palette["overlay0"].lstrip("#")
+    overlay1 = palette["overlay1"].lstrip("#")
+    subtext0 = palette["subtext0"].lstrip("#")
+    subtext1 = palette["subtext1"].lstrip("#")
+    love = palette["love"].lstrip("#")
+    rose = palette["rose"].lstrip("#")
+    gold = palette["gold"].lstrip("#")
+    peach = palette["peach"].lstrip("#")
+    pine = palette["pine"].lstrip("#")
+    foam = palette["foam"].lstrip("#")
+    iris = palette["iris"].lstrip("#")
+    sky = palette["sky"].lstrip("#")
+
+    icls_content = f"""<scheme name="Morandi" version="142" parent_scheme="Darcula">
+  <metaInfo>
+    <property name="created">2026-10-15</property>
+    <property name="description">Morandi Dark Color Scheme</property>
+    <property name="ide">idea</property>
+  </metaInfo>
+  <colors>
+    <option name="ADDED_LINES_COLOR" value="{foam}" />
+    <option name="ANNOTATIONS_COLOR" value="{overlay1}" />
+    <option name="CARET_COLOR" value="{text}" />
+    <option name="CARET_ROW_COLOR" value="{surface0}" />
+    <option name="CONSOLE_BACKGROUND_KEY" value="{base}" />
+    <option name="DELETED_LINES_COLOR" value="{love}" />
+    <option name="DIFF_SEPARATORS_BACKGROUND" value="{surface0}" />
+    <option name="DOCUMENTATION_COLOR" value="{surface0}" />
+    <option name="DOC_COMMENT_GUIDE" value="{surface1}" />
+    <option name="DOC_COMMENT_LINK" value="{sky}" />
+    <option name="EDITOR_GUTTER_BACKGROUND" value="{base}" />
+    <option name="ERROR_HINT" value="{surface1}" />
+    <option name="FILESTATUS_ADDED" value="{foam}" />
+    <option name="FILESTATUS_COPIED" value="{foam}" />
+    <option name="FILESTATUS_DELETED" value="{love}" />
+    <option name="FILESTATUS_IDEA_FILESTATUS_DELETED_FROM_FILE_SYSTEM" value="{overlay0}" />
+    <option name="FILESTATUS_IDEA_FILESTATUS_IGNORED" value="{overlay0}" />
+    <option name="FILESTATUS_IDEA_FILESTATUS_MERGED_WITH_BOTH_CONFLICTS" value="{love}" />
+    <option name="FILESTATUS_IDEA_FILESTATUS_MERGED_WITH_CONFLICTS" value="{love}" />
+    <option name="FILESTATUS_IDEA_FILESTATUS_MERGED_WITH_PROPERTY_CONFLICTS" value="{love}" />
+    <option name="FILESTATUS_MERGED" value="{iris}" />
+    <option name="FILESTATUS_MODIFIED" value="{sky}" />
+    <option name="FILESTATUS_NOT_CHANGED_IMMEDIATE" value="{sky}" />
+    <option name="FILESTATUS_NOT_CHANGED_RECURSIVE" value="{sky}" />
+    <option name="FILESTATUS_RENAMED" value="{sky}" />
+    <option name="FILESTATUS_UNKNOWN" value="{peach}" />
+    <option name="FILESTATUS_addedOutside" value="{foam}" />
+    <option name="FILESTATUS_changelistConflict" value="{love}" />
+    <option name="FILESTATUS_modifiedOutside" value="{sky}" />
+    <option name="FOLDED_TEXT_BORDER_COLOR" value="{surface1}" />
+    <option name="GUTTER_BACKGROUND" value="{base}" />
+    <option name="HINT_BORDER" value="{surface1}" />
+    <option name="INDENT_GUIDE" value="{surface0}" />
+    <option name="INFORMATION_HINT" value="{surface0}" />
+    <option name="LINE_NUMBERS_COLOR" value="{overlay0}" />
+    <option name="LINE_NUMBER_ON_CARET_ROW_COLOR" value="{subtext0}" />
+    <option name="LOOKUP_COLOR" value="{surface0}" />
+    <option name="MATCHED_BRACES_INDENT_GUIDE_COLOR" value="{surface2}" />
+    <option name="METHOD_SEPARATORS_COLOR" value="{surface1}" />
+    <option name="MODIFIED_LINES_COLOR" value="{sky}" />
+    <option name="NOTIFICATION_BACKGROUND" value="{surface0}" />
+    <option name="QUESTION_HINT" value="{surface0}" />
+    <option name="RECENT_LOCATIONS_SELECTION" value="{surface1}" />
+    <option name="RIGHT_MARGIN_COLOR" value="{surface1}" />
+    <option name="SELECTED_INDENT_GUIDE" value="{surface2}" />
+    <option name="SELECTION_BACKGROUND" value="{surface2}" />
+    <option name="SELECTION_FOREGROUND" value="{text}" />
+    <option name="TEARLINE_COLOR" value="{surface1}" />
+    <option name="VISUAL_INDENT_GUIDE" value="{surface0}" />
+    <option name="WHITESPACES" value="{surface1}" />
+  </colors>
+  <attributes>
+    <option name="TEXT">
+      <value>
+        <option name="FOREGROUND" value="{text}" />
+        <option name="BACKGROUND" value="{base}" />
+      </value>
+    </option>
+    <option name="BAD_CHARACTER">
+      <value>
+        <option name="FOREGROUND" value="{love}" />
+        <option name="EFFECT_COLOR" value="{love}" />
+        <option name="EFFECT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_KEYWORD">
+      <value>
+        <option name="FOREGROUND" value="{rose}" />
+        <option name="FONT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="DEFAULT_STRING">
+      <value>
+        <option name="FOREGROUND" value="{gold}" />
+      </value>
+    </option>
+    <option name="DEFAULT_NUMBER">
+      <value>
+        <option name="FOREGROUND" value="{peach}" />
+      </value>
+    </option>
+    <option name="DEFAULT_FUNCTION_CALL">
+      <value>
+        <option name="FOREGROUND" value="{foam}" />
+      </value>
+    </option>
+    <option name="DEFAULT_FUNCTION_DECLARATION">
+      <value>
+        <option name="FOREGROUND" value="{foam}" />
+        <option name="FONT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="DEFAULT_CLASS_NAME">
+      <value>
+        <option name="FOREGROUND" value="{sky}" />
+      </value>
+    </option>
+    <option name="DEFAULT_INTERFACE_NAME">
+      <value>
+        <option name="FOREGROUND" value="{sky}" />
+      </value>
+    </option>
+    <option name="DEFAULT_LINE_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="{overlay1}" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_BLOCK_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="{overlay1}" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_DOC_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="{pine}" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_DOC_COMMENT_TAG">
+      <value>
+        <option name="FOREGROUND" value="{iris}" />
+        <option name="EFFECT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="DEFAULT_CONSTANT">
+      <value>
+        <option name="FOREGROUND" value="{rose}" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_IDENTIFIER">
+      <value>
+        <option name="FOREGROUND" value="{text}" />
+      </value>
+    </option>
+    <option name="DEFAULT_LOCAL_VARIABLE">
+      <value>
+        <option name="FOREGROUND" value="{text}" />
+      </value>
+    </option>
+    <option name="DEFAULT_GLOBAL_VARIABLE">
+      <value>
+        <option name="FOREGROUND" value="{text}" />
+      </value>
+    </option>
+    <option name="DEFAULT_PARAMETER">
+      <value>
+        <option name="FOREGROUND" value="{subtext0}" />
+      </value>
+    </option>
+    <option name="DEFAULT_INSTANCE_FIELD">
+      <value>
+        <option name="FOREGROUND" value="{text}" />
+      </value>
+    </option>
+    <option name="DEFAULT_STATIC_FIELD">
+      <value>
+        <option name="FOREGROUND" value="{rose}" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_STATIC_METHOD">
+      <value>
+        <option name="FOREGROUND" value="{foam}" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_BRACES">
+      <value>
+        <option name="FOREGROUND" value="{subtext1}" />
+      </value>
+    </option>
+    <option name="DEFAULT_BRACKETS">
+      <value>
+        <option name="FOREGROUND" value="{subtext1}" />
+      </value>
+    </option>
+    <option name="DEFAULT_PARENTHS">
+      <value>
+        <option name="FOREGROUND" value="{subtext1}" />
+      </value>
+    </option>
+    <option name="DEFAULT_COMMA">
+      <value>
+        <option name="FOREGROUND" value="{subtext1}" />
+      </value>
+    </option>
+    <option name="DEFAULT_DOT">
+      <value>
+        <option name="FOREGROUND" value="{subtext1}" />
+      </value>
+    </option>
+    <option name="DEFAULT_SEMICOLON">
+      <value>
+        <option name="FOREGROUND" value="{subtext1}" />
+      </value>
+    </option>
+    <option name="DEFAULT_OPERATION_SIGN">
+      <value>
+        <option name="FOREGROUND" value="{subtext0}" />
+      </value>
+    </option>
+    <option name="MATCHED_BRACE_ATTRIBUTES">
+      <value>
+        <option name="BACKGROUND" value="{surface2}" />
+        <option name="EFFECT_COLOR" value="{iris}" />
+      </value>
+    </option>
+    <option name="SEARCH_RESULT_ATTRIBUTES">
+      <value>
+        <option name="BACKGROUND" value="{surface2}" />
+        <option name="ERROR_STRIPE_COLOR" value="{surface2}" />
+      </value>
+    </option>
+    <option name="IDENTIFIER_UNDER_CARET_ATTRIBUTES">
+      <value>
+        <option name="BACKGROUND" value="{surface1}" />
+        <option name="ERROR_STRIPE_COLOR" value="{surface1}" />
+      </value>
+    </option>
+    <option name="WRITE_IDENTIFIER_UNDER_CARET_ATTRIBUTES">
+      <value>
+        <option name="BACKGROUND" value="{surface1}" />
+        <option name="ERROR_STRIPE_COLOR" value="{surface1}" />
+      </value>
+    </option>
+    <option name="ERRORS_ATTRIBUTES">
+      <value>
+        <option name="EFFECT_COLOR" value="{love}" />
+        <option name="ERROR_STRIPE_COLOR" value="{love}" />
+        <option name="EFFECT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="WARNINGS_ATTRIBUTES">
+      <value>
+        <option name="EFFECT_COLOR" value="{gold}" />
+        <option name="ERROR_STRIPE_COLOR" value="{gold}" />
+        <option name="EFFECT_TYPE" value="2" />
+      </value>
+    </option>
+  </attributes>
+</scheme>"""
+
+    theme_json = {
+        "name": "Morandi Dark",
+        "dark": True,
+        "author": "LanRhyme",
+        "parentTheme": "ExperimentalDark",
+        "editorScheme": "Morandi",
+        "colors": {
+            "Gray1": palette["mantle"],
+            "Gray2": palette["base"],
+            "Gray3": palette["surface0"],
+            "Gray4": palette["surface1"],
+            "Gray5": palette["surface2"],
+            "Gray6": palette["overlay0"],
+            "Gray7": palette["overlay1"],
+            "Gray8": palette["overlay2"],
+            "Gray9": palette["subtext0"],
+            "Gray10": palette["subtext1"],
+            "Gray11": palette["text"],
+            "Gray12": palette["text"],
+            "Gray13": palette["text"],
+            "Gray14": "#FFFFFF",
+            "Blue1": palette["mantle"],
+            "Blue2": palette["surface1"],
+            "Blue3": palette["surface2"],
+            "Blue4": palette["iris"],
+            "Blue5": palette["iris"],
+            "Blue6": palette["iris"],
+            "Blue7": palette["sky"],
+            "Blue8": palette["sky"],
+            "Blue9": palette["sky"],
+            "Blue10": palette["sky"],
+            "Blue11": palette["sky"],
+            "Blue12": palette["text"],
+            "Blue13": palette["text"]
+        },
+        "ui": {
+            "*": {
+                "foreground": palette["text"],
+                "background": palette["base"],
+                "borderColor": palette["surface0"],
+                "disabledBackground": palette["base"],
+                "disabledForeground": palette["overlay0"],
+                "disabledText": palette["overlay0"],
+                "inactiveForeground": palette["overlay1"],
+                "selectionBackground": palette["surface2"],
+                "selectionForeground": palette["text"],
+                "selectionInactiveBackground": palette["surface1"],
+                "hoverBackground": palette["surface0"],
+                "focusColor": palette["iris"],
+                "separatorColor": palette["surface1"],
+                "separatorForeground": palette["overlay1"]
+            },
+            "Editor": {
+                "background": palette["base"],
+                "foreground": palette["text"]
+            },
+            "ToolWindow": {
+                "Header": {
+                    "background": palette["mantle"],
+                    "borderColor": palette["surface0"]
+                },
+                "HeaderCloseButton": {
+                    "background": palette["mantle"]
+                }
+            },
+            "Tree": {
+                "background": palette["base"],
+                "foreground": palette["text"],
+                "selectionBackground": palette["surface1"],
+                "selectionForeground": palette["text"]
+            },
+            "List": {
+                "background": palette["base"],
+                "foreground": palette["text"],
+                "selectionBackground": palette["surface1"],
+                "selectionForeground": palette["text"]
+            },
+            "Popup": {
+                "Header": {
+                    "background": palette["surface0"]
+                },
+                "borderColor": palette["surface1"]
+            },
+            "StatusBar": {
+                "background": palette["mantle"],
+                "borderColor": palette["surface0"]
+            },
+            "NavBar": {
+                "background": palette["base"],
+                "borderColor": palette["surface0"]
+            }
+        }
+    }
+
+    plugin_xml = """<idea-plugin>
+  <id>io.github.lanrhyme.morandi</id>
+  <name>Morandi Theme</name>
+  <version>1.0.0</version>
+  <vendor>LanRhyme</vendor>
+  <description>Morandi UI and Editor Color Scheme</description>
+  <idea-version since-build="240" />
+  <depends>com.intellij.modules.platform</depends>
+  <extensions defaultExtensionNs="com.intellij">
+    <themeProvider id="morandi.dark" path="/themes/morandi.theme.json"/>
+    <bundledColorScheme id="Morandi" path="/themes/morandi.xml"/>
+  </extensions>
+</idea-plugin>"""
+
+    config_roots = list(Path.home().glob(".config/JetBrains/*"))
+    for c_dir in config_roots:
+        if not c_dir.is_dir():
+            continue
+        colors_dir = c_dir / "colors"
+        colors_dir.mkdir(parents=True, exist_ok=True)
+        (colors_dir / "Morandi.icls").write_text(icls_content)
+
+        options_dir = c_dir / "options"
+        options_dir.mkdir(parents=True, exist_ok=True)
+        (options_dir / "colors.scheme.xml").write_text("""<application>
+  <component name="EditorColorsManagerImpl">
+    <global_color_scheme name="Morandi" />
+  </component>
+</application>
+""")
+        (options_dir / "laf.xml").write_text("""<application>
+  <component name="LafManager">
+    <laf class-name="com.intellij.ide.ui.laf.darcula.DarculaLaf" themeId="morandi.dark" />
+  </component>
+</application>
+""")
+
+    plugin_roots = list(Path.home().glob(".local/share/JetBrains/*"))
+    for p_dir in plugin_roots:
+        if not p_dir.is_dir():
+            continue
+        lib_dir = p_dir / "morandi-theme" / "lib"
+        lib_dir.mkdir(parents=True, exist_ok=True)
+        jar_path = lib_dir / "morandi-theme.jar"
+        with zipfile.ZipFile(jar_path, "w", compression=zipfile.ZIP_DEFLATED) as z:
+            z.writestr("META-INF/plugin.xml", plugin_xml)
+            z.writestr("themes/morandi.theme.json", json.dumps(theme_json, indent=2))
+            z.writestr("themes/morandi.xml", icls_content)
+    print("IntelliJ IDEA Morandi theme and color scheme generated")
+
+
 def write_krita(palette):
     """Generate Krita Morandi color scheme (.colors) and theme JSON."""
     krita_colors_dir = Path.home() / ".local/share/krita/color-schemes"
@@ -2159,6 +2577,7 @@ def main():
     write_libswell(palette)
     write_zed(palette)
     write_vscode(palette)
+    write_idea(palette)
 
     apply_system_changes(args.wallpaper)
     
