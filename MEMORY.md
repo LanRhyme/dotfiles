@@ -3,6 +3,11 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
+- **IntelliJ IDEA 莫兰迪配色与主题引擎集成 (2026-10-15, 配置完成)**:
+  - 主题架构：在 `~/.config/noctalia/morandi-gen.py` 扩展 `write_idea(palette)`，生成独立的编辑器配色方案（`Morandi.icls`）与配套 UI 主题插件包（`morandi-theme.jar`）
+  - 配色注入：编辑器方案映射关键字（rose）、字符串（gold）、数值（peach）、函数（foam）、类接口（sky）、注释（overlay1/pine）与界面基底（base/surface/text），UI 主题包注册 `morandi.dark` 主题并链接配色方案
+  - 自动同步：在 `main()` 接入 `write_idea`，随壁纸与系统调色板变更自动重载更新，并在 `colors.scheme.xml` 与 `laf.xml` 中激活
+
 - **IntelliJ IDEA 界面语言切换为简体中文 (2026-10-15, 配置完成)**:
   - 根因：Arch Linux 官方仓库 `intellij-idea-community-edition` (Build IC-262.10968.63) 采用开源源码构建，未内置专有语言包且插件商店因构建号兼容性校验过滤了语言包
   - 插件部署：提取官方中文语言包（Chinese (Simplified) Language Pack / `com.intellij.zh`），解除 `until-build` 兼容性约束后部署至 `~/.local/share/JetBrains/IdeaIC2026.2/zh/lib/zh.jar`
