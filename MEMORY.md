@@ -3,6 +3,11 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
+- **网易 UU 远程 Linux 被控端部署与 Wayland 适配 (2026-10-16, 配置完成)**:
+  - 架构与安装：AUR `uu-remote-bin` 基础环境；拉取官方最新源码 (v0.1.22) 启用 `--features wayland,portal` 重新编译优化版二进制，替换 `/usr/bin/uuremote-server` 解决预编译包不支持 Wayland 桌面串流问题
+  - 权限与输入：部署 `/usr/lib/udev/rules.d/60-uu-remote-linux-uinput.rules` 赋予 `/dev/uinput` 用户级访问权限，内核级注入虚拟键鼠，绕过 Wayland 输入隔离限制
+  - 凭据与常驻：登录凭据存储于 `~/.config/uuremote/config.json`；启用 systemd 用户服务 `uu-remote-native.service` 实现开机自动登录并连接网易远控网络
+
 - **IntelliJ IDEA 莫兰迪配色与主题引擎集成 (2026-10-15, 配置完成)**:
   - 主题架构：在 `~/.config/noctalia/morandi-gen.py` 扩展 `write_idea(palette)`，生成独立的编辑器配色方案（`Morandi.icls`）与配套 UI 主题插件包（`morandi-theme.jar`）
   - 配色注入：编辑器方案映射关键字（rose）、字符串（gold）、数值（peach）、函数（foam）、类接口（sky）、注释（overlay1/pine）与界面基底（base/surface/text），UI 主题包注册 `morandi.dark` 主题并链接配色方案
@@ -279,6 +284,7 @@
 
 ## 安装与服务
 
+- **网易 UU 远程被控端 (uu-remote-linux)**：社区原生 Rust 被控端（`/usr/bin/uuremote-server`，已重编集成 `--features wayland,portal`）；用户服务 `uu-remote-native.service`（自启常驻）；依赖 `/dev/uinput`（uaccess 规则）与 `xdg-desktop-portal` + `libpipewire`；凭据存储于 `~/.config/uuremote/config.json`；支持官方客户端扫码登录绑定
 - **Bettbox & FlClash**：AUR 包 `bettbox-bin 1.19.3-1` 与 `flclash-bin 0.8.93-1`；数据位于 `~/.local/share/com.appshub.bettbox/`；BettboxCore 内置 SUID root 免密启动 TUN；当前保留双客户端共存，待完全习惯后可卸载 flclash-bin
 - **Xiaomi MiMo Desktop**：AUR 包 `mimo-desktop 26.909.91205-2`；官方 Linux deb 打包，二进制 `/opt/Xiaomi MiMo/xiaomi-mimo-desktop`，命令 `mimo-desktop`；针对官方包漏打 `node-machine-id` 导致登录缺失 `deviceId` 报错「参数错误」的问题，已在 PKGBUILD 的 `package()` 中通过直接读取 `/etc/machine-id` 补丁修复 `app.asar`
 - **Dufs (WebDAV) & Cloudflare Tunnel**：AUR 包 `dufs-bin 0.46.0-2`；数据根目录 `~/WebDAV`（含 `reader/`、`backup/`）；监听本地 `5000/tcp`（全私有 Basic 认证，用户 `lanrhyme`）；配置文件 `~/.config/dufs/config.yaml`（权限 600）；搭配 Cloudflare Tunnel（`cloudflared-webdav.service`）绑定公网域名 `https://webdav.lanrhyme.top/`；systemd user 服务常驻自启（开启 linger），全网络环境直连免改 IP
