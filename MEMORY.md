@@ -3,11 +3,12 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
-- **网易 UU 远程 Linux 被控端部署、Wayland 适配与移动端输入法补丁 (2026-10-16, 配置完成)**:
+- **网易 UU 远程 Linux 被控端部署、Wayland 适配、移动端中文输入法与按键映射修复 (2026-10-16, 配置完成)**:
   - 架构与安装：AUR `uu-remote-bin` 基础环境；拉取官方最新源码 (v0.1.22) 启用 `--features wayland,portal` 重新编译优化版二进制，替换 `/usr/bin/uuremote-server` 解决预编译包不支持 Wayland 桌面串流问题
   - 权限与输入：部署 `/usr/lib/udev/rules.d/60-uu-remote-linux-uinput.rules` 赋予 `/dev/uinput` 用户级访问权限，内核级注入虚拟键鼠，绕过 Wayland 输入隔离限制
-  - 移动端输入法/软键盘修复：补丁 `src/webrtc.rs`，解决官方客户端通过 `TEXT_DATA_CHANNEL` 直接投递 raw `ClipboardChange` (fields 1, 2, 3) 未被解析的问题，并在接收文本后通过 `wl-copy` 写入 Wayland 剪贴板后自动向活动窗口注入 `Ctrl+V`，实现手机/平板端软键盘中文即时上屏
-  - 凭据与常驻：登录凭据存储于 `~/.config/uuremote/config.json`；启用 systemd 用户服务 `uu-remote-native.service` 实现开机自动登录并连接网易远控网络
+  - 移动端中文输入法协议逆向与修复：挂载 Windows 官方服务端（GameViewerServer.exe）逆向比对，移动端软键盘输入提交时走 CONTROL_DATA_CHANNEL 的 JSON Action `{"action":"text_input","content":"..."}`；在 `src/control_protocol.rs` 与 `src/webrtc.rs` 补齐该 Action 解码，通过 `wl-copy` 异步注入 Wayland 剪贴板并延时触发 `Ctrl+V` 模拟按键，实现手机/平板端输入法中文上屏
+  - 游戏按键映射与触控轮盘协议修复：官方客户端需服务端在 SystemMetrics 中显式声明 `support_touch = 1`、`virtual_mouse_switch = 1` 与 `ff_virtual_mouse_device = 1` 才会激活按键映射层；补齐客户端画板握手 RPC 27（`DrawRequest`）应答 `DrawResponse`（RPC 22）；解析 InputEvent（Message 20）中的 TouchEvent（START/MOVE/END/CANCEL）多点触控与相对轮盘位移 `mouse_move_variety_relative` 及组合键 `combination_keys_press/release`
+  - 凭据与常驻：登录凭据存储于 `~/.config/uuremote/config.json`；启用 systemd 用户服务 `uu-remote-native.service` 实现开机自动登录并常驻连接网易远控网络
 
 - **IntelliJ IDEA 莫兰迪配色与主题引擎集成 (2026-10-15, 配置完成)**:
   - 主题架构：在 `~/.config/noctalia/morandi-gen.py` 扩展 `write_idea(palette)`，生成独立的编辑器配色方案（`Morandi.icls`）与配套 UI 主题插件包（`morandi-theme.jar`）
