@@ -6,8 +6,9 @@
 - **网易 UU 远程 Linux 被控端部署、Wayland 适配、移动端中文输入法与按键映射修复 (2026-10-16, 配置完成)**:
   - 架构与安装：AUR `uu-remote-bin` 基础环境；拉取官方最新源码 (v0.1.22) 启用 `--features wayland,portal` 重新编译优化版二进制，替换 `/usr/bin/uuremote-server` 解决预编译包不支持 Wayland 桌面串流问题
   - 权限与输入：部署 `/usr/lib/udev/rules.d/60-uu-remote-linux-uinput.rules` 赋予 `/dev/uinput` 用户级访问权限，内核级注入虚拟键鼠，绕过 Wayland 输入隔离限制
-  - 移动端中文输入法队列化与吞字根治：原并发异步任务在连续快速输入时会导致多个剪贴板进程与 Ctrl+V 按键事件竞态，后到达字符覆写尚未粘贴的前序内容造成吞字；重构为专属 FIFO 异步合并队列，快速连击时自动将多个待上屏字符合并为单次原子写入，并将按键时序深度压缩至毫秒级，彻底消除吞字掉字与输入迟滞
-  - 串流硬件加速与首帧死锁修复：双显卡下因 FFmpeg 与 NVIDIA 580 驱动版本冲突导致 NVENC 不可用并回退至 CPU 软解（libx265 占用 200% CPU 且延迟极高）；在配置 VAAPI 硬件加速时因 Intel 驱动在 HEVC 模式下缺少 AUD 边界导致 WebRTC 分帧逻辑死锁并卡死在「正在传输画面」；重构源码在 `video::hevc_available` 与 `webrtc` 协商中阻断 HEVC VAAPI 并完整支持 `UU_VIDEO_CODEC=h264`，在服务单元注入 `LIBVA_DRIVER_NAME=iHD`、`UU_VIDEO_ENCODER=vaapi` 与 `UU_VIDEO_CODEC=h264`，全面启用 Intel 核显 QuickSync 原生 `h264_vaapi` 极速硬件编码，串流延迟大幅降低且零 CPU 负担
+  - 移动端中文输入法吞字与延迟根治：彻底移除原代码中将键入内容反向作为主机剪贴板广播（`sink.send_replace`）的死锁机制，消除手机端输入法状态机被持续重置；引入 40ms 聚合防抖合并窗口，快速连击时自动将连续到达字符合并为单次原子写入；重构按键时序为 wl-copy 写入后留出 30ms 绑定时间、Ctrl+V 释放后留出 40ms 沉淀时间，彻底消除快打吞字与字符相互覆写
+  - 串流硬件加速、首帧死锁与码率抖动模糊修复：双显卡下因 FFmpeg 与 NVIDIA 580 驱动冲突导致 NVENC 失败回退 CPU 软解；核显 VAAPI 模式下 Intel 驱动在 HEVC 模式下因缺少 AUD 导致分帧死锁；源码在 `hevc_available` 与 `webrtc` 阻断 HEVC VAAPI 锁定 `h264_vaapi`；此前因自动档写死 16M 目标码率且 VBV bufsize 仅设 500k，在 TURN 中继网络下引发巨量丢包与 VBV 缓冲区反复饥饿击穿造成周期性发糊；重构 `vaapi_options` 与 `rate_args` 引入 `UU_VIDEO_BITRATE=2500k`、`UU_VIDEO_MAX_KBPS=3500`、`UU_VIDEO_BUFSIZE=3500k` 与 `UU_VIDEO_GOP_SECONDS=1.0` 环境变量调优，将管道缓冲与 Semaphore 扩容至 8 帧，彻底消除变糊问题
+  - 局域网高延迟根因消除与 WebRTC 直连：日志指标显示主机端编解码仅耗时 7-11ms，但 RTT 高达 120-150ms 甚至冲高至 489ms，排查定位由于本地 UFW 防火墙处于激活状态且默认拦截入站 UDP，导致手机与电脑在同 Wi-Fi 下的 STUN 直连包被丢弃，迫使 WebRTC 降级走杭州 TURN 中继（`route=relay`）；执行 UFW 放行 `wlan0` 局域网私网网段（`10.0.0.0/8` 与 `192.168.0.0/16`），同时在源码中过滤 Clash TUN 伪 IP（`198.18.0.1`），恢复局域网 P2P 低延迟直连
   - 游戏按键映射与触控轮盘协议修复：逆向 Windows 服务端发现 mobile 客户端下发的 input_keys 并非整型数组，而是包含 `[{"input_device":"keyboard","input_code":65}]` 或其 JSON 序列化字符串，原数组解析返回 None 导致 keys 为空；重构 parse_input_keys 兼容对象数组、内联 JSON 字符串及逗号分隔格式，将 keyboard 与 mouse 设备精准分发至虚拟键盘按键与虚拟鼠标点击
   - 凭据与常驻：登录凭据存储于 `~/.config/uuremote/config.json`；启用 systemd 用户服务 `uu-remote-native.service` 实现开机自动登录并常驻连接网易远控网络
 
