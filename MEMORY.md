@@ -24,6 +24,8 @@
   - 插件全量升级：运行 `dsh plugin --profile web update --latest`，全量更新全部 18 个扩展插件至最新兼容版本
   - 兼容豁免与修复：针对 `dsh-opencode-zen` 授权版本兼容豁免（`allow-version`），补齐缺失的 patch 文件消除加载告警
   - 插件 Hub 同步：本地 `~/dsh-plugin-hub` 仓库快进拉取上游最新提交
+  - 统计插件与代理报错修复：`dsh-token-usage-counter` 因 DSH 0.2 移除 `ctx.settings.register` 报错，更新至最新 GitHub 上游（v0.5.0，适配 `storageDomain` 持久化）；编写 `~/.local/bin/dsh` 启动包装脚本，自动过滤 SOCKS 协议的 `all_proxy` 避免启动告警，同时保留 HTTP 代理生效
+
 
 - **WorkBuddy 前端卡顿根治与 Wayland 硬件加速解锁 (2026-10-18, 优化完成)**:
   - 根因定位：WorkBuddy 内置 GPU 降级保护机制，当检测到 `gpu-crash-info.json` 中崩溃计数 ≥1 时自动禁用硬件加速；在 Linux Wayland 下正常退出时 GPU 子进程被主进程杀死（SIGTERM），因非 clean-exit 误判为 GPU 崩溃并累加计数，导致应用永久陷入 CPU 软件栅格化与前端极度卡顿
