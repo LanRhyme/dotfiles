@@ -1,0 +1,10 @@
+#!/bin/sh
+# DSH SOCKS 代理过滤：dsh-http-proxy 仅支持 http:// 与 https:// 代理协议
+# 过滤 SOCKS 协议变量以避免启动告警，同时保留 http_proxy/https_proxy 正常生效
+if [ -n "$all_proxy" ] && [ "${all_proxy#socks}" != "$all_proxy" ]; then
+    unset all_proxy
+fi
+if [ -n "$ALL_PROXY" ] && [ "${ALL_PROXY#socks}" != "$ALL_PROXY" ]; then
+    unset ALL_PROXY
+fi
+exec /usr/bin/dsh "$@"
