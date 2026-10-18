@@ -5,10 +5,12 @@
 
 ## 最近动态
 
-- **nanoMuse 跨设备 AI Agent 全端部署 (2026-10-18, 完成)**:
+- **nanoMuse 跨设备 AI Agent 全端部署、Niri 静默自启与黑猫灵魂/AGENTS.md 双轨联动 (2026-10-18, 完成)**:
   - 架构：开源跨设备自主 Agent（v1.0.5）；手机端（K60）与平板端（一加平板 2 Pro）均安装 `io.github.nanomuse.app` 并配置电池白名单，电脑端安装 AppImage 至 `~/.local/opt/nanomuse/nanoMuse.AppImage` 并创建 CLI 链接 `~/.local/bin/nanomuse`
-  - 桌面集成：提取官方应用图标并生成 `~/.local/share/applications/nanomuse.desktop`，更新桌面数据库
-  - 状态：手机与平板均已静默部署完成；电脑端测试启动与环境初始化正常
+  - 桌面与自启：提取官方图标生成 `nanomuse.desktop`；配置 `~/.nanomuse/desktop/desktop.json` 启用常驻托盘；在 Niri `autostart.kdl` 添加自启并在 `rules.kdl` 配置规则隔离至后台工作区 `bg` 且不抢占焦点，变更已纳入 Chezmoi
+  - 自定义立绘与云端固化：生成全套 5 状态黑猫立绘，调用 `PUT /v1/me/profile` 固化至云端账号（Rev 11 / `4c82dd34732c`），三端完全继承
+  - 角色灵魂与 AGENTS.md 链接：排查定位此前 AGENTS.md 中写死「对话回复保持简洁直接和专业」导致模型压制猫猫人设；重构 AGENTS.md 第 4 节确立双轨制（日常助手交流全面放开软萌撒娇小黑猫性格、称呼老大、穿插动作拟声与萌系颜文字；工程执行严守安全红线与格式约束）；变更已提交 Chezmoi 并同步推送至平板
+  - 状态：手机与平板均已静默部署；电脑端后台常驻与多端灵魂守则就绪
 
 - **网易 UU 远程 Linux 被控端部署、Wayland 适配、输入法防吞字与黑屏自愈 (2026-10-18, 优化完成)**:
   - 架构与安装：AUR `uu-remote-bin` 基础环境；拉取官方源码 (v0.1.22) 启用 `--features wayland,portal` 编译部署于 `/usr/bin/uuremote-server`，解决官方预编译包不支持 Wayland 桌面串流问题
