@@ -3,6 +3,17 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
+- **DeepSeek Harness (DSH) 升级与全量插件更新 (2026-10-18, 完成)**:
+  - 核心架构升级：AUR `deepseek-harness-bin` 升级至 `0.2.0rc.2-1`（dsh 0.2.0-rc.2），通过 PKGBUILD 安全审查
+  - 插件全量升级：运行 `dsh plugin --profile web update --latest`，全量更新全部 18 个扩展插件（含 modlens、modsearch、dshmarket、dsh-pocket、dsh-context、dsh-agy-link、dsh-better-sidebar、dsh-skin-market、dsh-dream-skin 等）至最新兼容版本
+  - 兼容豁免与修复：针对 `dsh-opencode-zen` 授权版本兼容豁免（`allow-version`），补齐缺失的 patch 文件消除加载告警
+  - 插件 Hub 同步：本地 `~/dsh-plugin-hub` 仓库快进拉取上游最新 519 个提交
+
+- **WorkBuddy 前端卡顿根治与 Wayland 硬件加速解锁 (2026-10-18, 优化完成)**:
+  - 根因定位：WorkBuddy 内置 GPU 降级保护机制（`src/main/system/gpu-degradation.ts`），当检测到 `~/.workbuddy/app/gpu-crash-info.json` 中崩溃计数 ≥1 时自动禁用硬件加速并追加 `--disable-gpu-compositing`；而在 Linux Wayland 下正常退出时，GPU 子进程被主进程杀死（SIGTERM），`child-process-gone` 事件因退出非 `clean-exit` 误判为 GPU 崩溃并累加计数（累积达 17 次），导致应用永久陷入 CPU 软件栅格化，在 3K (3072x1920) 屏幕下渲染进程飙高至 79% CPU，前端极其卡顿
+  - 死锁切断：将 `~/.workbuddy/app/gpu-crash-info.json` 软链接至 `/dev/null`，使得配置读取永远返回 `{}`（不触发降级门控），写崩溃计数直接吸收入黑洞，彻底根除退出误报导致的硬件加速降级死锁
+  - 硬件加速配置：在 `~/.config/electron44-flags.conf` 配置 Wayland 原生 GPU 合成参数（`--enable-features=UseOzonePlatform,WaylandWindowDecorations`、`--ozone-platform=wayland`、`--enable-gpu-rasterization`、`--enable-zero-copy`、`--ignore-gpu-blocklist`），并纳入 Chezmoi 仓库管理
+
 - **网易 UU 远程 Linux 被控端部署、Wayland 适配、移动端中文输入法与按键映射修复 (2026-10-16, 配置完成)**:
   - 架构与安装：AUR `uu-remote-bin` 基础环境；拉取官方最新源码 (v0.1.22) 启用 `--features wayland,portal` 重新编译优化版二进制，替换 `/usr/bin/uuremote-server` 解决预编译包不支持 Wayland 桌面串流问题
   - 权限与输入：部署 `/usr/lib/udev/rules.d/60-uu-remote-linux-uinput.rules` 赋予 `/dev/uinput` 用户级访问权限，内核级注入虚拟键鼠，绕过 Wayland 输入隔离限制
