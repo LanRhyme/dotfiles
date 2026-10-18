@@ -3,6 +3,10 @@
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
 结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
 
+- **CodeBuddy IDE (腾讯云代码助手) 独立桌面端安装 (2026-10-18, 安装完成)**:
+  - 架构与安装：通过 PKGBUILD 安全审查后从 AUR 安装 `codebuddy-ide-cn 4.12.0.37847260-1`，解包腾讯官方 DEB 并完成针对 Electron 37 缺失原生模块（node-pty、policy-watcher 等）的本地重编
+  - 可执行程序与桌面图标：生成 `/usr/bin/codebuddy-ide-cn` 与 `/usr/share/applications/codebuddy-ide-cn.desktop`
+
 - **DeepSeek Harness (DSH) 升级与全量插件更新 (2026-10-18, 完成)**:
   - 核心架构升级：AUR `deepseek-harness-bin` 升级至 `0.2.0rc.2-1`（dsh 0.2.0-rc.2），通过 PKGBUILD 安全审查
   - 插件全量升级：运行 `dsh plugin --profile web update --latest`，全量更新全部 18 个扩展插件（含 modlens、modsearch、dshmarket、dsh-pocket、dsh-context、dsh-agy-link、dsh-better-sidebar、dsh-skin-market、dsh-dream-skin 等）至最新兼容版本
