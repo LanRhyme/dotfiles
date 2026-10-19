@@ -20,7 +20,13 @@
         draw-border-with-background false
     }
 
-    // nanoMuse 跨设备 Agent 窗口规则 - 隔离至后台工作区且不抢焦点
+    // NyanoMuse 跨设备 Agent 窗口规则 - 隔离至后台工作区且不抢焦点
+    window-rule {
+        match app-id="nyanomuse-desktop"
+        open-focused false
+        open-on-workspace "bg"
+    }
+
     window-rule {
         match app-id="nanomuse-desktop"
         open-focused false

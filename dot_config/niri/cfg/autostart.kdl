@@ -5,4 +5,4 @@
     spawn-sh-at-startup "noctalia"
     spawn-sh-at-startup "clipse"
     spawn-sh-at-startup "/home/lanrhyme/Projects/slugcatpet/start.sh"
-    spawn-sh-at-startup "/home/lanrhyme/.local/bin/nanomuse &"
+    spawn-sh-at-startup "/home/lanrhyme/.local/bin/nyanomuse &"
