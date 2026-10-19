@@ -5,6 +5,20 @@
 
 ## 最近动态
 
+- **NyanoMuse 后台动态批处理会话阻断与多端旁聊僵尸会话自愈清理系统 (2026-10-19, 完成)**:
+  - 动态会话旁聊泄露根因定位：
+    - 桌面端 DeepSeek Harness 插件层 `rooms.ts` 中 `refreshFeed()` 每日后台批处理任务使用普通会话临时生成动态卡片（标题为「动态 · YYYY年MM月DD日」或「Feed · YYYY年MM月DD日」）
+    - 桌面 `SyncEngine` 与 `nanomuse/sync/engine.py` 未对批处理会话进行排查，在开启「同时同步旁聊」时将该临时会话以 `kind: "side"` 格式推送到自建中继
+    - 手机端从自建中继拉取远程会话并以 `source = "sync"` 写入本地数据库，导致手机侧边抽屉中涌入大量「动态 · ...」孤儿会话
+  - 全链路四层阻断防护：
+    - 桌面插件层拦截：`rooms.ts` 新增 `isBatchSession` 并在批处理生命周期内全程锁定；`cloud.ts` 与 `sync.ts` 在会话列表、推流过滤与变更广播阶段全方位丢弃批处理与动态标题会话
+    - 桌面服务阻断：`nanomuse/sync/engine.py` 的 `_eligible` 增加动态标题前缀硬拦截
+    - 自建中继防护：`cloud/nanomuse_cloud/sync.py` 在推送端增加动态会话拒绝逻辑，并在中继数据库中将历史 9 条动态残留会话批量标为墓碑并推进游标
+    - 移动端双层过滤：`SyncEngine.kt` 丢弃远程动态标题；`LocalChats.kt` 与 `ChatRepository.kt` 在查询与展示层彻底过滤动态会话
+  - 启动自愈与历史僵尸清理：
+    - Android 端 `ConversationSync.init()` 引入启动自愈清理逻辑，自动扫描并彻底擦除本地数据库与同步引擎中的历史动态残留会话及消息记录
+    - Android Debug APK 完成打包并通过 ADB 安装部署至 Redmi K60
+
 - **NyanoMuse 服务商与模型多端配置端到端加密同步与冲突自愈系统落地 (2026-10-19, 完成)**:
   - 核心架构与端到端加密（E2EE）保障：
     - 自建服务端新增 `sync_configs` 存储表与 REST 接口（`GET/PUT /v1/sync/config`），采用零知识加密存储，中继仅负责中转密文与版本控制
