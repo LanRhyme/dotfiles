@@ -5,6 +5,19 @@
 
 ## 最近动态
 
+- **NyanoMuse 服务商与模型多端配置端到端加密同步与冲突自愈系统落地 (2026-10-19, 完成)**:
+  - 核心架构与端到端加密（E2EE）保障：
+    - 自建服务端新增 `sync_configs` 存储表与 REST 接口（`GET/PUT /v1/sync/config`），采用零知识加密存储，中继仅负责中转密文与版本控制
+    - 客户端使用 PBKDF2-HMAC-SHA256（100,000 次迭代）结合主账户 ID 派生 256 位密钥，通过 AES-256-GCM 进行认证加密
+    - 手机端 `ConfigSync` 与桌面桥接器 `nanomuse-bridge` 双端均实现本地自动快照备份（`backups/configs/`），防止异常合并
+  - 同步范围与负向排除范围：
+    - 同步对象：AI 服务商实例配置（`providers`）、API 密钥、自定义 Base URL、核心模型插槽映射（`slots` 包括 chat、hands 等）及智能体人设与提示词（`SOUL.md`）
+    - 负向排除范围：严格排除主题方案（Morandi、Sakura、OLED、默认蓝等）与聊天壁纸，两类属性 100% 仅保存在各设备本地，不参与多端漫游
+  - 冲突处理与多端广播联动：
+    - 版本控制采用单调递增版本号 `rev`，字段级合并遵循最后写入者胜（LWW）策略
+    - 服务端通过 WebSocket Hub 实时广播 `config` 变更帧，多端接收后平滑解密并热更新本地存储与仓储实例
+    - 移动端 `CloudAccountScreen` 增加 E2EE 配置同步状态与密码设置交互，Android APK 编译通过并已部署至 Redmi K60
+
 - **NyanoMuse 单用户独占服务端锁定、Grok-bot科技感默认立绘全面替换与全栈去额度化 (2026-10-19, 完成)**:
   - 自建服务端单用户独占安全锁定：
     - `config.py` 新增 `single_user` 开关（自建中继默认开启）
