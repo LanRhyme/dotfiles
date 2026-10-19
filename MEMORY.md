@@ -5,6 +5,20 @@
 
 ## 最近动态
 
+- **NyanoMuse 单用户独占服务端锁定、Grok-bot科技感默认立绘全面替换与全栈去额度化 (2026-10-19, 完成)**:
+  - 自建服务端单用户独占安全锁定：
+    - `config.py` 新增 `single_user` 开关（自建中继默认开启）
+    - `service.py` 严格校验账户数，当已有所有者账户时立即抛出 403 `registration_closed` 拒绝任何后续新用户注册
+    - 清理服务端历史冗余测试账户，将黑猫形象、名字与会话数据全量平移至当前唯一所有者账户 `lanrhyme`（版本提升至 rev 15 触发多端即时覆盖更新）
+  - 全局默认形象全面重构为 Grok-bot 科技机器人：
+    - 彻底剔除全工程奶龙（custard dragon）资源，由极简暗黑赛博 Grok 风格发光机器人接管（涵盖 idle/working/waiting/happy/error 五种状态 1024x1024 纯净 WebP）
+    - 移动端 `AgentAvatar` 与 Web 前端剔除旧版 MP4 动画依赖，由 Compose 与 CSS 原生弹性物理动画驱动
+    - 移动端全语种 `nm_avatar_default_description` 与 Web 前端文案同步更新为科技机器人设定
+  - 移动端与 Web 端去额度化与品牌深度重构：
+    - 移动端 `CloudAccountScreen` 彻底剥离额度池进度条、用量明细分类、好友邀请码与 Star 弹窗组件，专注设备会话管理与自建同步
+    - Web 前端完成 NyanoMuse 全局品牌文案重构，重新编译并打包静态资源至 `nanomuse/server/static/`
+    - Electron 桌面原生包完成编译并部署至 `~/.local/opt/nyanomuse/`，Android Debug APK 构建完成
+
 - **NyanoMuse 手机号短信登录全面清除、自建中继直连IP与账号密码认证落地 (2026-10-19, 完成)**:
   - 手机号短信与邀请码彻底剔除：
     - 全面清除移动端、桌面与 Web 端的中国大陆手机号限制、海外号段拦截告警、短信验证码获取、60秒倒计时及好友邀请码逻辑
@@ -104,6 +118,7 @@
   - 远控活跃状态与 Noctalia 剪贴板防骚扰：在 `uuremote-server` 的 WebRTC desktop 会话生命周期中维护 `/tmp/uu_remote_active` 状态文件；在 Noctalia `clipboard-osd` 插件（`main.luau`）的 shell 触发条件与事件处理双层注入判断，远控期间全静音避免手机打字与快照恢复频繁触发复制桌面弹窗，远控结束后自动恢复正常通知
   - 开机自启常驻连入黑屏自愈：排查定位开启 linger 时服务随 `default.target` 较早启动，此时桌面尚未建立且缺乏 `WAYLAND_DISPLAY`（受原配置写死 `DISPLAY=:0` 误导），导致底层初始化为 X11 后端从 `:0` 抓取 Xwayland 空白根窗口（表现为仅显示客户端自绘光标而画面全黑），且登录桌面后原有进程无法感知后端变更；修复方案：1. 在 `desktop_backend.rs` 新增 `ensure_wayland_env` 自动扫描探测 `/run/user/<uid>/wayland-*` 活跃可连通 Socket 并动态补齐环境；2. 在 `main.rs` 的 Offer 接入流中增加后端变更自愈检测，一旦检测到 Wayland 就绪或与启动时绑定的后端不一致，立即重载重建 `ScreenCapture::new()`；3. 优化 `/usr/lib/systemd/user/uu-remote-native.service` 移除硬编码 `DISPLAY=:0` 并透传 Wayland 变量
   - 游戏按键映射与触控轮盘修复：逆向兼容 mobile 客户端下发的 input_keys 对象数组、内联 JSON 字符串及逗号分隔格式，将 keyboard 与 mouse 设备精准分发至虚拟按键与鼠标点击
+  - 键鼠输入动态自愈与全桌面优先：排查开机随 systemd 启动（开启 linger）时因图形界面尚未完全建立被误判为 X11 后端，原逻辑跳过 uinput 初始化且写死旧状态，导致后续连入时向 Wayland 盲目调用 X11 XTest 接口失败（日志狂报 `Desktop mouse injection failed: -1`、`Pointer button audit: result=-1`），键鼠完全瘫痪；修复方案：1. `src/uinput.rs` 中 `wanted` 调整为全桌面默认优先使用内核 uinput；2. `src/input.rs` 将 `InputInjector` 的 `uinput` 设备改为 `Mutex<Option<Devices>>` 并引入 `with_uinput` 惰性自愈探测，未打开时每次事件触发动态补建；3. 废除写死的 `backend` 字段，改用 `current_backend()` 实时感知桌面合成器状态；4. `systemd` 服务补充 `Environment=UU_INPUT_BACKEND=uinput` 并重新编译部署
   - 凭据与常驻：登录凭据存储于 `~/.config/uuremote/config.json`；启用 systemd 用户服务 `uu-remote-native.service` 实现开机自动登录并常驻连接网易远控网络
 
 - **CodeBuddy IDE (腾讯云代码助手) 独立桌面端安装 (2026-10-18, 安装完成)**:
