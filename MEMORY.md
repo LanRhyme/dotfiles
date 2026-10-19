@@ -5,12 +5,18 @@
 
 ## 最近动态
 
-- **NyanoMuse (Fork 自 nanoMuse) 独立项目创立、Cloud Relay 自建与 Cloudflare Tunnel 部署 (2026-10-19, 部署完成)**:
-  - 架构与仓库：针对官方 nanoMuse 云端同步简陋（仅同步消息与头像、缺失灵魂与记忆同步）痛点，Fork 官方仓库至 `LanRhyme/NyanoMuse` 并本地克隆至 `~/Projects/NyanoMuse`
+- **NyanoMuse (Fork 自 nanoMuse) 独立项目创立、Cloud Relay 自建与 Android Root 解除沙箱架构 (2026-10-19, 全端就绪)**:
+  - 架构与仓库：针对官方 nanoMuse 云端同步简陋与移动端强制隔离在 Alpine PRoot 沙箱内的痛点，Fork 官方仓库至 `LanRhyme/NyanoMuse` 并本地克隆至 `~/Projects/NyanoMuse`
   - 自建中继服务：基于 Python 虚拟环境与 uv 部署 `~/Projects/NyanoMuse/cloud`，编写 systemd 用户服务 `nyanomuse-cloud.service`（自启常驻），服务监听 `127.0.0.1:8787`；代码级支持 `REVIEW_ADDRESSES=*` 通配免验证码模式，任何邮箱配合专属通行码 `123456` 秒登
   - 公网与隧道穿透：在 `~/.cloudflared/config.yml` 配置 ingress 路由将 `nyanomuse.lanrhyme.top` 转发至 `http://127.0.0.1:8787`；将 tunnel 协议修正为 `quic` 解决 Clash 伪 IP 环境下的 TLS 握手异常；Cloudflare CNAME 自动解析绑定成功
   - 资料固化：初始化新账号并将黑猫 5 状态手绘立绘与资料写入新中继（Rev 1），电脑端 `cordis.patch.yml` 已指向新中继地址
-  - 待办：手机与平板切换登录至自建服务；在 NyanoMuse 源码中开发 `SOUL.md` 与 `rooms.json` 的真正多端云端漫游扩展
+  - Android Root 与沙箱解除：
+    - 三档执行模式：新增 `ExecutionMode`（`ROOT`、`HOST_SHELL`、`PROOT_SANDBOX`），默认启用 `ROOT`；`PersistentShell` 根据模式自动直启 `/system/bin/su` 或 `/system/bin/sh`；非沙箱模式直接挂载 `/storage/emulated/0` 且不启动 PRoot 内核
+    - 全系统文件读写直通：重构 `PRootKernel` 路径解析，直通真实 Android 宿主路径；`FileReadTool`、`FileWriteTool`、`FileEditTool` 统一增加 Root 模式容错直通（普通 I/O 权限不足时无缝无感回退至 `su` 读写）
+    - 智能安全门控降噪：重构 `ShellGuard` 与 `RiskGate`，在 Root 模式下豁免 `reboot`、`shutdown`、`pm`、`am`、`dumpsys`、`iptables`、`setprop` 等系统运维指令，仅严格拦截全盘格式化与块设备直接覆写等毁灭级风险操作
+    - 动态 Prompt 与设置界面：`AgentTools` 与 `SoulStore` 根据当前模式动态调整身份宣称与 `shell_execute` 描述；在设置页新增「终端执行环境与权限」配置弹窗，支持可视化无缝切换模式
+    - 编译与测试：生成符合 gomobile 约定的 `rclone.aar` 依赖存根；修复 Gradle 镜像源兼容性；Android 全量 Kotlin 源码编译通过且全部单元测试 100% 绿色通过，改动已推送至 GitHub
+  - 待办：手机与平板端安装打包 APK 并登录至自建服务；在 NyanoMuse 源码中开发 `SOUL.md` 与 `rooms.json` 的真正多端云端漫游扩展
 
 - **nanoMuse 跨设备 AI Agent 全端部署、Niri 静默自启与黑猫灵魂/AGENTS.md 双轨联动 (2026-10-18, 完成)**:
   - 架构：开源跨设备自主 Agent（v1.0.5）；手机端（K60）与平板端（一加平板 2 Pro）均安装 `io.github.nanomuse.app` 并配置电池白名单，电脑端安装 AppImage 至 `~/.local/opt/nanomuse/nanoMuse.AppImage` 并创建 CLI 链接 `~/.local/bin/nanomuse`
