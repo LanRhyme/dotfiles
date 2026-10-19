@@ -5,6 +5,50 @@
 
 ## 最近动态
 
+- **NyanoMuse 手机号短信登录全面清除、自建中继直连IP与账号密码认证落地 (2026-10-19, 完成)**:
+  - 手机号短信与邀请码彻底剔除：
+    - 全面清除移动端、桌面与 Web 端的中国大陆手机号限制、海外号段拦截告警、短信验证码获取、60秒倒计时及好友邀请码逻辑
+    - 登录界面全面重构为「服务器地址 (IP/域名) + 用户名/账号 + 密码」直连模式，提供即时连接可用性检测
+  - 自建中继后端认证全流程打通：
+    - 中继 `identifiers.py` 扩展支持通用用户名（`user` 渠道），不再强制要求邮箱或手机号正则
+    - `service.py` 优化自建服务下的密码认证，开放注册模式下首次使用账号密码登录自动创建账号并写入哈希，彻底摆脱短信初始化依赖
+    - 桌面端 Electron、Web 前端与 Android 客户端完成全量重构与构建，ADB 部署至 Redmi K60 并推送远端（`5c278c8a`）
+
+- **NyanoMuse 官方云服务彻底剥离、代码私有地址脱敏、设置层级重构与导航条透明渲染 (2026-10-19, 完成)**:
+  - 代码库私有地址彻底脱敏：
+    - 全面清除代码库中所有硬编码的自建中继域名与官方云地址，改为由环境变量（`NYANOMUSE_RELAY_URL` / `NANOMUSE_CLOUD_URL`）、用户本地输入或配置文件动态解析，代码库保持绝对纯净开源规范
+  - 官方云服务与 branding 剥离：
+    - 移动端、桌面与 Web 端剥离 nanoCloud 官方云依赖，仅保留自建中继服务器（Self-Hosted Relay）连接模式
+    - 界面标题与文案统一重构为「自建服务与多端同步」，清除服务器重置逻辑不再回退到任何私有硬编码
+  - Android 设置页面层级重构：
+    - 按照模型与中继服务、智能体人设与能力、跨设备协同与控制、系统执行与权限、界面网络与数据、关于与支持 6 大板块进行 MuseSectionLabel 结构重整，信息架构清晰易读
+  - 手机端壁纸导航栏黑边根治：
+    - 排查定位 `MuseBottomBar` 中的 `amoledNavPillSurround` 在有壁纸时依然强制裁剪并绘制纯黑底色覆盖导航栏缝隙的问题
+    - 增加 `!hasWallpaper` 守卫条件，在启用聊天背景壁纸时使胶囊导航条外侧及屏幕底端系统手势区实现完全透通渲染
+  - 部署与推送：
+    - Android Debug APK 重新编译通过并通过 ADB 静默安装至 Redmi K60（`ed3fdd92`）
+    - 桌面端 Electron 原生包重新打补丁并构建更新至 `~/.local/opt/nyanomuse/`
+    - Git 提交规范化推送至 GitHub `main` 分支（`8627ff1e`）
+
+- **NyanoMuse 品牌包名全面重构、Android 数据无缝迁移与 Electron 桌面端原生构建部署 (2026-10-19, 完成)**:
+  - 品牌与包名全栈重构：
+    - 应用显示名称全端统一为 `NyanoMuse`（涵盖 Android 17 种语言资源、Web 前端与桌面窗口菜单）
+    - Android 端包名与 Application ID 由 `io.github.nanomuse.app` 彻底变更为 `top.lanrhyme.nyanomuse`，快捷方式与广播接收器动作全面切为 `top.lanrhyme.nyanomuse.*`
+    - 桌面端 AppId 设为 `top.lanrhyme.nyanomuse.desktop`，可执行文件命名为 `nyanomuse-desktop`
+    - 数据主目录全面迁至 `~/.nyanomuse`，桌面配置与状态路径平滑过渡
+  - Android 移动端（Redmi K60 / ed3fdd92）无缝数据迁移：
+    - ADB 交互严格执行非前台避让原则，在用户使用前台（Bilibili）期间执行全静默后台作业
+    - 通过 root 权限全量备份原应用数据目录（SQLite 数据库、files、shared_prefs），安装新版 APK 后恢复并修正 `u0_a545` 属主与 SELinux MLS 安全标签
+    - 卸载旧版 `io.github.nanomuse.app` 并清理临时备份，广播接收器 `RELOAD_CONFIG` 校验成功
+  - 桌面端 Electron 构建与深度系统集成：
+    - 使用 `pnpm` 编译 `dsh-nanomuse` 插件层并注入 DeepSeek Harness 运行时依赖
+    - 运行 `electron-builder --dir` 编译生成原生 Linux 目录版本（`linux-unpacked`），彻底规避 AppImage 与 FUSE 开销，部署至 `~/.local/opt/nyanomuse/`
+    - 建立 `~/.local/bin/nyanomuse` 主执行链接与防递归 MCP 包装脚本，部署 `~/.local/share/applications/nyanomuse.desktop` 桌面项
+    - 迁移 `~/.nanomuse` 至 `~/.nyanomuse` 并保留软链接向后兼容
+    - Chezmoi dotfiles 同步更新 Niri 窗口规则（`rules.kdl` 支持 `nyanomuse-desktop` 隔离至后台工作区 `bg` 且不抢占焦点）与自启（`autostart.kdl`）
+  - 外部 AI 桥接联动：
+    - `nanomuse-bridge.py` 同步支持 `~/.nyanomuse` 优先与 `top.lanrhyme.nyanomuse` 广播，创建双向命令别名 `nyanomuse-bridge`
+
 - **NyanoMuse 官方服务彻底剥离、自定义立绘包导入与外部 AI 自由配置系统上线 (2026-10-19, 完成)**:
   - 官方依赖清空与自建云端锁死：
     - 全面剔除所有指向官方 `cloud.nanomuse.cn` 与 `nanomuse.cn` 的硬编码中继地址、下载检查与遥测通道，默认全面切为自建高可用中继 `https://nyanomuse.lanrhyme.top`
@@ -36,7 +80,12 @@
     - 新增 `system_notify`：支持发送带 nanoMuse 专属头像图标的系统状态栏通知或即时 Toast 提示
     - 智能容错自愈：新增 `ToolSelfHealing`，在工具失败时根据失败模式自动注入文件搜索、PATH 缺失排查及 su 权限指导等自愈提示，防止模型盲目重复失败
     - 测试与构建：Android 全量单元测试 `testDebugUnitTest` 100% 绿色通过，桌面/Web 端 Vite 生产构建与 18 个测试套件 112 项测试全数通过，改动已提交并推送至 `LanRhyme/NyanoMuse` 的 main 分支
-  - 待办：手机与平板端安装打包 APK 并登录至自建服务；在 NyanoMuse 源码中开发 `SOUL.md` 与 `rooms.json` 的真正多端云端漫游扩展
+  - 桌面端自建中继适配与本地配置（2026-10-19，完成）：
+    - 桌面端彻底剔除 nanoMuse Cloud 专有文案与残留配置，设置项导航与文案变更为自建同步服务
+    - 登录界面改用服务器地址、用户名与密码验证体系，移除短信验证码与邀请码残留
+    - 桌面端主进程与插件支持从本地 `~/.nyanomuse/desktop/desktop.json`（`relayUrl`）或 `environment.d` 读取私有服务器地址直连
+    - 全量单测 333 项测试通过，完成 Electron 桌面端构建并热部署至 `~/.local/opt/nyanomuse/`
+  - 待办：平板端测试安装最新版 APK 并验证自建服务器多端漫游与同步功能
 
 - **nanoMuse 跨设备 AI Agent 全端部署、Niri 静默自启与黑猫灵魂/AGENTS.md 双轨联动 (2026-10-18, 完成)**:
   - 架构：开源跨设备自主 Agent（v1.0.5）；手机端（K60）与平板端（一加平板 2 Pro）均安装 `io.github.nanomuse.app` 并配置电池白名单，电脑端安装 AppImage 至 `~/.local/opt/nanomuse/nanoMuse.AppImage` 并创建 CLI 链接 `~/.local/bin/nanomuse`
