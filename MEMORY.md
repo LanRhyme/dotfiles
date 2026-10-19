@@ -5,6 +5,17 @@
 
 ## 最近动态
 
+- **NyanoMuse 聊天页面底部黑色阴影清除与深色模式气泡文字配色全面优化 (2026-10-19, 完成)**:
+  - 聊天底部黑色阴影根治：
+    - 排查定位 `ChatScreen.kt` 中 `NmComposerVignette` 滚屏渐变遮罩、输入框外部 `Modifier.shadow` 4dp 黑影及 `MuseBottomBar.kt` 中 `amoledNavPillSurround` 底栏强绘制纯黑遮罩
+    - 彻底移除 `NmComposerVignette` 与底栏多余修饰符，剥离输入卡片多余投影，恢复平滑自然的沉浸通透渲染
+  - 深色模式文字与气泡配色全面修正：
+    - 排查定位旧版深色模式下用户气泡错误写死为白底黑字（`userBubble = Color.White`、`onUserBubble = Color.Black`）的视觉颠倒问题
+    - 重构 `ChatColors.kt` 与 `ThemePalette.kt`（含莫兰迪、经典蓝、OLED纯黑、猫猫暖樱、Material You）：深色模式下用户气泡改为沉稳暗色容器，文字统一调整为高对比度清晰白字
+    - 修复 `MorandiDarkColorScheme`、`SakuraDarkColorScheme` 与 `OledDarkColorScheme` 中 `onSecondary` 误设为纯黑的问题
+    - 优化 `MuseBottomBar` 激活态底色为 `primaryContainer` 与 `onPrimaryContainer`，杜绝暗色模式下底栏白底黑图标刺眼对比
+    - 重新编译生成 Android Debug APK 并通过 ADB 安装部署至 Redmi K60
+
 - **NyanoMuse 后台动态批处理会话阻断与多端旁聊僵尸会话自愈清理系统 (2026-10-19, 完成)**:
   - 动态会话旁聊泄露根因定位：
     - 桌面端 DeepSeek Harness 插件层 `rooms.ts` 中 `refreshFeed()` 每日后台批处理任务使用普通会话临时生成动态卡片（标题为「动态 · YYYY年MM月DD日」或「Feed · YYYY年MM月DD日」）
