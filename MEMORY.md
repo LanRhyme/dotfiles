@@ -84,6 +84,8 @@
     - 桌面端彻底剔除 nanoMuse Cloud 专有文案与残留配置，设置项导航与文案变更为自建同步服务
     - 登录界面改用服务器地址、用户名与密码验证体系，移除短信验证码与邀请码残留
     - 桌面端主进程与插件支持从本地 `~/.nyanomuse/desktop/desktop.json`（`relayUrl`）或 `environment.d` 读取私有服务器地址直连
+    - 全面剔除账户页面的额度池（Allowance）、用量明细（Usage）、邀请好友（Invite）与 Star 弹窗组件，停用 80% 额度预警
+    - 本地清除历史官方云残留会话（cloud.json 与 .credentials.yaml 中的旧 Token），确保桌面端处于未登录净态
     - 全量单测 333 项测试通过，完成 Electron 桌面端构建并热部署至 `~/.local/opt/nyanomuse/`
   - 待办：平板端测试安装最新版 APK 并验证自建服务器多端漫游与同步功能
 
