@@ -5,17 +5,37 @@
 
 ## 最近动态
 
-- **NyanoMuse (Fork 自 nanoMuse) 独立项目创立、Cloud Relay 自建与 Android Root 解除沙箱架构 (2026-10-19, 全端就绪)**:
-  - 架构与仓库：针对官方 nanoMuse 云端同步简陋与移动端强制隔离在 Alpine PRoot 沙箱内的痛点，Fork 官方仓库至 `LanRhyme/NyanoMuse` 并本地克隆至 `~/Projects/NyanoMuse`
-  - 自建中继服务：基于 Python 虚拟环境与 uv 部署 `~/Projects/NyanoMuse/cloud`，编写 systemd 用户服务 `nyanomuse-cloud.service`（自启常驻），服务监听 `127.0.0.1:8787`；代码级支持 `REVIEW_ADDRESSES=*` 通配免验证码模式，任何邮箱配合专属通行码 `123456` 秒登
-  - 公网与隧道穿透：在 `~/.cloudflared/config.yml` 配置 ingress 路由将 `nyanomuse.lanrhyme.top` 转发至 `http://127.0.0.1:8787`；将 tunnel 协议修正为 `quic` 解决 Clash 伪 IP 环境下的 TLS 握手异常；Cloudflare CNAME 自动解析绑定成功
-  - 资料固化：初始化新账号并将黑猫 5 状态手绘立绘与资料写入新中继（Rev 1），电脑端 `cordis.patch.yml` 已指向新中继地址
-  - Android Root 与沙箱解除：
-    - 三档执行模式：新增 `ExecutionMode`（`ROOT`、`HOST_SHELL`、`PROOT_SANDBOX`），默认启用 `ROOT`；`PersistentShell` 根据模式自动直启 `/system/bin/su` 或 `/system/bin/sh`；非沙箱模式直接挂载 `/storage/emulated/0` 且不启动 PRoot 内核
-    - 全系统文件读写直通：重构 `PRootKernel` 路径解析，直通真实 Android 宿主路径；`FileReadTool`、`FileWriteTool`、`FileEditTool` 统一增加 Root 模式容错直通（普通 I/O 权限不足时无缝无感回退至 `su` 读写）
-    - 智能安全门控降噪：重构 `ShellGuard` 与 `RiskGate`，在 Root 模式下豁免 `reboot`、`shutdown`、`pm`、`am`、`dumpsys`、`iptables`、`setprop` 等系统运维指令，仅严格拦截全盘格式化与块设备直接覆写等毁灭级风险操作
-    - 动态 Prompt 与设置界面：`AgentTools` 与 `SoulStore` 根据当前模式动态调整身份宣称与 `shell_execute` 描述；在设置页新增「终端执行环境与权限」配置弹窗，支持可视化无缝切换模式
-    - 编译与测试：生成符合 gomobile 约定的 `rclone.aar` 依赖存根；修复 Gradle 镜像源兼容性；Android 全量 Kotlin 源码编译通过且全部单元测试 100% 绿色通过，改动已推送至 GitHub
+- **NyanoMuse 官方服务彻底剥离、自定义立绘包导入与外部 AI 自由配置系统上线 (2026-10-19, 完成)**:
+  - 官方依赖清空与自建云端锁死：
+    - 全面剔除所有指向官方 `cloud.nanomuse.cn` 与 `nanomuse.cn` 的硬编码中继地址、下载检查与遥测通道，默认全面切为自建高可用中继 `https://nyanomuse.lanrhyme.top`
+    - 更新检查与文档完全回退并接入 GitHub 官方仓库 `https://github.com/LanRhyme/NyanoMuse`，遥测与数据贡献开关默认关闭，杜绝任何外部数据外泄
+  - 自定义多状态立绘包导入系统（全端就绪）：
+    - Android 端新增 `AvatarPackImporter`，支持解压 ZIP 压缩包或读取本地图片，自动语义识别 `idle`、`working`、`waiting`、`happy`、`error` 5 种表情状态，硬件级裁剪缩放为 512x512 WebP 并写入 `AvatarStore`，同时联动 `ProfileSync` 自动推送云端中继
+    - `AvatarStudioScreen` 新增显式「导入立绘包 (ZIP/多图)」快速操作按钮与菜单项
+    - 桌面与 Web 端支持通过桥接工具直接打包注入与即时全端漫游，全套 5 状态黑猫立绘包（`~/tmp/nyanomuse_avatar_pack.zip`，哈希 `1e9abf11ff90`）已成功固化到桌面并同步至自建中继与手机端
+  - 外部 AI 自由配置与双向热重载桥接系统：
+    - 打造 `nanomuse-bridge` CLI 工具（软链接至 `~/.local/bin/nanomuse-bridge`），赋予外部 AI 代理（Antigravity、Claude Code 等）对 `SOUL.md`、`profile.json`、`cloud.json`、模型提供商与立绘资源的无沙箱全权控制与命令行读写能力
+    - Android 端实现 `ExternalAiReceiver` 广播接收器，外部脚本或 ADB 可通过 `io.github.nanomuse.UPDATE_SOUL`、`io.github.nanomuse.IMPORT_AVATAR`、`io.github.nanomuse.UPDATE_RELAY` 和 `io.github.nanomuse.RELOAD_CONFIG` 动作实现免重启热注入
+    - 撰写并提交 `docs/zh/ai-bridge.md` 开发者规范，严格恪守无句号无表情符号规则
+  - 部署与验证：
+    - Android Debug APK 完成打包并经 ADB 静默安装至 Redmi K60（`ed3fdd92`），避开前台用户活跃应用，广播注入 SOUL 设定与立绘包成功
+    - 桌面端 Web 前端 Vite 重新打包输出至 `nanomuse/server/static/`
+    - 所有改动经 Git 规范化提交（`feat: 剔除官方服务依赖、支持自定义立绘包导入与外部 AI 自由配置接口`）并推送至 GitHub 远端 `799fde16`
+
+- **NyanoMuse 多预设主题、聊天壁纸、毛玻璃特效与工具系统全面进化 (2026-10-19, 全端就绪)**:
+  - 主题与调色盘系统（移动端与桌面/Web端同步）：
+    - 预设色调引擎：莫兰迪 Morandi（默认暖灰/鼠尾草护眼）、OLED 纯黑（极致对比度与节能）、猫猫暖樱 Sakura Pink（甜美粉嫩萌系专属）、经典蓝 Default Blue，以及 Android 12+ Material You / Monet 动态壁纸取色
+    - Android 端由 `ThemePalette` 与 `ThemePalettes` 驱动全局 `ColorScheme` 与 `ChatPalette` 解析，`AppearanceScreen` 提供色块可视化切换并实时联动 Compose 全局重组
+    - 桌面与 Web 端由 `theme.ts` 与 `index.css` 提供 `data-palette` 与 CSS 变量切换，在 Settings 的 Appearance 中提供图形化选项
+  - 聊天背景壁纸与毛玻璃效果系统（移动端与桌面/Web端同步）：
+    - 移动端由 `ChatWallpaperManager` 集中管理图片持久化存储、暗化蒙版（0% 至 85%）与高斯模糊（0 至 25dp），在 `ChatScreen` 底层以 `AsyncImage` 与硬件级模糊分层渲染
+    - 桌面与 Web 端支持本地图片上传至 `localStorage`，支持暗化遮罩与模糊滑块调节，结合 CSS `backdrop-filter` 与 `color-mix` 落地全景半透明亚克力与 Mica 毛玻璃质感（`data-glass`）
+  - 工具系统全方位进化（Android 原生工具库与自愈管线）：
+    - 新增 `device_info`：免 Root/有 Root 双通只读工具，读取设备电池电量、充电状态、RAM 与内置存储空间利用率、网络连接类型与系统内核环境
+    - 新增 `app_launch`：支持按包名或按中英文应用名称模糊检索并启动已安装应用（如微信、设置、相机等）
+    - 新增 `system_notify`：支持发送带 nanoMuse 专属头像图标的系统状态栏通知或即时 Toast 提示
+    - 智能容错自愈：新增 `ToolSelfHealing`，在工具失败时根据失败模式自动注入文件搜索、PATH 缺失排查及 su 权限指导等自愈提示，防止模型盲目重复失败
+    - 测试与构建：Android 全量单元测试 `testDebugUnitTest` 100% 绿色通过，桌面/Web 端 Vite 生产构建与 18 个测试套件 112 项测试全数通过，改动已提交并推送至 `LanRhyme/NyanoMuse` 的 main 分支
   - 待办：手机与平板端安装打包 APK 并登录至自建服务；在 NyanoMuse 源码中开发 `SOUL.md` 与 `rooms.json` 的真正多端云端漫游扩展
 
 - **nanoMuse 跨设备 AI Agent 全端部署、Niri 静默自启与黑猫灵魂/AGENTS.md 双轨联动 (2026-10-18, 完成)**:
