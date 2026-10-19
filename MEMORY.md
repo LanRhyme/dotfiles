@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **NyanoMuse 自建服务页面暗色文字根治与智能体黑猫人设记忆防覆盖保护 (2026-10-20, 完成)**:
+  - 自建服务与多端同步页面深色模式黑字根治：
+    - 排查定位 MuseChrome.kt 中 MuseCard 仅设置 color = MuseTones.surface（#1C1C1E），未显式指定 contentColor，Compose M3 的 contentColorFor 无法匹配自定义色值导致 Color.Unspecified，使得未显式设色的 Text 组件全部回退到 Color.Black
+    - MuseCard 内部显式补充 contentColor = MaterialTheme.colorScheme.onSurface
+    - 在 CloudAccountScreen.kt 中为登录用户名（a?.hint）、免费开源非营利卡片标题（R.string.nm_cloud_notice_title）以及未登录卡片标题（R.string.nm_cloud_not_signed_in）显式传入 color = MaterialTheme.colorScheme.onSurface，确保深色模式下全部清晰反白
+  - 智能体黑猫人格与记忆防覆盖保护：
+    - 排查定位手机端登录自建账号后，远端 ConfigSync 误用默认空模板拉取覆盖了本地真实的 SOUL.md 与黑猫人设
+    - 从本地备份恢复 2405 字节完整纯黑大蓝眼小猫人设与记忆至 K60（SOUL.md，属主 u0_a545:u0_a545）
+    - 修复自建中继数据库 profiles 表唯一所有者人设名称为 nanoMeow，同步本地 shared_prefs
+    - 重构 ConfigSync.kt 下发保护逻辑：若本地已存在定制 SOUL.md，远端默认模板绝对不覆盖本地内容，仅当远端更新时间戳更新且内容为定制设定时才允许合并
+    - 重新编译打包 Android Debug APK 并通过 ADB 静默安装至 Redmi K60，GitHub 提交推送完成
+
 - **NyanoMuse 聊天页面底部黑色阴影清除与深色模式气泡文字配色全面优化 (2026-10-19, 完成)**:
   - 聊天底部黑色阴影根治：
     - 排查定位 `ChatScreen.kt` 中 `NmComposerVignette` 滚屏渐变遮罩、输入框外部 `Modifier.shadow` 4dp 黑影及 `MuseBottomBar.kt` 中 `amoledNavPillSurround` 底栏强绘制纯黑遮罩
