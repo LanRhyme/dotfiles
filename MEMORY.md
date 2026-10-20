@@ -5,6 +5,35 @@
 
 ## 最近动态
 
+- **NyanoMuse grill-me 全面重构为原生 ask_user_question 工具调用与协程挂起交互架构 (2026-10-20, 完成)**:
+  - 架构升级与原生工具注册：
+    - 废弃基于正文 `<question>` 结构化标签的伪交互协议，全面对齐 DeepSeek Harness 的原生 `ask_user_question` / `ask_question` 工具调用标准
+    - 在 AgentTools.kt 中完成 askUserQuestionDefinition 注册，涵盖 questions 数组、question 精炼陈述、options 数组与 is_multi_select 声明
+  - 协程挂起与双向交互响应回路：
+    - ChatViewModel.kt 引入 pendingQuestionDeferreds 字典与 CompletableDeferred 挂起机制，当代理调用 ask_user_question 时挂起当前工具执行流
+    - 用户在界面卡片点击选项或在输入框发送自定义文本时调用 answerQuestion，立即恢复挂起协程并返回「User selected: <choice>」工具执行结果，支持流式取消与重试清理
+  - 渲染拦截与图层穿透防护：
+    - ChatFlatItems.kt 增加 FlatChatItem.AssistantAskQuestion 独立卡片类型，在工具块遍历时前置拦截 ask_user_question 避免被 showSteps = false 隐藏，保证问题交互卡片永远可见
+    - hasVisibleContent 与 stepsOnlyTurn 视其为可见内容，避免提问等待时出现无意义的闪烁输入中指示器
+    - ChatScreen.kt 将其接入 InteractiveQuestionCard，绑定 answerQuestion 回调，并支持根据 content 结果展示「已回答」状态与选项高亮
+  - 多端协议同步与构建部署：
+    - 更新 SkillRepository.kt 的 GRILL_ME_CONTENT，版本升级为 2.0.0，并在 Android 打包时强制同步更新
+    - 同步更新 ~/.nyanomuse/desktop/skills/grill-me/SKILL.md、~/.agents/skills/ 与 ~/.dsh/skills/
+    - 编译 assembleDebug 通过并在平板端（c84b9192）完成安装部署
+
+- **NyanoMuse 修复问答卡片重叠与高光渲染异常并全量部署更新桌面端 (2026-10-20, 完成)**:
+  - 安卓端问答卡片（QuestionCard）布局重叠与颜色反差根治：
+    - 排查定位 NmAssistantBubble 内部原使用 Box 容器，且 ChatScreen.kt 中 MarkdownBlock 与 InteractiveQuestionCard 作为无容器包裹的平级子项，导致卡片在坐标 (0, 0) 与上文 Markdown 描述文本物理重叠互相穿透
+    - 将 NmAssistantBubble 内部容器调整为 Column，并在 ChatScreen.kt 中使用 Column(modifier = Modifier.fillMaxWidth()) 严格封装文本与卡片，彻底根除图层遮挡与穿透
+    - 修复深色模式白底白字渲染异常：深色主题下 ChatColors.sendButton 为纯白（#FFFFFF），原先用作推荐徽标背景与边框导致严重刺眼高光且文字不可见；全面重构为 ChatColors.link（#58A6FF 莫兰迪蓝高对比主题色），推荐徽标改为半透明蓝色药丸底配同色加粗文字，选项卡片采用 toolCapsuleBg 与 toolBorder
+    - 优化选项排版对齐：单项 Row 改为 Alignment.Top 顶端对齐，彻底解决长文本折行时徽标和圆点在垂直居中位置悬空的排版不适
+    - 重新编译 assembleDebug 并通过 adb 安装至平板端（c84b9192）
+  - 桌面端（dsh-nanomuse）深度对齐与全量构建部署：
+    - 会话顶栏高度收缩：将 --nm-header-h 从 108px 压缩至 68px，顶栏渐变高度降低并叠加 backdrop-filter: blur(10px) 毛玻璃
+    - 交互式问答卡片支持：在 FenceCards.ts 中增加对 <question> 结构化标签与代码块的动态扫描与解析，以 Web 标准 DOM 生成一致风格的交互选择题卡片，点击选项自动填充并即时发送
+    - 桌面端 DeepSeek Harness 接入 /grill-me 技能：同步部署至 ~/.nyanomuse/desktop/skills/grill-me/SKILL.md、~/.agents/skills/ 与 ~/.dsh/skills/
+    - 运行 build.mjs 完成全量编译，同步替换至 ~/.local/opt/nyanomuse/resources/dsh/node_modules/dsh-nanomuse/，并重启桌面端进程（nyanomuse-desktop）正常运行，提交记录 faef36d8
+
 - **NyanoMuse 修复DeepSeek余额与今日花费胶囊在主聊天顶栏未显示问题 (2026-10-20, 完成)**:
   - 顶栏胶囊未展示根因定位与布局修复：
     - 排查定位 ChatScreen.kt 中原 DeepSeek 胶囊放置于 `else if (!nmHideModelRows)` 模型副标题列内部，由于主聊天默认开启极简模式（nmHideModelRows 为 true），导致整列副标题与 DeepSeek 胶囊在主聊天中被完全短路跳过未渲染
