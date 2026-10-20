@@ -5,6 +5,19 @@
 
 ## 最近动态
 
+- **NyanoMuse 开放Root模式全局文件系统直通、隐藏冗余挂载项、重构文件工具链并接入核心分区风控 (2026-10-20, 完成)**:
+  - Root 模式全局文件系统直通与冗余挂载隐藏：
+    - PRootKernel.kt 重构路径解析：非 PRoot 容器环境（Root 模式与宿主模式）解除前缀白名单限制，任意绝对路径直连底层文件系统并自动标准化相对路径，同时绕过 SAF 只读挂载点限制
+    - SettingsScreen.kt 在当前执行模式为 ExecutionMode.ROOT 时自动隐藏「挂载外部文件夹」配置入口，避免对具备全盘操作能力的 Root 模式产生冗余误导
+  - 文件读写与编辑工具链全面重构升级：
+    - FileReadTool.kt 补全 Root 环境目录探测保护（直接读取目录时给出友好提示并指引使用 shell_execute ls 列出），优化非 root 权限文件大小探测，采用 sed 与 tail 分页安全读取大文件防内存溢出，并在工具描述中明示已支持 Android 全盘绝对路径
+    - FileWriteTool.kt 增加 Root 模式父目录递归自动补全（mkdir -p），直写受阻时平滑切换 su 管道流写入并执行字节校验
+    - FileEditTool.kt 深度适配 Root 文件系统读写，引入 Windows/Linux 换行符（CRLF/LF）自动归一化回退容错，彻底杜绝模型因空白符不匹配导致的替换失败
+  - 关键系统分区与敏感文件风控告警防护：
+    - RiskGate.kt 新增 checkFileModification 与 assessFileModification 校验门控，精确识别 dev/block、proc/sys、sys/fs、sys/kernel 以及 system、vendor、product、apex、packages.xml、init 脚本等核心高危系统路径
+    - ChatViewModel.kt 的 executeToolCall 在执行 FileWriteTool 与 FileEditTool 时前置接入风险拦截，涉及高危路径时抛出二次审批卡片，常规目录（sdcard、data/adb/modules、data/local/tmp、用户沙盒等）保持零摩擦极速执行
+    - 补齐 RiskGateTest 全量自动化单元测试（涵盖安全路径、高危路径及非 Root 模式），所有测试 100% 绿色通过，APK 构建完成并推送到 GitHub 远端仓库
+
 - **NyanoMuse 初始引导对话移除、平板气泡自适应宽度、多端设备自动识别与多语言资源对齐 (2026-10-20, 完成)**:
   - 初始引导对话剧本彻底移除：
     - 排查定位 FirstConversation.kt 中硬编码的开屏引导剧本（包含「你好，我是 nanoMuse」、「我该怎么称呼你？」及改名卡片），将其 shouldShowIntro 设为 false，状态默认锁定为 Phase.DONE，intro 与 promptAddendum 返回空
