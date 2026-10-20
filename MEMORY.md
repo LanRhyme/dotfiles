@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **NyanoMuse GitHub风格用量贡献热力图、日周月统计与会话顶栏DeepSeek余额花费胶囊 (2026-10-20, 完成)**:
+  - 会话顶栏 DeepSeek 专属余额与今日花费胶囊：
+    - 新增 io.github.nanomuse.chat.DeepSeekTracker：内置 DeepSeek 官方费率阶梯计算模型（V3: 输入¥1/M、缓存命中¥0.1/M、输出¥2/M；R1/Reasoner: 输入¥4/M、输出¥16/M），基于本地 Room 数据库扫描今日 00:00 至今的所有 UsageRecord 实时毫秒级计算累计今日花费
+    - 异步调用 DeepSeek 官方余额接口（GET https://api.deepseek.com/user/balance），获取成功时展示「余额: ¥xx.xx · 今日花费: ¥x.xx」，第三方中继或超时时优雅降级仅展示「今日花费: ¥x.xx」，杜绝占位符报错
+    - ChatScreen 顶栏模型副标题下方接入半透明毛玻璃微型芯片胶囊，点击即时触发余额强制刷新并弹出用量详情底栏
+  - GitHub 风格用量贡献热力图与日周月多维看板重构：
+    - UsageStatsScreen 深度重构：引入 7 行 × 26 周（近半年 182 天）横向平滑滚动的活动贡献热力图网格，动态映射当前系统莫兰迪主题阶梯色阶，自动平滑滚动定位至今日
+    - 热力图交互下钻：点击具体日期展开当日卡片，清晰呈现当日总 Token、输入/输出/缓存明细、预估花费与活跃模型标签徽标
+    - 日/周/月分段切换控制看板：提供「今日 / 本周 / 本月」胶囊切换，实时统计所选周期的总 Token、输入输出分布、缓存命中率与预估花费金额
+    - TokenUsageSheet 与主导航新增直达入口，全链路互通
+  - 全量单元测试 testDebugUnitTest 100% 绿色通过，Android Debug APK 构建完成，GitHub main 分支完成提交推送（4bd39144）
+
 - **NyanoMuse 中继同步作用域修复、端点空URL防御与Root模式截图路径归一化 (2026-10-20, 完成)**:
   - 云端中继会话同步异常与 500 崩溃根治：
     - 排查定位 cloud/nanomuse_cloud/sync.py 中在 deleted 变量声明前提前引用（deleted = bool(conv.get("deleted"))），导致客户端推送带特定标题或更新时间戳时触发 UnboundLocalError 引发 HTTP 500
