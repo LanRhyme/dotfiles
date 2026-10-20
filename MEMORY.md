@@ -19,10 +19,13 @@
     - ToolSelfHealing 扩展支持 screen_capture、file_write 与 read_image 的自愈诊断提示
   - Root 模式原生扩展 CLI 工具链（nanomuse-pc、android-*）直发直通支持：
     - NativeOffloadServer 新增 canHandle 与 dispatchDirect，并在 ExecutionCoordinator 中无缝拦截分发，彻底解决过去在 Root 模式下执行 nanomuse-pc、android-device 等命令时因脱离 PRoot Alpine 沙箱导致提示找不到命令（127）的断层问题，免除重装 Alpine 沙箱镜像的额外开销
+  - 虚拟路径解析优先级修正与多端协同遗留文案清理：
+    - PRootKernel.kt 调整路径解析优先级：确保以 /var/minis/ 开头的应用内部虚拟路径（记忆、技能、工作区、附件、minis://）在 Root 模式下优先解析至真实的内部 filesDir 存储目录，避免被普通绝对路径规则短路到宿主根目录
+    - Computers.kt 与 ReachOffloadHandler.kt 全面清理旧版官方云遗留文案，统一对齐自建中继服务
   - 关键系统分区与敏感文件风控告警防护：
     - RiskGate.kt 新增 checkFileModification 与 assessFileModification 校验门控，精确识别 dev/block、proc/sys、sys/fs、sys/kernel 以及 system、vendor、product、apex、packages.xml、init 脚本等核心高危系统路径
     - ChatViewModel.kt 的 executeToolCall 在执行 FileWriteTool 与 FileEditTool 时前置接入风险拦截，涉及高危路径时抛出二次审批卡片，常规目录（sdcard、data/adb/modules、data/local/tmp、用户沙盒等）保持零摩擦极速执行
-    - 全量自动化单元测试 100% 绿色通过，APK 构建完成并推送到 GitHub 远端仓库（94162cc4）
+    - 全量自动化单元测试 100% 绿色通过，APK 构建完成并推送到 GitHub 远端仓库（8fe19a00）
 
 - **NyanoMuse 初始引导对话移除、平板气泡自适应宽度、多端设备自动识别与多语言资源对齐 (2026-10-20, 完成)**:
   - 初始引导对话剧本彻底移除：
