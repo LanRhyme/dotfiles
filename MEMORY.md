@@ -5,6 +5,49 @@
 
 ## 最近动态
 
+- **NyanoMuse 长期可检索记忆系统全链路全端落地 (2026-10-21, 完成)**:
+  - 核心架构与决策闭环：
+    - 废除 FTS 内建打分依赖，两端统一采用预分词 CJK Bigram + 单词切分（tokenizeForSearch），排序在应用层由统一算法（scoreCandidate）确定性计算，彻底消除 Android FTS4 缺 bm25 导致的跨端歧义
+    - 废除 400 条硬编码截断，构建 Hot（活跃常驻区）与 Cold（持久归档区）分级体系，将系统提示词记忆输入预算由 500 放宽至 1500~2000 Tokens，配套提供 recall_memory 原生工具支持深度追溯
+    - 确立客户端本地第一公民地位，离线与未登录下 100% 可用，云端作为轻量追加式 OpLog 中继与单调自增 seq 分配器
+    - 确立防投毒边界：仅允许 user 角色输入触发自动记忆提炼，绝对阻断工具输出与外部网页内容注入伪造事实
+  - 桌面端 (dsh-nanomuse)：
+    - 实测 Electron 44.7.0 原生内置 Node 24.21.0 与 SQLite 3.53.4，基于 node:sqlite 构建持久化 MemoryStore，独立 FTS5 虚表显式事务双写
+    - 接入 rooms.ts 与 rooms-tools.ts，提供 /memory/search 路由与 recall_memory 原生工具，历史 rooms.json 自动无缝迁移
+    - 编写 memory-search.test.mjs 与 memory-store.test.mjs，全量通过评测基准测试
+  - 云端中继 (nanomuse_cloud)：
+    - db.py 增加 sync_memory_oplog 表（包含 seq, op_id 幂等校验, before_content 回滚），sync.py 实现 push_memory_ops 与 pull_memory_ops
+    - api.py 暴露 /v1/sync/memory/push 与 /v1/sync/memory/pull 接口，完成 test_memory_sync.py 单元测试全绿
+  - 安卓移动端 (io.github.nanomuse.memory)：
+    - 落地 MemoryTokenizer 与 MemoryScorer，与桌面端算法 100% 精确对齐
+    - 实现 LocalMemoryDb（基于 SQLiteOpenHelper 与 FTS4），通过 MemoryRepository 与 MinisApp.kt 挂载双写与检索支持
+    - 编写 MemorySearchTest 通过黄金评测集，完成 assembleDebug 打包并通过 adb 部署至平板（c84b9192）
+  - 提交记录 cce12372
+
+- **NyanoMuse 安卓端全量对齐统一会话架构与草稿流新建 (2026-10-21, 完成)**:
+  - 会话抽屉与侧边栏深度重构：
+    - SideChatDrawer 移除割裂的「主要聊天」独立行，全面合并为统一扁平的全部会话列表，置顶会话优先、按更新时间倒序排列
+    - 抽屉顶部新增高亮「＋ 新建会话」药丸行动按钮，点击即刻进入草稿流新会话，长按会话支持置顶/取消置顶、重命名与安全删除
+    - 废除返回主聊天的异常回退拦截逻辑，NanoMuseHome 移除强占返回键的 BackHandler，底部栏切换不再无故跳回主要聊天
+  - 会话顶栏体验均质化与莫兰迪玻璃拟态：
+    - ChatScreen 顶栏抹平主旁会话差异，全量会话均展示 30dp 动态情绪猫咪头像、会话标题、DeepSeek 实时官方余额胶囊与副标题动态状态行
+    - 多语言资源字符串全面对齐：消除所有旁聊与主要聊天陈旧表述，统一更名为全部会话、新建会话与同步所有会话
+  - 完成 assembleDebug 打包并通过 adb 安装部署至平板端（c84b9192）截屏校验通过，提交记录 d12b8e14
+
+- **NyanoMuse 统一会话列表架构、上线草稿流新建会话与自定义壁纸引擎 (2026-10-21, 完成)**:
+  - 会话概念深度归一与草稿流新建体验：
+    - 废除桌面端「主要聊天」与「旁聊」两极割裂的陈旧交互设计，界面呈现统一按置顶与最近更新时间倒序排列的会话列表
+    - 会话侧边栏顶部增加高亮「＋ 新建会话」行动按钮与即时搜索框，点击触发 actions.startSession 开启空白草稿会话并聚焦输入区，在首条消息发送前不落库污染
+    - 顶栏移除多余的返回主聊天按钮，会话右键菜单精炼为置顶、重命名与归档
+  - 多端同步架构兼容与静默保护：
+    - 保持云端中继数据库单一 kind='main' 约束的兼容性，在 SyncEngine 底层保持默认同步开启（sideChats: true），所有会话自动双向同步漫游
+    - 界面层完全抹平主旁会话差异，对用户保持「会话即会话」的统一认知
+  - 自定义壁纸系统与莫兰迪玻璃拟态：
+    - cloud.ts 接入 /wallpaper RESTful 接口支持读取、保存与删除壁纸配置，支持一键读取 Noctalia 莫兰迪当前壁纸与用户本地图片上传
+    - wallpaper.ts 动态挂载全屏壁纸图层与可调毛玻璃模糊度（0-40px）与暗化遮罩（0-85%）
+    - MuseHeader.tsx 顶栏嵌入「壁纸」微型胶囊药丸，呼出沉浸式亚克力壁纸调节弹窗，样式全链路同步 Morandi 质感
+  - 完成 build.mjs 编译部署覆盖并重启桌面端校验，提交记录 c20084eb
+
 - **NyanoMuse 问答选择题卡片支持作答折叠与双端莫兰迪玻璃拟态UI深度对齐 (2026-10-20, 完成)**:
   - 移动端选择题卡片交互升级与折叠机制：
     - QuestionCard.kt 重构状态管理，作答后（selectedAnswer != null）自动平滑折叠为紧凑胶囊摘要条（22dp 对勾徽标、题目单行省略、高亮选项药丸与折叠展开箭头）
