@@ -5,18 +5,24 @@
 
 ## 最近动态
 
-- **NyanoMuse 开放Root模式全局文件系统直通、隐藏冗余挂载项、重构文件工具链并接入核心分区风控 (2026-10-20, 完成)**:
-  - Root 模式全局文件系统直通与冗余挂载隐藏：
-    - PRootKernel.kt 重构路径解析：非 PRoot 容器环境（Root 模式与宿主模式）解除前缀白名单限制，任意绝对路径直连底层文件系统并自动标准化相对路径，同时绕过 SAF 只读挂载点限制
+- **NyanoMuse 开放Root模式全局文件系统直通、系统实时截屏工具上线与工具链深度加固 (2026-10-20, 完成)**:
+  - Root 模式全局文件系统直通与路径归一化：
+    - PRootKernel.kt 重构路径解析：非 PRoot 容器环境（Root 模式与宿主模式）解除前缀白名单限制，任意绝对路径直连底层文件系统，支持波浪号（~）自动映射至真实存储空间与临时目录，支持常见系统分区（system、vendor、data、sdcard、dev、proc、sys 等）省略前导斜杠时自动归一化补全
     - SettingsScreen.kt 在当前执行模式为 ExecutionMode.ROOT 时自动隐藏「挂载外部文件夹」配置入口，避免对具备全盘操作能力的 Root 模式产生冗余误导
-  - 文件读写与编辑工具链全面重构升级：
-    - FileReadTool.kt 补全 Root 环境目录探测保护（直接读取目录时给出友好提示并指引使用 shell_execute ls 列出），优化非 root 权限文件大小探测，采用 sed 与 tail 分页安全读取大文件防内存溢出，并在工具描述中明示已支持 Android 全盘绝对路径
-    - FileWriteTool.kt 增加 Root 模式父目录递归自动补全（mkdir -p），直写受阻时平滑切换 su 管道流写入并执行字节校验
-    - FileEditTool.kt 深度适配 Root 文件系统读写，引入 Windows/Linux 换行符（CRLF/LF）自动归一化回退容错，彻底杜绝模型因空白符不匹配导致的替换失败
+  - 系统实时屏幕截屏工具（screen_capture）与多端视觉管线集成：
+    - NativeSystemTools.kt 新增 screen_capture 原生系统工具：Root 模式下通过 su 管道直通 /system/bin/screencap -p 零延迟捕获无损 PNG 字节流，非 Root 模式下无缝回退至 AccessibilityService 屏幕快照
+    - ChatViewModel.kt 的 executeToolCall 将 screen_capture 深度接入视觉解析管线：原生支持视觉的多模态大模型直接接收像素分析屏幕，无原生视觉模型自动分发给 Vision Group 协同生成详细屏幕描述
+  - 文件读写、编辑与图像解析工具链深度加固：
+    - FileReadTool.kt 补全 Root 环境目录探测保护（直接读取目录时给出友好提示并指引使用 shell_execute ls 列出），优化非 root 权限文件大小探测，采用 sed 与 tail 分页安全读取大文件防内存溢出
+    - ReadImageTool.kt 深度适配 Root 模式：当 Java 权限受限时自动通过 su 管道流读取底层受限目录（如 /data/local/tmp、/data/data/ 等）中的图片字节并由 BitmapFactory 内存解码，增加目录误读拦截
+    - FileWriteTool.kt 与 FileEditTool.kt 全面采用 POSIX 单引号安全转义（'\''），彻底消除路径中包含特殊字符、美元符变量（$）或空格时的 Shell 变量展开漏洞，父目录缺失时自动递归补建（mkdir -p）
+    - ToolSelfHealing 扩展支持 screen_capture、file_write 与 read_image 的自愈诊断提示
+  - Root 模式原生扩展 CLI 工具链（nanomuse-pc、android-*）直发直通支持：
+    - NativeOffloadServer 新增 canHandle 与 dispatchDirect，并在 ExecutionCoordinator 中无缝拦截分发，彻底解决过去在 Root 模式下执行 nanomuse-pc、android-device 等命令时因脱离 PRoot Alpine 沙箱导致提示找不到命令（127）的断层问题，免除重装 Alpine 沙箱镜像的额外开销
   - 关键系统分区与敏感文件风控告警防护：
     - RiskGate.kt 新增 checkFileModification 与 assessFileModification 校验门控，精确识别 dev/block、proc/sys、sys/fs、sys/kernel 以及 system、vendor、product、apex、packages.xml、init 脚本等核心高危系统路径
     - ChatViewModel.kt 的 executeToolCall 在执行 FileWriteTool 与 FileEditTool 时前置接入风险拦截，涉及高危路径时抛出二次审批卡片，常规目录（sdcard、data/adb/modules、data/local/tmp、用户沙盒等）保持零摩擦极速执行
-    - 补齐 RiskGateTest 全量自动化单元测试（涵盖安全路径、高危路径及非 Root 模式），所有测试 100% 绿色通过，APK 构建完成并推送到 GitHub 远端仓库
+    - 全量自动化单元测试 100% 绿色通过，APK 构建完成并推送到 GitHub 远端仓库（94162cc4）
 
 - **NyanoMuse 初始引导对话移除、平板气泡自适应宽度、多端设备自动识别与多语言资源对齐 (2026-10-20, 完成)**:
   - 初始引导对话剧本彻底移除：
