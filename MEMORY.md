@@ -5,6 +5,47 @@
 
 ## 最近动态
 
+- **NyanoMuse 多端会话同步修复、PC端重连与Root模式系统提示词加固 (2026-10-20, 完成)**:
+  - 桌面端与多端会话同步断连根因定位与修复：
+    - 排查定位桌面端 ~/.nyanomuse/desktop/nanomuse/cloud.json 中 sync.accountId 留存旧账户 ID，启动时 cloud.ts 未检查内存与存储账户 ID 是否一致，导致桌面端 SyncEngine 游标无法与自建中继对齐
+    - 修复 harness/dsh-nanomuse/src/cloud.ts：在启动挂载时检测如果 sync.state.accountId 与当前 account.id 不一致，自动触发 sync.accountChanged 重置同步引擎并对齐会话
+    - 重新编译构建 dsh-nanomuse 并同步覆盖安装目录，重启桌面端进程，验证 devices 表中 CachyOS 成功上线（last_seen 实时心跳）
+  - 安卓端旁聊默认同步机制开启：
+    - 排查定位 ConversationSync.kt 与 SyncEngine.kt 中 sideChats（同时同步旁聊）默认写死为 false，导致只有主聊能同步，平板与手机侧边抽屉旁聊列表始终为空
+    - 将 sideChats 默认值修改为 true（用户仍可在数据控制中自主关闭），并更新 harness 同步逻辑，实现平板与电脑双向无缝漫游
+  - Root 模式系统提示词加固与远程设备离线指引：
+    - 排查定位 ChatViewModel.kt 的基础系统提示词写死 Alpine PRoot 沙箱与 /var/minis，导致在 Root 模式下模型误以为沙箱损坏并幻觉报错
+    - 系统提示词全面区分 isRootMode：Root 模式下明确告知当前直通安卓宿主 root shell（su），PRoot 沙箱属于刻意停用，内置 CLI 工具（nanomuse-pc、android-* 等）由宿主环境直接分发
+    - Computers.kt 提示词加固：当远端设备离线时，明确要求模型以一行简洁话术提示用户检查桌面端运行状态，禁止使用 root 盲目刺探本地端口或沙箱文件
+  - 全量单元测试 100% 绿色通过，APK 构建完成，GitHub main 分支完成提交推送（23789a8c）
+
+- **NyanoMuse 聊天输入框完全透明修复与动态页面主题色一致性对齐 (2026-10-20, 完成)**:
+  - 聊天输入框完全透明无背景问题根治：
+    - 排查定位 ChatScreen.kt 中输入框 Column 在 hazeState != null 时只应用了 hazeEffect 却完全省略了 Modifier.background(...)，且采样的是外层外壳的全局 hazeState，因祖先容器包含 hazeSource 导致循环依赖或未对齐消息层
+    - ChatScreen.kt 内部独立建立专属 chatHazeState 节点，将消息列表 Box 注册为 hazeSource(chatHazeState)，顶栏 TopAppBar 与输入框胶囊无缝采样滚动消息层
+    - 输入框 Column 与顶栏 Box 无条件显式填充半透明表面背景（composerBg 与 topBarBg）并配置描边，彻底解决无消息滑动或毛玻璃未就绪时输入框 100% 镂空穿透的问题
+    - MuseBottomBar、MuseNavRail 与 SideChatDrawer 同步补充显式 background 兜底，防止极端情况下出现图层穿透
+  - 动态（Feed）页面背景颜色统一对齐：
+    - 排查定位 FeedTab.kt 中 LazyColumn 误用硬编码调色板 MuseTones.canvas（深色下写死纯黑 #000000，浅色下为 #F3F3F5），导致与 Ideas、Goals、Library 以及莫兰迪动态主题严重割裂
+    - 将 FeedTab.kt 的 LazyColumn 背景颜色无缝修改为 ChatColors.background，与其他功能标签页及全局主题配色完全统一
+  - 平板大屏细节打磨：
+    - 平板分栏展开时隐藏聊天顶栏多余的侧边栏折叠圆按钮，统一由最左侧 Navigation Rail 顶部按钮总控，消除界面元素重复与卡片视觉遮挡
+  - 全量单元测试 100% 通过，APK 编译完成并推送到 GitHub 远端仓库（34a15b31）
+
+- **NyanoMuse 统一手机与平板端主页UI、全面应用Haze毛玻璃与大屏自适应架构 (2026-10-20, 完成)**:
+  - 架构统一与大屏自适应（Adaptive nanoMuse Home）：
+    - 废除 AppNavigation.kt 中平板大屏强制分流到 OpenMinis 老版 ChatSplitScaffoldRoute 的旧逻辑，全设备统一由 NanoMuseHome 统一自适应承接，彻底消除手机与平板像是两套软件的割裂感
+    - 新增 MuseNavRail.kt：平板横屏与大屏展开时，左侧自适应呈现纵向磨砂毛玻璃 Navigation Rail，优雅收纳 Chat、Feed、Ideas、Goals、Library 5 个核心标签胶囊，底部提供新建会话与设置快捷入口
+    - 双栏工作台与可折叠会话列表：在 Chat 模式下，大屏左侧自适应呈现 SideChatDrawer 会话栏（主聊、副聊、设备），支持点击顶栏或导航栏图标一键丝滑折叠展开（expandHorizontally / shrinkHorizontally），右侧为主聊天工作流；其他标签页自适应居中并限制 900dp 黄金阅读宽度，杜绝 3K 超宽屏横向拉伸疲劳
+  - 全局 Haze 玻璃拟态深度铺设与高分辨率性能调优：
+    - ChatScreen.kt 顶栏 TopAppBar 与输入框卡片全面接入 HazeState 与 hazeEffect 磨砂玻璃质感，输入卡片与底部 MuseBottomBar 悬浮双胶囊质感遥相呼应
+    - 侧边抽屉底板从死板的纯色 Surface 改为半透明磨砂层（hazeEffect + 0.5dp 细分界线）
+    - 针对高分辨率屏幕调优渲染开销：将模糊半径统一优化为 22dp、噪点系数 0.05，共享单根 HazeState 节点，彻底杜绝多层离屏重复采样导致的掉帧卡顿
+  - 键盘人体工程学与细节打磨（IME Ergonomics）：
+    - 监听软键盘 insets（WindowInsets.ime）：手机端打字弹起键盘时，底部 MuseBottomBar 自动下沉淡出避让，输入框直接吸附于键盘上沿并消除多余空白；键盘收起后平滑弹回
+    - 修复 MenuOpen 图标使用为 AutoMirrored 版本消除编译弃用告警
+    - 全量自动化单元测试 100% 绿色通过，APK 构建完成并推送到 GitHub 远端仓库（159e2977）
+
 - **NyanoMuse 开放Root模式全局文件系统直通、系统实时截屏工具上线与工具链深度加固 (2026-10-20, 完成)**:
   - Root 模式全局文件系统直通与路径归一化：
     - PRootKernel.kt 重构路径解析：非 PRoot 容器环境（Root 模式与宿主模式）解除前缀白名单限制，任意绝对路径直连底层文件系统，支持波浪号（~）自动映射至真实存储空间与临时目录，支持常见系统分区（system、vendor、data、sdcard、dev、proc、sys 等）省略前导斜杠时自动归一化补全
