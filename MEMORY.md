@@ -5,6 +5,21 @@
 
 ## 最近动态
 
+- **NyanoMuse 长期可检索记忆系统检索召回加固与全端落地 (2026-10-21, 完成)**:
+  - 检索召回与分词缺陷根治：
+    - 修复 FTS 查询空格隐式 AND 导致的召回归零问题，FTS 查询短语统一以 OR 语法拼接（buildFtsQuery），FTS 粗筛召回全部重叠候选后由应用层统一打分器（scoreCandidate）执行精准排序，评测集召回率由 0/8 跃升至 8/8（Top-1 100% 命中）
+    - 分词器扩展支持全 Unicode 字母与数字范围（\p{L}\p{N} 与 Character.isLetterOrDigit），彻底规避重音字母、西里尔与特殊字符截断
+  - 数据安全、去重与重置隐私闭环：
+    - rooms.ts 与 LocalMemoryDb 在 upsert 阶段增加基于内容哈希/titleKey 的重复判定，彻底杜绝重复内容反复插入生成脏 ID
+    - resetData 修复数据库连接残留与隐私泄漏风险：显式关闭数据库连接并彻底物理抹除 memory.db、memory.db-wal 与 memory.db-shm 后重建空库
+    - exportData 补全全量记忆归档：导出 Zip 包时自动将全局记忆结构化转储为 nanomuse/memories.json
+    - rooms-tools.ts 修复记忆注入倒序截断缺陷：将 memory.slice(-120) 纠正为 memory.slice(0, 100)，优先保留置顶记忆与最新高权重记忆
+  - 移动端连接与全量测试闭环：
+    - MemoryRepository 深度集成 LocalMemoryDb：在 loadGlobalMemoryFragment 注入常驻结构化记忆，在 getMemory 关键字检索时双路并发查询 Markdown 日志与 SQLite FTS
+    - 移除 MemorySearchTest 中硬编码绝对路径，动态向上解析测试集资源
+    - 桌面端 pnpm test 全量 341 项测试 100% 绿色通过，安卓端 testDebugUnitTest 全绿并完成 assembleDebug 打包安装至平板（c84b9192）
+  - 提交记录 90fdc9ae
+
 - **NyanoMuse 长期可检索记忆系统全链路全端落地 (2026-10-21, 完成)**:
   - 核心架构与决策闭环：
     - 废除 FTS 内建打分依赖，两端统一采用预分词 CJK Bigram + 单词切分（tokenizeForSearch），排序在应用层由统一算法（scoreCandidate）确定性计算，彻底消除 Android FTS4 缺 bm25 导致的跨端歧义
