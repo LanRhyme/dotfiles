@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **NyanoMuse 问答选择题卡片支持作答折叠与双端莫兰迪玻璃拟态UI深度对齐 (2026-10-20, 完成)**:
+  - 移动端选择题卡片交互升级与折叠机制：
+    - QuestionCard.kt 重构状态管理，作答后（selectedAnswer != null）自动平滑折叠为紧凑胶囊摘要条（22dp 对勾徽标、题目单行省略、高亮选项药丸与折叠展开箭头）
+    - 展开视图全面重构：16dp 圆角、0.8dp 极细描边、26dp 帮助图标微型胶囊、已回答标签与顶栏收起按钮，选项行采用 11dp 莫兰迪药丸、选中态高亮与单选对勾指示
+    - 结合 animateContentSize 实现平滑伸缩过渡，编译并在平板端安装部署校验通过
+  - 桌面端（dsh-nanomuse）全链路对齐与部署：
+    - FenceCards.ts 全面升级 questionCard：解析支持 questions 数组与单体 question 结构，引入 selectedAnswer 与 isExpanded 状态回路
+    - 选项点击自动即时折叠为胶囊胶囊药丸，支持点击胶囊随时展开复查或重新作答
+    - styles.ts 注入完整莫兰迪玻璃拟态样式（nm-question-card、nm-question-collapsed、nm-question-expanded、nm-question-option 等），并针对 Harness 原生 QuestionComposer 与 ToolRow 注入一致的圆角毛玻璃微调
+    - 顶栏 DeepSeek 官方余额胶囊同步上线：cloud.ts 挂载 /balance 安全接口读取环境或凭据中的密钥并代理查询，MuseHeader.tsx 中心顶栏无缝渲染绿色状态圆点与实时余额，与移动端保持 100% 体验一致
+    - 完成 build.mjs 编译覆盖并重启桌面端进程验证，提交记录 a9bc6655
+
 - **NyanoMuse grill-me 全面重构为原生 ask_user_question 工具调用与协程挂起交互架构 (2026-10-20, 完成)**:
   - 架构升级与原生工具注册：
     - 废弃基于正文 `<question>` 结构化标签的伪交互协议，全面对齐 DeepSeek Harness 的原生 `ask_user_question` / `ask_question` 工具调用标准
