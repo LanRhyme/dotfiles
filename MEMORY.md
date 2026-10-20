@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **NyanoMuse 中继同步作用域修复、端点空URL防御与Root模式截图路径归一化 (2026-10-20, 完成)**:
+  - 云端中继会话同步异常与 500 崩溃根治：
+    - 排查定位 cloud/nanomuse_cloud/sync.py 中在 deleted 变量声明前提前引用（deleted = bool(conv.get("deleted"))），导致客户端推送带特定标题或更新时间戳时触发 UnboundLocalError 引发 HTTP 500
+    - 调整赋值时序至前置判断之前，修复后 pytest 24/24 测试套件全绿通过并热重启 8787 端口中继服务
+  - 安卓端登录与连接空 URL 防御：
+    - 排查定位 CloudSignInScreen.kt 在服务器地址留空或异常重置时直接调用 login 导致 IllegalArgumentException
+    - 增加非空校验拦截与友好错误反馈，并在 Hub.kt 中增加 baseUrl 空串拦截防止构建非法 WebSocket 协议连接
+  - Root 模式跨设备截屏与文件下发真实路径直通：
+    - ReachOffloadHandler.kt 原先硬编码返回 /var/minis/attachments/... 虚拟路径，在 Root 模式下脱离 PRoot 导致 AI 误判文件丢失或沙箱损坏
+    - 将返回值 path 调整为宿主文件系统真实绝对路径（dest.absolutePath），同时保留 minis_path 与 markdown 便于界面富文本渲染
+  - 全量单元测试与 Debug APK 编译验证通过，推送远端分支（05a2b690）
+
 - **NyanoMuse 多端会话同步修复、PC端重连与Root模式系统提示词加固 (2026-10-20, 完成)**:
   - 桌面端与多端会话同步断连根因定位与修复：
     - 排查定位桌面端 ~/.nyanomuse/desktop/nanomuse/cloud.json 中 sync.accountId 留存旧账户 ID，启动时 cloud.ts 未检查内存与存储账户 ID 是否一致，导致桌面端 SyncEngine 游标无法与自建中继对齐
