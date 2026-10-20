@@ -151,7 +151,7 @@
     - 全面剔除账户页面的额度池（Allowance）、用量明细（Usage）、邀请好友（Invite）与 Star 弹窗组件，停用 80% 额度预警
     - 本地清除历史官方云残留会话（cloud.json 与 .credentials.yaml 中的旧 Token），确保桌面端处于未登录净态
     - 全量单测 333 项测试通过，完成 Electron 桌面端构建并热部署至 `~/.local/opt/nyanomuse/`
-  - 待办：平板端测试安装最新版 APK 并验证自建服务器多端漫游与同步功能
+  - 平板端（一加平板 2 Pro / OPD2413）完成 NyanoMuse 最新版 APK 安装与原 io.github.nanomuse.app 全量数据无缝迁移，电池优化白名单与后台权限已配置完成
 
 - **nanoMuse 跨设备 AI Agent 全端部署、Niri 静默自启与黑猫灵魂/AGENTS.md 双轨联动 (2026-10-18, 完成)**:
   - 架构：开源跨设备自主 Agent（v1.0.5）；手机端（K60）与平板端（一加平板 2 Pro）均安装 `io.github.nanomuse.app` 并配置电池白名单，电脑端安装 AppImage 至 `~/.local/opt/nanomuse/nanoMuse.AppImage` 并创建 CLI 链接 `~/.local/bin/nanomuse`
