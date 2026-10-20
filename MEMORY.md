@@ -5,7 +5,30 @@
 
 ## 最近动态
 
-- **NyanoMuse GitHub风格用量贡献热力图、日周月统计与会话顶栏DeepSeek余额花费胶囊 (2026-10-20, 完成)**:
+- **NyanoMuse 修复DeepSeek余额与今日花费胶囊在主聊天顶栏未显示问题 (2026-10-20, 完成)**:
+  - 顶栏胶囊未展示根因定位与布局修复：
+    - 排查定位 ChatScreen.kt 中原 DeepSeek 胶囊放置于 `else if (!nmHideModelRows)` 模型副标题列内部，由于主聊天默认开启极简模式（nmHideModelRows 为 true），导致整列副标题与 DeepSeek 胶囊在主聊天中被完全短路跳过未渲染
+    - 废弃纵向副标题内的旧版胶囊，将其提升至顶栏中心标题行（与 displayTitle / sessionTitle 水平居中并列排布），不增加顶栏任何纵向高度，保持 50dp 极致紧凑顶栏
+    - displayTitle 增加 weight(1f, fill = false) 弹性收缩保护，在保证标题与胶囊同屏优雅并排的同时杜绝超长标题导致的文本折行与视觉挤压
+  - 余额获取与多模型适配全链路加固：
+    - DeepSeekTracker.kt 的 isDeepSeekModel 扩展支持联合校验 modelId、displayName、providerName 与 baseUrl，全面覆盖直接调用、自建代理中继及模型别名
+    - ChatViewModel.kt 的 refreshDeepSeekStatus 智能识别当前活跃实例：若当前实例为第三方中继且无官方余额接口，自动从配置中搜寻已启用的官方 DeepSeek 实例密钥查询官方余额（https://api.deepseek.com/user/balance），兼顾今日花费实时统计与官方真实余额展示
+    - 新增流式结束（_isStreaming 翻转为 false）与会话加载完成（sessionLoaded）时的自动触发刷新机制，点击胶囊即刻强刷并呼出用量热力图底栏
+  - 编译打包并通过 adb 安装至平板端（c84b9192）截屏验证，余额与花费正常展示，提交记录 f857a558
+
+- **NyanoMuse 会话顶栏紧凑度与渐变模糊优化、多轮工具命令合并与底部悬浮条移除 (2026-10-20, 完成)**:
+  - 会话顶栏高度压缩与渐变模糊优化：
+    - 废弃原先纵向堆叠的大型头像圆盘（76dp）与双行药丸，重构为极致紧凑的水平 Row 布局（30dp 微型头像与标题状态垂直居中排布）
+    - TopAppBar 的 expandedHeight 从 112~140dp 深度裁剪至 50dp（降幅超 60%），顶栏 hazeEffect 渐变模糊层高度减半，彻底解决遮挡聊天内容问题
+    - 滚动列表 contentPadding 相应收窄，会话内容自然上浮呈现
+  - 多轮命令与工具调用聚合为单张可展开折叠卡片：
+    - 针对连续多轮工具调用（如 shell_execute 连续探测与多步排查），在 ChatFlatItems 中将工具组收集状态提升到消息循环层级
+    - 消除模型中间推理思考（reasoning_content）对工具序列的切断影响，全回合连续工具/命令无缝合并为单张 ToolCallGroup 折叠胶囊
+    - 默认以微型胶囊形态收纳（展示「已执行 N 个工具/命令 · 耗时 X.Xs ⌄」），支持点击平滑内联展开/收起全部工具执行细节
+  - 移除执行命令时的底部冗余悬浮窗：
+    - 移除输入框上方伴随工具运行而弹出的 FloatingToolStatusBar 悬浮条及其缩略图，将工具运行与完成状态完全收拢至消息流内联折叠卡中，保持输入区清爽干净
+  - 编译并在平板端（c84b9192）完成安装验证，全链路测试通过，提交记录 45ab6263
+
   - 会话顶栏 DeepSeek 专属余额与今日花费胶囊：
     - 新增 io.github.nanomuse.chat.DeepSeekTracker：内置 DeepSeek 官方费率阶梯计算模型（V3: 输入¥1/M、缓存命中¥0.1/M、输出¥2/M；R1/Reasoner: 输入¥4/M、输出¥16/M），基于本地 Room 数据库扫描今日 00:00 至今的所有 UsageRecord 实时毫秒级计算累计今日花费
     - 异步调用 DeepSeek 官方余额接口（GET https://api.deepseek.com/user/balance），获取成功时展示「余额: ¥xx.xx · 今日花费: ¥x.xx」，第三方中继或超时时优雅降级仅展示「今日花费: ¥x.xx」，杜绝占位符报错
