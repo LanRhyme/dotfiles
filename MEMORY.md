@@ -5,6 +5,22 @@
 
 ## 最近动态
 
+- **NyanoMuse 初始引导对话移除、平板气泡自适应宽度、多端设备自动识别与多语言资源对齐 (2026-10-20, 完成)**:
+  - 初始引导对话剧本彻底移除：
+    - 排查定位 FirstConversation.kt 中硬编码的开屏引导剧本（包含「你好，我是 nanoMuse」、「我该怎么称呼你？」及改名卡片），将其 shouldShowIntro 设为 false，状态默认锁定为 Phase.DONE，intro 与 promptAddendum 返回空
+    - ChatViewModel.kt 的 nmSeedFirstConversation() 增加虚拟消息 nm_intro_* 与改名卡片硬清除
+    - harness/dsh-nanomuse/src/firstrun.ts 同步将 showsIntro 置为 false
+  - 平板与大屏气泡最大宽度自适应重构：
+    - NmHomeChrome.kt 中原先写死 Modifier.widthIn(max = 340.dp) 导致在一加平板 2 Pro（12.1 寸大屏）上气泡过于狭窄
+    - 改用 BoxWithConstraints 动态适配：小屏手机保持原有优雅宽度，平板与宽屏自适应扩展至 minOf(760.dp, maxWidth * 0.88f)
+  - 多端设备类型自动识别与标识增强：
+    - Hub.kt 与 NanoMuseCloud.kt 引入 isTablet 屏幕尺寸探测（smallestScreenWidthDp >= 600）
+    - 平板设备自动赋予 tablet- 设备 ID 前缀并在默认设备名称后追加 (Tablet) 后缀，自建中继多端列表中手机与平板设备一眼区分
+  - 多语言资源对齐与单测全量修复：
+    - 清理剩余代码与资源中遗留的官方 nanoMuse Cloud 文案，统一为「自建中继 / 自建服务」
+    - 修复 nm_cloud_err_allowance 与 nm_cloud_warn_line 占位符格式化参数缺失，并在全部 16 种语言包中补全 nm_cloud_title
+    - 全量单元测试 testDebugUnitTest 100% 绿色通过，Android Debug APK 构建完成，GitHub main 分支完成提交推送（43caf8fe）
+
 - **NyanoMuse 自建服务页面暗色文字根治与智能体黑猫人设记忆防覆盖保护 (2026-10-20, 完成)**:
   - 自建服务与多端同步页面深色模式黑字根治：
     - 排查定位 MuseChrome.kt 中 MuseCard 仅设置 color = MuseTones.surface（#1C1C1E），未显式指定 contentColor，Compose M3 的 contentColorFor 无法匹配自定义色值导致 Color.Unspecified，使得未显式设色的 Text 组件全部回退到 Color.Black
