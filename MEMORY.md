@@ -14,10 +14,12 @@
   - 结构化四分面压缩提示词重构:
     - 安卓端 ChatViewModel 压缩提示词升级为 Markdown 四分面结构化契约（任务状态与目标、核心决策与约束、文件产物与代码变动、踩坑与禁止事项）
     - 杜绝长会话多轮压缩导致的上下文漂移与技术决策失真，严格规避盲目滑动窗口折叠对前缀缓存的破坏
-  - 自动化测试与工程验证:
-    - 桌面端补充 MemoryStore.getPinnedMemories 接口，编写 query-aware-context.test.mjs 单元测试，pnpm test 全量 354 项测试 100% 绿色通过，pnpm typecheck 与 pnpm build 构建正常
-    - 安卓端编写 ContextOptimizationTest 单元测试验证 Top-K 过滤与四分面结构，testDebugUnitTest 全量测试通过，assembleDebug 构建并通过 ADB 安装部署至平板（c84b9192）
-  - 提交记录 35f5c199
+  - 自动化测试与工程加固:
+    - 抽离纯函数 selectMemoriesForPrompt 至独立模块，双端统一上限约束常量（MAX_PINNED_MEMORIES=6, MAX_PINNED_CHARS=800, MAX_INJECTED_MEMORIES=8, MAX_INJECTED_CHARS=2000），清理死代码
+    - 修复测试虚脱问题：query-aware-context.test.mjs 覆盖置顶硬上限、动态意图排序、回退填充与字数预算；ContextOptimizationTest 直接断言 ChatViewModel 真实四分面标题常数并覆盖安卓端选择器
+    - 同步更新 CHANGELOG.md 与 docs/desktop-muse.md、docs/android.md 文档
+    - 桌面端 pnpm test 全量 357 项测试 100% 绿色通过，安卓端 testDebugUnitTest 全量测试通过，assembleDebug 构建并通过 ADB 安装部署至平板（c84b9192）
+  - 提交记录 35f5c199, 8a7343cc
 
 - **NyanoMuse 零开销语义概念扩展与被动自然偏好捕获全端落地 (2026-10-21, 完成)**:
   - 零开销语义概念与同义词泛化扩展:
