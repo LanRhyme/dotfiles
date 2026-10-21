@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **NyanoMuse 提问工具跨端同步卡片渲染与作答回显全链路修复 (2026-10-21, 完成)**:
+  - 核心病因与数据流打通:
+    - 根因定位：多端会话同步（SyncEngine / Transcript）原本仅提取 parts 中的纯文本（type == "text"），而模型调用的 ask_user_question 为 toolUse 块，不仅导致问题内容在生成推送文本时被全部丢弃，还因 hasToolUse 判定使得提问阶段的消息被误判为未完成轮次而直接阻断推送；拉取端收到空文本后无法解析任何卡片；即使收到历史问答，InteractiveQuestionCard 也未承接后续用户作答 selectedAnswer
+    - 转录推送层升级：Transcript.Row 识别 isAskQuestionTool，将提问参数自动无损打包为 `<question>...</question>` 标准标签并合入 text，同时放行提问交互轮次的同步推送，确保对端设备实时可见问题卡片；桌面端 cloud.ts 同步补全 sessionLines 提问参数注入
+    - 拉取与回显闭环：QuestionCardParser.extractQuestion 全面委托至 parseFromToolArgs 完整健壮解析器并支持嵌套代码围栏；ChatFlatItems 为 AssistantMarkdownBlock 注入后续用户消息作为 selectedAnswer，已答状态下卡片自动进入折叠与高亮回显模式
+    - 桌面端联动：FenceCards 扩展监听 .nm-remote-bubble 远端气泡与代码围栏，打通双向全端卡片化渲染
+  - 测试与部署:
+    - 补齐 TranscriptTest 提问轮次推送单测与 QuestionCardTest 复合结构解析单测，全量通过
+    - 桌面端 pnpm test 358 项全绿
+    - assembleDebug 构建通过并已部署至手机端（ed3fdd92）与平板端（c84b9192）
+  - 提交记录 d3bb7c46
+
 - **NyanoMuse 提问工具多选题复选交互与合并提交落地 (2026-10-21, 完成)**:
   - 多选交互状态与视觉重构:
     - 修复此前 InteractiveQuestionCard 未感知 isMultiSelect 导致点击选项立即单选触发提交的问题
@@ -14,7 +26,7 @@
     - QuestionCardParser 扩充 multiple 字段兼容检测
   - 测试与部署:
     - QuestionCardTest 补全蛇形与驼峰命名多选参数识别测试，单测 100% 通过
-    - assembleDebug 编译通过并已部署安装至手机端（ed3fdd92）
+    - assembleDebug 编译通过并已部署安装至手机端（ed3fdd92）与平板端（c84b9192）
   - 提交记录 67148dcf
 
 - **NyanoMuse 提问工具调用（ask_user_question / ask_question / ask_user）卡片渲染与参数解析全端修复 (2026-10-21, 完成)**:
