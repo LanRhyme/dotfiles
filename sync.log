@@ -10026,3 +10026,6 @@ remote:
 To https://github.com/LanRhyme/dotfiles.git
  ! [remote rejected] master -> master (push declined due to repository rule violations)
 错误：无法推送一些引用到 'https://github.com/LanRhyme/dotfiles.git'
+[master 286ea8b] auto: 2026-10-21-10:00:01
+ 2 files changed, 48 insertions(+)
+致命错误：无法访问 'https://github.com/LanRhyme/dotfiles.git/'：SSL: certificate subject name 'ruijie' does not match target hostname 'github.com'
