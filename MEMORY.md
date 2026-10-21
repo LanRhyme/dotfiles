@@ -5,6 +5,32 @@
 
 ## 最近动态
 
+- **NyanoMuse 零开销语义概念扩展与被动自然偏好捕获全端落地 (2026-10-21, 完成)**:
+  - 零开销语义概念与同义词泛化扩展:
+    - 针对本地离线与轻量运行场景，彻底摆脱笨重 Embedding 模型开销，建立双向等价同义词表（EQUIVALENT_SYNONYMS）与单向上下位概念层级（HYPERNYM_EXPANSIONS）
+    - FTS 查询构建器（buildFtsQuery）实现概念自动展开扩充，精准覆盖设备、系统、窗口管理器、包管理器、开发工具及日常饮食习惯
+    - 应用层打分器（scoreCandidate）注入 0.5 语义覆盖增益，解决非字面重叠语义召回（如搜热饮召回拿铁，搜电脑系统召回 PC 操作系统）
+  - 安全被动自然偏好捕获流（extractPassiveMemories）:
+    - 严格遵守防投毒边界，仅对来自 user 角色的真实用户发言执行被动提取，绝对阻断工具调用与网页注入伪造
+    - 精准识别硬件环境、居所变动、习惯、称呼、健康约束及沟通规范，内置 transient 过滤规则自动拦截瞬态即时指令与闲聊反问
+    - 提取事实通过冲突消解体系（findDirectConflict / supersede）安全入库，多端保持一致
+  - 自动化测试与工程验证:
+    - 桌面端 pnpm test 全量 352 项测试 100% 绿色通过，pnpm typecheck 与 pnpm build 构建正常
+    - 安卓端 testDebugUnitTest 全量测试通过，assembleDebug 构建并通过 ADB 安装部署至平板（c84b9192）
+  - 提交记录 bd331198
+
+- **NyanoMuse 记忆冲突消解与时态演进系统全端落地 (2026-10-21, 完成)**:
+  - 核心架构与冲突消解闭环:
+    - 落地信念修正与时态演进机制（Belief Revision & Temporal Evolution），杜绝事实冲突导致的常驻记忆污染
+    - 双端引擎（MemoryStore / LocalMemoryDb）实现原子化 supersede：自动将旧事实标记归档至 Cold 持久区（is_archived = 1，降权），同时将新事实写入 Hot 常驻区并继承分类与置顶状态，双路操作同步派发 OpLog
+    - 内置高精度直接属性冲突检测器（findDirectConflict）：针对称呼、居住地、核心硬件/OS、关键工具偏好等事实实现自动命中与静默覆盖，支持 detectConflicts 拓扑粗筛
+  - 工具层与提示词注入升级:
+    - 桌面 remember 与安卓 memory_write 工具参数扩充 replaces_id，模型可显式传入冲突旧记忆 ID 完成原子替换
+    - 系统提示词动态注入记忆句柄：常驻记忆统一输出 `[- [id] 内容]` 显式锚点，并在上下文附带冲突消解指令，模型发现偏好或状态变更时精准调用覆盖
+  - 自动化测试与验证:
+    - 桌面端 pnpm test 全量 350 项测试 100% 绿色通过，pnpm build 构建正常
+    - 安卓端 testDebugUnitTest 全绿，assembleDebug 打包并通过 ADB 部署至平板（c84b9192）
+
 - **NyanoMuse 桌面端与安卓端设置记忆管理界面现代化重构 (2026-10-21, 完成)**:
   - 桌面端 (dsh-nanomuse):
     - 设置中设立独立记忆管理中心板块（Settings -> Memory），MuseSettings 注册主导航入口并绑定脑电波图标
