@@ -5,16 +5,15 @@
 
 ## 最近动态
 
-- **NyanoMuse 伴侣纯函数情绪状态机与流控持久化管理落地 (2026-10-21, 完成)**:
-  - 核心架构与纯函数情绪模型 (阶段一):
-    - 根因定位与架构纠偏：针对传统常驻内存累加情绪易随系统后台清理失真、以及读取 KEY_LAST_ACTIVE_TIME 无法反映真实闲置时间的问题，将情绪模型重塑为纯函数 CompanionEmotion，输入当前时钟、主聊天真实最后一条 user 消息时间戳与按天聚合的活跃互动天数，计算确定性的 PAD（愉悦/唤醒/依恋）心境状态与主动发话意愿
-    - 昼夜节律与闲置动力学：深夜静默时段（23:00~07:00）投影为 SLEEPY 且主动分数归零；晨间（07:00~09:30）唤醒元气问候；白天根据真实离线时长平滑过渡（刚互动完温暖沉浸、闲置 4h+ 好奇探头、离线 10h+ 思念挂念）
-    - 流控持久化管理：新建 CompanionPrefs 统一纳入 nanomuse SharedPreferences，提供免打扰时段判断、跨日自重置的今日计数统计、冷却时间防抖与每日互动天数单日缓存，杜绝重复全表扫描
-  - 自动化测试与工程验证:
-    - 编写 CompanionEmotionTest 与 CompanionPrefsTest 单元测试，全面覆盖夜间静默、晨间元气、闲置阶梯、冷却防抖、跨日清零、长期未见思念优先级与亲密度平滑增长，21 项单测全绿通过
-    - assembleDebug 验证全量编译正常
-    - 针对同行审查迅速闭环：修复从未触发过的 0L 哨兵值缺陷，对齐 07:00~09:30 晨间与 21:30~22:59 晚安时段，确立长期未见优先于晨间元气的羁绊逻辑；彻底移除 BackgroundTaskNotifier 冗余 setDefaults，恢复上游原有注释并规范 // nanoMuse: 插桩，独立建立 nanomuse_companion_proactive 专属高优先级通知渠道，补齐 CHANGELOG.md 文档
-  - 提交记录 96ec5a78, ac43d146
+- **NyanoMuse 伴侣主动对话、情绪系统、主聊天滑动窗口与记忆蒸馏全链路落地 (2026-10-22, 完成)**:
+  - 核心架构与阶段成果:
+    - 阶段一 (纯函数情绪状态机与流控持久化): PAD 纯函数 CompanionEmotion，输入当前时钟、真实用户消息闲置时长与按天聚合活跃天数，计算确定性心境；免打扰、冷却防抖、每日限额与今日计数存储于 nanomuse 偏好；专属 nanomuse_companion_proactive 高优先级通知通道
+    - 阶段二 (无感评估、调度触发与发话投递): 注册 CompanionAlarmReceiver 30 分钟省电对齐闹钟监听开机自启；复用 RoutineWakes.armCompanion 注入轻量非客服伴侣话术（40 汉字软约束）；通过 HeadlessChatRunner.prompt 后台无声投递，后台时触发高优先级横幅通知；NmRoutineWakeRow 专属单行静默渲染
+    - 阶段三 (主聊天滑动窗口与异步记忆蒸馏): MainChatContextPolicy 建立 16k Token 滑动窗口，保底截取 10 条消息并确保工具边界完整；ChatViewModel 彻底旁路主聊天三处 compactAll 入口规避累加衰减，溢出消息异步经 MainChatMemoryDistiller 蒸馏写入 StructuredMemory（事实 source='distilled'，羁绊 category='bond'），游标 companion_distilled_message_cursor 防重
+    - 阶段四 (UI、多语言本地化与配置中心): NanoMuseHeader 接入伴侣实时心境副标题；SettingsScreen 新增「伴侣与情绪系统」入口并挂载 CompanionSettingsSheet 底部弹窗，支持主动开关、免打扰时段、最小间隔与每日上限配置；全量补齐 17 种国际化语言文案并经 NmStringsParityTest 严格校验
+  - 测试与部署:
+    - 20 项 Companion/ContextPolicy 专项单元测试全部通过，全量 1700+ 单元测试 100% 绿色通过
+    - assembleDebug 构建通过并通过 ADB 成功热更新安装至手机端（ed3fdd92）
 
 - **NyanoMuse AI 输出完成通知提醒、触觉振动与内容摘要全链路落地 (2026-10-21, 完成)**:
   - 核心病因根治与提醒体系升级:
