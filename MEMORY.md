@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **NyanoMuse 提问工具调用（ask_user_question / ask_question / ask_user）卡片渲染与参数解析全端修复 (2026-10-21, 完成)**:
+  - 核心病因根治与容错加固:
+    - 根因定位：AgentTools 中 ask_user_question 工具参数被声明为 `type: "string"`，导致 LLM 回传 JSON 字符串或直接传递对象，而 QuestionCardParser 仅按单一 JSONArray 提取；当解析为空时 ChatScreen 判定 `qData == null` 直接静默跳过渲染，且 Preflight 因参数校验过严产生误阻断，导致提问挂起后屏幕卡片完全空白
+    - QuestionCardParser 全面升级：支持 Markdown 代码块剥离、根级 JSON 数组解析、字符串化 JSON 展开、直接根级 question/options 映射、prompt/choices/answers 兼容别名及文本/描述多字段抽取，在无预设选项时自动提供优雅交互兜底（确认/取消），杜绝解析失败返回 null
+    - 渲染兜底闭环：ChatScreen 在卡片构造器处接入安全兜底，即便原始参数异常也强制渲染问题卡片，保证用户始终可交互作答而不死锁
+    - 跨端工具名与预检对齐：统一覆盖 ask_user_question、ask_question、ask_user 与 ask，ChatViewModel 预检对提问工具放宽直接 question/prompt 参数，桌面端 rooms.ts 同步补全多字段描述提取
+  - 自动化测试与部署验证:
+    - 编写安卓端独立单元测试 QuestionCardTest 覆盖标准数组、字符串化嵌套、根级对象、Markdown 围栏与预检放行等 10 种边界情况，100% 绿色通过
+    - 桌面端 pnpm test 全量 358 项测试 100% 绿色通过
+    - assembleDebug 编译通过，已自动部署安装至手机端（ed3fdd92）并同步更新桌面端安装产物
+  - 提交记录 55a5d18d
+
 - **NyanoMuse 全链路长上下文治理与注意力优化全端落地 (2026-10-21, 完成)**:
   - 核心架构与注意力治理:
     - 针对长记忆与上下文注意力稀释问题（Lost in the Middle 与 128k 上下文降智），落地 Tier 3 动态注意力注入（Query-Aware Dynamic Attention Injection）
