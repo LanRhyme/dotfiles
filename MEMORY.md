@@ -11,9 +11,10 @@
     - 昼夜节律与闲置动力学：深夜静默时段（23:00~07:00）投影为 SLEEPY 且主动分数归零；晨间（07:00~09:30）唤醒元气问候；白天根据真实离线时长平滑过渡（刚互动完温暖沉浸、闲置 4h+ 好奇探头、离线 10h+ 思念挂念）
     - 流控持久化管理：新建 CompanionPrefs 统一纳入 nanomuse SharedPreferences，提供免打扰时段判断、跨日自重置的今日计数统计、冷却时间防抖与每日互动天数单日缓存，杜绝重复全表扫描
   - 自动化测试与工程验证:
-    - 编写 CompanionEmotionTest 与 CompanionPrefsTest 单元测试，全面覆盖夜间静默、晨间元气、闲置阶梯、冷却防抖、跨日清零与亲密度平滑增长，12 项单测全绿通过
+    - 编写 CompanionEmotionTest 与 CompanionPrefsTest 单元测试，全面覆盖夜间静默、晨间元气、闲置阶梯、冷却防抖、跨日清零、长期未见思念优先级与亲密度平滑增长，21 项单测全绿通过
     - assembleDebug 验证全量编译正常
-  - 提交记录 96ec5a78
+    - 针对同行审查迅速闭环：修复从未触发过的 0L 哨兵值缺陷，对齐 07:00~09:30 晨间与 21:30~22:59 晚安时段，确立长期未见优先于晨间元气的羁绊逻辑；彻底移除 BackgroundTaskNotifier 冗余 setDefaults，恢复上游原有注释并规范 // nanoMuse: 插桩，独立建立 nanomuse_companion_proactive 专属高优先级通知渠道，补齐 CHANGELOG.md 文档
+  - 提交记录 96ec5a78, ac43d146
 
 - **NyanoMuse AI 输出完成通知提醒、触觉振动与内容摘要全链路落地 (2026-10-21, 完成)**:
   - 核心病因根治与提醒体系升级:
