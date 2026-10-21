@@ -5,6 +5,17 @@
 
 ## 最近动态
 
+- **NyanoMuse AI 输出完成通知提醒、触觉振动与内容摘要全链路落地 (2026-10-21, 完成)**:
+  - 核心病因根治与提醒体系升级:
+    - 原生缺口与体验痛点：原先 BackgroundTaskNotifier 仅在应用彻底退入后台时发通知，且通知通道被设为 IMPORTANCE_DEFAULT（低优先级静默无横幅），通知内容机械固定为「点击打开聊天查看回复」，未显示 AI 真实回复；同时前台无任何振动触觉反馈，前台切换到其他 Tab（如 Ideas/Goals/Library/Settings）或在桌面使用其他应用时，用户完全感知不到生成完毕
+    - 全新高优先级横幅通知流：重构 BackgroundTaskNotifier，升级专属通知通道 nanomuse_task_completed 为 IMPORTANCE_HIGH 并启用振动与声音，以浮动横幅（Heads-up）形式直观弹出；标题智能提取 Agent 名称（如 nanoMuse / 小喵），正文动态携带真实回复摘要（lastReplyExcerpt / BigTextStyle），副标题显示会话标题，点击一键唤醒直达对应会话
+    - 前台多场景智能感知与触觉触感：新增 VIBRATE 权限与轻量触感反馈（vibrateCompletion），AI 输出结束时触发轻快触感脉冲；智能感知 ChatViewModelStore.activeSessionId，用户正在注视当前对话时不冗余弹状态栏通知，在离开当前会话或切换页面时精准补发横幅提醒
+    - 生命周期闭环清理：ChatScreen 挂载该会话时定向取消对应通知，不再在应用启动时粗暴清空所有未读完成消息
+  - 自动化测试与部署:
+    - 编写 BackgroundTaskNotifierTest 单元测试覆盖前台当前抑制、前台异屏放行、开关状态判断与指定取消等全部用例，100% 绿色通过
+    - assembleDebug 构建通过并通过 ADB 成功部署安装至手机端（ed3fdd92）
+  - 提交记录 e3d9fd10
+
 - **NyanoMuse 应用重启默认进入最后活跃会话全链路打通 (2026-10-21, 完成)**:
   - 核心病因根除与架构重构:
     - 根因定位：NanoMuseHome 原逻辑在冷启动时硬编码 `if (chatSessionId == null) chatSessionId = main`，而 MainChat.resolve 会永久锁定偏好中首次创建的 KEY_SESSION（主聊天），导致无论用户在哪个副聊天中对话或收到跨端同步新消息，一旦重启应用均会被强行拽回最古老的主聊天；且草稿晋升（onPromoted）与会话切换均未持久化记录上次活跃会话
