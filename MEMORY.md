@@ -5,6 +5,15 @@
 
 ## 最近动态
 
+- **NyanoMuse 提问工具挂起中实时推送与作答后卡片双向保留修复 (2026-10-21, 完成)**:
+  - 核心病因深挖与修复:
+    - 挂起中未入库导致不同步：ChatViewModel 在 runAgentLoop 中原先推迟至所有工具执行结束才调用 persistAssistantTurn，而 ask_user_question 在 executeAskUserQuestion 处挂起等待用户点击，导致提问等待期间该轮助手消息从未写入 SQLite，LocalChats 读不到新行，SyncEngine 无法推送，对端设备在提问中完全看不到卡片；修复为在执行 toolCalls 循环前检测到 isAskQuestionTool 即刻预先持久化，记录 assistantDbId 并触发 ConversationSync.changed 与 turnEnded，轮次全部结束时若已存在 assistantDbId 则 updateMessageParts 避免重复插入
+    - 作答后分段覆盖导致卡片丢失：Transcript.Row 原先将所有带 toolResult 的消息视为非真人消息合并到同一分段，seg.lastOrNull 选取最终助手回复，导致提问工具调用卡片被永久吞噬；修复为识别问答工具结果 isQuestionAnswer，将其作为独立分段起始（isPersons = true），提取用户选择文本，使得提问卡片与用户答复、后续回复全部完整保留在转录流中
+  - 测试与部署:
+    - 补齐 Fakes.questionResult 与 TranscriptTest 问答完整轮次双向保留单测，单元测试全绿
+    - assembleDebug 构建通过并已部署安装至平板端（c84b9192）
+  - 提交记录 4165041e
+
 - **NyanoMuse 提问工具跨端同步卡片渲染与作答回显全链路修复 (2026-10-21, 完成)**:
   - 核心病因与数据流打通:
     - 根因定位：多端会话同步（SyncEngine / Transcript）原本仅提取 parts 中的纯文本（type == "text"），而模型调用的 ask_user_question 为 toolUse 块，不仅导致问题内容在生成推送文本时被全部丢弃，还因 hasToolUse 判定使得提问阶段的消息被误判为未完成轮次而直接阻断推送；拉取端收到空文本后无法解析任何卡片；即使收到历史问答，InteractiveQuestionCard 也未承接后续用户作答 selectedAnswer
