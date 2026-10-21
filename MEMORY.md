@@ -11,7 +11,7 @@
     - 作答后分段覆盖导致卡片丢失：Transcript.Row 原先将所有带 toolResult 的消息视为非真人消息合并到同一分段，seg.lastOrNull 选取最终助手回复，导致提问工具调用卡片被永久吞噬；修复为识别问答工具结果 isQuestionAnswer，将其作为独立分段起始（isPersons = true），提取用户选择文本，使得提问卡片与用户答复、后续回复全部完整保留在转录流中
   - 测试与部署:
     - 补齐 Fakes.questionResult 与 TranscriptTest 问答完整轮次双向保留单测，单元测试全绿
-    - assembleDebug 构建通过并已部署安装至平板端（c84b9192）
+    - assembleDebug 构建通过并已部署安装至手机端（ed3fdd92）与平板端（c84b9192）
   - 提交记录 4165041e
 
 - **NyanoMuse 提问工具跨端同步卡片渲染与作答回显全链路修复 (2026-10-21, 完成)**:
