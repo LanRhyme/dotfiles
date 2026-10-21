@@ -5,6 +5,20 @@
 
 ## 最近动态
 
+- **NyanoMuse 全链路长上下文治理与注意力优化全端落地 (2026-10-21, 完成)**:
+  - 核心架构与注意力治理:
+    - 针对长记忆与上下文注意力稀释问题（Lost in the Middle 与 128k 上下文降智），落地 Tier 3 动态注意力注入（Query-Aware Dynamic Attention Injection）
+    - 废除静态全量灌入 3000 字符常驻记忆机制，重构为置顶核心底护照（Pinned Core Passport）+ 意图相关性动态召回（Dynamic Top-K Recall，上限 8 条记忆，总预算 2000 字符）
+    - 系统提示词动态感知当前会话用户最新 Query，无相关提问时仅保持稳定前缀护照与全局文件，大幅提升 Provider Prompt Cache 命中率与长会话推理聚焦度
+    - 活跃目标（Goals）仅注入 tracking 活跃状态，归档及完成目标彻底移出实时注意力上下文
+  - 结构化四分面压缩提示词重构:
+    - 安卓端 ChatViewModel 压缩提示词升级为 Markdown 四分面结构化契约（任务状态与目标、核心决策与约束、文件产物与代码变动、踩坑与禁止事项）
+    - 杜绝长会话多轮压缩导致的上下文漂移与技术决策失真，严格规避盲目滑动窗口折叠对前缀缓存的破坏
+  - 自动化测试与工程验证:
+    - 桌面端补充 MemoryStore.getPinnedMemories 接口，编写 query-aware-context.test.mjs 单元测试，pnpm test 全量 354 项测试 100% 绿色通过，pnpm typecheck 与 pnpm build 构建正常
+    - 安卓端编写 ContextOptimizationTest 单元测试验证 Top-K 过滤与四分面结构，testDebugUnitTest 全量测试通过，assembleDebug 构建并通过 ADB 安装部署至平板（c84b9192）
+  - 提交记录 35f5c199
+
 - **NyanoMuse 零开销语义概念扩展与被动自然偏好捕获全端落地 (2026-10-21, 完成)**:
   - 零开销语义概念与同义词泛化扩展:
     - 针对本地离线与轻量运行场景，彻底摆脱笨重 Embedding 模型开销，建立双向等价同义词表（EQUIVALENT_SYNONYMS）与单向上下位概念层级（HYPERNYM_EXPANSIONS）
