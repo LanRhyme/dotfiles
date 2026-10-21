@@ -5,6 +5,21 @@
 
 ## 最近动态
 
+- **NyanoMuse 会话全量漫游契约确立与记忆系统健壮性闭环 (2026-10-21, 完成)**:
+  - 会话同步契约终局对齐：
+    - 正式确立「全部会话默认同步漫游」为新架构契约，彻底统一桌面与移动端体验（会话即会话，不再区分主旁）
+    - 同步更新 sync.ts 架构注释，在 sync.test.mjs 中完善断言：未迁移旧状态默认升级为同步开启（true），同时显式关闭（sideChats: false）依然安全保全
+  - 记忆系统健壮性与安全防护加固：
+    - 修复 upsert 显式传入不存在 ID 时误触 UPDATE 导致返回 null 且未落库的严重缺陷：仅在未传 ID 时做内容查重（findByContent），显式 ID 不存在时一律 INSERT，配套编写单测验证通过
+    - 增加 FTS 粗筛候选集硬上限（LIMIT 500），防止海量数据下 MATCH 结果导致 IN 查询语句参数爆满
+    - 安卓 LocalMemoryDb 补全 episodes 与 episodes_fts 虚表结构，保持双端 DDL 架构 100% 精确一致
+    - 云端中继 sync.py 增加 client_time 与 updated_at 异常类型防御（ValueError/TypeError 降级回退），杜绝 500 崩溃
+    - rooms-tools.ts 落地系统提示词记忆注入硬预算：单次对话最多注入 30 条或 3000 字符（约 1000~1500 tokens），置顶优先，超出部分友好提示引导调用 recall_memory
+  - 自动化测试与验证：
+    - 桌面端 pnpm test 全量 342 项单测 100% 绿色通过，pnpm build 构建正常
+    - 安卓端 testDebugUnitTest 全绿，assembleDebug 构建并通过 ADB 安装部署至平板（c84b9192）
+  - 提交记录 c2061a87, fcc49472
+
 - **NyanoMuse 长期可检索记忆系统检索召回加固与全端落地 (2026-10-21, 完成)**:
   - 检索召回与分词缺陷根治：
     - 修复 FTS 查询空格隐式 AND 导致的召回归零问题，FTS 查询短语统一以 OR 语法拼接（buildFtsQuery），FTS 粗筛召回全部重叠候选后由应用层统一打分器（scoreCandidate）执行精准排序，评测集召回率由 0/8 跃升至 8/8（Top-1 100% 命中）
