@@ -5,6 +5,16 @@
 
 ## 最近动态
 
+- **NyanoMuse 应用重启默认进入最后活跃会话全链路打通 (2026-10-21, 完成)**:
+  - 核心病因根除与架构重构:
+    - 根因定位：NanoMuseHome 原逻辑在冷启动时硬编码 `if (chatSessionId == null) chatSessionId = main`，而 MainChat.resolve 会永久锁定偏好中首次创建的 KEY_SESSION（主聊天），导致无论用户在哪个副聊天中对话或收到跨端同步新消息，一旦重启应用均会被强行拽回最古老的主聊天；且草稿晋升（onPromoted）与会话切换均未持久化记录上次活跃会话
+    - 启动恢复引擎升级：MainChat 引入 resolveLaunchSession，联动 KEY_LAUNCH_SESSION 偏好配置（模式 2 新对话 / 模式 3 主页 / 模式 0 自动与模式 1 上次会话）；自动比对本地最后活跃时间戳与数据库最新更新时间戳，智能承接跨端同步新会话或本地刚离开的会话；草稿完成首次发送晋升为真实会话时通过 StateFlow 实时回传并固化 last_active_session
+    - 宿主双向同步绑定：NanoMuseHome 接入 LaunchedEffect(chatSessionId) 实时双向登记活跃会话，草稿晋升瞬时无缝切换当前活跃 ID 并高亮侧边栏行
+  - 测试与部署:
+    - 编写 MainChatTest 独立单测覆盖新对话、主页锁定、跨端最新覆盖与本地连续会话恢复等全场景，单元测试全绿通过
+    - assembleDebug 打包并通过 ADB 成功部署安装至手机端（ed3fdd92）
+  - 提交记录 af58ef05
+
 - **NyanoMuse 提问工具挂起中实时推送与作答后卡片双向保留修复 (2026-10-21, 完成)**:
   - 核心病因深挖与修复:
     - 挂起中未入库导致不同步：ChatViewModel 在 runAgentLoop 中原先推迟至所有工具执行结束才调用 persistAssistantTurn，而 ask_user_question 在 executeAskUserQuestion 处挂起等待用户点击，导致提问等待期间该轮助手消息从未写入 SQLite，LocalChats 读不到新行，SyncEngine 无法推送，对端设备在提问中完全看不到卡片；修复为在执行 toolCalls 循环前检测到 isAskQuestionTool 即刻预先持久化，记录 assistantDbId 并触发 ConversationSync.changed 与 turnEnded，轮次全部结束时若已存在 assistantDbId 则 updateMessageParts 避免重复插入
