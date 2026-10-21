@@ -5,6 +5,20 @@
 
 ## 最近动态
 
+- **NyanoMuse 桌面端与安卓端设置记忆管理界面现代化重构 (2026-10-21, 完成)**:
+  - 桌面端 (dsh-nanomuse):
+    - 设置中设立独立记忆管理中心板块（Settings -> Memory），MuseSettings 注册主导航入口并绑定脑电波图标
+    - 界面全面对接底层持久化 MemoryStore，支持实时多语种与 CJK 模糊即时检索，具备活跃/归档状态与分类多维筛选胶囊
+    - 记忆卡片支持置顶/取消置顶、归档/恢复、实时编辑与二次确认删除，保留底层 MEMORY.md 浏览与数据导入导出入口
+    - 样式深度注入莫兰迪亚克力毛玻璃质感，适配深浅双色主题
+    - pnpm typecheck、pnpm build 与 pnpm test 全量 348 项测试 100% 绿色通过
+  - 安卓端 (com.openminis.app & io.github.nanomuse):
+    - MemoryManagementScreen 深度重构为 Jetpack Compose 现代仪表盘与卡片流
+    - 顶部聚合常驻/归档/总计三联统计看板，支持关键字实时检索与状态/分类多维过滤胶囊
+    - 列表项支持一键置顶、归档/取消归档、内联弹窗编辑与安全删除，底部收纳折叠式历史 Markdown 日志直达入口
+    - LocalMemoryDb 与 MemoryRepository 补全封装接口，多语言资源全量对齐
+    - 单元测试与 assembleDebug 构建通过，安装部署至平板（c84b9192）验证通过
+
 - **NyanoMuse 会话全量漫游契约确立与记忆系统健壮性闭环 (2026-10-21, 完成)**:
   - 会话同步契约终局对齐：
     - 正式确立「全部会话默认同步漫游」为新架构契约，彻底统一桌面与移动端体验（会话即会话，不再区分主旁）
