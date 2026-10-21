@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **NyanoMuse 提问工具多选题复选交互与合并提交落地 (2026-10-21, 完成)**:
+  - 多选交互状态与视觉重构:
+    - 修复此前 InteractiveQuestionCard 未感知 isMultiSelect 导致点击选项立即单选触发提交的问题
+    - 引入 selectedOptions 状态容器与多选交互分支：在 isMultiSelect 为 true 时支持选项点击自由勾选或反选，选项前置复选框（RoundedCornerShape 方形带对勾）替代传统单选圆环
+    - 标题栏动态附带「多选」指示胶囊，底部新增多选状态栏与「确认提交」操作按钮，实时显示当前已选项目数量，点击确认后统一聚合为逗号分隔字符串回传
+    - 已提交回答回显支持按多选拆分（逗号、顿号、换行）高亮呈现全部已选项
+    - QuestionCardParser 扩充 multiple 字段兼容检测
+  - 测试与部署:
+    - QuestionCardTest 补全蛇形与驼峰命名多选参数识别测试，单测 100% 通过
+    - assembleDebug 编译通过并已部署安装至手机端（ed3fdd92）
+  - 提交记录 67148dcf
+
 - **NyanoMuse 提问工具调用（ask_user_question / ask_question / ask_user）卡片渲染与参数解析全端修复 (2026-10-21, 完成)**:
   - 核心病因根治与容错加固:
     - 根因定位：AgentTools 中 ask_user_question 工具参数被声明为 `type: "string"`，导致 LLM 回传 JSON 字符串或直接传递对象，而 QuestionCardParser 仅按单一 JSONArray 提取；当解析为空时 ChatScreen 判定 `qData == null` 直接静默跳过渲染，且 Preflight 因参数校验过严产生误阻断，导致提问挂起后屏幕卡片完全空白
