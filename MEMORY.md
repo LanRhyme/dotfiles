@@ -5,6 +5,60 @@
 
 ## 最近动态
 
+- **NyanoMuse 多端同步时延极限压缩与重连秒级增量补偿落地 (2026-10-22, 完成)**:
+  - 核心架构与同步链路时延优化:
+    - 移动端人工延迟消除：ConversationSync 中 PUSH_DELAY_MS 由 2000ms 压缩至 200ms，TURN_END_SETTLE_MS 由 1500ms 压缩至 200ms，消灭单次回合结束后长达 3.5s 以上的人工滞后，WAL 落盘即刻触发推送
+    - 前台自愈轮询提频：PULL_EVERY_MS 从 60000ms 优化至 15000ms，前台活跃期 15 秒快速自愈兜底，退后台自动停止轮询保持零耗电
+    - 会话切入即时拉取：ChatScreen 挂载 LaunchedEffect(sessionId)，切换或进入会话时经 200ms 触发 ConversationSync.pullSoon，消灭进会话等待广播帧的时差
+    - Hub 重连秒级全量补偿：HubClient 在 onState 变为 true（WebSocket 重连并握手完成）时立即调用 ConversationSync.syncSoon 与 FeedSync.triggerSync，彻底解决移动端锁屏休眠唤醒后漏广播导致的旧数据死区
+    - 桌面端多端参数对齐：harness/dsh-nanomuse/src/sync.ts 同步调整 PUSH_DELAY_MS 与 FRAME_COALESCE_MS 为 200ms，PULL_EVERY_MS 调整为 15000ms，重新构建 lib 并同步部署至 ~/.local/opt/nyanomuse/ 运行时目录
+  - 测试与多端部署:
+    - 桌面端 pnpm test 全量 359 项单测全绿通过
+    - 移动端 testDebugUnitTest 单测通过（io.github.nanomuse.sync.* 全绿）
+    - assembleDebug 编译通过，并通过 ADB 成功静默安装至一加平板 2 Pro（c84b9192）
+    - 桌面端后台进程 nyanomuse-desktop 平滑重载
+
+- **NyanoMuse 代码块超长折叠交互优化与伴侣全功能环境感知体系落地 (2026-10-22, 完成)**:
+  - 核心架构与代码块视口折叠:
+    - 行数阈值自适应折叠：StreamingMarkdownText 与 MarkdownText 实现超长代码保护，代码行数大于 12 行时自动折叠，仅保留前 5 行代码预览并在底部覆盖垂直渐变阴影，提供「展开全部 (共 N 行)」按钮；展开后顶部工具栏右侧常驻收起图标，长代码底部提供轻量收起手风琴，右上角常驻一键复制代码并带触觉震动与对勾反馈
+    - 流式打字视口稳定守卫：通过 LocalIsStreaming 与 LocalLiveIncremental 动态感知流式输出阶段，正在生成打字中的代码块保持展开状态，彻底杜绝打字过程视口高度抖动
+    - 全语言本地化与视口一致性：17 种国际化语言补全展开与收起文案，通过 NmStringsParityTest 严格校验
+  - 伴侣环境感知工具链与主动迎候引擎:
+    - 原生前台应用感知工具 foreground_app：NativeSystemTools 新增 TOOL_FOREGROUND_APP 只读工具，通过 Root 模式 dumpsys window mCurrentFocus 解析当前前台应用包名与 Activity，并转换为用户友好的应用标签（如哔哩哔哩、微信、QQ、游戏等）；非 Root 环境接入 Accessibility 与 ActivityManager 降级回退；附带当前电量、充电状态与系统时刻
+    - 阶梯式感知架构：RoutineWakes.armCompanion 提示词注入环境感知引导，伴侣可自主先调用 foreground_app 或 device_info 感知用户动态，若需深入理解屏幕画面（如游戏战局、视频、代码报错）再自主按需调用 screen_capture 截图并通过视觉通道深度解析
+    - 双重主动触发流与冷却防打扰：ChatScreen 挂载主聊天时接入前台迎候（Foreground Greeting），离开应用超过 30 分钟重新进入时，伴侣自动感知当前上下文并发出亲昵开场白；后台关怀每日上限 3~5 次并遵循夜间免打扰策略
+  - 测试与真机部署:
+    - NmStringsParityTest 国际化单测与 CompanionEmotionTest 单测全绿通过
+    - assembleDebug 编译打包成功并已通过 ADB 静默安装至红米 K60（ed3fdd92）与一加平板 2 Pro（c84b9192）
+
+- **NyanoMuse 桌面端真实动态同步打通与全页面全局壁纸背景透视落地 (2026-10-22, 完成)**:
+  - 核心架构与桌面端动态通道修复:
+    - 桌面端 DSH 扩展注册与广播：定位到电脑端实际运行的 Electron DSH 插件 harness/dsh-nanomuse/src/cloud.ts，此前未在 actions 声明 feed.posts 与 feed.activity 导致对端无法发现；在 actions() 注册这两项并在 Service.init 中挂载处理函数，直接读取 rooms.json 中的真实动态（400+ 行）与 activity 返回，重新构建 lib 并部署到运行时目录，重启 DSH 后台服务生效
+    - 移动端多变体时间戳与日期容错解析：FeedSync 适配 rooms.json 的 at 毫秒时间戳字段（兼容 created_at、ts 与 at），若 day 为空自动格式化为 yyyy-MM-dd；目标设备选择策略优化，兼顾 online 状态与 actions 列表
+    - 用户操作反馈与 Hub 状态监听：triggerSync 支持 userInitiated 模式，在手动同步成功或失败时通过 Toast 即时反馈导入条数与总数；FeedTab 监听 Hub.connected 与 Hub.devices，当设备上线时自动触发后台增量同步；FeedTab 接入 Material3 PullToRefreshBox 原生下拉刷新手势，随手下拉即可触发全量同步
+  - 全页面全局壁纸背景与通透磨砂层级:
+    - 根级壁纸容器 AppWallpaperBackground：封装对 ChatWallpaperManager 路径、高斯模糊与暗色遮罩的实时监听，通过 LocalHasAppWallpaper CompositionLocal 向全应用提供壁纸状态
+    - 全页面透明化与卡片磨砂效果：修改 MainActivity 将 AppNavigation 包裹在 AppWallpaperBackground 中；AppNavigation 根级 NavHost modifier 设置透明背景消除对底层壁纸的遮盖；NanoMuseHome 非会话页外层 Surface、FeedTab、IdeasTab、GoalsTab、LibraryTab、SettingsScreen、SettingsScaffold、AvatarStudioScreen 与 AgentProfileScreen 的底层背景在存在壁纸时自动设为透明；MuseCard、FeedCard、Segmented 控件采用 0.88 混合半透明微磨砂质感，让壁纸在全应用通透沉浸呈现
+    - 会话页去重：ChatScreen 接入 LocalHasAppWallpaper，移除自身多余的壁纸二次解码与模糊渲染，与全局底层壁纸无缝衔接且零闪烁
+  - 构建与真机部署:
+    - assembleDebug 构建通过，并通过 ADB 成功安装至红米 K60（ed3fdd92）
+  - 提交记录 95be5bb9、36280c3b 与 7c99eedf
+
+- **NyanoMuse 伴侣情绪夜间锁死修复与顶栏头像 8 情绪专属微动效落地 (2026-10-22, 完成)**:
+  - 核心架构与情绪流转修复:
+    - 夜间与静默时段活跃对话感知：CompanionEmotion.evaluate 引入 isActivelyEngaged = idleMs < 30min 判断，用户在 21:30~22:59 晚安关怀时段与 23:00~08:00 静默时段仍在前台活跃对话时，不再无条件锁死为困倦 SLEEPY，而是正常进入欢快活跃心境 FRESH_RESONANCE
+    - 日常闲聊正向心境保持：blendWithAsymmetricDecay 中 CASUAL_CHAT 在活跃衰减期保持 PrimaryMood.HAPPY，消灭此前因价态门槛过高而频繁跌回夜间困倦状态的问题
+    - 对话意图识别词库扩充与时间戳剥离：appraiseUserTurn 前置通过 BubbleTimeFormatter.stripUserPromptTimestamp 清洗尾部注入的提示词时间戳，扩充涵盖「可以可以」「好耶」「帮我看看」等高频日常口语词典，并增强闲聊打趣的愉悦冲量
+    - 响应式状态流与即时通知：CompanionStatus 增加 emotionVersion: StateFlow<Long>，在 recordEmotionImpulse、recordLastRealUserMessageTime 以及情绪开关与强度调整时立即自增通知；ChatScreen 将其接入 remember key，彻底终结此前 60 秒轮询导致的状态迟钝
+    - 发送即时感知：ChatViewModel 在用户点击发送与注入排队回合瞬间即刻执行意图与冲量计算，顶栏头像与状态秒级响应，模型提示词组装时直接读取最新情绪
+  - 头像多维专属微动效系统:
+    - 瞬时弹性入场动效：AgentAvatar 监听 companionMood，8 种情绪切换时分别触发定制弹簧与关键帧动画（EXCITED 活力跳跃、HAPPY 欢快双跳、TOUCHED 温暖双心跳脉冲、SHY 害羞歪头微红、CURIOUS 竖耳探头向上、SLEEPY 困倦低头、CARING 温柔关切侧倾、LONGING 依恋思念延展）
+    - 差异化呼吸与位移节奏：针对不同情绪定制呼吸周期（EXCITED 1200ms、HAPPY 2000ms、CARING 2800ms、SLEEPY 3600ms）与微悬停位移幅度，实现生动细腻的伴侣级互动感
+  - 自动化测试与构建:
+    - CompanionEmotionTest 补充夜间活跃对话、晚安关怀活跃豁免与时间戳清洗单测，全量通过
+    - assembleDebug 编译通过
+  - 提交记录 45cdccc9
+
 - **NyanoMuse 手机平板与电脑动态跨端同步与活动流展示落地 (2026-10-22, 完成)**:
   - 核心架构与跨端同步流打通:
     - 电脑端 Hub 动作扩展：nanomuse/hub/service.py 在 _extra_actions 注册 feed.posts 与 feed.activity 动作，并在分发调度器中对接 svc.feed_posts 与 svc.feed(limit)，打通电脑向移动端输出每日早报与后台离开期间活动流的能力
