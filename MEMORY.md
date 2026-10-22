@@ -5,6 +5,36 @@
 
 ## 最近动态
 
+- **NyanoMuse 手机平板与电脑动态跨端同步与活动流展示落地 (2026-10-22, 完成)**:
+  - 核心架构与跨端同步流打通:
+    - 电脑端 Hub 动作扩展：nanomuse/hub/service.py 在 _extra_actions 注册 feed.posts 与 feed.activity 动作，并在分发调度器中对接 svc.feed_posts 与 svc.feed(limit)，打通电脑向移动端输出每日早报与后台离开期间活动流的能力
+    - 移动端存储与持久化去重落盘：FeedStore 引入 RemotePost 数据结构与 importRemotePosts 方法，按日期分目录落盘 markdown 文件并按标题不区分大小写去重，完成后自动触发 reload 与 prune
+    - 移动端 P2P 同步单例：新建 FeedSync 单例，封装 sync 与 triggerSync，自动识别 Hub 在线电脑设备并并发拉取 feed.posts 与 feed.activity，解析后台任务、文件产出与通知事件；同时提供 handleLocalPostsCall 响应对端设备的动态请求
+    - 动态广播与静默唤醒：ConversationSync 在 Hub 接收到 what == "feed" 的广播同步帧时，自动唤醒 FeedSync.triggerSync 执行增量拉取
+    - 移动端 FeedTab 视觉呈现与活动流展示：FeedTab 监听 FeedSync.activities 与 isSyncing，在进入动态页时自动触发静默同步；新增 While you were away（在你离开期间）活动卡片流与分类图标、相对时间戳与一键跳转所属会话能力；空白状态与设置弹窗中增加从电脑同步动态操作入口与进度指示器
+    - 国际化文案支持：nm_strings.xml 与 values-zh 补齐在你离开期间、从电脑同步动态与正在同步动态等词条
+  - 构建验证:
+    - assembleDebug 编译打包通过，生成 57MB debug APK
+  - 提交记录 871dc73a
+
+- **NyanoMuse 手机端侧边栏 UI 重构与主导航移入抽屉落地 (2026-10-22, 完成)**:
+  - 核心架构与交互重构:
+    - 聊天界面全屏纯粹化：彻底移除手机聊天页面底部悬浮的 MuseBottomBar，输入框（Composer）自然贴近屏幕底部手势线，为聊天消息流腾出完整的纵向空间，nmBottomOverlay 设为 0dp
+    - 侧边栏顶部功能导航：在侧边栏顶部伴侣名字下方，集成自适应横向 5-Tab 胶囊导航栏（聊天、动态、灵感、目标、知识库），点击平滑切换并自动收起抽屉，全应用支持边缘滑动呼出侧边栏
+    - 侧边栏结构精简与重排：主聊天卡片使用低饱和微透明卡片与高亮边框替代生硬黑底，搜索栏移至全部会话列表正上方支持即时过滤与一键清空，底部移除重复新建按钮与挤压搜索框，仅保留精致清爽的设置与文档入口
+  - 构建与真机部署:
+    - assembleDebug 编译通过，并通过 ADB 静默安装至红米 K60（ed3fdd92）
+  - 提交记录 fec910a7
+
+- **NyanoMuse 伴侣多气泡切分提示词强引导与容错解析增强 (2026-10-22, 完成)**:
+  - 核心架构与提示词引导增强:
+    - 纯指令式提示词与边界规约：重构 bubbleFlowAddendum，摒弃冗长示例与弱语气英文，替换为极简纯中文直接指令，明确日常闲聊拆分 2~3 个短气泡及代码技术严禁切分的场景边界
+    - 容错正则解析下沉：BubbleTimeFormatter 引入 BUBBLE_REGEX（忽略大小写，兼容带空格如 <nm:bubble /> 与变体），ChatFlatItems 与 ChatRepository 全面接入，杜绝因轻微语法差异导致漏切分
+    - 气泡文本首尾清洗：ChatFlatItems 切分后执行 trim() 清洗，消除分段产生的换行与空白，保证自适应单行与时间戳测算精确生效
+    - 流式节奏解耦全局支持：解除流式打字停顿对 isMain 的硬编码限制，只要出现气泡切分标签即触发 450ms 拟人停顿
+  - 自动化测试与真机部署:
+    - 507 项单元测试全绿通过，assembleDebug 编译打包通过，并通过 ADB 静默刷入平板（c84b9192）与手机（ed3fdd92）
+
 - **NyanoMuse 消息列表自适应分页加载与历史静默预加载落地 (2026-10-22, 完成)**:
   - 核心架构与无感分页机制:
     - UI 视图层自适应分页（UI Windowing）：超长会话初次进入仅加载最新 60 条消息，大幅减少初始 FlatChatItem 构建与 Markdown 解析节点，彻底根除深层嵌套导致的内存峰值与 OOM 隐患；底层 agentHistory、LLM 上下文滑动窗口与 SQLite 数据无损完整保留
