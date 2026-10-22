@@ -5,6 +5,38 @@
 
 ## 最近动态
 
+- **NyanoMuse 主对话拟真多气泡连续消息与打字节奏流全链路落地 (2026-10-22, 完成)**:
+  - 核心架构与拟真人性化设计:
+    - 结构性气泡语法解耦：采用显式语义标签 `<nm:bubble/>` 作为连续消息切分点，由模型在随意聊天、情绪共鸣或简短问候时自主触发，单回合最多 2 次切分（最多连续 3 个短气泡），长篇说明、技术讲解与代码块严禁拆分；Prompt 指导仅规范结构性排版，不预设也不侵入用户自定义人格
+    - 流式打字节奏与动态停顿：ChatViewModel 在收集到 `<nm:bubble/>` 时即刻刷写 UI 封口当前气泡，并在协程层引入 450ms 拟人停顿与打字脉冲（BouncingDots），随后流式吐出下一气泡，还原真人打字断句与发消息节奏
+    - 聚类气泡视觉与自适应圆角：NmAssistantBubble 与 AssistantMarkdownBlock 支持 clusterIndex 与 clusterSize，同簇气泡垂直间距紧凑（4dp），外侧角采用 18dp 莫兰迪大圆角，内侧相邻角收缩为 4dp 微圆角，形成微信/Telegram 风格的自然聚合气泡群
+    - 数据展平与生命周期守卫：ChatFlatItems 在历史展平时安全解析 `<nm:bubble/>`，上限保护为最多 3 个气泡，首气泡承接 leadingThinking 思考引线，尾气泡承接流式状态与 selectedAnswer 作答，流式空尾段保留以展现打字指示器
+  - 自动化测试与构建:
+    - AssistantBubbleGroupingTest 补齐多气泡切分、簇数量上限截断、流式空尾气泡保留与思考引线归属全部用例，100% 绿色通过
+    - assembleDebug 构建通过
+  - 提交记录 814c5ed6
+
+- **NyanoMuse 伴侣情绪系统全链路闭环优化与对话感知微动效联动 (2026-10-22, 完成)**:
+  - 核心架构与二轮审查深度落实:
+    - 落实外部 AI 审查报告 v2 提出的全部必改项与优化项（P0-1 助手落库点、P0-2 规避自指循环、P0-3 对话行为评估矩阵、P1-1 安全边界与独立开关、P1-2 负向自愈防打架、P1-3 前缀缓存零损耗、P1-4 可观测探针长按防冲突）
+    - Dialogue Act 确定性矩阵：摒弃脆弱词典法与自指输入，appraiseUserTurn 仅严格解析用户发言文本，内置前置反讽/阴阳怪气识别（如「呵呵」「真棒呢」），支持 6 大行为类别（PRAISE/VENTING/PLAYFUL_TEASE/GREETING_NIGHT/QUESTION_CURIOUS/CASUAL_CHAT）
+    - 非对称半衰衰减模型：blendWithAsymmetricDecay 纯函数实现积极情绪半衰期 15min、负向情绪半衰期 5min，当倾诉（VENTING）被识别后关切心境（CARING）持续主导 10min（ratio > 0.25），明确指示模型温柔关切绝不嬉皮笑脸，下一次用户互动即刻按新行为重构心境，杜绝死锁与失忆
+    - 助手精准落库与幂等钩子：ChatViewModel runAgentLoop 仅在 no tool calls -> break 最终助手回合（:9356）触发单次情绪计算，以 lastAppraisedAssistantMsgId 实施幂等守卫，从 agentHistory 逆向提取最后一条用户文本，排查并避开中间工具轮与占位气泡
+    - Prompt Cache 零损耗注入：在 buildSystemPrompt 的 volatileSections 尾部注入 MATE 规范的伴侣心境增量（Companion Heart & Disposition），严格位于 runtimeContext 之前，保持 stableSections 前缀字节完全稳定，DeepSeek / Anthropic 前缀缓存 100% 命中
+    - 情绪与主动独立解耦：CompanionPrefs 新增 companion_emotion_enabled 独立开关，情绪表现（主聊心境感知）与主动陪伴（定时问候）可各自独立启闭；CompanionSettingsSheet 支持克制/正常/生动三档强度与好感度可见可重置
+    - 顶栏心境探针与 Compose 微动效：主聊顶栏头像下方状态胶囊改用 combinedClickable，短按跳转档案，长按弹出包含效价、唤醒度、好感度与半衰期的实时探针 Toast；AgentAvatar 保持 5 态资源管线稳定，通过 graphicsLayer 读取伴侣心境并渲染害羞轻晃、好奇侧耳与兴奋雀跃微动效
+    - 17 种国际化语言与穷举守卫：全量补齐 17 种语言 nm_strings.xml，CompanionNotifications 与 CompanionWake 穷举处理所有 8 种 PrimaryMood
+  - 代码终审精细化缺陷修复 (emotion_system_code_review.md):
+    - P0-1 称呼 key 拼写修复：FirstConversation.KEY_ADDRESS 改为 internal 统一引用，彻底解决 first_conversation_address 无点导致的读取失效问题，增加 12 字符安全截断防超长污染 prompt
+    - P0-2 独立维度非对称衰减：提取 decayOne 纯函数，P（效价）与 A（唤醒度）分别按符号独立选择半衰期，解绑共用 ratio 缺陷，确保用户倾诉（VENTING）时高唤醒持续 15 分钟温情陪伴
+    - P0-3/P1-5 反讽检测与误伤治理：词表补充中文高频阴阳怪气词句（「行吧」「你开心就好」「我可谢谢你了」等），移除易产生歧义的「你最好」，补全「辛苦了」，引入二段式防讽刺复查
+    - P0-4 偏置累积与时间连续衰减统一：recordEmotionImpulse 移除与时间脱节的固定 0.4 系数，记录新冲量时先按 elapsedMs 执行 decayOne 衰减再累加，持久化数值严格反映当前真实偏置
+    - P1-1/P1-2 顶栏状态性能与 60s 刷新：ChatScreen 单次计算 compState 并通过 60 秒低频 ticker 驱动重组，自然平复衰减在 UI 上清晰可感
+    - 完备单元测试补齐：CompanionEmotionTest 新增 6 类行为判定、反讽拦截、单维度衰减数学、倾诉唤醒度保持与称呼安全截断全量用例
+  - 测试与构建验证:
+    - 单元测试 1721 项全部通过，assembleDebug 打包成功
+  - 提交记录 ffe798c3, 6792a0c5
+
 - **NyanoMuse 深度思考卡片融合进消息气泡与极简引线手风琴重构 (2026-10-22, 完成)**:
   - 核心痛点与视觉重塑:
     - 根除突兀亮蓝硬编码：彻底移除原先孤立的 Color(0xFF015CFB) 亮蓝实框大卡片，深度融入全局 Morandi 配色体系（ChatColors.thinking 与二级字色 ChatColors.secondaryText），告别刺眼视觉噪声
