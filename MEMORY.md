@@ -5,6 +5,49 @@
 
 ## 最近动态
 
+- **NyanoMuse 顶栏纯余额胶囊展示、阶梯式全量预热与长会话滚动极致性能优化 (2026-10-22, 完成)**:
+  - 核心架构与长对话滚动性能重构:
+    - 顶栏纯余额胶囊：DeepSeekStatus displayText 精简移除「今日花费」，仅显示「¥余额」，极简紧凑且点击仍完整呼出 Token 消费详情面板
+    - 渐进式二级 Markdown 预热（Two-Tier Prewarming）：ChatScreen 彻底打破原有 16 条视口限制，Tier 1 优先后台预热首屏 16 条保证冷启秒开，Tier 2 在后台以 yield 协程协作模式分批预热全量剩余历史消息，彻底消除长会话向上飞抛滚动时的冷解析预览闪烁、动态高度跳变与布局抖动
+    - 自适应气泡 O(1) 零开销测算：ChatBubbleAdaptiveLayout 引入先验水平宽度校验，并通过 FirstBaseline == LastBaseline 原生判断单行，彻底消除滚动期间对 measurables[0].minIntrinsicHeight 的重复二次测量遍历开销，消息气泡追加 50 字快速短路保护
+    - 冷解析日志去噪限频：StreamingMarkdownText 仅对超过 15ms 的重型解析输出日志，消灭滚动期间持续磁盘 I/O 开销
+  - 自动化测试与构建验证:
+    - 安卓端全量 505 项单元测试通过，assembleDebug 编译打包通过
+
+- **NyanoMuse 跨端多气泡形态统一、列表预览过滤与时间戳清洗下沉 (2026-10-22, 完成)**:
+  - 架构统合与端到端闭环:
+    - 跨端多气泡形态一致性：Transcript.kt 恢复保留同步文本中的 `<nm:bubble/>`，RemoteBubbles.ts 桌面端实现多气泡分割（上限 3 气泡）并注入自适应圆角与纵向间距，实现手机端与桌面端完全一致的拟真多气泡流式视觉
+    - 会话列表预览全链路清洗：ChatRepository.cleanPreview 过滤 `<nm:bubble/>` 为空格，桌面端 ui.plain 同步清洗，会话列表与搜索预览绝不泄漏分隔符
+    - 时间戳与字符串工具下沉解耦：BubbleTimeFormatter 集中管理 NM_BUBBLE_TAG、BUBBLE_CADENCE_DELAY_MS、USER_PROMPT_TIMESTAMP_REGEX、stripUserPromptTimestamp 与 countOccurrences，ChatViewModel 委托调用；MemoryExtractor 提取前置清洗时间戳，杜绝时间戳污染被动记忆
+    - CHANGELOG 全量补齐：CHANGELOG.md 补齐伴侣情绪系统、多气泡连续流与消息时间感知全部用户可见特性
+  - 自动化测试与构建:
+    - 安卓端全量 505+ 项单元测试全绿，桌面端 359/359 全绿且类型检查通过，assembleDebug 构建通过
+  - 提交记录 c59732f5
+
+- **NyanoMuse 跨端同步与历史回放气泡标签剥离、多气泡间距与探针脱敏修复 (2026-10-22, 完成)**:
+  - 架构防御与跨端标签治理:
+    - 剥离跨端同步与 LLM 历史气泡标签：Transcript.kt 与 RemoteBubbles.ts 在同步文本中将 `<nm:bubble/>` 剥离为双换行；ChatViewModel 在 agentHistory.add 与 toLLMMessage 中将助手消息中的 `<nm:bubble/>` 替换为双换行，彻底杜绝多端泄露与上下文失控失真
+    - 解决多气泡间距假死代码：NmHomeChrome 修复 topPad 与 bottomPad 硬编码 2.dp 导致的簇内与边界间距未分化问题，簇内设为 1.5.dp（相邻累加 3.dp），边界分别设为 4.dp 与 6.dp，恢复真实聚类层次
+    - 消除正则重复编译与常量提取：提取 NM_BUBBLE_TAG、BUBBLE_CADENCE_DELAY_MS 与 countOccurrences 纯字符遍历，彻底消灭流式打字中每 chunk 重复编译正则开销
+    - 区分 blockIndex 与 segmentIndex：AssistantMarkdownBlock 与 ChatScreen 明确区分块索引与分段索引，key、slotKey、stableKey 与 shardId 补全段索引，彻底杜绝长文本与多段选择碰撞
+    - 压缩摘要过滤提示词时间戳：buildConversationTextForSummary 过滤 USER_PROMPT_TIMESTAMP_REGEX，杜绝时间戳被当作对话历史记忆总结
+    - 探针英文脱敏与文档更新：CompanionStatus.probeDetails 标签改为中性英文，docs/android.md 补充主聊天伴侣实时提示词增量说明
+  - 自动化测试与构建:
+    - 单元测试与 assembleDebug 100% 绿色构建通过
+  - 提交记录 a5ca5359
+
+- **NyanoMuse 消息气泡 Telegram 风格时间戳与主聊天用户发言时间感知落地 (2026-10-22, 完成)**:
+  - 核心架构与拟真时间体验:
+    - AI 时间感知零缓存破坏注入：仅在主聊天中，用户发言进入 agentHistory 与历史重建（toLLMMessage）时，在回合文本末尾附带发送真实时间戳 [yyyy-MM-dd EEE HH:mm]（如 [2026-10-22 周四 16:05]），前文历史前缀字节 100% 保持稳定无损，模型可精确感知跨天、深夜问候与数小时闲置间隔；副聊天严格排除该注入
+    - 全局 Telegram 风格气泡时间戳：UserMessageBubble 与 NmAssistantBubble 右下角排布 11sp 微型时间角标（formatBubbleTime 输出 HH:mm），用户气泡半透明柔和显示，AI 气泡采用 ChatColors.tertiaryText
+    - 多气泡聚合群规约：多气泡连续流中仅最后一个气泡显示时间戳，群内前序气泡保持极简干净，流式接收中动态抑制时间戳，完毕后平滑显现
+    - 数据贯穿与持久化还原：ChatMessage 增加 createdAt 字段，toChatMessage 映射 SQLite entity.createdAt 真实入库时间戳，连续助手回合合并时正确继承最新时间戳，FlatChatItem 完整承接
+  - 单元测试与构建验证:
+    - BubbleTimeFormatterTest 覆盖时刻格式化、边界值防御与国际化完整日期星期格式化测试
+    - AssistantBubbleGroupingTest 补充 createdAt 在 AssistantMarkdownBlock 上的传递校验
+    - 全量单测绿色通过，assembleDebug 编译通过
+  - 提交记录 51c19619
+
 - **NyanoMuse 主对话拟真多气泡连续消息与打字节奏流全链路落地 (2026-10-22, 完成)**:
   - 核心架构与拟真人性化设计:
     - 结构性气泡语法解耦：采用显式语义标签 `<nm:bubble/>` 作为连续消息切分点，由模型在随意聊天、情绪共鸣或简短问候时自主触发，单回合最多 2 次切分（最多连续 3 个短气泡），长篇说明、技术讲解与代码块严禁拆分；Prompt 指导仅规范结构性排版，不预设也不侵入用户自定义人格
