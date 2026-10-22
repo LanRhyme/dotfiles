@@ -5,15 +5,39 @@
 
 ## 最近动态
 
-- **NyanoMuse 伴侣主动对话、情绪系统、主聊天滑动窗口与记忆蒸馏全链路落地 (2026-10-22, 完成)**:
-  - 核心架构与阶段成果:
-    - 阶段一 (纯函数情绪状态机与流控持久化): PAD 纯函数 CompanionEmotion，输入当前时钟、真实用户消息闲置时长与按天聚合活跃天数，计算确定性心境；免打扰、冷却防抖、每日限额与今日计数存储于 nanomuse 偏好；专属 nanomuse_companion_proactive 高优先级通知通道
-    - 阶段二 (无感评估、调度触发与发话投递): 注册 CompanionAlarmReceiver 30 分钟省电对齐闹钟监听开机自启；复用 RoutineWakes.armCompanion 注入轻量非客服伴侣话术（40 汉字软约束）；通过 HeadlessChatRunner.prompt 后台无声投递，后台时触发高优先级横幅通知；NmRoutineWakeRow 专属单行静默渲染
-    - 阶段三 (主聊天滑动窗口与异步记忆蒸馏): MainChatContextPolicy 建立 16k Token 滑动窗口，保底截取 10 条消息并确保工具边界完整；ChatViewModel 彻底旁路主聊天三处 compactAll 入口规避累加衰减，溢出消息异步经 MainChatMemoryDistiller 蒸馏写入 StructuredMemory（事实 source='distilled'，羁绊 category='bond'），游标 companion_distilled_message_cursor 防重
-    - 阶段四 (UI、多语言本地化与配置中心): NanoMuseHeader 接入伴侣实时心境副标题；SettingsScreen 新增「伴侣与情绪系统」入口并挂载 CompanionSettingsSheet 底部弹窗，支持主动开关、免打扰时段、最小间隔与每日上限配置；全量补齐 17 种国际化语言文案并经 NmStringsParityTest 严格校验
+- **NyanoMuse 深度思考卡片融合进消息气泡与极简引线手风琴重构 (2026-10-22, 完成)**:
+  - 核心痛点与视觉重塑:
+    - 根除突兀亮蓝硬编码：彻底移除原先孤立的 Color(0xFF015CFB) 亮蓝实框大卡片，深度融入全局 Morandi 配色体系（ChatColors.thinking 与二级字色 ChatColors.secondaryText），告别刺眼视觉噪声
+    - 极简引线手风琴交互：借鉴 DeepSeek 与 Claude 现代设计，外层去除繁重边框与底色，收缩时呈现单行轻量手风琴头部，展开时采用 2.5dp 莫兰迪圆角左引线 + 8dp 呼吸缩进，配合 drawBehind 规避 Compose 嵌套内嵌滚动测量问题
+    - 中文自然字体排版：正文字体取代全等宽生硬 Monospace 字体，字号 13.sp、行高 19.5.sp，中文阅读舒适自然
+    - 实时计时与状态分化：思考中展示旋转指示器与实时计时「思考中 (Xs)…」，思考结束自动收起并转换为「已深度思考 (Xs)」
+  - 同气泡一体融合架构:
+    - ChatFlatItems 构建时将紧邻正文的思考块作为 leadingThinking 注入 AssistantMarkdownBlock，NmAssistantBubble 内部气泡首行优先渲染思考手风琴，正文紧接着在下方顺滑衔接，真正消除两个卡片断裂感；纯思考流式阶段同样包裹统一气泡
+    - ChatViewModel 完善思考块创建与结束计时（startTimeMs 与 durationMs 闭环记录）
+    - 17 种国际化语言全面补齐思考中与完成文案并经 NmStringsParityTest 严格校验通过
+  - 测试与构建:
+    - 编写并更新 AssistantBubbleGroupingTest 覆盖融合气泡与流式独立气泡全部用例
+    - 全量 1715 项单元测试 100% 绿色通过，assembleDebug 构建成功
+  - 提交记录 46b2ec9c
+
+- **NyanoMuse 安卓端动态配置弹窗滚动与保存按钮常驻优化 (2026-10-22, 完成)**:
+  - 核心痛点根除与布局重构:
+    - 针对 FeedSettingsSheet 原 OutlinedTextField 无最大高度约束且父容器缺少滚动与 imePadding，导致输入内容较长或输入法弹起时保存按钮被直接挤出可视区域的问题
+    - 输入框 OutlinedTextField 增加 heightIn(min = 120.dp, max = 220.dp) 边界，超长内容内部滚动
+    - 上半部分表单封装进 weight(1f, fill = false).verticalScroll(rememberScrollState()) 滚动容器，底部保存按钮独立常驻于底部并外挂 imePadding，无论内容多长或软键盘弹出均牢牢保持可见可用
   - 测试与部署:
-    - 20 项 Companion/ContextPolicy 专项单元测试全部通过，全量 1700+ 单元测试 100% 绿色通过
-    - assembleDebug 构建通过并通过 ADB 成功热更新安装至手机端（ed3fdd92）
+    - assembleDebug 编译通过并已部署至一加平板 2 Pro（c84b9192）与红米 K60（ed3fdd92）
+
+- **NyanoMuse 伴侣主动对话、情绪系统、侧边栏主聊天与大模型上下文扩充落地 (2026-10-22, 完成)**:
+  - 核心架构与落地细节:
+    - 阶段一 (纯函数情绪状态机与流控持久化): PAD 纯函数 CompanionEmotion，输入当前时钟、真实用户消息闲置时长（ChatDao allUserMessageStamps 排除虚拟 RoutineWakes 消息）与按本地时区聚合真实真人互动天数，计算确定性心境；清理未使用的 lastUserMessageCreatedAt；免打扰、冷却防抖、每日限额与今日计数存储于 nanomuse 偏好；专属高优先级通知通道
+    - 阶段二 (无感评估、调度触发与发话投递): 注册 CompanionAlarmReceiver 30 分钟省电对齐闹钟监听开机自启；场景 tag 全面规范化（normalizeScenario 杜绝短前缀关不掉问题）；CompanionWake 使用 try-finally 恢复会话原始模型绑定；通过 HeadlessChatRunner.prompt 后台无声投递，后台时触发高优先级横幅通知；NmRoutineWakeRow 专属单行静默渲染
+    - 阶段三 (主聊天大容量滑动窗口与异步记忆蒸馏): MainChatContextPolicy 针对 128k 至 1M 大模型动态放宽至 64k 至 256k Token 预算，意在保持主聊天细节绝对无损，溢出才触发蒸馏；ChatViewModel 彻底旁路主聊天三处 compactAll 入口规避累加衰减，溢出消息异步经 MainChatMemoryDistiller 蒸馏写入 StructuredMemory（事实 source='distilled'，羁绊 category='bond'），游标 companion_distilled_msg_ids 全消息去重防重复追加并加入 5MB 归档文件轮转保护
+    - 阶段四 (UI、侧边栏常驻、多语言本地化与配置中心): 移动端 SideChatDrawer 与电脑端 MuseChats.tsx 顶部新建会话下方均常驻「主聊天」专属快捷入口，带有 Home 图标与选中指示圆点，列表剔除主会话防重；NanoMuseHeader 接入伴侣实时心境副标题；SettingsScreen 新增「伴侣与情绪系统」入口并挂载 CompanionSettingsSheet 底部弹窗；设置面板内场景列表、小时单位与上限标题全量补齐 17 种国际化语言文案并经 NmStringsParityTest 严格校验
+  - 测试与部署:
+    - 20 项 Companion/ContextPolicy 专项单元测试全部通过，全量 1711 项单元测试 100% 绿色通过，桌面端 358 项全绿
+    - assembleDebug 构建通过并通过 ADB 成功热更新安装至手机端（ed3fdd92）与平板端（c84b9192）
+    - 桌面端编译生成 lib 产物并部署至 ~/.local/opt/nyanomuse/，重载桌面端进程（nyanomuse-desktop）正常运行
 
 - **NyanoMuse AI 输出完成通知提醒、触觉振动与内容摘要全链路落地 (2026-10-21, 完成)**:
   - 核心病因根治与提醒体系升级:
