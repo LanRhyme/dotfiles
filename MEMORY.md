@@ -5,6 +5,19 @@
 
 ## 最近动态
 
+- **NyanoMuse 伴侣主动聊天历史上下文丢失与重复早安缺陷修复 (2026-10-23, 完成)**:
+  - 核心架构与并发加载竞态修复:
+    - 历史会话异步加载竞态消除：定位到 HeadlessChatRunner 在触发主动提问时仅等待 activeEntryId 就立即调用 sendMessage，此时 ChatViewModel 的 loadSession 仍处于 IO 线程解析 Room 数据库消息阶段，导致 sendMessage 抓取到的 agentHistory 为空，模型在零历史上下文状态下输出；通过在 ChatViewModel 暴露 isSessionLoaded 并在 sendMessage 协程开头执行 sessionLoaded.first { it }，同时在 HeadlessChatRunner 显式等待 isSessionLoaded，彻底杜绝历史消息加载与发送的并发竞态
+    - 历史上下文完整性双重守卫：ChatViewModel 在 runAgentLoop 前置增加防御校验，若 agentHistory 仅包含当前新回合但数据库历史消息数量大于 1，自动从数据库重构 agentHistory，保证模型永远携带完整上下文
+  - 伴侣情绪与早安意图防重逻辑优化:
+    - 活跃互动场景优先守护：CompanionEmotion.evaluate 将 idleMs < 1h 的 FRESH_RESONANCE 判定前置，只要用户在 1 小时内有过真实对话，强制保持低意愿（proactiveScore = 0.15f）与静默陪伴，杜绝刚聊完天又被后台主动打扰
+    - 早安问候每日单次与已互动豁免：引入 hasGreetedMorningToday 标志位与今日 06:00 起已有互动的拦截校验，用户今早打过招呼或已发送过早安后，同一自然日绝不再触发 MORNING_GREETING，而是平滑流转为 CALM_COMPANION 或 CURIOUS_CHECKIN
+    - 主动提问频率真实用户消息守卫：CompanionPrefs.checkCanTrigger 增加 lastRealUserMessageTime 冷却校验，用户 1 小时内发言时阻断后台主动探访
+    - 上下文延续引导增强：RoutineWakes.armCompanion 注入 Context Continuity 指令，明确要求伴侣结合前文自然承接已有对话，严禁机械重复打招呼
+  - 测试与构建验证:
+    - CompanionEmotionTest 补充早安前置活跃、已问候流转与今早已有互动防护单测，全部通过
+    - assembleDebug 构建打包成功
+
 - **NyanoMuse 多端同步时延极限压缩与重连秒级增量补偿落地 (2026-10-22, 完成)**:
   - 核心架构与同步链路时延优化:
     - 移动端人工延迟消除：ConversationSync 中 PUSH_DELAY_MS 由 2000ms 压缩至 200ms，TURN_END_SETTLE_MS 由 1500ms 压缩至 200ms，消灭单次回合结束后长达 3.5s 以上的人工滞后，WAL 落盘即刻触发推送
@@ -15,7 +28,7 @@
   - 测试与多端部署:
     - 桌面端 pnpm test 全量 359 项单测全绿通过
     - 移动端 testDebugUnitTest 单测通过（io.github.nanomuse.sync.* 全绿）
-    - assembleDebug 编译通过，并通过 ADB 成功静默安装至一加平板 2 Pro（c84b9192）
+    - assembleDebug 编译通过，并通过 ADB 成功静默安装至一加平板 2 Pro（c84b9192）与红米 K60（ed3fdd92）
     - 桌面端后台进程 nyanomuse-desktop 平滑重载
 
 - **NyanoMuse 代码块超长折叠交互优化与伴侣全功能环境感知体系落地 (2026-10-22, 完成)**:
