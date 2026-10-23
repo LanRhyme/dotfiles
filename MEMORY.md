@@ -5,6 +5,20 @@
 
 ## 最近动态
 
+- **NyanoMuse 跨端生图授权安全门与双轨情绪标签复制泄漏修复 (2026-10-23, 完成)**:
+  - 核心架构与安全分级加固:
+    - Hub 跨端生图授权安全门：将 image.generate 纳入 GATED_ACTIONS，杜绝免批准调用桌面端能力，未获用户授权前无法执行
+    - 路径穿越防护与参数规范化：image_name 实施严格白名单正则校验（^[A-Za-z0-9_-]{1,64}$），移除 subprocess.run 中无效的单引号转义并采用 json.dumps 规范编码，防止自然语言提示注入与路径穿越
+  - 双轨情绪闭环与选区复制防漏:
+    - 选区复制标签泄漏根治：在 ChatFlatItems.buildFlatChatItems 入口处统一对助手消息正文与工具块执行 mood 标签剥离，根治跨代码块选区复制时剪贴板携带 nm:mood 标签的问题
+    - 心境反哺提取顺序纠偏：ChatViewModel 调整情绪反馈提取顺序为本轮文本 turnText 优先于跨轮累积文本
+    - 讽刺检测增量保留与互抑上限微调：CompanionMoodStore.applyFeedback 调准 suppressCap 为 1.5f，并在反哺时保留端侧检测到的讽刺生闷气增量（当端侧检测到讽刺且模型误判为开心得意时保留 50% 生闷气增量）
+  - 测试与全平台构建验证:
+    - CompanionMoodStoreTest 补齐讽刺保留单测，安卓全量 1762+ 项单元测试全绿通过
+    - Python 端 test_coding.py 15 项测试全绿通过
+    - assembleDebug 成功编译打包生成 57MB debug APK
+    - 桌面端 harness 重新编译构建并同步部署至 ~/.local/opt/nyanomuse/
+
 - **NyanoMuse 编程工具集成 Antigravity 与移动端跨端 agy 生图体系落地 (2026-10-23, 完成)**:
   - 核心架构与桌面端 Antigravity 接入 (nanomuse/coding & harness/dsh-nanomuse):
     - 运行时 5 代理支持：Python 端 `nanomuse/coding/agents.py` 与 TypeScript 端 `coding-readers.ts` 新增 `antigravity`，定义 `bins=("agy",)`、`process=("agy", "antigravity")`，动态索引 IDE 目录 `~/.gemini/antigravity` 与 CLI 目录 `~/.gemini/antigravity-cli` 下 `conversation_summaries.db` SQLite 索引数据库与 `transcript.jsonl` 会话流
@@ -17,7 +31,7 @@
   - 编译测试与多端部署验证:
     - Python 端 `pytest tests/test_coding.py` 15 项单测全绿通过
     - 桌面端 harness `pnpm run build && pnpm test` 全量 359 项单测全绿通过，并同步部署至 `~/.local/opt/nyanomuse/`
-    - 移动端 `testDebugUnitTest` 单元测试通过，`assembleDebug` 打包成功并通过 ADB 成功安装至红米 K60 (ed3fdd92) 真机
+    - 移动端 `testDebugUnitTest` 单元测试通过，`assembleDebug` 打包成功并通过 ADB 成功安装至红米 K60 (ed3fdd92) 与一加平板 2 Pro (c84b9192) 真机
 
 - **NyanoMuse 移动端交互式终端与命令执行原生 Root 与 Host 模式深度适配 (2026-10-23, 完成)**:
   - 核心架构与交互式终端解绑 PRoot 容器:
