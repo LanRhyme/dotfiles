@@ -5,6 +5,26 @@
 
 ## 最近动态
 
+- **NyanoMuse 伴侣 33 种心境体系与双出口情绪感知面板落地 (2026-10-23, 完成)**:
+  - 核心架构与 33 种心境分值引擎 (参考 dsh-mood):
+    - 三层心境枚举与基线空间：新建 CompanionMoodStore，定义基础 11 种（CALM、HAPPY、CURIOUS、FOCUSED、EXCITED、TIRED、ANNOYED、DOWN、FEAR、DISGUST、SURPRISE）、复合 18 种（HURT、SULK、PROUD、GLOOMY、ANXIOUS、NUMB、LONELY、FLUTTER、LOVE、JEALOUS、SHAME、GUILT、AWKWARD、SYMPATHY、DISAPPOINTED、NOSTALGIA、COY、CONFLICT）、当代 4 种（BURNOUT、CRACKED、CHECKEDOUT、HYPER），每种配置独立自然基线分值（0~100）与行为倾向
+    - 消息微调与反向压制矩阵：judgeMessage 对用户输入进行多重意图识别并应用微调（±0.5~3.5），深度融合心理反向压制逻辑（夸奖增加得意/开心/恋慕/撒娇并消解生闷气/委屈/烦躁，冷淡打发增加生闷气，摆烂内耗压制焦虑与防御，破防增加委屈低落并抑制烦躁火气）
+    - 平滑回落与会话疲劳调节：periodicDecay 每 3~6 小时或维护周期向基线回落 25% 并加入微扰动，会话回合过多增加疲惫专注，错误过多增加烦躁
+    - 防抖切换与混合态计算：主导心境切换要求分值高出原主导 >= 5 分且维持 >= 15 分钟（或单次跃迁分值差 >= 15 分），消灭心境频繁跳跃抖动；次高心境与主导心境分值差距 < 8 分时判定为混合气味共存并在标题体现
+    - 客观事实切片：记录最近心境切换的时间戳、原始心境、目标心境与触发用户话语片段，严格以伴随客观事实呈现，避免生硬机械归因
+  - 危机安全硬线守护 (DistressGuard):
+    - 绝望自伤敏感词硬线匹配：自杀、自残、割腕、想死、不想活了、撑不下去了等多字显式模式严格拦截，命中后激活 30 分钟硬线守护
+    - 角色让位与心理热线支持：DistressGuard.safetyOverridePrompt 强制模型收起所有傲娇、戏谑与角色扮演表演，以沉稳克制温暖的语气提供陪伴并主动附上全国心理关爱热线（400-161-9995）
+  - 提示词双出口与头像定制动效:
+    - 深度思考内心戏与回复语气双出口：ChatViewModel.buildSystemPrompt 注入内心戏指引，要求在 think 深度思考流露真实小反差内心 OS，正式回复语气自然渗透心境倾向但严禁自报分值数值
+    - 头像动效扩充：AgentAvatar 扩充支持 SULK_JEALOUS（生闷气微颤背身）、CRACKED_HURT（委屈缩紧低头）、HYPER（上头高频弹性跳跃）专属动效，其余 30 种心境优雅归入 8 大动效家族
+  - 心境罗盘半屏仪表盘 (MoodDashboardSheet):
+    - 交互式面板：直观展示当前主导心境、混合态气味、最近转移客观事实、33 种心境分类（全部/基础/复合/当代）实时分值进度条与基线刻度，支持一键重置回基线分值
+    - 双入口接入：主聊天顶栏副标题胶囊点击直接滑出 MoodDashboardSheet；伴侣设置界面（CompanionSettingsSheet）内提供「心境罗盘」独立查看入口
+  - 自动化测试与构建:
+    - CompanionMoodStoreTest 覆盖 33 种心境初始化、分值夹持、反向压制、防抖门槛、混合态共存、周期回落、重置基线以及安全硬线单测，全量通过
+    - assembleDebug 编译打包成功
+
 - **NyanoMuse 伴侣主动聊天历史上下文丢失与重复早安缺陷修复 (2026-10-23, 完成)**:
   - 核心架构与并发加载竞态修复:
     - 历史会话异步加载竞态消除：定位到 HeadlessChatRunner 在触发主动提问时仅等待 activeEntryId 就立即调用 sendMessage，此时 ChatViewModel 的 loadSession 仍处于 IO 线程解析 Room 数据库消息阶段，导致 sendMessage 抓取到的 agentHistory 为空，模型在零历史上下文状态下输出；通过在 ChatViewModel 暴露 isSessionLoaded 并在 sendMessage 协程开头执行 sessionLoaded.first { it }，同时在 HeadlessChatRunner 显式等待 isSessionLoaded，彻底杜绝历史消息加载与发送的并发竞态
