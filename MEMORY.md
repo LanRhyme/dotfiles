@@ -5,24 +5,43 @@
 
 ## 最近动态
 
+- **NyanoMuse 移动端交互式终端与命令执行原生 Root 与 Host 模式深度适配 (2026-10-23, 完成)**:
+  - 核心架构与交互式终端解绑 PRoot 容器:
+    - 交互式终端 TerminalSession 执行模式动态路由：移除开机硬编码强制检查与启动 PRoot 容器的限制，根据用户在设置中选择的 ExecutionMode（ROOT、HOST_SHELL、PROOT_SANDBOX）分流；在 Root 模式下动态探测 su 路径（/system/bin/su、/system/xbin/su、/sbin/su、/data/adb/ksu/bin/su 等），PTY 直接以 root 环境变量（PATH 包含系统与 su 工具链、HOME=/storage/emulated/0、SHELL=/system/bin/sh 等）启动原生 root shell；在 Host 模式下直接启动 /system/bin/sh -i 原生宿主终端；在 PRoot 模式下保留既有 Alpine 容器沙箱启动流
+    - 路径切换与鉴权提示保护：消除进入终端后硬编码 cd /var/minis && clear 导致的安卓宿主报错，仅在 PRoot 沙箱模式下执行容器路径切换，Root/Host 模式下工作目录默认指向 /storage/emulated/0 或会话专属目录；su 启动失败或权限被拒时在 PTY 终端内输出清晰的授权引导提示
+  - 单次与后台命令执行及依赖检测适配:
+    - ShellExecutor 单次与后台执行解耦：ShellExecutor 新增 executeHostOrRoot，在非 PRoot 模式下通过 ProcessBuilder 调用 su -c 或 sh -c，执行前跳过 PRoot 容器启动检查
+    - 按需 Bash 检测适配：OnDemandBash 仅在 PRoot 容器内尝试执行 apk add bash，在 Root 与 Host 模式下直接探测宿主是否存在原生 bash，消除缺失 apk 命令导致的崩溃抛错
+    - Hub 动作守护：HubActions.boot 仅在 ExecutionMode == PROOT_SANDBOX 时才触发 PRoot 容器启动
+  - 界面呈现与模式切换联动:
+    - 状态徽标与标题联动：TerminalScreen 顶部栏根据当前活跃模式动态展示 nanoMuse Shell (Root)、(Host) 或 (PRoot)
+    - 切换模式生命周期终止：在设置界面（SettingsScreen）更改执行模式时，立即通过 ExecutionCoordinator.stopCurrentCommand 终止旧模式下的持久化 Shell 会话
+  - 测试与真机部署验证:
+    - 新增 ExecutionModeTest 覆盖各种执行模式判定与分支逻辑，单测全绿通过
+    - assembleDebug 成功编译打包并通过 ADB 静默安装至红米 K60（ed3fdd92）真机
+    - 提交记录 48f80a14 与 7537c03f
+
 - **NyanoMuse 伴侣 33 种心境体系与双出口情绪感知面板落地 (2026-10-23, 完成)**:
   - 核心架构与 33 种心境分值引擎 (参考 dsh-mood):
     - 三层心境枚举与基线空间：新建 CompanionMoodStore，定义基础 11 种（CALM、HAPPY、CURIOUS、FOCUSED、EXCITED、TIRED、ANNOYED、DOWN、FEAR、DISGUST、SURPRISE）、复合 18 种（HURT、SULK、PROUD、GLOOMY、ANXIOUS、NUMB、LONELY、FLUTTER、LOVE、JEALOUS、SHAME、GUILT、AWKWARD、SYMPATHY、DISAPPOINTED、NOSTALGIA、COY、CONFLICT）、当代 4 种（BURNOUT、CRACKED、CHECKEDOUT、HYPER），每种配置独立自然基线分值（0~100）与行为倾向
-    - 消息微调与反向压制矩阵：judgeMessage 对用户输入进行多重意图识别并应用微调（±0.5~3.5），深度融合心理反向压制逻辑（夸奖增加得意/开心/恋慕/撒娇并消解生闷气/委屈/烦躁，冷淡打发增加生闷气，摆烂内耗压制焦虑与防御，破防增加委屈低落并抑制烦躁火气）
-    - 平滑回落与会话疲劳调节：periodicDecay 每 3~6 小时或维护周期向基线回落 25% 并加入微扰动，会话回合过多增加疲惫专注，错误过多增加烦躁
+    - 讽刺过滤与反向压制矩阵：detectSarcasm 提前拦截阴阳怪气与反讽用语，剔除「真厉害啊」「真行啊」等高频真诚夸奖误判词，压制误判并精准识别讽刺并转向委屈生闷气；judgeMessage 对用户输入进行意图识别并应用微调（±0.5~3.5），深度融合心理反向压制逻辑（真诚夸奖增加得意/开心/恋慕/撒娇并消解生闷气/委屈/烦躁，晚安睡眠强化困倦恬静，冷淡打发增加生闷气，摆烂内耗压制焦虑与防御，破防增加委屈低落并抑制烦躁火气）
+    - 昼夜节律与周期衰减闭环：circadianOffset 动态注入深夜自然困倦与清晨活力，并与持久化主导心境判定解耦（仅参与分值与混合态 secondary 计算，不侵蚀带防抖和保持期的 primary）；checkPeriodicDecay 接入 ChatViewModel 与 CompanionAlarmReceiver 每 3~6 小时定期将分值以确定性微抖动回落至基线；sessionTurns 与 sessionErrors 记录单会话回合与错误疲劳
+    - 大模型真实情感反哺与双轨去重闭环：建立端侧定「量」与模型定「义」的分工体系，支持大模型在回复末尾通过 <nm:mood feel="id" reason="..."/> 表达真实情感触动；applyFeedback 自动撤销端侧本轮临时预判增量以彻底消除双轨重复计数，并由客户端 FEEDBACK_DELTA 标定增量克服大模型自正面偏差与跨模型漂移；互抑总量硬封顶 <= 2.0；模型理由作为 modelNarrative 仅供仪表盘呈现而绝不回灌进入 prompt；权威落库点集中剥离并在桌面端 RemoteBubbles 增加兜底清洗
     - 防抖切换与混合态计算：主导心境切换要求分值高出原主导 >= 5 分且维持 >= 15 分钟（或单次跃迁分值差 >= 15 分），消灭心境频繁跳跃抖动；次高心境与主导心境分值差距 < 8 分时判定为混合气味共存并在标题体现
-    - 客观事实切片：记录最近心境切换的时间戳、原始心境、目标心境与触发用户话语片段，严格以伴随客观事实呈现，避免生硬机械归因
+    - 客观事实切片与旧链清理：记录最近心境切换的时间戳、原始心境、目标心境与触发用户话语片段，严格以伴随客观事实呈现，避免生硬机械归因；彻底清理 ChatViewModel 中旧有的 appraiseUserTurn/impulseForAct 与 dynamic_bias 死代码
   - 危机安全硬线守护 (DistressGuard):
     - 绝望自伤敏感词硬线匹配：自杀、自残、割腕、想死、不想活了、撑不下去了等多字显式模式严格拦截，命中后激活 30 分钟硬线守护
-    - 角色让位与心理热线支持：DistressGuard.safetyOverridePrompt 强制模型收起所有傲娇、戏谑与角色扮演表演，以沉稳克制温暖的语气提供陪伴并主动附上全国心理关爱热线（400-161-9995）
+    - 角色让位与通用心理热线支持：DistressGuard.safetyOverridePrompt 强制模型收起所有傲娇、戏谑与角色扮演表演，以沉稳克制温暖的语气提供陪伴并通用引导寻求当地心理援助热线与危机干预公共渠道，彻底移除硬编码电话号码
   - 提示词双出口与头像定制动效:
     - 深度思考内心戏与回复语气双出口：ChatViewModel.buildSystemPrompt 注入内心戏指引，要求在 think 深度思考流露真实小反差内心 OS，正式回复语气自然渗透心境倾向但严禁自报分值数值
+    - 提示词黄金自检与易混情绪辨析指引：在 CompanionMoodStore.promptAddendum 注入三条黄金自检法则（换个人成立吗/替对方编了吗/姿态当内容了吗）、5 组易混情绪辨析（烦躁/生闷气、麻木/摆烂、焦虑/内耗、破防/吵架、兴奋/上头）、做不到的未来与同理心克制界限，以及极端痛苦自伤求救角色让位硬线；单测 testPromptAddendumQualityAndConstraints 全绿
     - 头像动效扩充：AgentAvatar 扩充支持 SULK_JEALOUS（生闷气微颤背身）、CRACKED_HURT（委屈缩紧低头）、HYPER（上头高频弹性跳跃）专属动效，其余 30 种心境优雅归入 8 大动效家族
   - 心境罗盘半屏仪表盘 (MoodDashboardSheet):
-    - 交互式面板：直观展示当前主导心境、混合态气味、最近转移客观事实、33 种心境分类（全部/基础/复合/当代）实时分值进度条与基线刻度，支持一键重置回基线分值
-    - 双入口接入：主聊天顶栏副标题胶囊点击直接滑出 MoodDashboardSheet；伴侣设置界面（CompanionSettingsSheet）内提供「心境罗盘」独立查看入口
-  - 自动化测试与构建:
-    - CompanionMoodStoreTest 覆盖 33 种心境初始化、分值夹持、反向压制、防抖门槛、混合态共存、周期回落、重置基线以及安全硬线单测，全量通过
+    - 交互式面板：直观展示当前主导心境、混合态气味、最近转移客观事实与回合信息、33 种心境分类（全部/基础/复合/当代）实时分值进度条与基线刻度，支持一键重置回基线分值
+    - 双入口接入与深度多语言：主聊天顶栏副标题胶囊点击直接滑出 MoodDashboardSheet；伴侣设置界面（CompanionSettingsSheet）内响应式监听 emotionVersion 实时联动；状态胶囊与仪表盘文案全量接入 17 语种国际化
+  - 全语言多端与自动化测试:
+    - 17 种语言完整补齐心境名称、仪表盘、倾向、共存与转移事实等 19 个新 key 并通过 NmStringsParityTest 严格校验
+    - CompanionMoodStoreTest 覆盖 33 种心境初始化、真诚夸奖不误判、讽刺拦截、昼夜节律、分值夹持、反向压制、防抖门槛、混合态共存、周期回落、重置基线以及安全硬线单测，全量通过
     - assembleDebug 编译打包成功
 
 - **NyanoMuse 伴侣主动聊天历史上下文丢失与重复早安缺陷修复 (2026-10-23, 完成)**:
