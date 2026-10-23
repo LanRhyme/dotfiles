@@ -5,6 +5,20 @@
 
 ## 最近动态
 
+- **NyanoMuse 编程工具集成 Antigravity 与移动端跨端 agy 生图体系落地 (2026-10-23, 完成)**:
+  - 核心架构与桌面端 Antigravity 接入 (nanomuse/coding & harness/dsh-nanomuse):
+    - 运行时 5 代理支持：Python 端 `nanomuse/coding/agents.py` 与 TypeScript 端 `coding-readers.ts` 新增 `antigravity`，定义 `bins=("agy",)`、`process=("agy", "antigravity")`，动态索引 IDE 目录 `~/.gemini/antigravity` 与 CLI 目录 `~/.gemini/antigravity-cli` 下 `conversation_summaries.db` SQLite 索引数据库与 `transcript.jsonl` 会话流
+    - 代理执行与事件归一化：`runner.py` 与 `coding-runner.ts` 接入 `agy --output-format stream-json --dangerously-skip-permissions`，并将 `agy` 的 `step_update` (text_delta)、`tool_call` 与 `state=DONE` 精准归一化为统一 coding 流程流式事件
+    - Hub 生图动作注入：`nanomuse/hub/actions.py` 与 `harness/dsh-nanomuse/src/actions.ts`、`cloud.ts` 注册并实现 `image.generate` 动作，调用 `agy` 工具并解析 `file://...` 或 `brain/<cid>` 图片输出，封装 Base64 与多媒体元数据返回，并接入桌面端 Toast 提醒
+  - 移动端双模触发与生图大图卡片交互 (Android):
+    - 伴生体自主工具注入：`NativeSystemTools` 新增 `TOOL_IMAGE_GENERATE = "image_generate"` 工具定义与执行逻辑，自动探测 Hub 在线电脑设备并分发 `image.generate`，返回图片二进制并保存至 `context.filesDir/generated_images`
+    - 手动 Slash 命令分发：`ChatViewModel` 接入 `/image <prompt>` 与 `/draw <prompt>`，自动装配并展示带加载状态的生图卡片，生成完成后将图片注入聊天气泡与流式 markdown 中
+    - 交互式图片卡片操作面板：`ChatToolDetailUI` 与 `ChatToolFormatting` 为 `image_generate` 挂载预览卡片，提供「设为壁纸」（联动 `ChatWallpaperManager` 动态应用为全局莫兰迪壁纸）与「保存相册」（通过 `MediaStore` 写入公共相册）快捷动作
+  - 编译测试与多端部署验证:
+    - Python 端 `pytest tests/test_coding.py` 15 项单测全绿通过
+    - 桌面端 harness `pnpm run build && pnpm test` 全量 359 项单测全绿通过，并同步部署至 `~/.local/opt/nyanomuse/`
+    - 移动端 `testDebugUnitTest` 单元测试通过，`assembleDebug` 打包成功并通过 ADB 成功安装至红米 K60 (ed3fdd92) 真机
+
 - **NyanoMuse 移动端交互式终端与命令执行原生 Root 与 Host 模式深度适配 (2026-10-23, 完成)**:
   - 核心架构与交互式终端解绑 PRoot 容器:
     - 交互式终端 TerminalSession 执行模式动态路由：移除开机硬编码强制检查与启动 PRoot 容器的限制，根据用户在设置中选择的 ExecutionMode（ROOT、HOST_SHELL、PROOT_SANDBOX）分流；在 Root 模式下动态探测 su 路径（/system/bin/su、/system/xbin/su、/sbin/su、/data/adb/ksu/bin/su 等），PTY 直接以 root 环境变量（PATH 包含系统与 su 工具链、HOME=/storage/emulated/0、SHELL=/system/bin/sh 等）启动原生 root shell；在 Host 模式下直接启动 /system/bin/sh -i 原生宿主终端；在 PRoot 模式下保留既有 Alpine 容器沙箱启动流
