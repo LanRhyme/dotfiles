@@ -10,7 +10,7 @@
     - 电脑端（Linux CachyOS）：`tailscale` 安装并启用 `tailscaled.service`，绑定 IP 为 `100.73.79.77`，配置代理环境与 `--accept-dns=false` 彻底消除 DNS 冲突，授权 `lanrhyme` 无密码操作
     - 平板端（一加平板 2 Pro / c84b9192）：原生 ARM64 `tailscale` / `tailscaled` 部署至 `/data/adb/tailscale/`，认证上线绑定 IP 为 `100.107.36.2`
     - 手机端（红米 K60 / ed3fdd92）：静默安装官方 Tailscale App；部署原生 ARM64 二进制至 `/data/adb/tailscale/`，配置开机自启守护 `/data/adb/service.d/tailscaled.sh`，认证上线绑定 IP 为 `100.127.72.106`
-    - 开机自启与零冲突分流：两台移动设备均通过 `service.d` 自动拉起后台服务并注入 `ip rule add to 100.64.0.0/10 pref 4900 lookup 52`，发往 Tailscale 的流量直接送入 `tailscale0` 物理网卡，彻底绕开 Android netd VPN 拦截，实现日常梯子（Clash）与内网互联 100% 互不干扰同时在线
+    - 开机自启与零冲突分流：两台移动设备均通过 `service.d/tailscaled.sh` 自动拉起后台服务并注入 `ip rule add to 100.64.0.0/10 pref 4900 lookup 52`，发往 Tailscale 的流量直接送入 `tailscale0` 物理网卡，彻底绕开 Android netd VPN 拦截；同时针对 Android 限制 root 裸套接字路由的问题，引入 `uidrange 0-0 pref 4800` 仅对 root 守护进程动态绑定物理出口，彻底解决移动端重启后掉线无法连上 controlplane/DERP 的问题，实现梯子（Clash）与内网 100% 互不干扰且重启全自动重连上线
   - Tailscale Serve 服务化注册 (Services 目录激活):
     - 官方服务注册：通过 `tailscale serve --bg 8787` 与 `tailscale serve --bg --https=5000 5000` 将 NyanoMuse 云端服务 (`:8787`) 与 Dufs WebDAV 文件服务 (`:5000`) 分别挂载至 Tailscale Serve 目录
     - 控制台服务呈现：服务正式在 Tailscale Admin Console 的 **Services** 目录上架显示，内置获得原生 HTTPS 反向代理支持
