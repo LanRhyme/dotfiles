@@ -63,6 +63,10 @@
   - 执行 `/data/adb/ksu/bin/znctl status`，确认 Zygisk Next 的 `enforce_denylist` 处于 `disabled`（值为 0），防止应用跳过注入
   - 检查 Vector 守护进程服务脚本 `/data/adb/modules/zygisk_vector/service.sh`，确保为 `unshare -m`
   - 运行 `android-hide-app -l` 核对敏感应用防检测名单与 Tricky Store 目标列表
+- **多端 ADB 识别与调度规范**: 在多设备并存环境下，AI 代理在执行 adb 指令时应优先通过 `adb devices -l` 识别设备目标：
+  - 红米 K60: 识别 `device:mondrian`，对应 Tailscale 远程 `100.127.72.106:5555` 或 USB `ed3fdd92`
+  - 一加平板 2 Pro: 识别 `model:OPD2413`，对应 Tailscale 远程 `100.107.36.2:5555` 或 USB `c84b9192`
+  - 执行指令时必须显式携带 `-s <序列号>`，严禁在多设备环境下执行无目标的裸 adb 指令
 
 ### 9.2 红米 K60 (mondrian / ed3fdd92) 专属流程
 - **系统架构**: ColorOS 16.1 / Android 16（ClearSkys 移植版，基底 OnePlus Ace 6），内核 5.10.246-AetherKernel，SukiSU (LKM 40796 / UAPI=0) + 内核内置 KPM
