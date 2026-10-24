@@ -1,0 +1,12 @@
+[Unit]
+Description=ADB Auto-Connect over Tailscale (K60 & OnePlus Pad)
+After=network.target tailscaled.service
+
+[Service]
+Type=simple
+ExecStart=/home/lanrhyme/.local/bin/adb-autoconnect.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
