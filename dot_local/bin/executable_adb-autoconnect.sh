@@ -11,8 +11,14 @@ connect_device() {
     local host="${target%:*}"
     local port="${target#*:}"
 
-    # Check if device is already connected and recognized by adb
-    if adb devices 2>/dev/null | grep -q "^${target}[[:space:]]\+device"; then
+    # Handle and recover from stale/offline states
+    if adb devices 2>/dev/null | grep -E -q "^${target}[[:space:]]+(offline|unauthorized)"; then
+        adb disconnect "$target" >/dev/null 2>&1
+        sleep 1
+    fi
+
+    # Check if device is already connected and recognized normally
+    if adb devices 2>/dev/null | grep -E -q "^${target}[[:space:]]+device"; then
         return 0
     fi
 
