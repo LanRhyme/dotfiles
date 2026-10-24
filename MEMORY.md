@@ -11,12 +11,13 @@
     - 平板端（一加平板 2 Pro / c84b9192）：原生 ARM64 `tailscale` / `tailscaled` 部署至 `/data/adb/tailscale/`，认证上线绑定 IP 为 `100.107.36.2`
     - 手机端（红米 K60 / ed3fdd92）：静默安装官方 Tailscale App；部署原生 ARM64 二进制至 `/data/adb/tailscale/`，配置开机自启守护 `/data/adb/service.d/tailscaled.sh`，认证上线绑定 IP 为 `100.127.72.106`
     - 开机自启与零冲突分流：两台移动设备均通过 `service.d` 自动拉起后台服务并注入 `ip rule add to 100.64.0.0/10 pref 4900 lookup 52`，发往 Tailscale 的流量直接送入 `tailscale0` 物理网卡，彻底绕开 Android netd VPN 拦截，实现日常梯子（Clash）与内网互联 100% 互不干扰同时在线
-  - NyanoMuse 同步服务 Tailscale 绑定:
+  - NyanoMuse 同步服务 Tailscale 绑定与 Cloudflare 域名接入:
     - 电脑端服务监听改造：修改 `~/.config/systemd/user/nyanomuse-cloud.service`，将监听地址由 `127.0.0.1` 拓宽绑定为 `0.0.0.0:8787`，平滑重启服务，使其无缝暴露至 Tailscale 虚拟网卡 `100.73.79.77:8787`，同时保留本地反向代理与 Cloudflare Tunnel 兼容
-    - 平板客户端定向直连：备份并更新平板端 `/data/data/top.lanrhyme.nyanomuse/shared_prefs/` 下 `nanomuse.xml` 与 `provider_config.xml`，将 `cloud.base` 与 provider base URL 由绕行海外 Cloudflare 边缘的 `https://nyanomuse.lanrhyme.top` 直接切换为 Tailscale 直连地址 `http://100.73.79.77:8787`
+    - Cloudflare 专属私网解析：调用 Cloudflare API 在 `lanrhyme.top` Zone 下新增 A 记录 `tailscale.lanrhyme.top` 指向 `100.73.79.77`（关闭代理/仅 DNS 灰云），优雅消除 IP 记忆负担
+    - 平板客户端定向直连：备份并更新平板端 `/data/data/top.lanrhyme.nyanomuse/shared_prefs/` 下 `nanomuse.xml` 与 `provider_config.xml`，将 `cloud.base` 与 provider base URL 直接配置为 `http://tailscale.lanrhyme.top:8787`
   - 互通验证：
     - 平板端与手机端均成功与电脑双向通信（`ping 100.73.79.77` 0% packet loss）
-    - 平板端经 Tailscale 直连请求 `http://100.73.79.77:8787/healthz` 响应正常（`ok: true, version: 0.26.0`），彻底摆脱公网 DNS/CDN 波动与校园网隔离限制
+    - 平板端直连请求 `http://tailscale.lanrhyme.top:8787/healthz` 响应正常（`ok: true, version: 0.26.0`），彻底摆脱公网 DNS/CDN 波动与校园网隔离限制
 
 - **Antigrative Dashboard、Brain Visualizer 与 Link 扩展部署 (2026-10-24, 完成)**:
   - 核心架构与多端安装:
