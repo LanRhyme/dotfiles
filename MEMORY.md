@@ -5,6 +5,14 @@
 
 ## 最近动态
 
+- **Antigrative Dashboard 桌面端与 CLI 状态栏插件部署 (2026-10-24, 完成)**:
+  - 核心架构与多端安装:
+    - 仓库归档：源码归档至 `~/.local/share/antigrative-dashboard`
+    - 桌面端插件：安装至 `~/.gemini/config/plugins/antigravity-pulse`，运行时模式挂载成功（已连接活动渲染窗口）
+    - CLI 状态栏：通过 `manage.py install-cli --language zh-CN` 配置于 `~/.gemini/antigravity-cli/settings.json`，支持上下文、缓存率与额度监控
+  - 运维与状态校验：
+    - `python3 manage.py status` 与 `python3 manage.py status-cli` 校验均已正常 enabled
+
 - **NyanoMuse 跨端生图授权安全门与双轨情绪标签复制泄漏修复 (2026-10-23, 完成)**:
   - 核心架构与安全分级加固:
     - Hub 跨端生图授权安全门：将 image.generate 纳入 GATED_ACTIONS，杜绝免批准调用桌面端能力，未获用户授权前无法执行
