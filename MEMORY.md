@@ -5,13 +5,29 @@
 
 ## 最近动态
 
-- **Antigrative Dashboard 桌面端与 CLI 状态栏插件部署 (2026-10-24, 完成)**:
+- **Tailscale 异地全端互联与 NyanoMuse 同步服务器内网绑定落地 (2026-10-24, 完成)**:
+  - 核心架构与全端互联:
+    - 电脑端（Linux CachyOS）：`tailscale` 安装并启用 `tailscaled.service`，绑定 IP 为 `100.73.79.77`，配置代理环境与 `--accept-dns=false` 彻底消除 DNS 冲突，授权 `lanrhyme` 无密码操作
+    - 平板端（一加平板 2 Pro / c84b9192）：原生 ARM64 `tailscale` / `tailscaled` 部署至 `/data/adb/tailscale/`，认证上线绑定 IP 为 `100.107.36.2`
+    - 手机端（红米 K60 / ed3fdd92）：静默安装官方 Tailscale App；部署原生 ARM64 二进制至 `/data/adb/tailscale/`，配置开机自启守护 `/data/adb/service.d/tailscaled.sh`，认证上线绑定 IP 为 `100.127.72.106`
+    - 开机自启与零冲突分流：两台移动设备均通过 `service.d` 自动拉起后台服务并注入 `ip rule add to 100.64.0.0/10 pref 4900 lookup 52`，发往 Tailscale 的流量直接送入 `tailscale0` 物理网卡，彻底绕开 Android netd VPN 拦截，实现日常梯子（Clash）与内网互联 100% 互不干扰同时在线
+  - NyanoMuse 同步服务 Tailscale 绑定:
+    - 电脑端服务监听改造：修改 `~/.config/systemd/user/nyanomuse-cloud.service`，将监听地址由 `127.0.0.1` 拓宽绑定为 `0.0.0.0:8787`，平滑重启服务，使其无缝暴露至 Tailscale 虚拟网卡 `100.73.79.77:8787`，同时保留本地反向代理与 Cloudflare Tunnel 兼容
+    - 平板客户端定向直连：备份并更新平板端 `/data/data/top.lanrhyme.nyanomuse/shared_prefs/` 下 `nanomuse.xml` 与 `provider_config.xml`，将 `cloud.base` 与 provider base URL 由绕行海外 Cloudflare 边缘的 `https://nyanomuse.lanrhyme.top` 直接切换为 Tailscale 直连地址 `http://100.73.79.77:8787`
+  - 互通验证：
+    - 平板端与手机端均成功与电脑双向通信（`ping 100.73.79.77` 0% packet loss）
+    - 平板端经 Tailscale 直连请求 `http://100.73.79.77:8787/healthz` 响应正常（`ok: true, version: 0.26.0`），彻底摆脱公网 DNS/CDN 波动与校园网隔离限制
+
+- **Antigrative Dashboard、Brain Visualizer 与 Link 扩展部署 (2026-10-24, 完成)**:
   - 核心架构与多端安装:
     - 仓库归档：源码归档至 `~/.local/share/antigrative-dashboard`
     - 桌面端插件：安装至 `~/.gemini/config/plugins/antigravity-pulse`，运行时模式挂载成功（已连接活动渲染窗口）
     - CLI 状态栏：通过 `manage.py install-cli --language zh-CN` 配置于 `~/.gemini/antigravity-cli/settings.json`，支持上下文、缓存率与额度监控
+    - Brain Visualizer：下载并解压官方最新 v0.7.1 二进制，部署至 `~/.local/bin/agy-brain-viz`，支持可视化检查本地 `~/.gemini/antigravity/brain/`
+    - Antigravity Link：下载最新 v1.0.20 VSIX，成功安装至 VS Code 扩展（`cafetechne.antigravity-link-extension`）
   - 运维与状态校验：
     - `python3 manage.py status` 与 `python3 manage.py status-cli` 校验均已正常 enabled
+    - `agy-brain-viz --version` 与 `code --list-extensions` 均校验通过
 
 - **NyanoMuse 跨端生图授权安全门与双轨情绪标签复制泄漏修复 (2026-10-23, 完成)**:
   - 核心架构与安全分级加固:
