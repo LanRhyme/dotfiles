@@ -5,6 +5,17 @@
 
 ## 最近动态
 
+- **红米 K60 ColorOS 16.1 (Baklava/ac68c1a) 脏刷更新与 SukiSU/隐匿生态无损继承 (2026-10-25, 完成)**:
+  - 核心架构与固件刷写:
+    - 完整性校验与纯净备份：新版固件 `ColorOS16.1_REDMIK60_ac68c1a_20261012.zip` MD5（`ac68c1a...`）校验无误，提取纯净原厂 `boot.img` 归档至 `~/刷机/k60/原厂备份/boot_20261012_clean.img`
+    - 授权补丁脱壳：对 `VerificationPatchV2_20260914.zip` 清除中心目录伪加密标志位（0x0009 -> 0x0008），生成 `VerificationPatchV2_fixed.zip` 并推送至手机
+    - TWRP 全自动刷写：手机重启至 TWRP，通过 ADB CLI 触发安装，自动模拟硬件按键 `VOLUMEUP` 确认 MD5、SukiSU Ultra 及定制 Recovery 部署，流式解压写入 `super.img.zst`，随后无缝安装授权验证补丁
+  - 模块与防检测继承校验:
+    - 系统成功进入 ColorOS 16.1（PLQ110_11_A.01 / AetherKernel 5.10.246），保留数据更新零丢损
+    - SukiSU Ultra 4.2.0 (40900 / UAPI=2) 正常常驻
+    - Zygisk Next 1.5.0 正常注入，`enforce_denylist` 维持 0，Vector 守护进程保持 `unshare -m`，Tricky Store 与 HMA 模块自然继承生效
+    - 全面冻结系统 OTA 组件：已在红米 K60 与一加平板 2 Pro（100.107.36.2:5555）上将 `com.oplus.ota`、`com.oplus.cota`、`com.oplus.romupdate` 与 `com.oplus.upgradeguide` 全局及用户层级彻底禁用并清理缓存，双端彻底杜绝系统更新提示与后台静默下载
+
 - **Tailscale 异地全端互联、通信共享无损分流与全自动无线 ADB 守护落地 (2026-10-24, 完成)**:
   - 核心架构与全端互联:
     - 电脑端（Linux CachyOS）：`tailscale` 安装并启用 `tailscaled.service`，绑定 IP 为 `100.73.79.77`，配置代理环境与 `--accept-dns=false` 彻底消除 DNS 冲突，授权 `lanrhyme` 无密码操作
