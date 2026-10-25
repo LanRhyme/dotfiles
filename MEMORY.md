@@ -5,6 +5,15 @@
 
 ## 最近动态
 
+- **ReveriePaint-native 支持设置中关闭双指与三指长按连续撤销与重做 (2026-10-25, 完成)**:
+  - 架构与防误触状态机重构:
+    - 根除手掌误触触发连续撤销：针对三星 Galaxy Tab 等大屏设备手掌边缘搭屏误触发两指/三指长按连撤连做导致画作被快速清空的问题，在 CanvasTouchView 的 continuousUndoRunnable 与 continuousRedoRunnable 任务执行入口及调度前置判断处增加 gestureContinuousUndo 状态门禁，关闭后彻底阻断长按连撤连做循环，仅允许轻点单击触发单步撤销/重做
+  - 配置持久化与界面呈现:
+    - PaintViewModel 引入 gestureContinuousUndo 响应式状态与持久化配置项，并在手势设置面板「辅助与画布控制」卡片中提供「长按连续撤销与重做」开关（默认开启），支持恢复默认手势时统一重置
+    - 补齐 values 与 values-en 多语言文案定义
+  - 单元测试与代码推送:
+    - GestureConfigTest 补齐门禁逻辑测试，全量单元测试全绿通过，代码已推送至 GitHub main 分支（commit: 00258a26，关联 Issue #124）
+
 - **ReveriePaint-native 移除系统 MotionPredictor 崩溃源与手写笔硬件 SDK 算法残留 (2026-10-25, 完成)**:
   - 核心架构与闪退根治:
     - 根除 C++ 底层 SIGABRT 闪退：定位到用户落笔绘制首笔崩溃栈为 libinput.so 中 android::MotionPredictor::record 触发 LOG_ALWAYS_FATAL_IF 并调用 abort()；彻底剥离 CanvasTouchView 中对 androidx.input.motionprediction.MotionEventPredictor (系统级预测器) 的全部声明、初始化与调用，落笔预测完全收口至纯 Kotlin 实现的 4 阶卡尔曼前向预测器 universalPredictor，杜绝非兼容硬件与第三方 ROM 上的原生 abort 闪退（commit: dcb5af0a）
