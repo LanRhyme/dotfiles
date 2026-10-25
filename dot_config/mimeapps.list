@@ -10,6 +10,7 @@ x-scheme-handler/zcode=zcode.desktop
 text/markdown=dev.zed.Zed.desktop
 x-scheme-handler/opencode=ai.opencode.desktop.desktop
 x-scheme-handler/workbuddy=workbuddy.desktop
+model/gltf-binary=blender.desktop
 
 [Added Associations]
 application/yaml=neovide.desktop;
@@ -18,3 +19,4 @@ x-scheme-handler/clash=clash-verge.desktop;
 x-scheme-handler/clash-verge=clash-verge.desktop;
 image/png=org.gnome.Loupe.desktop;
 text/markdown=dev.zed.Zed.desktop;
+model/gltf-binary=blender.desktop;
