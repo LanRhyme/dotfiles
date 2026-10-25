@@ -5,6 +5,17 @@
 
 ## 最近动态
 
+- **Tailscale 双端掉线根因排查与 Root 守护态自愈 (2026-10-26, 完成)**:
+  - 现象与控制台基线: 电脑端 cachyos (100.73.79.77) 全程健康, 手机 k60 于 21:12 离线, 平板于 23:05 离线, 双端 KeyExpiry 均为 2027-04 未过期, 控制台状态为 online=no 而非 logged out
+  - 根因定位: 双端均为 `/data/adb/tailscale/tailscaled` 原生 Root 守护 (非 App VpnService), 断网后日志卡死在 `Rebind; defIf=... rebind-no-localaddr` 与 `dial ... connect: network is unreachable` 死循环, 永远无法向 controlplane 轮询 netmap, 只有重启守护进程才能恢复
+  - 触发时刻: 手机 21:11 移动数据重拨 (10.91.232.58/30 -> 10.239.213.179/29) 叠加热点与通信共享链路重整; 平板 23:04 从 192.168.250.254 切换至喵～ WiFi (10.85.125.91)
+  - 平板附加故障: 开机脚本 `DEFAULT_IFACE=$(ip route show table 0 | awk ...)` 只排除 dummy/tailscale, 未排除 tun/vgate 虚拟网卡, 当前会命中 Clash 的 `default dev tun0`, 生成失效的 `ip rule pref 4800 lookup 1015` (表 1015 早已随旧网络删除), 需改为挑选物理出口
+  - 处置: 手机执行 `sh /data/adb/service.d/tailscaled.sh` 重启, 平板手工 `killall -9 tailscaled` + nohup 重启 + `ip rule add iif lo uidrange 0-0 pref 4800 lookup wlan0`, `tailscale up --accept-dns=false --netfilter-mode=off`, 双端恢复 (平板经 10.85.125.91 直连电脑, 手机经 DERP hkg 中继)
+  - 副作用: 手机 adbd 无线监听 (5555) 随守护重启短暂丢失后自行恢复, 现已稳定走 Tailscale 通道 100.127.72.106:5555 (局域网 10.85.125.98:5555 通道记为 stale offline)
+  - 加固落地 (双端同版脚本): `/data/adb/service.d/tailscaled.sh` 重写为「启动 + 看门狗」单文件 (旧版备份 tailscaled.sh.bak-20261026), 出口改为动态解析 netd 的 `31000 fwmark 0x0/0xffff lookup <iface>` 规则 (只认 wlan*/rmnet_data*/eth*/p2p0, 显式排除 tun/vgate/dummy/ifb), 网卡变化立刻刷新 pref 4700 与 4800 规则; 看门狗每 30 秒读 `tailscale status --json --peers=false` 的 Health 数组, 命中 network map / coordination server / network is unreachable / logged out 连续 6 次 (3 分钟) 自动重启守护, 进程消失也自动拉起, 日志落 `/data/adb/tailscale/watchdog.log` (超 256KB 自截断)
+  - 关键纠正 (覆盖 2026-10-24 结论): 手机端 pref 4800 规则不可删除. 实测 00:30 删除后 00:32 立即失联, 守护进程自身 socket 命中 Android mark 规则链的 `unreachable` 分支报 ENETUNREACH, 取不到 control key 显示 logged out, 重启守护也无效; 00:39 恢复 `pref 4800 lookup rmnet_data3` 后 3 秒内重新登录成功. `iif lo` 限定只匹配本机生成流量, 通信共享转发包 iif 非 lo 不会命中, 故双端统一 UID0_RULE=1
+  - 自愈实测: 手机 00:34-00:37 因规则缺失进入 mapresponse-timeout, 看门狗第 6 次探测 (00:37:14) 自动重启守护, 恢复后 00:39:23 重新 active login; 平板 4800 出口由 wlan0 动态维持, 两观察窗内无任何误重启
+
 - **ReveriePaint-native 添加繁体中文、日语与猫猫语本地化支持并确立大版本多语言维护规范 (2026-10-26, 完成)**:
   - 核心架构与多语言体系扩展:
     - LanguageManager 接入新语言枚举：扩展 AppLanguage 包含 JA（ja / 日本語）、ZH_TW（zh-TW / 繁體中文 (台灣)）与 CAT（cat / 猫猫语），在 getLocale 与 isChinese 中完成标准映射（CAT 映射为 Locale("cat") 并获 Android 原生兼容支持）
