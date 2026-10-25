@@ -16,7 +16,8 @@
   - 开发规范更新与真机部署验证:
     - 项目级 AGENTS.md 更新第 6 节（编码规范）与第 13 节（发版流程），确立日常开发仅维护简体中文与英文、扩展多语言仅在大版本发版前或用户明确指示时全量增量补全的维护原则
     - testDebugUnitTest 全量单元测试全绿通过，assembleDebug 编译打包成功并已通过 ADB 静默安装至一加平板 2 Pro（c84b9192）真机运行验证
-    - 代码已提交并推送到 GitHub 远端 main 分支（commit: aa8a853a）
+    - 修复 Android Lint 检查拦截：针对 CI 中 `:app:lintDebug` 将 debug 目录专用的未翻译性能标尺（PerfHud）文案及扩展语种缺失作为致命错误拦截（42 项 MissingTranslation 报错）的问题，在 app/src/debug/res/values/strings.xml 中为 resources 根标签添加 tools:ignore="MissingTranslation"，并在 app/build.gradle.kts 的 lint 配置块中增加 disable += "MissingTranslation"，彻底保障日常开发中无需同步全部扩展语种即可畅通通过 CI 自检与自动化构建（commit: d8b49160）
+    - 代码已提交并推送到 GitHub 远端 main 分支（commit: d8b49160）
 
 - **ReveriePaint-native 修复导入 KRA 工程无法识别继承透明度与图层组穿透模式 (2026-10-25, 完成)**:
   - 核心架构与底层解析修复:
