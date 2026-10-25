@@ -5,6 +5,13 @@
 
 ## 最近动态
 
+- **ReveriePaint-native 修复导入 KRA 工程无法识别继承透明度与图层组穿透模式 (2026-10-25, 完成)**:
+  - 核心架构与底层解析修复:
+    - 根治继承透明度与透明度锁定丢失：Krita 原生保存 .kra 时使用 channelflags 与 channellockflags 掩码位标识通道启用与锁定状态，官方不输出 inherit-alpha 属性；在 ReverieCoreIO.cpp 的 loadKraNodesDom 中接入通道掩码解析，当检测到 alpha 位禁用时自动激活 l->disableAlphaChannel(true)，当检测到 alpha 锁定未置位时激活 pl->setAlphaLocked(true)，并在写出 .kra 时补齐 channellockflags 序列化
+    - 补齐图层组穿透混合模式：解析 passthrough/pass_through 属性与 pass_through 复合模式，同步注入 g->setPassThroughMode，并在写出 .kra 与 REVP meta.json 时补齐图层组 passthrough 状态回写
+  - 单元测试与代码推送:
+    - ClippingMaskLogicTest 补齐 KRA 继承透明度通道位解析与图层组穿透判定单测，testDebugUnitTest 全量测试全绿通过，代码已推送至 GitHub main 分支（commit: 1b0f5b13，关联 Issue #119）
+
 - **ReveriePaint-native 支持设置中关闭双指与三指长按连续撤销与重做 (2026-10-25, 完成)**:
   - 架构与防误触状态机重构:
     - 根除手掌误触触发连续撤销：针对三星 Galaxy Tab 等大屏设备手掌边缘搭屏误触发两指/三指长按连撤连做导致画作被快速清空的问题，在 CanvasTouchView 的 continuousUndoRunnable 与 continuousRedoRunnable 任务执行入口及调度前置判断处增加 gestureContinuousUndo 状态门禁，关闭后彻底阻断长按连撤连做循环，仅允许轻点单击触发单步撤销/重做
