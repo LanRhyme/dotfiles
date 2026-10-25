@@ -5,6 +5,14 @@
 
 ## 最近动态
 
+- **ReveriePaint-native 移除系统 MotionPredictor 崩溃源与手写笔硬件 SDK 算法残留 (2026-10-25, 完成)**:
+  - 核心架构与闪退根治:
+    - 根除 C++ 底层 SIGABRT 闪退：定位到用户落笔绘制首笔崩溃栈为 libinput.so 中 android::MotionPredictor::record 触发 LOG_ALWAYS_FATAL_IF 并调用 abort()；彻底剥离 CanvasTouchView 中对 androidx.input.motionprediction.MotionEventPredictor (系统级预测器) 的全部声明、初始化与调用，落笔预测完全收口至纯 Kotlin 实现的 4 阶卡尔曼前向预测器 universalPredictor，杜绝非兼容硬件与第三方 ROM 上的原生 abort 闪退（commit: dcb5af0a）
+  - 界面与设置逻辑精简:
+    - 移除硬件 SDK 预测算法单选项：手写笔设置子页面（StylusSettingsSubPage）移除已失效的「硬件SDK算法」与「APP软件算法」单选组，触控与笔画预测分组项数收敛为 3 项；PaintViewModel 中 stylusPredictionMasterEnabled 与 updateStylusPredictionMaster 直接收口至超低延迟前向预测开关 frontBufferPredictionEnabled，彻底清除 stylusPredictionAlgorithmType 假代码（commit: e9aefad2）
+  - 编译构建与代码推送:
+    - testDebugUnitTest 全量单元测试全绿通过，代码已推送至 GitHub main 分支
+
 - **ReveriePaint-native 通用与 Ugee/XP-Pen 手写笔双侧键映射与临时橡皮冲突修复 (2026-10-25, 完成)**:
   - 核心架构与侧键状态机重构:
     - 按键通道位掩码重构：彻底剥离 GenericStylusAdapter 与 StylusDriver.isSideButtonEraseActive 中对 MotionEvent.BUTTON_PRIMARY (1) 的误判定，消除笔尖接触屏幕被误当侧键按压的问题；接入 BUTTON_STYLUS_PRIMARY (32) 与 BUTTON_STYLUS_SECONDARY (64) 标准键位，并向下兼容数位板/EMR 鼠标兼容键位（下侧键对应 BUTTON_SECONDARY = 2，上侧键对应 BUTTON_TERTIARY = 4 / BACK = 8 / FORWARD = 16），解决 Ugee UT2PRO 与 XP-Pen 上侧键完全未被识别、下侧键错位为副键的问题
