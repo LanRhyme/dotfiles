@@ -5,6 +5,19 @@
 
 ## 最近动态
 
+- **ReveriePaint-native 添加繁体中文、日语与猫猫语本地化支持并确立大版本多语言维护规范 (2026-10-26, 完成)**:
+  - 核心架构与多语言体系扩展:
+    - LanguageManager 接入新语言枚举：扩展 AppLanguage 包含 JA（ja / 日本語）、ZH_TW（zh-TW / 繁體中文 (台灣)）与 CAT（cat / 猫猫语），在 getLocale 与 isChinese 中完成标准映射（CAT 映射为 Locale("cat") 并获 Android 原生兼容支持）
+    - 设置界面动态联动：GeneralSettingsSubPage 通用设置页面语言选择器完整接入跟随系统、简体中文、English、日本語、繁體中文与猫猫语 6 项语言切换选项
+  - 多语言资源全量覆盖与校验:
+    - 繁体中文（values-zh-rTW）：基于 opencc (s2twp 台湾术语规范) 全量转换 2992 条字符串，涵盖图层、笔刷、滴管、色彩增值、復原与重做等标准设计术语
+    - 猫猫语（values-cat）：基于萌系猫咪动作与绘画术语拟态全量生成 2992 条软萌字符串（撤回上一爪喵、猫窝画布、猫猫层、肉垫压感等），单通道正则替换与 XML/单引号转义校验通过
+    - 日语（values-ja）：基于 Krita 官方翻译记忆（po/ja/krita.po）结合 8 路特工分队并行精细化校验，严格对齐 Clip Studio Paint / Photoshop / Krita 日本标准 UI 术语并保证 100% 格式占位符 (%s, %d) 精度，全量覆盖 2992 条字符串
+  - 开发规范更新与真机部署验证:
+    - 项目级 AGENTS.md 更新第 6 节（编码规范）与第 13 节（发版流程），确立日常开发仅维护简体中文与英文、扩展多语言仅在大版本发版前或用户明确指示时全量增量补全的维护原则
+    - testDebugUnitTest 全量单元测试全绿通过，assembleDebug 编译打包成功并已通过 ADB 静默安装至一加平板 2 Pro（c84b9192）真机运行验证
+    - 代码已提交并推送到 GitHub 远端 main 分支（commit: 8057435c）
+
 - **ReveriePaint-native 修复导入 KRA 工程无法识别继承透明度与图层组穿透模式 (2026-10-25, 完成)**:
   - 核心架构与底层解析修复:
     - 根治继承透明度与透明度锁定丢失：Krita 原生保存 .kra 时使用 channelflags 与 channellockflags 掩码位标识通道启用与锁定状态，官方不输出 inherit-alpha 属性；在 ReverieCoreIO.cpp 的 loadKraNodesDom 中接入通道掩码解析，当检测到 alpha 位禁用时自动激活 l->disableAlphaChannel(true)，当检测到 alpha 锁定未置位时激活 pl->setAlphaLocked(true)，并在写出 .kra 时补齐 channellockflags 序列化
