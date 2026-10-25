@@ -5,6 +5,29 @@
 
 ## 最近动态
 
+- **ReveriePaint-native 通用与 Ugee/XP-Pen 手写笔双侧键映射与临时橡皮冲突修复 (2026-10-25, 完成)**:
+  - 核心架构与侧键状态机重构:
+    - 按键通道位掩码重构：彻底剥离 GenericStylusAdapter 与 StylusDriver.isSideButtonEraseActive 中对 MotionEvent.BUTTON_PRIMARY (1) 的误判定，消除笔尖接触屏幕被误当侧键按压的问题；接入 BUTTON_STYLUS_PRIMARY (32) 与 BUTTON_STYLUS_SECONDARY (64) 标准键位，并向下兼容数位板/EMR 鼠标兼容键位（下侧键对应 BUTTON_SECONDARY = 2，上侧键对应 BUTTON_TERTIARY = 4 / BACK = 8 / FORWARD = 16），解决 Ugee UT2PRO 与 XP-Pen 上侧键完全未被识别、下侧键错位为副键的问题
+    - 临时橡皮笔画抑制逻辑纠偏：重构 strokeHappened 判定，仅在运笔时真实带压感 (pressure > 0.01f) 且位移超过 24px 时判定为临时橡皮笔画；松键时仅在开启按住侧键橡皮 (genericSideButtonErase) 且确实画过笔画时抑制动作，开启按键映射时悬空单击或轻触单击 100% 正常触发动作映射
+    - 悬空离开与按键边沿派发加固：onStylusHoverExited 补齐抬笔释放判定，笔尖离开感应场时自动结算释放动作；在 CanvasTouchView 的 onHoverEvent、onGenericMotionEvent 以及 MainActivity.dispatchGenericMotionEvent 中完整下发 ACTION_BUTTON_PRESS 与 ACTION_BUTTON_RELEASE，静止悬空按压与释放动作不再漏判
+    - 物理按键扩展识别与防抖：GenericStylusAdapter.onStylusKeyEvent 与 StylusDriver.isStylusKeyEvent 补齐 KEYCODE_BUTTON_A (96)、KEYCODE_BUTTON_B (97)、KEYCODE_BUTTON_3 (190)、304、305、310、311，并在 MotionEvent 与 KeyEvent 双通道间设置 150ms 防抖，杜绝重复触发
+  - 测试构建与代码推送:
+    - StylusModelsTest 补齐位掩码与扩展按键单元测试，testDebugUnitTest 与 assembleDebug 编译打包全绿通过
+    - 代码提交至 main 分支并推送到 GitHub 远端仓库（commit: 06841d2b，关联 Issue #133）
+
+- **ReveriePaint-native 面板固定跳变越界修复与笔刷橡皮切换快捷操作纠偏 (2026-10-25, 完成)**:
+  - 核心架构与面板固定/平移统一容器重构:
+    - 消除坐标系硬断裂跳变：原实现在钉住面板时将 AnimatedVisibility 的 modifier 切换为硬编码对齐与偏移（PaintingPage 中写死 CenterStart / TopEnd / BottomStart），且将内部卡片脱离外层 fillMaxSize 容器，丢失了 floatingUiConfig 的 toolRailPosition / topBarPosition / sliderRailPosition 动态对齐与 inwardMargin 内缩外边距；重构为 AnimatedVisibility 统一使用 fillMaxSize，三大面板（BrushPanel、LayerPanel、ColorPanel）内部容器统一维持 Box(fillMaxSize)，钉住时仅移除 noRippleClickable(onClose) 遮罩并登记 PINNED_* 孔径，保留完全相同的 baseAlign、basePaddingModifier 与 offset，彻底消灭钉住瞬间卡片瞬移数千像素的跳变
+    - 自由平移拖拽越界钳位：在 DragPillHandle 的 onDrag 处理中接入 LocalConfiguration 屏幕宽高，将 brushPanelOffset、layerPanelOffset 与 colorPanelOffset 严格限制在 ±85% 屏幕尺寸内（coerceIn），彻底杜绝面板卡片被拖拽至屏幕可视区域之外
+    - 取消钉住与面板关闭状态重置：统一在取消固定与面板关闭回调中重置 offset 为 Offset.Zero，并在 updatePanelPinningEnabled 关闭全局开关时级联清理色板固定状态与偏移
+  - 笔刷与橡皮切换快捷操作纠偏:
+    - 逻辑纠偏：PaintViewModel.executeQuickAction 中 TOGGLE_ERASER 原先在 eraser 状态下 fallback 到 applyTool(lastToolId.ifEmpty { "brush" })，导致套索、涂抹等工具切入橡皮后再切回时回退到上个工具，沦为「当前所选工具与橡皮切换」；修正为 eraser 状态下强制切换为 brush，非 eraser 状态下切换为 eraser，严格履行「笔刷与橡皮切换」
+    - 文案与快捷键定义校正：同步修正 PaintViewModelShortcuts、values/strings.xml 与 values-en/strings.xml 中 toggle_eraser 的名称定义（画笔与橡皮切换 / Toggle Brush / Eraser）
+  - 测试构建与多端验证:
+    - 执行 testDebugUnitTest 单元测试全绿通过
+    - assembleDebug 成功打包并通过 ADB 推送到一加平板 2 Pro（c84b9192）真机安装验证
+    - 代码提交至 main 分支并推送到 GitHub 远端仓库（commit: dfa562b9）
+
 - **红米 K60 ColorOS 16.1 (Baklava/ac68c1a) 脏刷更新与 SukiSU/隐匿生态无损继承 (2026-10-25, 完成)**:
   - 核心架构与固件刷写:
     - 完整性校验与纯净备份：新版固件 `ColorOS16.1_REDMIK60_ac68c1a_20261012.zip` MD5（`ac68c1a...`）校验无误，提取纯净原厂 `boot.img` 归档至 `~/刷机/k60/原厂备份/boot_20261012_clean.img`
