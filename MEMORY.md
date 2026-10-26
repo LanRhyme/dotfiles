@@ -5,6 +5,13 @@
 
 ## 最近动态
 
+- **kde-material-you-colors 用户单元 203/EXEC 重启风暴清理 (2026-10-26, 完成)**:
+  - 现象: `~/.config/systemd/user/kde-material-you-colors.service` 自开机起每 3 秒拉起一次, ExecStart 指向的 `~/.local/bin/kde-material-you-colors` 早已不在磁盘, 状态 203/EXEC, 本次开机 4 小时 31 分累计 25180 条日志与 5035 次重启
+  - 根因: 单元只写了 `Restart=on-failure` 与 `RestartSec=3`, 未显式声明 `StartLimitIntervalSec`/`StartLimitBurst`, 在 systemd 默认 5 次/10 秒的门槛下 3 秒一次的重启永远凑不满 5 次, 默认限流形同虚设
+  - 处置: 配色早已由 `~/.config/noctalia/morandi-gen.py` 接管, 该单元纯属历史残留, 故执行 `StopUnit` + `DisableUnitFiles` + `ResetFailedUnit` + `Reload`, 移除 `graphical-session.target.wants/` 软链与 unit 文件本体, 一并清掉遗留 `~/.config/kde-material-you-colors/config.conf`, 备份落在 `~/tmp/disabled-units/`
+  - 验证: 停机后该单元真实日志 0 条, `LoadState` 为 `not-found`, 静置观察窗无新增
+  - 环境注记: DSH 的 bwrap 沙箱内 `systemctl --user` 连 `/run/user/1000/systemd/private` 会在 AUTHENTICATING 阶段返回 ENODATA, 只能改用 `busctl --user call org.freedesktop.systemd1` 同一 Manager 接口驱动用户管理器, 详见踩坑速查
+
 - **Tailscale 双端掉线根因排查与 Root 守护态自愈 (2026-10-26, 完成)**:
   - 现象与控制台基线: 电脑端 cachyos (100.73.79.77) 全程健康, 手机 k60 于 21:12 离线, 平板于 23:05 离线, 双端 KeyExpiry 均为 2027-04 未过期, 控制台状态为 online=no 而非 logged out
   - 根因定位: 双端均为 `/data/adb/tailscale/tailscaled` 原生 Root 守护 (非 App VpnService), 断网后日志卡死在 `Rebind; defIf=... rebind-no-localaddr` 与 `dial ... connect: network is unreachable` 死循环, 永远无法向 controlplane 轮询 netmap, 只有重启守护进程才能恢复
@@ -1090,6 +1097,7 @@
 - **lpigui**：已弃用，由 pi-web 取代
 - **Krita-MorandiTimeline**：已删除，备份于 `~/tmp/Krita-MorandiTimeline-backup-20260803.tar.gz`
 - **Alacritty**：已全面弃用并由 Ghostty 替代
+- **kde-material-you-colors**：用户单元已停止并禁用，unit 文件与遗留配置目录一并删除（备份 `~/tmp/disabled-units/`），KDE 配色统一由 `morandi-gen.py` 提供；日后若重装该 AUR 包需先确认不会与 morandi-gen 争抢同一批配色写入
 
 ## 踩坑速查
 
@@ -1098,6 +1106,7 @@
 - **Git**：`git tag -f` 重打注释 tag 必须带 `-m` 或 `-F` 防 vi 卡死；覆盖发布采用删远程 tag 重新 push 并重建 GitHub Release
 - **adb 与多层 shell**：`su -c` 内嵌复杂变量与转义时写成本地脚本 push 后执行；抓取日志前必须 `logcat -c` 清除缓冲区防止历史日志干扰
 - **Hindsight 残留处理**：`uvx daemon start` 异常退出会遗留孤儿进程锁定 `.cache/uv/.lock`，kill 后需手动删除 lock 文件
+- **systemd 用户单元失控重启与沙箱内驱动**：默认 `StartLimitIntervalSec=10s` / `StartLimitBurst=5`，`RestartSec=3` 永远凑不满 5 次/10 秒，限流不会触发，坏单元会通宵重启，必须手动 `disable` 收口；DSH 的 bwrap 沙箱里 `systemctl --user` 连 `/run/user/1000/systemd/private` 会在 AUTHENTICATING 阶段报 ENODATA，改用 `busctl --user call org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager <方法>`，`StopUnit` 签名 `ss`（单元名 + `replace`）、`DisableUnitFiles` 签名 `asb`、`ResetFailedUnit` 签名 `s`
 - **Android 17 (SDK 37) 与 KernelSU-Next / Zygisk Next / Vector 保留 Root 更新要点**：
   - 1. **Root 镜像注入**：OTA 后若 LKM 签名不匹配或被 Seccomp 拦截，需从官方底包提取 `boot_a.img`，利用 `android12-5.10` KMI 与当前内核版本号注入 KernelSU-Next LKM 驱动与专属签名后 Fastboot 直刷
   - 2. **Zygisk Next 黑名单排查**：若应用无法加载模块，核对 `/data/adb/ksu/bin/znctl status` 中的 `enforce_denylist`，必须执行 `znctl enforce-denylist disabled`（置 0）以防应用被跳过注入
