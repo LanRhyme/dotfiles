@@ -5,6 +5,14 @@
 
 ## 最近动态
 
+- **平板二次离线根因: 通信共享出口识别缺陷与看门狗破坏性清理 (2026-10-26, 完成)**:
+  - 现象: 平板 08:34:24 掉出 tailnet, 但用户确认平板通信共享上网正常, 说明有网而守护自身出不去
+  - 外部触发: 手机 `dumpsys tethering` 记录 `2026-10-26T08:33:44 OBSERVED iface=wlan2 state=0`, 即喵～热点被关, 平板失去原 WiFi 通路, 40 秒后掉线; 此后平板改走 OPPO 通信共享, 出口接口为 `ovnet1` (192.168.250.254/24), 手机侧对应 `bt-vnet` (192.168.199.2/24), 平板在 bt-vnet 侧另答 192.168.199.1
+  - 看门狗 v1 两个致命缺陷: 出口白名单只认 wlan/rmnet_data/eth/p2p0, 把 ovnet1/bt-vnet 当虚拟网卡丢弃 → pick_uplink 返回空; 更糟的是 apply_rules 在 UPLINK 为空时仍执行 `ip rule del pref 4800`, 把原本指向 wlan0 的旧规则也删了, 守护彻底无出口, 报 `logged out / fetch control key / connect: network is unreachable`, 并被每 3-15 分钟白重启一次 (证据见 watchdog.log 的 uplink=none 与重复 daemon started)
+  - v3 修复: 出口识别改排除法 (仅排 tun/tailscale/dummy/ifb/vgate 与系统表), 优先信任 netd 的 `fwmark 0x0/0xffff` 默认网络表并接受数字表号, 接口可用性只校验有全局 v4 地址 (通信共享接口状态显示 UNKNOWN 而非 UP, 不能靠 UP 判断); UPLINK 为空时绝不动 pref 4800; 完全无出口时不重启守护; 重启加 300 秒退避; 已刷双端运行 (平板 uplink=ovnet1, 手机 uplink=rmnet_data3), 双端 Health 均为空
+  - 应急跳板 (平板只在通信共享网内时可用): 手机 root 下 `ip rule add to <平板IP>/32 pref 100 lookup main` 与 `ip route replace <平板IP>/32 dev bt-vnet`, 再用 busybox nc 加 FIFO 转发 `nc -l -p 6666 < fifo | nc <平板IP> 5555 > fifo`, PC 侧 `adb connect 100.127.72.106:6666` 即可进入平板; 用完删规则与进程
+  - 备份: 双端 `/data/adb/service.d/tailscaled.sh.bak-20261026` 为原始开机脚本, `tailscaled.sh.v1-20261026` 为首版看门狗
+
 - **kde-material-you-colors 用户单元 203/EXEC 重启风暴清理 (2026-10-26, 完成)**:
   - 现象: `~/.config/systemd/user/kde-material-you-colors.service` 自开机起每 3 秒拉起一次, ExecStart 指向的 `~/.local/bin/kde-material-you-colors` 早已不在磁盘, 状态 203/EXEC, 本次开机 4 小时 31 分累计 25180 条日志与 5035 次重启
   - 根因: 单元只写了 `Restart=on-failure` 与 `RestartSec=3`, 未显式声明 `StartLimitIntervalSec`/`StartLimitBurst`, 在 systemd 默认 5 次/10 秒的门槛下 3 秒一次的重启永远凑不满 5 次, 默认限流形同虚设
