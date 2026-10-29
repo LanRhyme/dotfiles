@@ -18,9 +18,8 @@ environment {
     QT_IM_MODULE "fcitx"
     GTK_IM_MODULE "fcitx"
     SDL_IM_MODULE "fcitx"
-    // NVIDIA hybrid GPU offloading
-    __NV_PRIME_RENDER_OFFLOAD "1"
-    __GLX_VENDOR_LIBRARY_NAME "nvidia"
+    // 独显改为按需 prime-run 启动，不再全局强制（2026-10-29 修复桌面掉帧）
+    // 面板与合成器都在核显上，全局强制独显会让每帧跨 GPU 拷贝并拖垮 144Hz 帧预算
 }
 
 input {
