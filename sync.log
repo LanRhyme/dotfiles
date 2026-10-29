@@ -10789,3 +10789,9 @@ To https://github.com/LanRhyme/dotfiles.git
  1 file changed, 3 insertions(+)
 To https://github.com/LanRhyme/dotfiles.git
    4f1f060..b7ac0ff  master -> master
+[master af8fb9c] auto: 2026-10-29-20:35:17
+ 5 files changed, 210 insertions(+), 7 deletions(-)
+ create mode 100644 dot_local/share/applications/DaVinciResolve.desktop
+ create mode 100644 dot_local/share/applications/org.kde.krita.desktop
+To https://github.com/LanRhyme/dotfiles.git
+   b7ac0ff..af8fb9c  master -> master

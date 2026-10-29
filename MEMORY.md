@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **桌面鼠标卡顿根因: 全局 PRIME offload 叠加全屏桌宠与全窗口模糊吃满 144Hz 帧预算 (2026-10-29, 已改配置待重登验证)**:
+  - 现象: 鼠标移动明显卡顿, 但鼠标本体健康 (MCHOSE G3 V2 2.4G, 端点 bInterval=1ms 即 1000Hz, dmesg 无 USB 复位/断连/HID 错误)
+  - 硬证据: 面板 eDP-1 挂在 card1=i915 核显且 niri 合成在 renderD128 核显, 但整个用户会话被 `~/.config/environment.d/nvidia.conf` 与 niri config.kdl 双重注入 `__NV_PRIME_RENDER_OFFLOAD=1` / `__GLX_VENDOR_LIBRARY_NAME=nvidia` / `__VK_LAYER_NV_optimus=NVIDIA_only` / `DRI_PRIME=pci-0000:01:00.0`, 于是 zen/steam/Bettbox/ghostty/noctalia 全部持有 card0(10de) 图形上下文, 独显长期停在 P5 / 472-607MHz
+  - 负载实测: 鼠标静止 niri 23% CPU / iGPU render 65%, 一移动光标 niri 48-52% CPU / iGPU 114-117% (超实时线即掉帧), 144Hz 每帧预算只有 6.94ms
+  - 放大器二: slugcatpet 的 GTK3 桥每 16ms 整屏清零并重绘 1920x1080 透明 TOP 层 (8.3MB/帧 wl_shm) 常驻 46% CPU, 合成器被迫每帧整屏重混合
+  - 放大器三: niri 全窗口 `opacity 0.98` + `blur true` 使任何窗口都无法直出扫描 (禁用 blur 单此项 iGPU 就从 65% 掉到 47%)
+  - 处置: nvidia.conf 只保留 QT_X11_NO_MITSHM=1; niri config.kdl 删掉两条注入; Zen 的 flatpak override 用 `--unset-env` 去掉三个 NVIDIA 变量; Krita/DaVinci 新增 `~/.local/share/applications` 覆盖改 `prime-run` 前缀 (Blender/LunarClient 早已如此); 桌宠改按 Qt 侧脏矩形 `queue_draw_area` 局部重绘
+  - 效果 (桌宠部分已即时生效): 桌宠 CPU 41.5-46.5% → 10-18%, niri 空闲 23% → 12.6-17%, 移动光标时 niri 48-52% → 16.3%, iGPU 114-117% → 59.5%, 移动光标不再放大合成器负载
+  - 待验证: environment.d 与 niri environment 段需重登生效, 重登后 `nvidia-smi` 不应再出现 zen/steam 的图形上下文; Zen 的 `layers.dmabuf.disable=true` 留作下一步实验 (核显路径下大概率不再需要, 去掉可再省一笔合成开销)
+  - 回滚备份: `~/tmp/zen-flatpak-override.bak`, `~/tmp/niri-config.kdl.chezmoi.bak`, 桌宠原文件 `~/tmp/gtk3_bridge.py.orig`, 桌宠也可用 `SLUGCATPET_LEGACY_FULL_REDRAW=1` 退回整屏重绘
+  - 次要嫌疑 (未处理): WiFi 在 ch1 (2412MHz 20MHz) 且蓝牙常开, 与 2.4G 鼠标接收器同频, 只会造成偶发跳帧而非持续卡顿
+
 - **平板二次离线根因: 通信共享出口识别缺陷与看门狗破坏性清理 (2026-10-26, 完成)**:
   - 现象: 平板 08:34:24 掉出 tailnet, 但用户确认平板通信共享上网正常, 说明有网而守护自身出不去
   - 外部触发: 手机 `dumpsys tethering` 记录 `2026-10-26T08:33:44 OBSERVED iface=wlan2 state=0`, 即喵～热点被关, 平板失去原 WiFi 通路, 40 秒后掉线; 此后平板改走 OPPO 通信共享, 出口接口为 `ovnet1` (192.168.250.254/24), 手机侧对应 `bt-vnet` (192.168.199.2/24), 平板在 bt-vnet 侧另答 192.168.199.1
@@ -1025,9 +1037,10 @@
 - Noctalia 重启：`pkill -f noctalia` 后 `setsid nohup noctalia > ~/tmp/noctalia-restart.log 2>&1 < /dev/null & disown`
 - OBS：屏幕采集依赖 mesa EGL 核显渲染（强制覆盖 desktop Exec：`env -u __NV_PRIME_RENDER_OFFLOAD -u __GLX_VENDOR_LIBRARY_NAME __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json obs`）；编码器使用核显 QSV（`obs_qsv11_v2`）；B 站推流插件位于 `~/.config/obs-studio/plugins/bilibili-stream-for-obs/`（含 PR #27 扫码登录补丁）
 - Caelestia KDE Shell：KWin 6.7.4 + caelestia-shell 2.4.0 精简安装，配置位于 `~/.config/quickshell/caelestia/`，会话 `~/.local/bin/start-kwin-caelestia.sh`；缩略图依赖 PipeWire，nvidia.conf 严禁设全局 PRIME offload 变量防黑屏
-- Zen 浏览器 (Flatpak)：flatpak override 注入 NVIDIA PRIME 变量；user.js 启用 `layers.dmabuf.disable=true` 防止 2D canvas 合成失效；D-Bus portal 授权只读访问 fcitx5 目录
+- 显卡策略：默认全部走核显，严禁在 `environment.d/nvidia.conf` 或 niri `environment` 段设全局 PRIME offload（面板与合成器都在核显，全局强制独显会让每帧跨 GPU 拷贝并吃掉 144Hz 帧预算）；需要独显用 `prime-run` 前缀，桌面项覆盖见 `~/.local/share/applications/` 下的 blender / org.kde.krita / DaVinciResolve / com.lunarclient.LunarClient
+- Zen 浏览器 (Flatpak)：2026-10-29 已用 `flatpak override --user --unset-env` 去掉 `__NV_PRIME_RENDER_OFFLOAD` / `__GLX_VENDOR_LIBRARY_NAME` / `VK_ICD_FILENAMES`，改走 Mesa 核显；user.js 仍启用 `layers.dmabuf.disable=true` 防止 2D canvas 合成失效；D-Bus portal 授权只读访问 fcitx5 目录
 - SPlayer-Next：AUR `splayer-next-bin`，二进制 `/opt/SPlayer-Next/SPlayer-Next`，命令 `/usr/bin/splayer-next`
-- slugcatpet 桌宠：`~/Projects/slugcatpet`，GTK3 窗口必须设为 Layer.TOP
+- slugcatpet 桌宠：`~/Projects/slugcatpet`，GTK3 窗口必须设为 Layer.TOP；GTK3 桥按 Qt 侧 `_dirty_rect` 算好的脏矩形做 `queue_draw_area` 局部重绘，禁止退回每帧整屏 `queue_draw`（全屏透明面整屏重绘会把合成器整屏混合负载拉满）
 
 ## 项目
 
@@ -1109,6 +1122,7 @@
 
 ## 踩坑速查
 
+- **Wayland 合成器掉帧与鼠标卡顿排查**：先 `niri msg outputs` 确认刷新率与 VRR，再 `nvidia-smi` 看有没有不该出现的图形上下文（若面板挂在核显却有一堆…G 进程在独显即为全局 PRIME offload 作祟）；判据用「鼠标静止 vs `ydotool mousemove` 高频注入移动」两种状态下 niri 的 CPU 与 `/proc/<niri>/fdinfo/*` 里 `drm-engine-render` 的增量，移动时翻倍即帧预算已满；常见放大器是全屏透明 layer 面按固定间隔整屏重绘、全窗口 `blur true` 与 `opacity` < 1（两者都让窗口无法直出扫描）、跨 GPU 渲染（独显绘制 + 核显合成）；`libinput list-devices` 要 root，直接读 `/proc/bus/input/devices` 与 `/sys/bus/usb/devices/<dev>:1.0/ep_*/interval` 更快
 - **网络（FlClash fake-ip 间歇性 TLS 失败）**：curl/git/gh 可用 `--resolve` 直连真实 IP（github.com=20.205.243.166, api.github.com=20.205.243.168, uploads.github.com=20.205.243.161）+ `http.version=HTTP/1.1`；AUR 遇到网络超时改下载 snapshot tarball 手动 makepkg；TUN 静默掉线时在 FlClash 界面开关一次网卡重启
 - **提权**：pkexec 在 niri 下因 polkit 弹窗缺失卡死，需由用户在交互终端直接执行 sudo；`pkexec pacman -U` 必须使用绝对路径
 - **Git**：`git tag -f` 重打注释 tag 必须带 `-m` 或 `-F` 防 vi 卡死；覆盖发布采用删远程 tag 重新 push 并重建 GitHub Release
