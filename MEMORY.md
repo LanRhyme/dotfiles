@@ -5,6 +5,15 @@
 
 ## 最近动态
 
+- **Steam 大屏幕模式卡顿根因: niri 全局模糊规则把 Steam 客户端本体也圈进去了 (2026-10-31, 已修复)**:
+  - 现象: Steam 大屏幕模式操作发滞, 翻页与选中不跟手
+  - 根因: niri 全局窗口规则 `match app-id=".*"` 带 `opacity 0.98` + `blur true`, 而游戏窗口规则只覆盖 `^steam_app_.*` 与 `^pbz[.]exe$`, **Steam 客户端本体的 app-id 恰好就是 `steam`** 于是掉进全局规则, 大屏界面每帧整屏高斯模糊压在核显上
+  - 关键发现: niri 窗口规则是**先匹配先生效**, 后在下面补一条 `match app-id="steam"` 的专属规则**不会**覆盖前面的全局规则 (实测合成器 CPU 纹丝不动, 仍是 17.5%); 正确做法是在全局规则里加 `exclude app-id="steam"` 把 Steam 踢出去, 让它落到专属规则
+  - 实测 A/B (niri 合成器 CPU, 大屏界面可见): 改动前 17.5% → 全局关掉 blur 的理论下限 12.0% → exclude + 专属规则 12.4% (已贴到下限), 合成器负载降约 29%
+  - 落地: `dot_config/niri/config.kdl` 全局规则加 `exclude app-id="steam"`, 并新增 steam 专属 window-rule (opacity 1.0 / geometry-corner-radius 0 / clip-to-geometry false / blur false), 已 chezmoi apply + 热重载生效, dotfiles 提交 d2b2a01
+  - 踩坑: 本版 niri **没有** `niri msg action reload-config` 子命令, 正确命令是 `niri msg action load-config-file`; 且 `niri validate -c <chezmoi源文件>` 会因 `include "./cfg/*.kdl"` 的相对路径解析失败, 必须校验**目标文件** `~/.config/niri/config.kdl`
+  - 备份: `~/tmp/niri-config.kdl.bak-20261031-191129`, `~/tmp/niri-pre-exclude.kdl`
+
 - **盖世小鸡 启明星2 的 2.4G 接收器会跟随手柄平台模式切换 USB 身份, Xbox 身份在 Linux 枚举失败而 PS4 身份秒通 (2026-10-31, 已解决)**:
   - 硬件身份: VID `0x3537` (Zikway/GameSir), 2.4G 接收器枚举为 `3537:1098` "2.4G XBOX 360 For Windows" (制造商串 "2.4G", 全速 12Mbps), 三接口 —— iface0 为 `ff/5d/01` 厂商类, 被 xpad 按类别别名接管并起名 "Generic X-Box pad"; iface1 为 HID 键盘; iface2 为厂商 hidraw
   - 真正根因: 这类接收器是"跟随手柄平台模式"的伪装型 dongle, 会按手柄当前平台模式换一套 USB 身份 —— Xbox 平台冒充 `045e:028e` 并带备用身份 `3537:1098` (三接口: ff/5d/01 厂商类 + HID 键盘 + 厂商 hidraw), Switch 平台冒充 `057E:2009`, PS4 平台冒充 `054c:09cc` DualShock 4; Linux 上**只有 Xbox 那条路死掉**: `045e:028e` 每次插入连续 3 次 `-110` 超时 (每次卡 6 秒), 内核触发 `usb usb3-port9: attempt power cycle`, 累计 14 次枚举失败后才退回 `3537:1098`, 而 xpad 接管 3537:1098 后射频侧从不投递数据 (evdev 探针 180 秒 0 事件, 同期 `EVIOCGRAB` 可成功证明无人独占抓取)
@@ -1059,7 +1068,7 @@
 
 - 显示管理器：`greetd` + `noctalia-greeter`，壁纸与多显示器布局依赖 Noctalia 设置 → Shell → 安全 → Sync Now
 - 主题引擎：`~/.config/noctalia/morandi-gen.py` 统一生成莫兰迪配色（含 write_ghostty/write_fastfetch/write_fcitx5/write_pi/write_bilibili_danmaku/write_hyprland/write_idea）；新应用主题化必须扩展此脚本，严禁直改应用配置；Wine 应用与 Krita 不走主题引擎
-- Niri：动画 stiffness 180-220 / damping-ratio 0.8 弹性轻柔滑行（cfg/animation.kdl）；窗口间距 8px（cfg/layout.kdl）；全局 opacity 0.98 + blur true（`draw-border-with-background false` 必设防聚焦实心边框；Krita/Loupe/Kando/SPlayer/cs2/gamescope 排除）
+- Niri：动画 stiffness 180-220 / damping-ratio 0.8 弹性轻柔滑行（cfg/animation.kdl）；窗口间距 8px（cfg/layout.kdl）；全局 opacity 0.98 + blur true（`draw-border-with-background false` 必设防聚焦实心边框；Krita/Loupe/Kando/SPlayer/cs2/gamescope/steam 排除，**排除必须在全局规则里写 exclude，补专属规则不生效**）
 - Ghostty：输入法修复依赖 wrapper `~/.local/bin/ghostty`（`env -u GTK_IM_MODULE` 解决不转发 key release 导致 fcitx5 状态机异常）；term_bg 公式 `max(l_b+0, 4)`；集成 Master GLSL 光标着色器与连字支持
 - Fcitx5：bamboo-dark 皮肤（morandi-gen 注入），竖排候选，rime_ice（雾凇拼音）；支持 niri ext-background-effect 候选框模糊
 - Fastfetch：write_fastfetch 全量生成 config.jsonc；源码中 ≥U+F0000 码点必须使用 8 位 `\U000FXXXX` 转义
