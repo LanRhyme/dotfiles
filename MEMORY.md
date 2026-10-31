@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **noctalia 从 AUR 夜版切换到官方稳定版 5.4.0 与 v5 配置分层真相 (2026-10-31, 完成)**:
+  - 处置: `aur/noctalia-git 5.0.0.r5361`（真实串 `v5.0.0-beta.10-17-gf840b01baf16`, 8-31 编译）换成官方仓库 `noctalia 5.4.0-1.1`（cachyos-extra-v3 重建, 打包者 CachyOS, 非 AUR 无需审 PKGBUILD）, 依赖 `cachyos-niri-noctalia` 靠包名本身满足; 上游最新 tag 是 5.4.1（10-29）尚未进仓, 下次 `-Syu` 自然跟上
+  - **pacman 撞坑**: `pacman -S --noconfirm noctalia` 会在「与 noctalia-git 冲突, 删除它吗」这一步采用默认值 **No** 直接失败; 且 noctalia-git 提供虚包 `noctalia` 被 `cachyos-niri-noctalia` 依赖, 普通 `-R` 会被拒绝; 可用解法是 `pacman -Sw`（先只下载, 失败则不动现有安装）→ `pacman -Rdd`（跳过虚包依赖检查显式移除）→ `pacman -S` 安装
+  - 该包 33 个依赖全为无版本约束的普通库名, 所以这次只动 noctalia 一个包, 不引发部分升级（`pacman -Dk` 事后报数据库正常）
+  - **配置分层真相（最重要）**: v5 起运行期实际读写的设置在 `~/.local/state/noctalia/settings.toml`（state-dir 覆盖 config-home）, `~/.config/noctalia/settings.json`（chezmoi 里那份 29KB）已是 v4 遗留、运行时不读; 仍生效的只有 `~/.config/noctalia/settings.toml` 里的 `[hooks] wallpaper_changed`、`colors.json`、`plugins/` 目录; `noctalia config export` 打印合并后的有效配置（当前 301 行）, `noctalia config validate` 校验
+  - 5.4 调色板键名改名 `surface_variant`→`surface_container`、`outline`→`outline_variant`（启动日志自动迁移 lockscreen 里的旧用法）, 但 `noctalia theme` 生成时**新旧键名双写**（实测 74 键新旧都在）, 故 `morandi-gen.py` 读 `surface_variant` 不会 KeyError, 无需改主题引擎
+  - 5.4 的 Luau 沙箱**不再提供 `io` 库**, 旧写法 `io.open(...)` 报 `attempt to index nil with 'open'`; 正确 API 是 `noctalia.readFile(path)`（文件不存在返回 nil, 空文件返回 `""`）, 已据此修好 `clipboard-osd` 插件的远控静音判断
+  - **重启配方更新**: `noctalia msg` 没有 quit/exit 子命令, 直接 `pkill -x noctalia` 会把 `wl-paste --watch` 等 runStream 子进程甩给 systemd 变孤儿、导致复制通知重复; 正确顺序是先 `pkill -P $(pgrep -x noctalia)` 清子进程再杀主进程
+  - 清理: 删掉 settings.toml 里遗留的 `[widget.cat] type = "noctalia/bongocat:cat"`（官方插件体系已无 bongocat, 替代品是社区插件 `slowbongo`; 用户已有 `cat_2` 指向 `dotnetrob/cat`）, `noctalia config validate` 现为 0 警告且启动日志无 WRN/ERR
+  - 待办: ① `noctalia-greeter-git` 仍是 AUR 夜版（官方源有 `noctalia-greeter 1.7.0`）, 登录层有风险故未动, 待用户确认 ② chezmoi 目前管的是失效的 settings.json, 若要纳入版本管理应改管 `~/.local/state/noctalia/settings.toml` 或导出 `~/.config/noctalia/config.toml` ③ 一条 sync.log 噪音提交因 github.com:443 当时不可达未推送
+  - 备份: `~/tmp/noctalia-backup-20261031/`（config / state / cache / 旧二进制 / 旧 share 资产 / `settings.toml.post-upgrade`）
+
 - **Steam 大屏幕模式卡顿根因: niri 全局模糊规则把 Steam 客户端本体也圈进去了 (2026-10-31, 已修复)**:
   - 现象: Steam 大屏幕模式操作发滞, 翻页与选中不跟手
   - 根因: niri 全局窗口规则 `match app-id=".*"` 带 `opacity 0.98` + `blur true`, 而游戏窗口规则只覆盖 `^steam_app_.*` 与 `^pbz[.]exe$`, **Steam 客户端本体的 app-id 恰好就是 `steam`** 于是掉进全局规则, 大屏界面每帧整屏高斯模糊压在核显上
@@ -1072,7 +1084,7 @@
 - Ghostty：输入法修复依赖 wrapper `~/.local/bin/ghostty`（`env -u GTK_IM_MODULE` 解决不转发 key release 导致 fcitx5 状态机异常）；term_bg 公式 `max(l_b+0, 4)`；集成 Master GLSL 光标着色器与连字支持
 - Fcitx5：bamboo-dark 皮肤（morandi-gen 注入），竖排候选，rime_ice（雾凇拼音）；支持 niri ext-background-effect 候选框模糊
 - Fastfetch：write_fastfetch 全量生成 config.jsonc；源码中 ≥U+F0000 码点必须使用 8 位 `\U000FXXXX` 转义
-- Noctalia 重启：`pkill -f noctalia` 后 `setsid nohup noctalia > ~/tmp/noctalia-restart.log 2>&1 < /dev/null & disown`
+- Noctalia 重启：先 `pkill -P $(pgrep -x noctalia)` 清掉 runStream 子进程, 再 `pkill -x noctalia`, 然后 `setsid nohup noctalia > ~/tmp/noctalia-restart.log 2>&1 < /dev/null & disown`；运行期配置在 `~/.local/state/noctalia/settings.toml`, `~/.config/noctalia/settings.json` 已失效
 - OBS：屏幕采集依赖 mesa EGL 核显渲染（强制覆盖 desktop Exec：`env -u __NV_PRIME_RENDER_OFFLOAD -u __GLX_VENDOR_LIBRARY_NAME __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json obs`）；编码器使用核显 QSV（`obs_qsv11_v2`）；B 站推流插件位于 `~/.config/obs-studio/plugins/bilibili-stream-for-obs/`（含 PR #27 扫码登录补丁）
 - Caelestia KDE Shell：KWin 6.7.4 + caelestia-shell 2.4.0 精简安装，配置位于 `~/.config/quickshell/caelestia/`，会话 `~/.local/bin/start-kwin-caelestia.sh`；缩略图依赖 PipeWire，nvidia.conf 严禁设全局 PRIME offload 变量防黑屏
 - 显卡策略：默认全部走核显，严禁在 `environment.d/nvidia.conf` 或 niri `environment` 段设全局 PRIME offload（面板与合成器都在核显，全局强制独显会让每帧跨 GPU 拷贝并吃掉 144Hz 帧预算）；需要独显用 `prime-run` 前缀，桌面项覆盖见 `~/.local/share/applications/` 下的 blender / org.kde.krita / DaVinciResolve / com.lunarclient.LunarClient

@@ -1,0 +1,300 @@
+config_version = 16
+
+[accessibility]
+ui_scale = 0.95000000670552254
+
+[bar]
+order = [ "default", "topbar" ]
+
+    [bar.default]
+    background_opacity = 0.93999997898936272
+    center = [ "workspaces" ]
+    concave_edge_corners = true
+    end = [ "widget", "tray", "notifications", "network", "bluetooth", "volume", "brightness", "control-center" ]
+    font_weight = 700
+    margin_edge = 0
+    margin_ends = 0
+    padding = 12
+    position = "left"
+    radius = 0
+    radius_bottom_right = 60
+    radius_top_right = 60
+    scale = 1.1000000089406967
+    start = [ "launcher", "recorder", "clipboard", "sysmon", "cat_2", "media", "audio_visualizer", "clock" ]
+    thickness = 42
+    widget_spacing = 15
+
+    [bar.topbar]
+    background_opacity = 0.95999997854232788
+    enabled = false
+    margin_ends = 0
+    radius = 0
+
+[brightness]
+minimum_brightness = 0.0099999997764825821
+
+[desktop_widgets]
+enabled = false
+
+[dock]
+active_monitor_only = true
+auto_hide = true
+background_opacity = 0.90999997965991497
+enabled = true
+icon_size = 31
+launcher_position = "start"
+magnification_scale = 1.2500000037252903
+margin_edge = 4
+reserve_space = false
+show_dots = true
+show_instance_count = false
+
+[idle]
+behavior_order = [ "lock", "screen-off", "lock-and-suspend" ]
+pre_action_fade_seconds = 5
+
+    [idle.behavior.lock]
+    action = "lock"
+    enabled = false
+    timeout = 600.0
+
+    [idle.behavior.lock-and-suspend]
+    action = "lock_and_suspend"
+    enabled = false
+    timeout = 900.0
+
+    [idle.behavior.screen-off]
+    action = "screen_off"
+    enabled = true
+    timeout = 6000.0
+
+[location]
+auto_locate = true
+
+[lockscreen]
+blur_intensity = 0.99999997764825821
+tint_intensity = 0.47999998927116394
+
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = [ "lockscreen-login-box@HDMI-A-1", "lockscreen-login-box@eDP-1", "lockscreen-widget-0000000000000001" ]
+
+    [lockscreen_widgets.grid]
+    cell_size = 64
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1"]
+    box_height = 196.0
+    box_width = 720.0
+    cx = 960.0
+    cy = 961.0
+    output = "HDMI-A-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1".settings]
+        background_color = "surface_container"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
+    box_height = 196.0
+    box_width = 720.0
+    cx = 960.0
+    cy = 628.0
+    output = "eDP-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
+        background_color = "surface_container"
+        background_opacity = 0.48999999999999999
+        background_radius = 26.0
+        center_password_text = false
+        input_opacity = 0.83999999999999997
+        input_radius = 32.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000001]
+    box_height = 368.0
+    box_width = 928.0
+    cx = 960.0
+    cy = 412.0
+    output = "eDP-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000001.settings]
+        background = false
+        background_opacity = 0.45000000000000001
+        clock_style = "digital"
+        color = "on_surface"
+        shadow = false
+
+[notification]
+layer = "overlay"
+
+[plugin_settings."noctalia/translator"]
+target_lang = "cn"
+
+[plugins]
+enabled = [
+    "noctalia/kaomoji",
+    "noctalia/screen_recorder",
+    "antigravity/clipboard-osd",
+    "noctalia/translator",
+    "h465855hgg/lyrics",
+    "dotnetrob/cat",
+    "joshuaslate/shelly",
+    "lanrhyme/micyou"
+]
+
+    [[plugins.source]]
+    kind = "git"
+    location = "https://github.com/noctalia-dev/official-plugins"
+    name = "official"
+
+    [[plugins.source]]
+    kind = "git"
+    location = "https://github.com/noctalia-dev/community-plugins"
+    name = "community"
+
+    [[plugins.source]]
+    kind = "path"
+    location = "/home/lanrhyme/.config/noctalia/plugins"
+    name = "my-local"
+
+[shell]
+avatar_path = "/home/lanrhyme/图片/headportrait.png"
+corner_radius_scale = 2.0
+font_family = "HarmonyOS Sans"
+screen_time_enabled = true
+settings_show_advanced = true
+telemetry_enabled = true
+
+    [shell.animation]
+    speed = 0.60000000894069672
+
+    [shell.launcher]
+    app_grid = true
+
+    [shell.panel]
+    borders = false
+    launcher_placement = "attached"
+
+    [shell.screen_corners]
+    size = 16
+
+    [shell.shadow]
+    alpha = 0.92999997921288013
+    direction = "down_right"
+
+[theme]
+source = "wallpaper"
+wallpaper_scheme = "muted"
+
+    [theme.templates]
+    builtin_ids = [ "gtk3", "gtk4", "kcolorscheme", "qt" ]
+    community_ids = [ "antigravity", "steam" ]
+
+[wallpaper]
+directory = "/home/lanrhyme/图片/WallPapers"
+edge_smoothness = 0.0
+transition = [ "disc" ]
+transition_duration = 2300
+transition_on_startup = true
+
+    [wallpaper.default]
+    path = "/home/lanrhyme/图片/WallPapers/kita.png"
+
+    [wallpaper.last]
+    path = "/home/lanrhyme/图片/WallPapers/kita.png"
+
+    [wallpaper.monitors.HDMI-A-1]
+    path = "/home/lanrhyme/图片/WallPapers/0AC05BDD4AD6BF1001C952501B00DFD3.png"
+
+    [wallpaper.monitors.eDP-1]
+    path = "/home/lanrhyme/图片/WallPapers/kita.png"
+
+    [[wallpaper.favorite]]
+    palette_source = "wallpaper"
+    path = "/home/lanrhyme/图片/WallPapers/kita.png"
+    theme_mode = "dark"
+    wallpaper_scheme = "muted"
+
+[widget.audio_visualizer]
+bands = 46
+mirrored = false
+
+[widget.bluetooth]
+enabled = false
+
+[widget.brightness]
+show_label = false
+
+[widget.cat_2]
+type = "dotnetrob/cat:cat"
+
+[widget.clipboard]
+anchor = true
+enabled = false
+scale = 0.85000000000000009
+
+[widget.media]
+hide_when_no_media = true
+
+[widget.network]
+enabled = false
+show_label = false
+
+[widget.recorder]
+type = "noctalia/screen_recorder:recorder"
+
+[widget.spacer_2]
+length = 39
+type = "spacer"
+
+[widget.sysmon]
+show_value = false
+stat = "ram_used"
+
+[widget.tray]
+drawer = true
+match_adjacent_spacing = true
+pinned = [ "Fcitx" ]
+
+[widget.volume]
+show_label = false
+
+[widget.widget]
+type = "lanrhyme/micyou:widget"
+
+[widget.workspaces]
+active_pill_size = 2.75
+show_labels = false
