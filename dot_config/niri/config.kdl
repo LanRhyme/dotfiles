@@ -93,6 +93,21 @@ window-rule {
 	open-fullscreen true
 }
 
+// 游戏窗口 (Steam / Proton): 关模糊与透明度, 独占全屏, 并打上 VRR 按需标记
+// 面板与合成器都在核显上, 游戏帧从独显跨 GPU 拷回来后若再整屏高斯模糊, 144Hz 的 6.94ms 帧预算直接被吃穿
+window-rule {
+	match app-id="^steam_app_.*"
+	match app-id="^pbz[.]exe$"
+	opacity 1.0
+	geometry-corner-radius 0
+	clip-to-geometry false
+	background-effect {
+		blur false
+	}
+	open-fullscreen true
+	variable-refresh-rate true
+}
+
 cursor {
     xcursor-theme "Bibata-Modern-Classic"
     xcursor-size 16

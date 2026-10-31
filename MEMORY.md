@@ -5,6 +5,18 @@
 
 ## 最近动态
 
+- **影之刃零 (Phantom Blade Zero, Steam AppID 4115450) 卡顿根因与实时优化 (2026-10-31, 桌面侧已落地, 游戏内设置待重启)**:
+  - 硬件链路: COLORFUL X15 XS 22, i5-12450H (4P+4E / 12 线程) + RTX 3050 Laptop 4GB (GA107M, 功耗上限 70W / 核心上限 2100MHz), eDP-1 1920x1080@144 且 EDID 支持 VRR, 内屏与 niri 合成都在核显 i915 上, 独显帧经 dma-buf 跨 GPU 交给核显合帧, 无 MUX
+  - 根因一 (权重最大): 系统 CPU 严重超卖, load average 20-21 对 12 线程, 游戏本体 GameThread 独吃 700-780%, 而 `/opt/Antigravity/resources/bin/language_server` 单进程吃 166% CPU + 5.5GB RSS 且被 ananicy-cpp 提到 nice=-8, 另有两个 DSH 构建遗留守护进程 (Gradle java 17741 / Kotlin java 18108) 占 3GB 内存与 4.8GB zram
+  - 根因二: niri 的全局 window-rule `match app-id=".*"` 把 opacity 0.98 + blur true 套到了游戏窗口上, 每帧 1080p 画面被整屏高斯模糊后才呈现, 合成器 CPU 41-48%, 144Hz 帧预算 6.94ms 被吃穿
+  - 根因三: 显存长期贴顶 3735-3807 / 4096 MiB (仅余 240MB), UE5 流送必然溢出到共享内存走 PCIe
+  - 根因四: 独显 86-87°C 触发 SW Thermal Slowdown (累计 2.6s), 核心在 1740-1837MHz 之间来回抖 (上限 2100), CPU 包 93°C, 散热是硬件瓶颈
+  - 处置与效果: kill 构建守护进程 (内存 21499→18539MB, zram 14.3→9.9G); 语言服务器 renice 19 + ionice idle 后 SIGSTOP; 新增 niri 游戏窗口规则 (`^steam_app_.*` / `^pbz[.]exe$`, opacity 1.0, blur false, corner-radius 0, clip-to-geometry false, open-fullscreen true, variable-refresh-rate 标记) 并把 eDP-1 开 VRR; `niri msg action fullscreen-window` 让游戏进独占全屏 → 合成器 CPU 41-48% 降到 20%, Xwayland 14% → 6%, 非游戏 CPU 总量 ~500% → ~140%
+  - 新增工具: `~/.local/bin/game-mode.sh on|off|status`, 用 SIGSTOP/SIGCONT 冻结 Antigravity 语言服务器 / slugcatpet / Bettbox, 状态落 `$XDG_RUNTIME_DIR/game-mode.frozen`, 故意不含 Zen 浏览器与 Steam (前者是对话界面, 后者是游戏父进程)
+  - 待做 (都需退出游戏): GameUserSettings.ini 的 `FrameRateLimit` 0 → 60 与 `sg.ResolutionQuality` 100 → 70 (或在游戏内开 XeSS/FSR 质量档并锁 60 帧), 关 Steam 内嵌覆盖, 装 mangohud 看帧时间, 长期方案是清灰换硅脂
+  - 踩坑: niri 26.04 的 output 段 `variable-refresh-rate` 只能写裸标志 (带 true / false / "on-demand" 都会被判 unexpected argument), 但 window-rule 里却要写 `variable-refresh-rate true`; KDL 1.0 字符串里 `\.` 是非法转义, 正则要写 `^pbz[.]exe$`; 开 VRR 后 niri 会打 `early VBlank` 帧时钟告警 (实测 2 条 / 30 秒, 关掉即 0), 属诊断噪音
+  - 备份: `~/tmp/niri-test`, `~/tmp/verify-niri` 为本次校验用配置副本
+
 - **桌面鼠标卡顿根因: 全局 PRIME offload 叠加全屏桌宠与全窗口模糊吃满 144Hz 帧预算 (2026-10-29, 已改配置待重登验证)**:
   - 现象: 鼠标移动明显卡顿, 但鼠标本体健康 (MCHOSE G3 V2 2.4G, 端点 bInterval=1ms 即 1000Hz, dmesg 无 USB 复位/断连/HID 错误)
   - 硬证据: 面板 eDP-1 挂在 card1=i915 核显且 niri 合成在 renderD128 核显, 但整个用户会话被 `~/.config/environment.d/nvidia.conf` 与 niri config.kdl 双重注入 `__NV_PRIME_RENDER_OFFLOAD=1` / `__GLX_VENDOR_LIBRARY_NAME=nvidia` / `__VK_LAYER_NV_optimus=NVIDIA_only` / `DRI_PRIME=pci-0000:01:00.0`, 于是 zen/steam/Bettbox/ghostty/noctalia 全部持有 card0(10de) 图形上下文, 独显长期停在 P5 / 472-607MHz

@@ -8,6 +8,13 @@
     scale 1 // No scaling (use 2 for HiDPI)
 }
 
+output "eDP-1" {
+    scale 1
+    // 面板支持 144Hz VRR, 与 config.kdl 里游戏窗口规则的 variable-refresh-rate 标记配合
+    // 游戏帧率抖动时用 VRR 吃掉抖动, 比固定 144Hz 硬等垂直同步顺得多
+    variable-refresh-rate
+}
+
 output "HDMI-A-1" {
     scale 1
 }
