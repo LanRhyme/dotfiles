@@ -4,6 +4,9 @@
 * stylelint-disable at-rule-no-unknown
 */
 
+/* App-scoped CSS of enabled community GTK extensions; Noctalia maintains this file. */
+@import url("noctalia-extensions.css");
+
 @define-color accent_color #dad8ce;
 @define-color accent_bg_color #dad8ce;
 @define-color accent_fg_color #22211c;

@@ -1,12 +1,12 @@
 --!nonstrict
 
+local REMOTE_FLAG = "/tmp/uu_remote_active"
+
 local function isRemoteActive(): boolean
-    local ok, f = pcall(io.open, "/tmp/uu_remote_active", "r")
-    if ok and f then
-        f:close()
-        return true
-    end
-    return false
+    -- Noctalia 5.4 的 Luau 沙箱不再暴露 io 库，改用 noctalia.readFile
+    -- 文件不存在返回 nil，存在则为字符串（空文件也是 ""，同样判定为真）
+    local ok, content = pcall(noctalia.readFile, REMOTE_FLAG)
+    return ok and content ~= nil
 end
 
 local function onClipboardLine(line)
