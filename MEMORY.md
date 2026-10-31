@@ -13,9 +13,17 @@
   - 5.4 调色板键名改名 `surface_variant`→`surface_container`、`outline`→`outline_variant`（启动日志自动迁移 lockscreen 里的旧用法）, 但 `noctalia theme` 生成时**新旧键名双写**（实测 74 键新旧都在）, 故 `morandi-gen.py` 读 `surface_variant` 不会 KeyError, 无需改主题引擎
   - 5.4 的 Luau 沙箱**不再提供 `io` 库**, 旧写法 `io.open(...)` 报 `attempt to index nil with 'open'`; 正确 API 是 `noctalia.readFile(path)`（文件不存在返回 nil, 空文件返回 `""`）, 已据此修好 `clipboard-osd` 插件的远控静音判断
   - **重启配方更新**: `noctalia msg` 没有 quit/exit 子命令, 直接 `pkill -x noctalia` 会把 `wl-paste --watch` 等 runStream 子进程甩给 systemd 变孤儿、导致复制通知重复; 正确顺序是先 `pkill -P $(pgrep -x noctalia)` 清子进程再杀主进程
-  - 清理: 删掉 settings.toml 里遗留的 `[widget.cat] type = "noctalia/bongocat:cat"`（官方插件体系已无 bongocat, 替代品是社区插件 `slowbongo`; 用户已有 `cat_2` 指向 `dotnetrob/cat`）, `noctalia config validate` 现为 0 警告且启动日志无 WRN/ERR
-  - 待办: ① `noctalia-greeter-git` 仍是 AUR 夜版（官方源有 `noctalia-greeter 1.7.0`）, 登录层有风险故未动, 待用户确认 ② chezmoi 目前管的是失效的 settings.json, 若要纳入版本管理应改管 `~/.local/state/noctalia/settings.toml` 或导出 `~/.config/noctalia/config.toml` ③ 一条 sync.log 噪音提交因 github.com:443 当时不可达未推送
+  - 清理: 删掉 settings.toml 里遗留的 `[widget.cat] type = "noctalia/bongocat:cat"`（该定义没挂在任何 bar 上; 注意 `noctalia/bongocat [official] 1.1.4` 插件本体**仍在**, 只是 disabled, 想恢复官方弹琴猫就 `noctalia msg plugins enable noctalia/bongocat` 再重建 widget, 不要误以为上游已移除）, `noctalia config validate` 现为 0 警告且启动日志无 WRN/ERR
+  - 收尾已完成（见下一条）: chezmoi 改管 state 版 settings.toml; greeter 切换脚本 `~/tmp/switch-greeter.sh` 待执行
   - 备份: `~/tmp/noctalia-backup-20261031/`（config / state / cache / 旧二进制 / 旧 share 资产 / `settings.toml.post-upgrade`）
+
+- **noctalia 收尾: dotfiles 收纳 state 配置、polkit 代理缺失真相与 147 包更新积压 (2026-10-31, 部分待执行)**:
+  - **dotfiles 改造已完成并推送**: `chezmoi add ~/.local/state/noctalia/settings.toml`（落在源端 `dot_local/private_state/noctalia/settings.toml`, chezmoi 自动识别 state 为私有目录）, 并从源里删掉失效的 `dot_config/noctalia/settings.json`(924 行) 与 `plugins.json`(65 行); 判别依据是 `strings /usr/bin/noctalia` 里 `settings.json`/`plugins.json` 出现 **0 次**, 而 `settings.toml`/`config.toml`/`colors.json` 都有引用; 两份旧文件归档在 `~/tmp/noctalia-backup-20261031/legacy-config/`; 提交 `ec03aa0` 已推送成功（github 当时已恢复）
+  - **polkit 认证代理根本没装（重要新发现）**: `~/.config/niri/cfg/autostart.kdl` 一直 spawn `/usr/lib/polkit-kde-authentication-agent-1`, 但该文件属于 `polkit-kde-agent` 包, **从未安装**（`pacman -Q polkit-kde-agent` 为空）, 所以会话内没有任何 polkit 认证代理; 实测 `pkexec` 直接报 `Error creating textual authentication agent`, 这就是 MEMORY 里「pkexec 卡死」的真正根因; 该包仅 82KB, 依赖（kcoreaddons/kcrash/ki18n/kirigami/knotifications/kwindowsystem/polkit-qt6/qt6-*）全已就位
+  - noctalia 二进制里确实有自带 polkit 面板（`PolkitAgent` / `org.noctalia.PolkitAuthenticationAgent` / `auth.polkit.*` 文案）, 但 5.4.0 上未注册, `noctalia msg plugins list`（316 条）里也没有 polkit 插件; 官方 registry 里 `polkit-agent` 标 official 但 shell 未收录, 所以暂时只能靠 polkit-kde-agent
+  - **greeter 替换可行性与安全垫**: 官方 `noctalia-greeter 1.7.0` 与已装 git 版 1.0.0.r168 的 `setup_greeter_system.sh` / `setup_greetd_pam.sh` **逐行相同**（不需要重跑系统级配置）, 文件布局一致且多一个 `noctalia-greeter-xsession`; 状态目录 `/var/lib/noctalia-greeter`(greeter:greeter 0750) 需先备份; `getty@tty2` 默认 **disabled**（登录层翻车没有本地文本通道）, `sshd` 已 enabled+active 可远程兜底; greetd 的 `[default_session] command` 仍指向 `/usr/bin/noctalia-greeter-session` 不变
+  - **系统更新积压 147 个包**: 重点 nvidia-580xx 580.178.04→580.196.07（DKMS 需重建并重启）、KDE Plasma 6.8.1→6.8.2 全家桶（kwin/breeze/powerdevil/xdg-desktop-portal-kde）、hyprland 0.57.0、ghostty 1.3.1→1.4.0、harfbuzz 14.6→15.0.0（大字版本通常伴随重建）、gcc/clang/llvm 工具链、limine 12.9.4（引导器）、zed 1.26.2、reaper 7.83、wine 11.21、tailscale 1.104.4、shelly 3.1.10; 建议一次 `paru -Syu` 后重启
+  - 备份: 同上 `~/tmp/noctalia-backup-20261031/`（另含 `greeter-git/` 5 个旧二进制 + share 资产, 回滚直接 `sudo cp -a ... /usr/bin/`）
 
 - **Steam 大屏幕模式卡顿根因: niri 全局模糊规则把 Steam 客户端本体也圈进去了 (2026-10-31, 已修复)**:
   - 现象: Steam 大屏幕模式操作发滞, 翻页与选中不跟手
@@ -1078,7 +1086,8 @@
 
 ## 桌面环境
 
-- 显示管理器：`greetd` + `noctalia-greeter`，壁纸与多显示器布局依赖 Noctalia 设置 → Shell → 安全 → Sync Now
+- 显示管理器：`greetd` + `noctalia-greeter`，壁纸与多显示器布局依赖 Noctalia 设置 → Shell → 安全 → Sync Now；`/etc/greetd/config.toml` 的 default_session 为 `/usr/bin/noctalia-greeter-session`（user greeter），initial_session 为 `niri-session`
+- 提权通道：`polkit-kde-agent`（提供 `/usr/lib/polkit-kde-authentication-agent-1`，niri autostart 里有 spawn 行）；该包此前一直未安装导致 pkexec 无代理可用，已列入 `~/tmp/switch-greeter.sh` 一并补装；`sshd` 常开可作远程兜底，`getty@tty2` 默认关闭
 - 主题引擎：`~/.config/noctalia/morandi-gen.py` 统一生成莫兰迪配色（含 write_ghostty/write_fastfetch/write_fcitx5/write_pi/write_bilibili_danmaku/write_hyprland/write_idea）；新应用主题化必须扩展此脚本，严禁直改应用配置；Wine 应用与 Krita 不走主题引擎
 - Niri：动画 stiffness 180-220 / damping-ratio 0.8 弹性轻柔滑行（cfg/animation.kdl）；窗口间距 8px（cfg/layout.kdl）；全局 opacity 0.98 + blur true（`draw-border-with-background false` 必设防聚焦实心边框；Krita/Loupe/Kando/SPlayer/cs2/gamescope/steam 排除，**排除必须在全局规则里写 exclude，补专属规则不生效**）
 - Ghostty：输入法修复依赖 wrapper `~/.local/bin/ghostty`（`env -u GTK_IM_MODULE` 解决不转发 key release 导致 fcitx5 状态机异常）；term_bg 公式 `max(l_b+0, 4)`；集成 Master GLSL 光标着色器与连字支持

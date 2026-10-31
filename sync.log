@@ -10890,3 +10890,10 @@ To https://github.com/LanRhyme/dotfiles.git
 [master 356dbf5] auto: 2026-10-31-21:43:36
  1 file changed, 4 insertions(+)
 致命错误：无法访问 'https://github.com/LanRhyme/dotfiles.git/'：Failed to connect to github.com:443 after 136278 ms: Could not connect to server
+[master ec03aa0] auto: 2026-10-31-21:53:14
+ 5 files changed, 316 insertions(+), 990 deletions(-)
+ delete mode 100644 dot_config/noctalia/plugins.json
+ delete mode 100644 dot_config/noctalia/settings.json
+ create mode 100644 dot_local/private_state/noctalia/settings.toml
+To https://github.com/LanRhyme/dotfiles.git
+   a8ee308..ec03aa0  master -> master
