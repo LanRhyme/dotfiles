@@ -13,7 +13,8 @@
   - 根因四: 独显 86-87°C 触发 SW Thermal Slowdown (累计 2.6s), 核心在 1740-1837MHz 之间来回抖 (上限 2100), CPU 包 93°C, 散热是硬件瓶颈
   - 处置与效果: kill 构建守护进程 (内存 21499→18539MB, zram 14.3→9.9G); 语言服务器 renice 19 + ionice idle 后 SIGSTOP; 新增 niri 游戏窗口规则 (`^steam_app_.*` / `^pbz[.]exe$`, opacity 1.0, blur false, corner-radius 0, clip-to-geometry false, open-fullscreen true, variable-refresh-rate 标记) 并把 eDP-1 开 VRR; `niri msg action fullscreen-window` 让游戏进独占全屏 → 合成器 CPU 41-48% 降到 20%, Xwayland 14% → 6%, 非游戏 CPU 总量 ~500% → ~140%
   - 新增工具: `~/.local/bin/game-mode.sh on|off|status`, 用 SIGSTOP/SIGCONT 冻结 Antigravity 语言服务器 / slugcatpet / Bettbox, 状态落 `$XDG_RUNTIME_DIR/game-mode.frozen`, 故意不含 Zen 浏览器与 Steam (前者是对话界面, 后者是游戏父进程)
-  - 待做 (都需退出游戏): GameUserSettings.ini 的 `FrameRateLimit` 0 → 60 与 `sg.ResolutionQuality` 100 → 70 (或在游戏内开 XeSS/FSR 质量档并锁 60 帧), 关 Steam 内嵌覆盖, 装 mangohud 看帧时间, 长期方案是清灰换硅脂
+  - 待做 (都需退出游戏): GameUserSettings.ini 的 `FrameRateLimit` 0 → 60 与 `sg.ResolutionQuality` 100 → 70 (或在游戏内开 DLSS 质量档并锁 60 帧), 关 Steam 内嵌覆盖, 装 mangohud 看帧时间, 长期方案是清灰换硅脂
+  - 超分能力核实 (2026-10-31): 游戏随包带完整 NVIDIA 链路 —— `Engine/Plugins/Runtime/Nvidia/DLSS/Binaries/ThirdParty/Win64/nvngx_dlss.dll` (58.9MB) 与 `nvngx_dlssd.dll`, `StreamlineCore` 里还有 `nvngx_dlssg.dll` / `sl.reflex.dll` / `sl.common.dll`, 且游戏进程 maps 里已加载它们, 前缀内 Proton 生成 `nvapi64.dll` + `_nvngx.dll`, 宿主 `/usr/lib/libnvidia-ngx.so.580.178.04` 在位, 说明 NVAPI/NGX 链路本来就通, 不需要额外启动参数; 主程序里有 `UpScaleMode` / `DLSSMode` / `DLSSPreset` / `DLSSRRPreset` / `DLSSGMode` / `XeSSMode` 等枚举, 菜单确实暴露 DLSS; 但 RTX 3050 是 Ampere, 没有 Ada 的硬件光流加速器, DLSS 帧生成不可用 (菜单灰掉属正常), 光追关着时 DLSS RR 也用不上, 能开的就是 DLSS 超分 + Reflex
   - 踩坑: niri 26.04 的 output 段 `variable-refresh-rate` 只能写裸标志 (带 true / false / "on-demand" 都会被判 unexpected argument), 但 window-rule 里却要写 `variable-refresh-rate true`; KDL 1.0 字符串里 `\.` 是非法转义, 正则要写 `^pbz[.]exe$`; 开 VRR 后 niri 会打 `early VBlank` 帧时钟告警 (实测 2 条 / 30 秒, 关掉即 0), 属诊断噪音
   - 备份: `~/tmp/niri-test`, `~/tmp/verify-niri` 为本次校验用配置副本
 
