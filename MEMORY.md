@@ -5,6 +5,16 @@
 
 ## 最近动态
 
+- **盖世小鸡 启明星2 的 2.4G 接收器会跟随手柄平台模式切换 USB 身份, Xbox 身份在 Linux 枚举失败而 PS4 身份秒通 (2026-10-31, 已解决)**:
+  - 硬件身份: VID `0x3537` (Zikway/GameSir), 2.4G 接收器枚举为 `3537:1098` "2.4G XBOX 360 For Windows" (制造商串 "2.4G", 全速 12Mbps), 三接口 —— iface0 为 `ff/5d/01` 厂商类, 被 xpad 按类别别名接管并起名 "Generic X-Box pad"; iface1 为 HID 键盘; iface2 为厂商 hidraw
+  - 真正根因: 这类接收器是"跟随手柄平台模式"的伪装型 dongle, 会按手柄当前平台模式换一套 USB 身份 —— Xbox 平台冒充 `045e:028e` 并带备用身份 `3537:1098` (三接口: ff/5d/01 厂商类 + HID 键盘 + 厂商 hidraw), Switch 平台冒充 `057E:2009`, PS4 平台冒充 `054c:09cc` DualShock 4; Linux 上**只有 Xbox 那条路死掉**: `045e:028e` 每次插入连续 3 次 `-110` 超时 (每次卡 6 秒), 内核触发 `usb usb3-port9: attempt power cycle`, 累计 14 次枚举失败后才退回 `3537:1098`, 而 xpad 接管 3537:1098 后射频侧从不投递数据 (evdev 探针 180 秒 0 事件, 同期 `EVIOCGRAB` 可成功证明无人独占抓取)
+  - 排查误判教训: 有线时同样先尝试 `045e:028e` 失败 (-71 / -110) 再落到 `054c:09cc`, 一度被误读成"有线能用 / 无线坏了"; 实际两次跑的都是同一套 PS4 平台身份, 与插线还是插 dongle 无关 —— 判断依据必须是 dongle 当前呈现的 VID/PID, 而不是接线方式
+  - 手柄自身组合键 (官方 n2lite 文档): 【X+HOME】= 2.4G 接收器模式 (绿灯), 【B+HOME】= 蓝牙 (蓝灯), 【A+HOME】= 安卓 (黄灯), 短按 Home 1 秒开机并可组合 A/B/X/Y 指定模式, 长按 Home 5 秒关机, 长按【Home+截图键】3 秒强制进配对, 长按【菜单键+视图键】可把通道灯切回绿灯
+  - 关键排查手法: Steam 的 `logs/controller.txt` 是最可靠的交叉验证点, 里面会打印 SDL 对 VID/PID 的完整按键轴映射, 能直接判断"驱动层通了但游戏层没映射"还是"驱动层就没数据"
+  - 解决方案与铁证: 把手柄切到 PS4 平台模式后 dongle 立刻以 `054c:09cc` DualShock 4 正常工作, 只剩单接口 `3-9:1.0` (class 03) 由 usbhid + hid-playstation 接管, 输入节点 `event257` + `js1` 正常; 决定性证据是 `/sys/class/power_supply/ps-controller-battery-00:01:6c:ee:95:de` 稳定报 `capacity=100 / status=Full`, 该电量由 hid-playstation 从手柄真实 HID 报文解析而来, 能读出来就说明无线链路完全打通
+  - 备选与注意: 若日后要回到 Xbox 平台模式, 需注意该身份在本机 xHCI 口 (`3-9`) 上枚举不稳, 可换 USB 2.0 口试 (集线器 `3-6` 为 Huasheng USB2.0 HUB) 或到 Windows 上交叉验证; 蓝牙方案为 `xpadneo-dkms 0.10.5-1` (在 cachyos 官方源, 非 AUR 无需审 PKGBUILD)
+  - 调试脚本: `~/tmp/pad-watch.sh` 与 `~/tmp/pad_probe.py`, 前者按 by-id 自动解析当前手柄节点并实时打印 KEY/ABS 事件
+
 - **影之刃零 (Phantom Blade Zero, Steam AppID 4115450) 卡顿根因与实时优化 (2026-10-31, 桌面侧已落地, 游戏内设置待重启)**:
   - 硬件链路: COLORFUL X15 XS 22, i5-12450H (4P+4E / 12 线程) + RTX 3050 Laptop 4GB (GA107M, 功耗上限 70W / 核心上限 2100MHz), eDP-1 1920x1080@144 且 EDID 支持 VRR, 内屏与 niri 合成都在核显 i915 上, 独显帧经 dma-buf 跨 GPU 交给核显合帧, 无 MUX
   - 根因一 (权重最大): 系统 CPU 严重超卖, load average 20-21 对 12 线程, 游戏本体 GameThread 独吃 700-780%, 而 `/opt/Antigravity/resources/bin/language_server` 单进程吃 166% CPU + 5.5GB RSS 且被 ananicy-cpp 提到 nice=-8, 另有两个 DSH 构建遗留守护进程 (Gradle java 17741 / Kotlin java 18108) 占 3GB 内存与 4.8GB zram
@@ -1038,6 +1048,12 @@
   - 应用列表隐藏：HMA-OSS 直写双路径配置（`/data/misc/hide_my_applist_aimdadlejpdcwkeh/config.json` 属主 `system:system` 600 与 `/data/user/0/org.frknkrc44.hma_oss/files/config.json` 属主 `u0_a346:u0_a346` 600），屏蔽 KowSU Pro、Vector、LuckyTool、CorePatch、fuckbiliads、HMA-OSS
   - 运维脚本：`~/.local/bin/android-hide-app`（`android-hide-app [-l] [-r] <包名>`），自动维护双路径与 Tricky Store 名单，全静默执行无触摸交互
 - 禁忌红线：严禁刷入第三方 Recovery；严禁跨版本/降级刷机触发 ARB 熔断；严禁使用手机端防误触或手写笔旁路模块（`patch-trackmotion`、`disable-stylus-blocker`）以保护平板原生防误触与手写笔功能
+
+### 盖世小鸡 启明星2 (GameSir Nova 2 Lite)
+- 识别特征：VID `3537` (Zikway/GameSir)，接收器按手柄平台模式换身份 —— Xbox 平台 `045e:028e`(本机枚举失败)+ 备用 `3537:1098`，Switch 平台 `057E:2009`，PS4 平台 `054c:09cc` DualShock 4
+- 组合键：【X+HOME】2.4G 接收器（绿灯）·【B+HOME】蓝牙（蓝灯）·【A+HOME】安卓（黄灯）· 长按 Home 5 秒关机 ·【Home+截图键】3 秒强制配对 ·【菜单键+视图键】切回绿灯
+- 现状：**PS4 平台模式 + 2.4G 接收器** 为已验证可用配置（USB 呈现为 `054c:09cc`，hid-playstation 接管，`ps-controller-battery-*` 电量可读）；Xbox 平台模式下 dongle 的 `045e:028e` 身份在本机 xHCI 口上会枚举超时，无线不可用
+- 官方文档：`https://doc.xiaoji.com/zh/n2lite/`（手柄）与 `https://doc.xiaoji.com/zh/n2litedongle/`（接收器）
 
 ## 桌面环境
 

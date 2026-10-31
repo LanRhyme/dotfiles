@@ -31,6 +31,7 @@ input {
 window-rule {
 	match app-id=".*"
 	exclude app-id="org.kde.krita"
+	exclude app-id="steam"
 	opacity 0.98
 	draw-border-with-background false
 	background-effect {
@@ -91,6 +92,18 @@ window-rule {
 		blur false
 	}
 	open-fullscreen true
+}
+
+// Steam 客户端与大屏界面: CEF 持续整窗重绘, 全局规则的整屏高斯模糊会逐帧压在核显上
+// 输赢区别: 不匹配这条时 app-id="steam" 落进全局 match app-id=".*" 的 opacity 0.98 + blur true
+window-rule {
+	match app-id="steam"
+	opacity 1.0
+	geometry-corner-radius 0
+	clip-to-geometry false
+	background-effect {
+		blur false
+	}
 }
 
 // 游戏窗口 (Steam / Proton): 关模糊与透明度, 独占全屏, 并打上 VRR 按需标记
