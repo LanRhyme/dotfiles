@@ -25,6 +25,18 @@ sidecars/pet/tools/          从上游源码重建素材
 | `ANTIGRAVITY_APP_DATA_DIR` | `~/.gemini/antigravity`，读 `brain/*/.system_generated/logs/transcript_full.jsonl` |
 | `ANTIGRAVITY_EXECUTABLE_DATA_DIR` | 插件数据目录，存 `settings.json` 与 `pet.log` |
 
+## 配色（Dream Skin 的 Morandi 版）
+
+宿主把整套主题变量以 inline style 写在 `<html>` 上，所以注入层用 `!important` 盖住，变量来源是
+`~/.config/noctalia/antigravity-ide.json` —— 由 `morandi-gen.py` 的 `write_antigravity_ide(palette)` 生成
+换壁纸时主题引擎重跑，`antigravity-ide.json` 的 mtime 变化，sidecar 重新读盘并热更样式，IDE 跟着壁纸走
+
+变量对齐宿主用的 Tailwind v4 主题：`--background`、`--content`、`--card`、`--sidebar`、`--muted`、`--border`、`--primary`、`--link`、`--error/--warning/--success` 及其 `--color-*` 别名
+
+```bash
+star-pet skin on|off     开/关配色注入
+```
+
 ## 额度来源
 
 `POST http://{LS_ADDRESS}/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary`
