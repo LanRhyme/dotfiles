@@ -15,7 +15,9 @@
   - 控制入口: `~/.local/bin/star-pet status|on|off|scale|state|log`, 改的是插件数据目录里的 `settings.json`, sidecar 每 2 秒重读
   - 踩坑: `pkill -f '<pattern>'` 会把执行它的 `bash -c` 自己匹配进来直接杀掉 (本次连踩两次), 杀应用一律用 `/proc/*/cmdline` 精确匹配并排除自身的脚本; 图层 `document.body.appendChild` 必须显式写出, 只靠 MutationObserver/定时器会晚 1 秒; `:host { all: initial }` 之后气泡的 `position:absolute` 相对的是 `.wrap` 而不是视口
   - 宿主现状: 本机 Antigravity 2.17.0 离线时语言服务器卡在 Google 授权（`oauth2.googleapis.com` 30 秒超时）, 窗口 `ERR_TIMED_OUT` 且 12 秒后自行退出; 带 `HTTPS_PROXY=http://127.0.0.1:7890` 启动即可正常渲染, 说明这类「窗口打不开」要先怀疑代理没开
-  - 未做: Dream Skin 蓝紫换肤尚未移植（上游选择器 `.agy-sheet` / `.surface-composer` 在 2.17.0 上是 0 个匹配, 需要按 morandi 主题引擎重做配色, 待确认）
+  - **Dream Skin 改为 Morandi 版（已落地）**: 上游选择的蓝紫换肤整套 CSS 照 2.28 写, `.agy-sheet` / `.surface-composer` 在 2.17.0 匹配数为 0, 故不移植; 改为在 `morandi-gen.py` 新增 `write_antigravity_ide(palette)`, 生成 `~/.config/noctalia/antigravity-ide.json`（33 个变量）, 换壁纸自动重算, 插件按 mtime 热更
+  - **关键坑: 宿主把主题变量写成 `<html>` 的 inline style**（`--background`、`--foreground`、`--primary`、`--card`、`--sidebar`… 全在 style 属性里, 还有整套 `--vscode-*`），所以注入的 `:root{...}` 一律被压住, 必须每条声明都带 `!important` 才能生效; 判断是否生效只看 `getComputedStyle(documentElement).getPropertyValue('--background')`
+  - 配色现状（暗色 Morandi）: `--background` `#1a1a18`、`--foreground` `#f2f2f2`、`--primary` `#afac9c`、`--border` `color-mix(fg 9%, transparent)`; 视觉差异本身很淡（低饱和暗色）, 明显变化在强调色与中性基底
   - 保留: 上游源码 `~/.local/share/antigravity-star-suite`（26MB, 供 `tools/build-assets.sh` 重建素材）, 独立窗口版 Electron 桌宠仍可 `npm run start:widget` 手动跑
 
 - **noctalia 从 AUR 夜版切换到官方稳定版 5.4.0 与 v5 配置分层真相 (2026-10-31, 完成)**:
