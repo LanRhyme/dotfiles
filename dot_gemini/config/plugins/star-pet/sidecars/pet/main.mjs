@@ -42,7 +42,7 @@ function log(line) {
 }
 
 // --- settings ----------------------------------------------------------------
-const DEFAULT_SETTINGS = { enabled: true, scale: 160, ttlMs: 5200, state: "auto" };
+const DEFAULT_SETTINGS = { enabled: true, scale: 160, ttlMs: 5200, state: "auto", skin: true };
 let settings = { ...DEFAULT_SETTINGS };
 function readSettings() {
   try {
@@ -52,6 +52,7 @@ function readSettings() {
       ...Object.fromEntries(Object.entries(raw || {}).filter(([k]) => k in DEFAULT_SETTINGS)),
     };
     settings.enabled = settings.enabled !== false;
+    settings.skin = settings.skin !== false;
     settings.scale = Math.max(120, Math.min(420, Number(settings.scale) || 220));
   } catch { settings = { ...DEFAULT_SETTINGS }; }
   return settings;
@@ -85,6 +86,24 @@ const BUBBLE_LINES = {
   idle: LINES.idle, thinking: LINES.thinking, success: LINES.success,
   error: LINES.error, petting: LINES.petting, dragged: LINES.dragged, crying: LINES.crying,
 };
+
+// --- morandi palette ---------------------------------------------------------
+// morandi-gen.py regenerates this file whenever the wallpaper changes, so the IDE follows
+// the same palette as the rest of the desktop.
+const THEME_FILE = join(homedir(), '.config/noctalia/antigravity-ide.json');
+const themeCache = { mtime: -1, value: null };
+function readPalette() {
+  try {
+    const stat = statSync(THEME_FILE);
+    if (stat.mtimeMs !== themeCache.mtime) {
+      const raw = JSON.parse(readFileSync(THEME_FILE, 'utf8'));
+      themeCache.mtime = stat.mtimeMs;
+      themeCache.value = raw && raw.vars && Object.keys(raw.vars).length ? raw : null;
+      log(`palette reloaded (${themeCache.value ? Object.keys(themeCache.value.vars).length + ' vars' : 'empty'})`);
+    }
+    return themeCache.value;
+  } catch { return themeCache.value; }
+}
 
 // --- CDP client --------------------------------------------------------------
 // The host ships a Node runtime with a global WebSocket (verified on Antigravity 2.17 / node 24)
@@ -349,6 +368,7 @@ function injectionConfig(state) {
     lines: BUBBLE_LINES,
     quota: quota ? { fiveHour: quota.fiveHour, weekly: quota.weekly, at: quotaState.at, stale: quota.stale } : null,
     usage: usageToday(),
+    skin: settings.skin ? readPalette() : null,
   };
 }
 

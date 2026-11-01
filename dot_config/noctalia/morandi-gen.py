@@ -233,6 +233,58 @@ def write_antigravity(palette):
     except Exception:
         pass
 
+def write_antigravity_ide(palette):
+    """Antigravity IDE（Web 渲染器）配色，供 star-pet 插件通过 CDP 注入
+    变量名对齐宿主用的 Tailwind v4 / shadcn 主题（--background、--card、--color-* 别名）
+    """
+    out = Path.home() / ".config/noctalia/antigravity-ide.json"
+    bg, fg = palette["base"], palette["text"]
+    accent = palette["iris"]
+    try:
+        data = {
+            "source": "morandi-gen.py",
+            "scheme": "dark",
+            "vars": {
+                # 宿主把整套变量以 inline style 写在 <html> 上，注入层必须用 !important 才能盖住
+                "--background": bg,
+                "--content": bg,
+                "--foreground": fg,
+                "--card": f"color-mix(in srgb, #ffffff 6%, {bg})",
+                "--card-border": f"color-mix(in srgb, {fg} 6%, {bg})",
+                "--sidebar": f"color-mix(in srgb, #ffffff 2%, {bg})",
+                "--sidebar-secondary": f"color-mix(in srgb, #ffffff 9%, {bg})",
+                "--sidebar-muted": f"color-mix(in srgb, #ffffff 2%, {bg})",
+                "--muted": f"color-mix(in srgb, #ffffff 3%, {bg})",
+                "--muted-foreground": f"color-mix(in srgb, {fg} 55%, {bg})",
+                "--placeholder": f"color-mix(in srgb, {fg} 34%, {bg})",
+                "--secondary": f"color-mix(in srgb, #ffffff 11%, {bg})",
+                "--secondary-foreground": f"color-mix(in srgb, {fg} 78%, {bg})",
+                "--border": f"color-mix(in srgb, {fg} 9%, transparent)",
+                "--primary": accent,
+                "--primary-foreground": bg,
+                "--link": palette["term_blue"],
+                "--code-foreground": palette["term_yellow"],
+                "--error": palette["term_red"],
+                "--warning": palette["term_yellow"],
+                "--success": palette["term_green"],
+                "--color-background": bg,
+                "--color-foreground": fg,
+                "--color-card": f"color-mix(in srgb, #ffffff 6%, {bg})",
+                "--color-border": f"color-mix(in srgb, {fg} 9%, transparent)",
+                "--color-sidebar": f"color-mix(in srgb, #ffffff 2%, {bg})",
+                "--color-muted": f"color-mix(in srgb, #ffffff 3%, {bg})",
+                "--color-primary": accent,
+                "--color-primary-foreground": bg,
+                "--color-link": palette["term_blue"],
+                "--color-error": palette["term_red"],
+                "--color-warning": palette["term_yellow"],
+                "--color-success": palette["term_green"],
+            },
+        }
+        out.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    except Exception:
+        pass
+
 def write_opencode(palette):
     oc_theme = Path.home() / ".config/opencode/themes/transparent.json"
     if not oc_theme.exists(): return
@@ -2615,6 +2667,7 @@ def main():
     write_opencode(palette)
     write_pi(palette)
     write_antigravity(palette)
+    write_antigravity_ide(palette)
     write_ly(palette)
     
     try:

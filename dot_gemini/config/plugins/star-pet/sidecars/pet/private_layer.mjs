@@ -17,7 +17,7 @@ export function installStarPet(config) {
   if (!document.body) return { installed: false, reason: 'no-body' };
 
   const cfg = Object.assign({
-    scale: 220, state: 'idle', lines: {}, frames: {}, quota: null, usage: null,
+    scale: 220, state: 'idle', lines: {}, frames: {}, quota: null, usage: null, skin: null,
     ttlMs: 5200, owner: 'star-pet'
   }, config || {});
 
@@ -269,6 +269,7 @@ export function installStarPet(config) {
       applyPosition(pos || defaultPosition(), false);
     }
     applyState();
+    applySkin(cfg.skin);
     if (bubble.classList.contains('show')) { renderQuota(); renderUsage(); }
     return status();
   }
@@ -278,8 +279,24 @@ export function installStarPet(config) {
       installed: alive && host.isConnected, version: VERSION, owner: cfg.owner, state: cfg.state,
       scale, pos: pos ? { x: Math.round(pos.x), y: Math.round(pos.y) } : null,
       bubble: bubble.classList.contains('show'), line: textShown,
+      skin: !!document.getElementById('star-skin-style'),
       quota: cfg.quota || null, viewport: [innerWidth, innerHeight],
     };
+  }
+
+  // Morandi palette injected as one stylesheet. The vars come from morandi-gen.py so the IDE
+  // follows the wallpaper instead of a fixed sky-blue theme.
+  function applySkin(skin) {
+    const existing = document.getElementById('star-skin-style');
+    if (!skin || !skin.vars || !Object.keys(skin.vars).length) { if (existing) existing.remove(); return false; }
+    let el = existing;
+    if (!el) { el = document.createElement('style'); el.id = 'star-skin-style'; (document.head || document.documentElement).appendChild(el); }
+    // The host writes every theme variable as an inline style on <html>, so the injected
+    // declarations must be !important to win over inline styles.
+    const body = Object.keys(skin.vars).map((key) => `${key}:${skin.vars[key]}!important;`).join('');
+    const css = `:root,html{${body}}html{color-scheme:dark!important}`;
+    if (el.textContent !== css) el.textContent = css;
+    return true;
   }
 
   // The host rewrites document.body while booting and after some navigations, which detaches
@@ -287,6 +304,7 @@ export function installStarPet(config) {
   const keepAlive = setInterval(() => {
     if (!alive) { clearInterval(keepAlive); return; }
     if (!host.isConnected && document.body) document.body.appendChild(host);
+    if (cfg.skin) { const skin = document.getElementById('star-skin-style'); if (!skin) applySkin(cfg.skin); }
   }, 1000);
 
   function destroy() {
@@ -296,6 +314,8 @@ export function installStarPet(config) {
     clearTimeout(blinkTimer);
     removeListeners();
     host.remove();
+    const skin = document.getElementById('star-skin-style');
+    if (skin) skin.remove();
     try { delete window[KEY]; } catch (e) { window[KEY] = undefined; }
     return { removed: true };
   }
@@ -376,6 +396,7 @@ export function installStarPet(config) {
   bubble.style.width = Math.max(184, Math.min(262, Math.round(scale * 1.06))) + 'px';
   applyPosition(pos || defaultPosition(), false);
   applyState();
+  applySkin(cfg.skin);
   setFrame(baseFrame());
   scheduleBlink();
   renderQuota();
