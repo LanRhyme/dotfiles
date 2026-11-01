@@ -311,7 +311,7 @@ ${vars}
 #root{position:relative!important;z-index:1!important}
 #star-skin-backdrop{position:fixed!important;inset:0!important;z-index:0!important;pointer-events:none!important;
   background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important}
-#star-skin-backdrop::before{content:'';position:absolute;inset:0;background:rgba(8,6,14,${scrim})}
+#star-skin-backdrop::before{content:'';position:absolute;inset:0;background:color-mix(in srgb,var(--background) ${Math.round(scrim * 100)}%,transparent)}
 body,[class~="bg-background"]{background-color:transparent!important;background-image:none!important}
 `;
     if (el.textContent !== css) el.textContent = css;
