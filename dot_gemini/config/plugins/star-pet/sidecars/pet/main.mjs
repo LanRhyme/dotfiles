@@ -87,6 +87,34 @@ const BUBBLE_LINES = {
   error: LINES.error, petting: LINES.petting, dragged: LINES.dragged, crying: LINES.crying,
 };
 
+// --- skin palette ------------------------------------------------------------
+// assets/skin.json 是「Gemini 设定集」壁纸配套的深紫配色；若不存在则回退到 morandi-gen.py
+// 生成的 ~/.config/noctalia/antigravity-ide.json
+const SKIN_FILE = join(HERE, 'assets/skin.json');
+const WALLPAPER_FILE = join(HERE, 'assets/wallpaper.jpg');
+const skinCache = { mtime: -1, value: null };
+let wallpaperUrl;
+
+function readSkin() {
+  try {
+    const stat = statSync(SKIN_FILE);
+    if (stat.mtimeMs !== skinCache.mtime) {
+      const raw = JSON.parse(readFileSync(SKIN_FILE, 'utf8'));
+      skinCache.mtime = stat.mtimeMs;
+      skinCache.value = raw && raw.vars && Object.keys(raw.vars).length ? raw : null;
+      log(`skin palette reloaded (${skinCache.value ? Object.keys(skinCache.value.vars).length + ' vars' : 'empty'})`);
+    }
+    return skinCache.value;
+  } catch { return null; }
+}
+
+function wallpaperDataUrl() {
+  if (wallpaperUrl !== undefined) return wallpaperUrl;
+  try { wallpaperUrl = `data:image/jpeg;base64,${readFileSync(WALLPAPER_FILE).toString('base64')}`; }
+  catch { wallpaperUrl = null; }
+  return wallpaperUrl;
+}
+
 // --- morandi palette ---------------------------------------------------------
 // morandi-gen.py regenerates this file whenever the wallpaper changes, so the IDE follows
 // the same palette as the rest of the desktop.
@@ -368,8 +396,10 @@ function injectionConfig(state, withFrames = false) {
     lines: BUBBLE_LINES,
     quota: quota ? { fiveHour: quota.fiveHour, weekly: quota.weekly, at: quotaState.at, stale: quota.stale } : null,
     usage: usageToday(),
-    skin: settings.skin ? readPalette() : null,
+    skin: settings.skin ? (readSkin() || readPalette()) : null,
   };
+  // 壁纸体积大，只在首次注入时带上；热更时沿用页面里已有的那张
+  if (withFrames && config.skin) config.skin = { ...config.skin, wallpaper: wallpaperDataUrl() };
   // 帧图近百 KB，只在首次注入时发，之后按需热更，避免每 2 秒推一次大包
   if (withFrames) config.frames = FRAMES;
   return config;

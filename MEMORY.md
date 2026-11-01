@@ -17,7 +17,11 @@
   - 宿主现状: 本机 Antigravity 2.17.0 离线时语言服务器卡在 Google 授权（`oauth2.googleapis.com` 30 秒超时）, 窗口 `ERR_TIMED_OUT` 且 12 秒后自行退出; 带 `HTTPS_PROXY=http://127.0.0.1:7890` 启动即可正常渲染, 说明这类「窗口打不开」要先怀疑代理没开
   - **Dream Skin 改为 Morandi 版（已落地）**: 上游选择的蓝紫换肤整套 CSS 照 2.28 写, `.agy-sheet` / `.surface-composer` 在 2.17.0 匹配数为 0, 故不移植; 改为在 `morandi-gen.py` 新增 `write_antigravity_ide(palette)`, 生成 `~/.config/noctalia/antigravity-ide.json`（33 个变量）, 换壁纸自动重算, 插件按 mtime 热更
   - **关键坑: 宿主把主题变量写成 `<html>` 的 inline style**（`--background`、`--foreground`、`--primary`、`--card`、`--sidebar`… 全在 style 属性里, 还有整套 `--vscode-*`），所以注入的 `:root{...}` 一律被压住, 必须每条声明都带 `!important` 才能生效; 判断是否生效只看 `getComputedStyle(documentElement).getPropertyValue('--background')`
-  - 配色现状（暗色 Morandi）: `--background` `#1a1a18`、`--foreground` `#f2f2f2`、`--primary` `#afac9c`、`--border` `color-mix(fg 9%, transparent)`; 视觉差异本身很淡（低饱和暗色）, 明显变化在强调色与中性基底
+  - **桌宠「一闪一闪」根因（2026-11-01 修复）**: `blink.png` 不是 idle 的小改, 而是另一次渲染 —— 整张画布 24.6% 像素不同且脸部位置/缩放都变了（diffBBox 覆盖全图）, 切过去就是整张脸跳一下; 叠加原实现每 2 秒把近百 KB 的 `frames` 整包推送且重置 `frameName`, 于是每 2 秒强制换帧一次。修法: 帧图只在首次注入时发（`injectionConfig(state, withFrames)`）+ 配置签名节流（`configSignature`）+ 停用 blink 帧 + 两张帧图都 `position:absolute` 放在 `aspect-ratio: 420/351` 的固定画框里（换表情不再引起任何布局位移）。实测 15 秒内帧属性变更 0 次
+  - **皮肤「看不出变化」根因**: (1) 宿主把主题变量写成 `<html>` 的 inline style, 注入的 `:root{...}` 被压住, 必须每条声明加 `!important`; (2) 只在 `body` 上画渐变完全无效, 因为主壳 `[class~="bg-background"]`、侧栏 `[class~="bg-sidebar"]`、输入框 `[class~="bg-card-border"]` / `bg-card` 各自自绘背景, 渐变必须命中这些容器; (3) 选择器要用 `[class~="bg-card"]`（完整 class token）而不是 `[class*="bg-card"]`, 否则 `hover:bg-card`、`data-[state]:bg-card` 这些变体会被一起染色, 每一行都变成渐变卡片
+  - **调色板偏中性的处理**: 壁纸 source 色 `#eee6ba` 虽然 s≈60%, 但 `mPrimary #dad8ce` 只有 s=14%, 直接推导出的暗色面几乎和 IDE 自带暖灰撞成一片; 故在 `write_antigravity_ide` 里给饱和度下限 15、亮度分别取 10/13/17/22 → bg `#1c1b16`、sidebar `#25231c`、card `#302f25`、secondary `#3f3c30`, 强调色取 `palette["gold"]` `#bdb79a`, 边框 `gold 34%`
+  - **宿主 sidecar 重启有延迟**: SIGTERM 掉 sidecar 后宿主约 **45 秒**才按 `restart_policy: always` 重新拉起, 期间 `star-pet off/on` 会打到还没死的旧进程, 导致改了代码却没换图层 —— 判断是否换了新代码看 `pet.log` 里有没有新的 `injected layer`, 没有就先 `star-pet off` 再 `on` 强制重挂
+  - 配色现状（暗色 Morandi 暖调）: 见上, 视觉上整窗偏暖橄榄, 侧栏顶部有暖色渐变, 输入框边框与光晕走 gold
   - 保留: 上游源码 `~/.local/share/antigravity-star-suite`（26MB, 供 `tools/build-assets.sh` 重建素材）, 独立窗口版 Electron 桌宠仍可 `npm run start:widget` 手动跑
 
 - **noctalia 从 AUR 夜版切换到官方稳定版 5.4.0 与 v5 配置分层真相 (2026-10-31, 完成)**:

@@ -283,26 +283,49 @@ export function installStarPet(config) {
 
   // Morandi palette injected as one stylesheet. The vars come from morandi-gen.py so the IDE
   // follows the wallpaper instead of a fixed sky-blue theme.
+  let backdropEl = null;
+
   function applySkin(skin) {
     const existing = document.getElementById('star-skin-style');
-    if (!skin || !skin.vars || !Object.keys(skin.vars).length) { if (existing) existing.remove(); return false; }
+    let backdrop = backdropEl || document.getElementById('star-skin-backdrop');
+    if (!skin || !skin.vars || !Object.keys(skin.vars).length) {
+      if (existing) existing.remove();
+      if (backdrop) backdrop.remove();
+      return false;
+    }
     let el = existing;
     if (!el) { el = document.createElement('style'); el.id = 'star-skin-style'; (document.head || document.documentElement).appendChild(el); }
-    // The host writes every theme variable as an inline style on <html>, so the injected
-    // declarations must be !important to win over inline styles.
+    // 壁纸铺在 #root 之下，页面各面板改成半透明玻璃，透出设定集插画
+    if (skin.wallpaper) {
+      if (!backdrop) { backdrop = document.createElement('div'); backdrop.id = 'star-skin-backdrop'; }
+      backdropEl = backdrop;
+      if (!backdrop.isConnected) (document.body || document.documentElement).prepend(backdrop);
+      const url = `url("${skin.wallpaper}")`;
+      if (backdrop.style.backgroundImage !== url) backdrop.style.backgroundImage = url;
+    } else if (backdrop) { backdrop.remove(); backdropEl = null; }
+    // 宿主把整套主题变量写成 <html> 的 inline style，注入的声明必须 !important 才压得住
     const body = Object.keys(skin.vars).map((key) => `${key}:${skin.vars[key]}!important;`).join('');
     const accents = skin.accents || {};
     const wash = accents.wash || 'var(--primary)';
-    const glow = accents.glow || 'var(--link)';
+    const scrim = typeof skin.scrim === 'number' ? skin.scrim : 0.58;
     const css = `
 :root,html{${body}}
 html{color-scheme:dark!important}
-body{background-color:var(--background)!important}
-[class~="bg-background"]{background-color:var(--background)!important;background-image:radial-gradient(1000px 560px at 76% -12%,color-mix(in srgb,${wash} 16%,transparent),transparent 62%)!important}
-[class~="bg-sidebar"]{background-color:var(--sidebar)!important;background-image:linear-gradient(180deg,color-mix(in srgb,${wash} 14%,transparent),transparent 44%)!important}
-[class~="bg-card-border"]{border-color:color-mix(in srgb,${wash} 42%,transparent)!important;box-shadow:0 14px 36px rgba(0,0,0,.34)!important}
-[class~="bg-card"]{background-image:linear-gradient(160deg,color-mix(in srgb,${wash} 10%,transparent),transparent 58%)!important}
-[data-star-composer]{border-color:color-mix(in srgb,${wash} 40%,transparent)!important}
+body{background-color:#0a0812!important}
+#root{position:relative!important;z-index:1!important}
+#star-skin-backdrop{position:fixed!important;inset:0!important;z-index:0!important;pointer-events:none!important;
+  background-repeat:no-repeat!important;background-size:cover!important;background-position:center 18%!important;
+  filter:blur(1.6px) saturate(1.1) brightness(.74)!important;transform:scale(1.03)}
+#star-skin-backdrop::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(150% 104% at 50% 44%,
+    color-mix(in srgb,#0a0812 90%,transparent) 0 24%,
+    color-mix(in srgb,#0a0812 46%,transparent) 56%,
+    color-mix(in srgb,#0a0812 6%,transparent) 100%)}
+[class~="bg-background"]{background-color:color-mix(in srgb,var(--background) ${Math.round(scrim * 100)}%,transparent)!important;background-image:none!important;backdrop-filter:blur(8px)!important}
+[class~="bg-sidebar"]{background-color:var(--sidebar)!important;background-image:linear-gradient(180deg,color-mix(in srgb,${wash} 10%,transparent),transparent 48%)!important;backdrop-filter:blur(16px) saturate(118%)!important}
+[class~="bg-card-border"]{border-color:var(--card-border)!important;box-shadow:0 14px 34px rgba(8,5,18,.42)!important}
+[class~="bg-card"]{backdrop-filter:blur(12px) saturate(112%)!important}
+[data-star-composer]{border-color:var(--card-border)!important}
 `;
     if (el.textContent !== css) el.textContent = css;
     return true;
@@ -332,7 +355,11 @@ body{background-color:var(--background)!important}
   const keepAlive = setInterval(() => {
     if (!alive) { clearInterval(keepAlive); return; }
     if (!host.isConnected && document.body) document.body.appendChild(host);
-    if (cfg.skin) { const skin = document.getElementById('star-skin-style'); if (!skin) applySkin(cfg.skin); markComposer(); }
+    if (cfg.skin) {
+      if (!document.getElementById('star-skin-style')) applySkin(cfg.skin);
+      else if (backdropEl && !backdropEl.isConnected && document.body) document.body.prepend(backdropEl);
+      markComposer();
+    }
   }, 1000);
 
   function destroy() {
@@ -344,6 +371,8 @@ body{background-color:var(--background)!important}
     host.remove();
     const skin = document.getElementById('star-skin-style');
     if (skin) skin.remove();
+    const backdrop = document.getElementById('star-skin-backdrop');
+    if (backdrop) backdrop.remove();
     for (const el of document.querySelectorAll('[data-star-composer]')) el.removeAttribute('data-star-composer');
     try { delete window[KEY]; } catch (e) { window[KEY] = undefined; }
     return { removed: true };
