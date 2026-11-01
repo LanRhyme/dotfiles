@@ -5,7 +5,7 @@
 
 ## 最近动态
 
-- **逃生 1 (Outlast, AppID 238320) 卡顿排查与中文可行性 (2026-11-01, 部分待验证)**:
+- **逃生 1 (Outlast, AppID 238320) 卡顿排查 + 3DM 汉化落地 (2026-11-01, 已完成)**:
   - 现场: 22:38:27 启动, 22:43:22 退出 (码 -1), 全程只有一个 1280x720 窗口, 窗口类 `OLGame.x86_64`, 进程 RSS 4.9GB / 35 线程
   - 根因一: **跑在核显上** —— 进程 maps 里 NVIDIA 库 0 条、Mesa/iris 库 10411 条, 同时 `nvidia-smi` 只有 niri 与 steam 两个图形上下文, RTX 3050 全程 1% / 14W; 因为 2026-10-29 移除了全局 PRIME offload 改按需 prime-run, 而该游戏没设启动选项
   - 根因二: **niri 全局规则把游戏窗口圈进模糊** —— 原生移植窗口类不是 `steam_app_*`, 于是吃 `match app-id=".*"` 的 opacity 0.98 + blur true, 与 Steam 大屏、影之刃零完全同构
@@ -14,7 +14,12 @@
   - 兼容层现状: `config.vdf` 里 238320 已映射 `proton-cachyos-slr` (`/usr/share/steam/compatibilitytools.d/proton-cachyos-slr`), 22:43 起 Steam 在补 Windows depot 238321 共 3.78GB, 补完前点开始还会走原生 720p
   - 已落地: chezmoi `dot_config/niri/config.kdl` 全局规则加 `exclude` 掉 `steam_app_.*` / `pbz[.]exe` / `OLGame.*` / `.*[Oo]utlast.*`, 游戏规则补 `^OLGame[.].*` / `^Outlast[.].*` / `^Outlast.*`; `niri validate` 通过并已热重载
   - 硬件注记: DXVK 会把 DISCRETE_GPU 排到最前, 所以 Proton 路径不需要额外 env 就会落到 3050; 原生 GL 路径才需要 `prime-run %command%`
-  - 备份: `~/tmp/niri-config.kdl.bak-*`
+  - **汉化已装 (3DM 轩辕 v2.0)**: 来源 `https://dl2.wsyhn.com/CHS1/3DMGAME-Outlast.CHS.Patch.v2.0-3DM.rar` (34,230,900B, md5 `eb719a2a1f9ac1971045d4975c689b14`), 静态审查过: PE32 GUI, 无 Inno/NSIS 特征、正文零 URL, 后面 33MB 载荷是加密的; 用 `bwrap --unshare-net` + 独立 WINEPREFIX 关笼子跑 (只写游戏目录), 汉化器自动完成, 不需要点按钮
+  - 替换清单 (Windows `CookedPCConsole`): `OLFrontEnd_LOC_INT.upk` 689KB→30.1MB、`OLFrontEnd.upk` 3.09→6.82MB、`Startup_LOC_INT.upk` 14.8KB→112KB、`Startup.upk` 4.9→13.9MB、`UDKBase_LOC_INT.upk` 110KB→25.2MB、`Asylum_Exterior-LD.upk` 10.4→19.1MB; 外加 `Localization/INT/` 六个 .int 全换中文 UTF-16 (字幕每个汉字间夹空格, 是汉化组绕 UE3 换行的手段, 看着字距大属正常)
+  - 补丁副作用: 会往游戏根目录丢 `说明.txt` 与 `www.3dmgame.com.url` (已删 .url 与 bwrap 留下的 0 字节 exe 挂载点, 保留 说明.txt); 手工挂载 exe 到游戏目录会在卸载后残留 0 字节文件, 下次要记得删
+  - 回滚口径: Steam「验证游戏文件完整性」即可还原全部 .upk 与 .int; 该游戏以后若自动更新也会把汉化冲掉
+  - 实测结论: 同一个 Proton 会话里 `Using D3D9 device (0): NVIDIA GeForce RTX 3050 Laptop GPU`, 日志走到 `Resetting level dlc_mainmenugame` + `Resizing to 1920x1080 (fullscreen)`; 首次 Proton 启动会卡在 UE3 logo 一次 (日志停在 4.3s, 主线程 1 核跑满、GPU 2%), 关掉重开一次就过, `-nostartupmovies` 会被 `OutlastLauncher.exe` 吞掉不生效 (日志 Command line 只有 `-installed -seekfreeloadingpcconsole`)
+  - 备份: `~/tmp/niri-config.kdl.bak-*`; 快照与汉化包留在 `~/tmp/outlast-chs/` (`patch.rar` / `extracted/` / `manifest-before.tsv` / `manifest-after.tsv`)
 
 - **Antigravity 星语猫娘桌宠改造为插件注入版 (2026-11-01, 完成)**:
   - 起因: 上游 `Monokumakuki/Antigravity-Star-Suite`（Gemini 猫娘桌宠 + 蓝紫 Dream Skin）官方只给 Windows x64, 其桌宠是独立的 Electron 透明窗口 + `.NET ForegroundHost.exe` 跟随宿主; Linux 上跟随能力直接缺失, 且 Wayland 客户端无法自己摆窗口位置, 桌宠只能乱停
