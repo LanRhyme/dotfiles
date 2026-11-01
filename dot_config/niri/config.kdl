@@ -32,6 +32,11 @@ window-rule {
 	match app-id=".*"
 	exclude app-id="org.kde.krita"
 	exclude app-id="steam"
+	// 游戏窗口必须在全局规则里 Exclude 掉, 规则是先匹配先生效, 后面补专属规则覆盖不了
+	exclude app-id="steam_app_.*"
+	exclude app-id="pbz[.]exe"
+	exclude app-id="OLGame.*"
+	exclude app-id=".*[Oo]utlast.*"
 	opacity 0.98
 	draw-border-with-background false
 	background-effect {
@@ -111,6 +116,10 @@ window-rule {
 window-rule {
 	match app-id="^steam_app_.*"
 	match app-id="^pbz[.]exe$"
+	// 原生 UE3 移植的窗口类就是 OLGame.x86_64, 走 Proton 时可能是 OLGame.exe / Outlast.exe
+	match app-id="^OLGame[.].*"
+	match app-id="^Outlast[.].*"
+	match app-id="^Outlast.*"
 	opacity 1.0
 	geometry-corner-radius 0
 	clip-to-geometry false

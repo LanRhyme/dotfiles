@@ -5,6 +5,17 @@
 
 ## 最近动态
 
+- **逃生 1 (Outlast, AppID 238320) 卡顿排查与中文可行性 (2026-11-01, 部分待验证)**:
+  - 现场: 22:38:27 启动, 22:43:22 退出 (码 -1), 全程只有一个 1280x720 窗口, 窗口类 `OLGame.x86_64`, 进程 RSS 4.9GB / 35 线程
+  - 根因一: **跑在核显上** —— 进程 maps 里 NVIDIA 库 0 条、Mesa/iris 库 10411 条, 同时 `nvidia-smi` 只有 niri 与 steam 两个图形上下文, RTX 3050 全程 1% / 14W; 因为 2026-10-29 移除了全局 PRIME offload 改按需 prime-run, 而该游戏没设启动选项
+  - 根因二: **niri 全局规则把游戏窗口圈进模糊** —— 原生移植窗口类不是 `steam_app_*`, 于是吃 `match app-id=".*"` 的 opacity 0.98 + blur true, 与 Steam 大屏、影之刃零完全同构
+  - 根因三: 后台超卖, 当时 `language_server` 单进程 5.5GB/14-17% CPU, Antigravity + steamwebhelper + QQ + Bettbox 一起压在 12 线程上, swap 已用 6.7G; 可用 `~/.local/bin/game-mode.sh on` 冻结
+  - 中文现状: Steam API 确认官方语言只有 英/法/意/德/西/俄/波/葡/日, **没有中文**; 原生包 `OLGame/Localization/` 也只有 INT/DEU/ESN/FRA/ITA/JPN/POL/PTB/RUS, 论坛汉化补丁全是 Windows 版 (`CookedPCConsole`), 所以要么切 Proton 跑 Windows 版, 要么自己做字体与文本 (Scaleform 字体是硬门槛)
+  - 兼容层现状: `config.vdf` 里 238320 已映射 `proton-cachyos-slr` (`/usr/share/steam/compatibilitytools.d/proton-cachyos-slr`), 22:43 起 Steam 在补 Windows depot 238321 共 3.78GB, 补完前点开始还会走原生 720p
+  - 已落地: chezmoi `dot_config/niri/config.kdl` 全局规则加 `exclude` 掉 `steam_app_.*` / `pbz[.]exe` / `OLGame.*` / `.*[Oo]utlast.*`, 游戏规则补 `^OLGame[.].*` / `^Outlast[.].*` / `^Outlast.*`; `niri validate` 通过并已热重载
+  - 硬件注记: DXVK 会把 DISCRETE_GPU 排到最前, 所以 Proton 路径不需要额外 env 就会落到 3050; 原生 GL 路径才需要 `prime-run %command%`
+  - 备份: `~/tmp/niri-config.kdl.bak-*`
+
 - **Antigravity 星语猫娘桌宠改造为插件注入版 (2026-11-01, 完成)**:
   - 起因: 上游 `Monokumakuki/Antigravity-Star-Suite`（Gemini 猫娘桌宠 + 蓝紫 Dream Skin）官方只给 Windows x64, 其桌宠是独立的 Electron 透明窗口 + `.NET ForegroundHost.exe` 跟随宿主; Linux 上跟随能力直接缺失, 且 Wayland 客户端无法自己摆窗口位置, 桌宠只能乱停
   - 关键结论: Antigravity 的「插件」不是 VS Code 扩展模型, `~/.gemini/config/plugins/<name>/` 只认三种扩展点 —— `plugin.json` 元数据、`sidecars/<name>/sidecar.json`（宿主代拉 Node 子进程, `restart_policy` 生效）、`hooks/` 与 `mcp_config.json`; 官方 UI 槽位只有一个 `ui_config.views[].entrypoint: SIDECAR_UI_ENTRYPOINT_AUX_PANE`（辅助面板, 拿不到「浮在整窗上的猫」）
