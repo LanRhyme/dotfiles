@@ -40,6 +40,10 @@ export function installStarPet(config) {
   .frame { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain;
            pointer-events: none; transform-origin: 50% 100%; transition: opacity .22s ease; }
   .frame.b { opacity: 0; }
+  .glow { position: absolute; inset: -10%; border-radius: 50%; pointer-events: none; opacity: 0;
+          background: radial-gradient(circle at 50% 62%, rgba(255,214,150,.30), rgba(255,214,150,0) 62%);
+          transform: scale(.92); transition: opacity .4s ease, transform .5s ease; }
+  .cat.cheer .glow { opacity: 1; transform: scale(1.04); }
   .dots { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); display: none; gap: 5px; }
   .busy .dots { display: flex; }
   .dots i { width: 6px; height: 6px; border-radius: 50%; background: #c4b0ff; opacity: .35;
@@ -89,6 +93,7 @@ export function installStarPet(config) {
     <div class="meta">本机读取 · 缓存不等于实时额度</div>
   </div>
   <div class="cat" tabindex="0" role="button" aria-label="星语 Gemini 猫娘">
+    <div class="glow"></div>
     <div class="dots"><i></i><i></i><i></i></div>
     <img class="frame a" alt="" draggable="false">
     <img class="frame b" alt="" draggable="false">
@@ -174,9 +179,8 @@ export function installStarPet(config) {
   }
 
   function baseFrame() {
-    if (cfg.state === 'error') return 'sad';
-    if (cfg.state === 'success') return 'proud';
-    return 'idle';
+    // 只保留「报错委屈」这一种换脸；成功用暖光提示，表情不再随每步来回切
+    return cfg.state === 'error' ? 'sad' : 'idle';
   }
 
   // 上游 blink.png 是另一次渲染（整张脸位置不同），切过去就是闪一下，故不做眨眼
@@ -244,6 +248,7 @@ export function installStarPet(config) {
 
   function applyState() {
     cat.classList.toggle('busy', cfg.state === 'thinking');
+    cat.classList.toggle('cheer', cfg.state === 'success');
     setFrame(baseFrame());
   }
 
