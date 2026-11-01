@@ -25,15 +25,15 @@ sidecars/pet/tools/          从上游源码重建素材
 | `ANTIGRAVITY_APP_DATA_DIR` | `~/.gemini/antigravity`，读 `brain/*/.system_generated/logs/transcript_full.jsonl` |
 | `ANTIGRAVITY_EXECUTABLE_DATA_DIR` | 插件数据目录，存 `settings.json` 与 `pet.log` |
 
-## 配色：设定集皮肤
+## 配色：桌面壁纸皮肤
 
-皮肤配色取自 `assets/skin.json`（按 Gemini 设定集插画的紫色调手调），壁纸是同一套设定集插画，压到 1280px 后随首次注入带进页面
+背景直接用**当前桌面壁纸**（从 noctalia 的 `~/.local/state/noctalia/settings.toml` 读 `[wallpaper.monitors.*]` 路径），
+sidecar 用 `magick` 压到 1600px、质量 70 存到 `sidecar_data/.../wallpaper.jpg` 后作为 data URL 注入
 
-- 壁纸铺在 `#root` 之下，`::after` 用径向暗角压暗中间文字区，两侧与底部露出插画
-- 侧栏、卡片、输入框改成半透明玻璃（`backdrop-filter`），透出插画
-- 强度可调：`star-pet skin art 0.25`（scrim，越小插画越明显，0–0.95）
-- 整体关闭：`star-pet skin off`
-- `morandi-gen.py` 的 `write_antigravity_ide` 仍会生成 `~/.config/noctalia/antigravity-ide.json`，当插件自带 `assets/skin.json` 缺失时作为回退
+- 壁纸铺在 `#root` 之下，上面只盖**一层纯色半透明遮罩**（`scrim`，默认 0.5），没有任何渐变、阴影、模糊
+- 面板（主壳 0.72、侧栏 0.72、卡片/输入框）都是纯色半透明，保留层次但不加装饰
+- 壁纸换了会自动重载（按源文件 mtime 判断）
+- 强度：`star-pet skin art 0.25`（越小壁纸越清晰，0–0.95），整体关闭 `star-pet skin off`
 
 ## 配色（morandi 回退模式）
 

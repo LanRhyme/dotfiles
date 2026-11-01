@@ -15,6 +15,7 @@ import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { request } from 'node:http';
+import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { installStarPet } from './layer.mjs';
 
@@ -92,9 +93,9 @@ const BUBBLE_LINES = {
 // assets/skin.json 是「Gemini 设定集」壁纸配套的深紫配色；若不存在则回退到 morandi-gen.py
 // 生成的 ~/.config/noctalia/antigravity-ide.json
 const SKIN_FILE = join(HERE, 'assets/skin.json');
-const WALLPAPER_FILE = join(HERE, 'assets/wallpaper.jpg');
+const NOCTALIA_STATE = join(homedir(), '.local/state/noctalia/settings.toml');
+const WALLPAPER_CACHE = join(dataDir, 'wallpaper.jpg');
 const skinCache = { mtime: -1, value: null };
-let wallpaperUrl;
 
 function readSkin() {
   try {
@@ -109,10 +110,47 @@ function readSkin() {
   } catch { return null; }
 }
 
+// 背景直接用桌面壁纸：从 noctalia 的 wallpaper 配置里取路径，用 magick 压到 1600px 后内嵌
+function wallpaperSource() {
+  try {
+    const toml = readFileSync(NOCTALIA_STATE, 'utf8');
+    const grab = (section) => {
+      const at = toml.indexOf(section);
+      if (at < 0) return null;
+      const chunk = toml.slice(at, toml.indexOf('\n[', at + 1) > 0 ? toml.indexOf('\n[', at + 1) : undefined);
+      const m = chunk.match(/path\s*=\s*"([^"]+)"/);
+      return m ? m[1] : null;
+    };
+    const monitors = [...toml.matchAll(/\[wallpaper\.monitors\.[^\]]+\]\n?([^[]*)/g)].map((m) => m[1].match(/path\s*=\s*"([^"]+)"/)?.[1]).filter(Boolean);
+    const builtin = grab('[wallpaper.monitors.eDP-1]');
+    return builtin || monitors[0] || grab('[wallpaper.last]') || grab('[wallpaper.default]') || null;
+  } catch (error) {
+    log(`读取壁纸配置失败: ${error.message}`);
+    return null;
+  }
+}
+
+let wallpaperUrl;
+let wallpaperKey = '';
 function wallpaperDataUrl() {
-  if (wallpaperUrl !== undefined) return wallpaperUrl;
-  try { wallpaperUrl = `data:image/jpeg;base64,${readFileSync(WALLPAPER_FILE).toString('base64')}`; }
-  catch { wallpaperUrl = null; }
+  const source = wallpaperSource();
+  if (!source) return null;
+  let stamp = 0;
+  try { stamp = statSync(source).mtimeMs; } catch { return wallpaperUrl || null; }
+  const key = `${source}:${stamp}`;
+  if (key === wallpaperKey && wallpaperUrl !== undefined) return wallpaperUrl;
+  try {
+    let cacheStamp = 0;
+    try { cacheStamp = statSync(WALLPAPER_CACHE).mtimeMs; } catch { /* 首次生成 */ }
+    if (cacheStamp < stamp) {
+      execFileSync('magick', [source, '-resize', '1600x', '-strip', '-quality', '70', WALLPAPER_CACHE], { timeout: 20000 });
+    }
+    wallpaperUrl = `data:image/jpeg;base64,${readFileSync(WALLPAPER_CACHE).toString('base64')}`;
+    wallpaperKey = key;
+    log(`壁纸已载入 ${source}`);
+  } catch (error) {
+    log(`壁纸处理失败: ${error.message}`);
+  }
   return wallpaperUrl;
 }
 

@@ -33,9 +33,9 @@ export function installStarPet(config) {
   .wrap { position: absolute; left: 0; top: 0; width: 220px; pointer-events: none; }
   .cat { position: relative; width: 100%; aspect-ratio: 420 / 351; pointer-events: auto; cursor: grab; touch-action: none;
          user-select: none; -webkit-user-select: none; outline: none;
-         filter: drop-shadow(0 12px 24px rgba(12,8,28,.46)); transition: filter .2s ease, transform .2s cubic-bezier(.34,1.56,.64,1); }
+         transition: transform .2s cubic-bezier(.34,1.56,.64,1); }
   .cat { animation: star-breathe 6s ease-in-out infinite; transform-origin: 50% 100%; }
-  .cat.dragging { cursor: grabbing; transform: scale(.97); filter: drop-shadow(0 8px 16px rgba(12,8,28,.55)); }
+  .cat.dragging { cursor: grabbing; transform: scale(.97); }
   .cat.pressed { transform: scale(.94); }
   .frame { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain;
            pointer-events: none; transform-origin: 50% 100%; transition: opacity .22s ease; }
@@ -55,13 +55,11 @@ export function installStarPet(config) {
             transform: translateY(7px) scale(.975); transform-origin: 88% 100%;
             transition: opacity .18s ease, transform .18s cubic-bezier(.34,1.4,.64,1), visibility .18s;
             background: rgba(27,23,38,.93); border: 1px solid rgba(180,150,255,.26);
-            box-shadow: 0 12px 30px rgba(8,4,20,.45), inset 0 1px 0 rgba(255,255,255,.06);
+
             color: #efe9ff; font: 12.5px/1.45 "Noto Sans CJK SC", "Source Han Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
             pointer-events: none; }
   .bubble.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
-  .bubble::after { content: ''; position: absolute; right: 26px; bottom: -6px; width: 11px; height: 11px;
-            background: rgba(27,23,38,.93); border-right: 1px solid rgba(180,150,255,.26);
-            border-bottom: 1px solid rgba(180,150,255,.26); transform: rotate(45deg); border-radius: 0 0 3px 0; }
+
   .bubble .title { font-size: 12px; font-weight: 600; letter-spacing: .01em; color: #d9cbff; margin-bottom: 7px;
                    display: flex; justify-content: space-between; align-items: center; }
   .bubble .title em { font-style: normal; font-size: 10.5px; font-weight: 400; color: #9d90b8; }
@@ -315,18 +313,13 @@ html{color-scheme:dark!important}
 body{background-color:#0a0812!important}
 #root{position:relative!important;z-index:1!important}
 #star-skin-backdrop{position:fixed!important;inset:0!important;z-index:0!important;pointer-events:none!important;
-  background-repeat:no-repeat!important;background-size:cover!important;background-position:center 18%!important;
-  filter:blur(1.6px) saturate(1.1) brightness(.74)!important;transform:scale(1.03)}
-#star-skin-backdrop::after{content:'';position:absolute;inset:0;
-  background:radial-gradient(150% 104% at 50% 44%,
-    color-mix(in srgb,#0a0812 90%,transparent) 0 24%,
-    color-mix(in srgb,#0a0812 46%,transparent) 56%,
-    color-mix(in srgb,#0a0812 6%,transparent) 100%)}
-[class~="bg-background"]{background-color:color-mix(in srgb,var(--background) ${Math.round(scrim * 100)}%,transparent)!important;background-image:none!important;backdrop-filter:blur(8px)!important}
-[class~="bg-sidebar"]{background-color:var(--sidebar)!important;background-image:linear-gradient(180deg,color-mix(in srgb,${wash} 10%,transparent),transparent 48%)!important;backdrop-filter:blur(16px) saturate(118%)!important}
-[class~="bg-card-border"]{border-color:var(--card-border)!important;box-shadow:0 14px 34px rgba(8,5,18,.42)!important}
-[class~="bg-card"]{backdrop-filter:blur(12px) saturate(112%)!important}
-[data-star-composer]{border-color:var(--card-border)!important}
+  background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important}
+#star-skin-backdrop::before{content:'';position:absolute;inset:0;background:rgba(10,8,18,${scrim})}
+[class~="bg-background"]{background-color:rgba(16,13,26,.72)!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important}
+[class~="bg-sidebar"]{background-color:rgba(12,9,20,.72)!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important}
+[class~="bg-card"]{background-image:none!important;box-shadow:none!important;backdrop-filter:none!important}
+[class~="bg-card-border"]{border-color:rgba(190,170,255,.16)!important;box-shadow:none!important}
+[data-star-composer]{box-shadow:none!important}
 `;
     if (el.textContent !== css) el.textContent = css;
     return true;

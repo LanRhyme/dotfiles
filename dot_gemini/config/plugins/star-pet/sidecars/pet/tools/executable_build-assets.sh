@@ -13,7 +13,4 @@ magick "$SRC/character-packs/gemini-star-v1/frames/blink.png"    -resize 420x -s
 magick "$SRC/character-packs/gemini-star-v1/frames/proud-v3.png" -resize 420x -strip -define webp:method=6 "$HERE/assets/frames/proud.webp"
 magick "$SRC/character-packs/gemini-star-v1/frames/sad-v3.png"   -resize 420x -strip -define webp:method=6 "$HERE/assets/frames/sad.webp"
 cp "$SRC/dialogue/zh-CN.json" "$HERE/assets/dialogue.json"
-# 换肤用的设定集壁纸（压到 1280px 便于作为 data URL 注入）
-WALL="$UPSTREAM/Antigravity-Dream-Skin/assets/wallpapers/gemini-character-sheet-v1/wallpaper.png"
-[[ -f "$WALL" ]] && magick "$WALL" -resize 1280x -strip -quality 66 "$HERE/assets/wallpaper.jpg"
 echo "已生成: $(ls "$HERE/assets/frames" | tr '\n' ' ')"
