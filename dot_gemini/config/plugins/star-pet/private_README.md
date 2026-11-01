@@ -1,0 +1,58 @@
+# 星语 · Star Pet
+
+Antigravity 窗口内的 Gemini 猫娘陪伴层，由插件的 sidecar 通过本机 CDP 注入到渲染器里，不修改 `/opt/Antigravity` 任何文件
+
+## 组成
+
+```text
+plugin.json                  插件元数据
+sidecars/pet/sidecar.json    宿主据此拉起 main.mjs，restart_policy=always
+sidecars/pet/main.mjs        连接 CDP、读取额度与日志、按状态推送
+sidecars/pet/layer.mjs       页面内图层源码，序列化后注入渲染器
+sidecars/pet/assets/         帧图、台词（本地生成，不入 dotfiles）
+sidecars/pet/tools/          从上游源码重建素材
+```
+
+## 宿主提供的环境
+
+宿主启动 sidecar 时注入以下变量，插件不自己做进程扫描
+
+| 变量 | 用途 |
+| --- | --- |
+| `AGY_BROWSER_ACTIVE_PORT_FILE` | Chromium `DevToolsActivePort` 路径，用于连 `https://127.0.0.1:<端口>/` 页面 |
+| `ANTIGRAVITY_LS_ADDRESS` | 语言服务器 HTTP 端口 |
+| `ANTIGRAVITY_CSRF_TOKEN` | 调用 `RetrieveUserQuotaSummary` 的凭据 |
+| `ANTIGRAVITY_APP_DATA_DIR` | `~/.gemini/antigravity`，读 `brain/*/.system_generated/logs/transcript_full.jsonl` |
+| `ANTIGRAVITY_EXECUTABLE_DATA_DIR` | 插件数据目录，存 `settings.json` 与 `pet.log` |
+
+## 额度来源
+
+`POST http://{LS_ADDRESS}/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary`
+取 `groups[].buckets[]` 里 `gemini-5h` 与 `gemini-weekly` 的 `remainingFraction`，每 60 秒刷新
+气泡里标「刚刚 / N 分钟前 / 待更新」，缓存不等于实时额度
+
+## 控制
+
+```bash
+star-pet status          查看配置、挂载状态与额度
+star-pet on | off        显示或隐藏（2 秒内生效）
+star-pet scale 260       改大小，120–420
+star-pet state auto      自动 | idle | thinking | success | error
+star-pet log             sidecar 日志
+```
+
+## 素材与上游
+
+角色帧图与台词来自 [Antigravity-Star-Suite](https://github.com/Monokumakuki/Antigravity-Star-Suite)（代码 MIT，美术不适用 MIT，见其 ASSETS.md）
+本地用 `tools/build-assets.sh` 从上游源码降采样重建，不提交进 dotfiles
+
+## 卸载
+
+删除 `~/.gemini/config/plugins/star-pet` 并在 Antigravity 里重载窗口，图层随之消失
+上游 Electron 桌宠与本插件互不依赖，可单独保留
+
+## 已知边界
+
+宿主界面布局变化可能导致气泡定位需微调，图层本身不依赖任何 Antigravity class 名
+宿主刷新或路由跳转时图层会被摘除，1 秒内自动挂回
+思考与完成状态由最新 transcript 的 `PLANNER_RESPONSE` 推导，2.17.0 的日志不含 token 字段，因此气泡只显示步数

@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+// 星语 · Star Pet — companion controls for the Antigravity pet layer.
+//
+//   star-pet status          show settings, layer state and quota
+//   star-pet on | off        show or hide the companion (takes effect within 2 s)
+//   star-pet scale 260       resize (120-420 px)
+//   star-pet state auto      auto | idle | thinking | success | error
+//   star-pet log [-f]        recent sidecar log lines
+//
+// The settings file is watched by the sidecar that Antigravity starts for the star-pet plugin.
+
+const { readFileSync, writeFileSync, existsSync, renameSync } = require('node:fs');
+const { homedir } = require('node:os');
+const { join } = require('node:path');
+const http = require('node:http');
+
+const DATA = join(homedir(), '.gemini/antigravity/sidecar_data/star-pet/pet/data');
+const SETTINGS = join(DATA, 'settings.json');
+const LOG = join(DATA, 'pet.log');
+const PORT_FILE = join(homedir(), '.config/Antigravity/DevToolsActivePort');
+const DEFAULTS = { enabled: true, scale: 220, ttlMs: 5200, state: 'auto' };
+const KINDS = ['idle', 'thinking', 'success', 'error', 'offline', 'petting', 'dragged', 'crying'];
+
+function readSettings() {
+  try { return { ...DEFAULTS, ...JSON.parse(readFileSync(SETTINGS, 'utf8')) }; } catch { return { ...DEFAULTS }; }
+}
+
+function writeSettings(next) {
+  const value = { ...DEFAULTS, ...next };
+  value.scale = Math.max(120, Math.min(420, Number(value.scale) || DEFAULTS.scale));
+  if (!['auto', ...KINDS].includes(value.state)) value.state = 'auto';
+  writeFileSync(SETTINGS + '.tmp', JSON.stringify(value, null, 2) + '\n', { mode: 0o600 });
+  renameSync(SETTINGS + '.tmp', SETTINGS);
+  return value;
+}
+
+function loadWs() {
+  const candidates = [
+    join(homedir(), '.local/share/antigravity-star-suite/shared/vendor/ws'),
+    'ws',
+  ];
+  for (const candidate of candidates) {
+    try { return require(candidate); } catch { /* try next */ }
+  }
+  return null;
+}
+
+function getJson(port, resource) {
+  return new Promise((resolve, reject) => {
+    const req = http.get({ hostname: '127.0.0.1', port, path: resource, timeout: 2500 }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => { try { resolve(JSON.parse(data)); } catch (error) { reject(error); } });
+    });
+    req.on('timeout', () => req.destroy(new Error('timeout')));
+    req.on('error', reject);
+  });
+}
+
+async function probeLayer() {
+  if (!existsSync(PORT_FILE)) return { host: false, reason: 'Antigravity 未运行' };
+  const port = Number(readFileSync(PORT_FILE, 'utf8').split('\n')[0]);
+  if (!Number.isInteger(port) || port < 1) return { host: false, reason: '调试端口不可读' };
+  let targets;
+  try { targets = await getJson(port, '/json/list'); } catch (error) { return { host: false, reason: '宿主端点不可达：' + error.message }; }
+  const page = (targets || []).find((t) => t.type === 'page' && /^https?:\/\/127\.0\.0\.1:\d+\//.test(t.url || ''));
+  if (!page) return { host: false, reason: '未找到 Antigravity 页面' };
+  const WebSocket = globalThis.WebSocket || loadWs();
+  if (!WebSocket) return { host: true, layer: null, reason: '本机缺少 WebSocket 实现' };
+  return await new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => { if (!settled) { settled = true; resolve(value); try { socket.close(); } catch { /* noop */ } } };
+    const socket = new WebSocket(page.webSocketDebuggerUrl);
+    const timer = setTimeout(() => finish({ host: true, layer: null, reason: '页面无响应' }), 4000);
+    socket.addEventListener?.('open', () => {
+      socket.send(JSON.stringify({ id: 1, method: 'Runtime.evaluate', params: { expression: 'window.__starPet ? window.__starPet.status() : null', returnByValue: true } }));
+    });
+    socket.addEventListener?.('message', (event) => {
+      clearTimeout(timer);
+      try {
+        const message = JSON.parse(event.data);
+        finish({ host: true, layer: message.result?.result?.value || null });
+      } catch (error) { finish({ host: true, layer: null, reason: error.message }); }
+    });
+    socket.addEventListener?.('error', () => { clearTimeout(timer); finish({ host: true, layer: null, reason: '连接失败' }); });
+  });
+}
+
+function tailLog(lines) {
+  if (!existsSync(LOG)) return '(暂无日志)';
+  const text = readFileSync(LOG, 'utf8').trimEnd().split('\n');
+  return text.slice(-lines).join('\n');
+}
+
+const pct = (value) => (typeof value === 'number' ? Math.round(value * 100) + '%' : '—');
+
+async function main() {
+  const [command, ...rest] = process.argv.slice(2);
+  const settings = readSettings();
+  switch (command) {
+    case 'on':
+    case 'off': {
+      const next = writeSettings({ ...settings, enabled: command === 'on' });
+      console.log(`星语桌宠：${next.enabled ? '已开启' : '已隐藏'}（sidecar 会在 2 秒内生效）`);
+      break;
+    }
+    case 'scale': {
+      const next = writeSettings({ ...settings, scale: Number(rest[0]) });
+      console.log(`大小：${next.scale}px`);
+      break;
+    }
+    case 'state': {
+      const next = writeSettings({ ...settings, state: rest[0] || 'auto' });
+      console.log(`状态来源：${next.state}`);
+      break;
+    }
+    case 'log': {
+      console.log(tailLog(rest[0] === '-f' ? 40 : Number(rest[0]) || 20));
+      break;
+    }
+    case 'status':
+    case undefined: {
+      console.log('配置：', JSON.stringify(settings));
+      const result = await probeLayer();
+      if (!result.host) { console.log('宿主：未连接 —', result.reason); break; }
+      if (!result.layer) { console.log('宿主：已连接，图层未挂载 —', result.reason || '可能已关闭'); break; }
+      const layer = result.layer;
+      console.log(`图层：已挂载 · 状态 ${layer.state} · ${layer.scale}px · 位置 ${layer.pos ? layer.pos.x + ',' + layer.pos.y : '默认'}`);
+      if (layer.quota) console.log(`额度：5 小时 ${pct(layer.quota.fiveHour)} · 1 周 ${pct(layer.quota.weekly)}${layer.quota.stale ? '（待更新）' : ''}`);
+      else console.log('额度：未知');
+      break;
+    }
+    default:
+      console.log('用法：star-pet [status|on|off|scale <像素>|state <auto|idle|thinking|success|error>|log [-f]]');
+  }
+}
+
+main();
