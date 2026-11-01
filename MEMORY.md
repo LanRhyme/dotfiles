@@ -5,6 +5,19 @@
 
 ## 最近动态
 
+- **Antigravity 星语猫娘桌宠改造为插件注入版 (2026-11-01, 完成)**:
+  - 起因: 上游 `Monokumakuki/Antigravity-Star-Suite`（Gemini 猫娘桌宠 + 蓝紫 Dream Skin）官方只给 Windows x64, 其桌宠是独立的 Electron 透明窗口 + `.NET ForegroundHost.exe` 跟随宿主; Linux 上跟随能力直接缺失, 且 Wayland 客户端无法自己摆窗口位置, 桌宠只能乱停
+  - 关键结论: Antigravity 的「插件」不是 VS Code 扩展模型, `~/.gemini/config/plugins/<name>/` 只认三种扩展点 —— `plugin.json` 元数据、`sidecars/<name>/sidecar.json`（宿主代拉 Node 子进程, `restart_policy` 生效）、`hooks/` 与 `mcp_config.json`; 官方 UI 槽位只有一个 `ui_config.views[].entrypoint: SIDECAR_UI_ENTRYPOINT_AUX_PANE`（辅助面板, 拿不到「浮在整窗上的猫」）
+  - 同机 `antigravity-pulse` 的做法印证: 它是靠 `patch-loader.py` 改 `app.asar` 塞 `// AG_PULSE_INLINE_V1` 内联 UI, 且写死 `SUPPORTED_VERSIONS = {'2.19.1'}`; 故不改安装目录、改走 CDP 注入更干净
+  - **宿主给 sidecar 的现成凭据（免进程扫描, 最重要）**: sidecar 进程环境里有 `AGY_BROWSER_ACTIVE_PORT_FILE`（= `~/.config/Antigravity/DevToolsActivePort`）、`ANTIGRAVITY_LS_ADDRESS`（如 `localhost:42815`）、`ANTIGRAVITY_CSRF_TOKEN`、`ANTIGRAVITY_APP_DATA_DIR`（`~/.gemini/antigravity`）、`ANTIGRAVITY_EXECUTABLE_DATA_DIR`（`~/.gemini/antigravity/sidecar_data/star-pet/pet/data`）; 宿主 Node 为 v24.20.0 且自带 global `WebSocket`, 无需 vendor ws
+  - **额度接口（比上游的 React fiber 抓取可靠得多）**: `POST http://{LS_ADDRESS}/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary`, 头带 `x-codeium-csrf-token` 与 `Connect-Protocol-Version: 1`, 返回 `response.groups[].buckets[]` 的 `gemini-5h` / `gemini-weekly` 的 `remainingFraction` 与 `resetTime`; `GetUserStatus` 只给 per-model `quotaInfo`, 没有双窗口条
+  - 落地: 新插件 `~/.gemini/config/plugins/star-pet/`（main.mjs 编排 + layer.mjs 页面图层, Shadow DOM 隔离, 帧图为 420px webp data URL, CSP 只放行 data:）; 猫固定在窗口内 `z-index:6000`, 可拖动（位置存页面 localStorage）, 悬停出额度气泡, 点击换台词, 思考时三个跳动点; 宿主重建 `document.body` 或换路由后图层被摘除, 靠 1 秒 keep-alive 自愈
+  - 控制入口: `~/.local/bin/star-pet status|on|off|scale|state|log`, 改的是插件数据目录里的 `settings.json`, sidecar 每 2 秒重读
+  - 踩坑: `pkill -f '<pattern>'` 会把执行它的 `bash -c` 自己匹配进来直接杀掉 (本次连踩两次), 杀应用一律用 `/proc/*/cmdline` 精确匹配并排除自身的脚本; 图层 `document.body.appendChild` 必须显式写出, 只靠 MutationObserver/定时器会晚 1 秒; `:host { all: initial }` 之后气泡的 `position:absolute` 相对的是 `.wrap` 而不是视口
+  - 宿主现状: 本机 Antigravity 2.17.0 离线时语言服务器卡在 Google 授权（`oauth2.googleapis.com` 30 秒超时）, 窗口 `ERR_TIMED_OUT` 且 12 秒后自行退出; 带 `HTTPS_PROXY=http://127.0.0.1:7890` 启动即可正常渲染, 说明这类「窗口打不开」要先怀疑代理没开
+  - 未做: Dream Skin 蓝紫换肤尚未移植（上游选择器 `.agy-sheet` / `.surface-composer` 在 2.17.0 上是 0 个匹配, 需要按 morandi 主题引擎重做配色, 待确认）
+  - 保留: 上游源码 `~/.local/share/antigravity-star-suite`（26MB, 供 `tools/build-assets.sh` 重建素材）, 独立窗口版 Electron 桌宠仍可 `npm run start:widget` 手动跑
+
 - **noctalia 从 AUR 夜版切换到官方稳定版 5.4.0 与 v5 配置分层真相 (2026-10-31, 完成)**:
   - 处置: `aur/noctalia-git 5.0.0.r5361`（真实串 `v5.0.0-beta.10-17-gf840b01baf16`, 8-31 编译）换成官方仓库 `noctalia 5.4.0-1.1`（cachyos-extra-v3 重建, 打包者 CachyOS, 非 AUR 无需审 PKGBUILD）, 依赖 `cachyos-niri-noctalia` 靠包名本身满足; 上游最新 tag 是 5.4.1（10-29）尚未进仓, 下次 `-Syu` 自然跟上
   - **pacman 撞坑**: `pacman -S --noconfirm noctalia` 会在「与 noctalia-git 冲突, 删除它吗」这一步采用默认值 **No** 直接失败; 且 noctalia-git 提供虚包 `noctalia` 被 `cachyos-niri-noctalia` 依赖, 普通 `-R` 会被拒绝; 可用解法是 `pacman -Sw`（先只下载, 失败则不动现有安装）→ `pacman -Rdd`（跳过虚包依赖检查显式移除）→ `pacman -S` 安装
