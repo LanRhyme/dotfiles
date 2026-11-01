@@ -138,7 +138,7 @@ async function main() {
       if (!result.layer) { console.log('宿主：已连接，图层未挂载 —', result.reason || '可能已关闭'); break; }
       const layer = result.layer;
       console.log(`图层：已挂载 · 状态 ${layer.state} · ${layer.scale}px · 位置 ${layer.pos ? layer.pos.x + ',' + layer.pos.y : '默认'}`);
-      console.log(`配色：${layer.skin ? '设定集配色 + 插画背景已注入' : '未注入'}`);
+      console.log(`背景：${layer.skin ? '桌面壁纸已铺在界面下方（原配色未改动）' : '未注入'}`);
       if (layer.quota) console.log(`额度：5 小时 ${pct(layer.quota.fiveHour)} · 1 周 ${pct(layer.quota.weekly)}${layer.quota.stale ? '（待更新）' : ''}`);
       else console.log('额度：未知');
       break;

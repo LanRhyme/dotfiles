@@ -255,6 +255,7 @@ export function installStarPet(config) {
     next = next || {};
     const framesChanged = Boolean(next.frames && next.frames.idle && next.frames.idle !== (cfg.frames && cfg.frames.idle));
     const previousScale = scale;
+    if (next.skin) next = { ...next, skin: { ...(cfg.skin || {}), ...next.skin } };
     Object.assign(cfg, next);
     if (framesChanged) frameName = '';
     if (typeof next.scale === 'number') scale = Math.max(120, Math.min(420, next.scale));

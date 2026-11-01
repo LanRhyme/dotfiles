@@ -54,7 +54,11 @@ function readSettings() {
     };
     settings.enabled = settings.enabled !== false;
     settings.skin = settings.skin !== false;
-    settings.scrim = Number.isFinite(Number(settings.scrim)) ? Math.max(0, Math.min(0.95, Number(settings.scrim))) : null;
+    // Number(null) === 0，必须显式判空，否则「跟随默认」会被读成 0
+    const rawScrim = settings.scrim;
+    settings.scrim = (rawScrim === null || rawScrim === undefined || rawScrim === '')
+      ? null
+      : (Number.isFinite(Number(rawScrim)) ? Math.max(0, Math.min(0.95, Number(rawScrim))) : null);
     settings.scale = Math.max(120, Math.min(420, Number(settings.scale) || 220));
   } catch { settings = { ...DEFAULT_SETTINGS }; }
   return settings;
@@ -423,6 +427,12 @@ function deriveState() {
 let client = null;
 let lastQuotaAt = 0;
 let lastSignature = null;
+let lastScrim = currentScrim();
+let lastWallpaperStamp = '';
+
+function wallpaperSourceStamp() {
+  try { const src = wallpaperSource(); return src ? `${src}:${statSync(src).mtimeMs}` : ''; } catch { return ''; }
+}
 let stopRequested = false;
 
 function injectionConfig(state, withFrames = false) {
@@ -435,17 +445,20 @@ function injectionConfig(state, withFrames = false) {
     lines: BUBBLE_LINES,
     quota: quota ? { fiveHour: quota.fiveHour, weekly: quota.weekly, at: quotaState.at, stale: quota.stale } : null,
     usage: usageToday(),
-    // 只给壁纸背景，不覆盖宿主任何配色变量
-    skin: settings.skin ? {
-      wallpaper: undefined,
-      scrim: typeof settings.scrim === "number" ? settings.scrim : 0.4,
-    } : null,
   };
   // 壁纸体积大，只在首次注入时带上；热更时沿用页面里已有的那张
-  if (withFrames && config.skin) config.skin = { ...config.skin, wallpaper: wallpaperDataUrl(), scrim: config.skin.scrim };
+  if (withFrames && settings.skin) {
+    // 皮肤（壁纸 + 遮罩）只在首次注入时下发；热更不带 skin，否则会把页面里的壁纸对象冲掉
+    config.skin = { wallpaper: wallpaperDataUrl(), scrim: currentScrim() };
+  }
   // 帧图近百 KB，只在首次注入时发，之后按需热更，避免每 2 秒推一次大包
   if (withFrames) config.frames = FRAMES;
   return config;
+}
+
+function currentScrim() {
+  const raw = typeof settings.scrim === 'number' ? settings.scrim : 0.4;
+  return Math.max(0, Math.min(0.95, raw));
 }
 
 function configSignature(config) {
@@ -453,7 +466,7 @@ function configSignature(config) {
     config.state, config.scale, config.ttlMs,
     config.quota ? [config.quota.fiveHour, config.quota.weekly, config.quota.at, config.quota.stale] : null,
     config.usage ? config.usage.steps : null,
-    config.skin ? [config.skin.vars['--background'], Object.keys(config.skin.vars).length] : null,
+    settings.skin ? [currentScrim(), wallpaperKey] : null,
   ]);
 }
 
@@ -490,6 +503,13 @@ async function tick() {
   }
 
   const now = Date.now();
+  if (currentScrim() !== lastScrim || (settings.skin && wallpaperSourceStamp() !== lastWallpaperStamp)) {
+    lastScrim = currentScrim();
+    lastWallpaperStamp = wallpaperSourceStamp();
+    if (client && !client.closed) {
+      try { await client.evaluate('window.__starPet && window.__starPet.destroy()'); } catch { /* 页面已重建 */ }
+    }
+  }
   if (now - lastQuotaAt > 60000) { lastQuotaAt = now; refreshQuota().catch(() => {}); }
   const state = settings.state !== 'auto' ? settings.state : deriveState();
 
