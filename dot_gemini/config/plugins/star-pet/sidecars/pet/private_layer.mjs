@@ -286,14 +286,11 @@ export function installStarPet(config) {
   function applySkin(skin) {
     const existing = document.getElementById('star-skin-style');
     let backdrop = backdropEl || document.getElementById('star-skin-backdrop');
-    if (!skin || !skin.vars || !Object.keys(skin.vars).length) {
+    if (!skin || (!skin.wallpaper && (!skin.vars || !Object.keys(skin.vars).length))) {
       if (existing) existing.remove();
-      if (backdrop) backdrop.remove();
+      if (backdrop) { backdrop.remove(); backdropEl = null; }
       return false;
     }
-    let el = existing;
-    if (!el) { el = document.createElement('style'); el.id = 'star-skin-style'; (document.head || document.documentElement).appendChild(el); }
-    // 壁纸铺在 #root 之下，页面各面板改成半透明玻璃，透出设定集插画
     if (skin.wallpaper) {
       if (!backdrop) { backdrop = document.createElement('div'); backdrop.id = 'star-skin-backdrop'; }
       backdropEl = backdrop;
@@ -301,25 +298,20 @@ export function installStarPet(config) {
       const url = `url("${skin.wallpaper}")`;
       if (backdrop.style.backgroundImage !== url) backdrop.style.backgroundImage = url;
     }
-    // 热更的 skin 对象不带 wallpaper（近百 KB），此处必须保留已铺好的背景层
-    // 宿主把整套主题变量写成 <html> 的 inline style，注入的声明必须 !important 才压得住
-    const body = Object.keys(skin.vars).map((key) => `${key}:${skin.vars[key]}!important;`).join('');
-    const accents = skin.accents || {};
-    const wash = accents.wash || 'var(--primary)';
-    const scrim = typeof skin.scrim === 'number' ? skin.scrim : 0.58;
+    let el = existing;
+    if (!el) { el = document.createElement('style'); el.id = 'star-skin-style'; (document.head || document.documentElement).appendChild(el); }
+    // 只把壁纸铺到最底层，并把宿主自带的不透明底色放开；配色、字体、圆角、面板一律不动
+    const scrim = typeof skin.scrim === 'number' ? skin.scrim : 0.35;
+    const vars = skin.vars && Object.keys(skin.vars).length
+      ? `:root,html{${Object.keys(skin.vars).map((key) => `${key}:${skin.vars[key]}!important;`).join('')}}`
+      : '';
     const css = `
-:root,html{${body}}
-html{color-scheme:dark!important}
-body{background-color:#0a0812!important}
+${vars}
 #root{position:relative!important;z-index:1!important}
 #star-skin-backdrop{position:fixed!important;inset:0!important;z-index:0!important;pointer-events:none!important;
   background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important}
-#star-skin-backdrop::before{content:'';position:absolute;inset:0;background:rgba(10,8,18,${scrim})}
-[class~="bg-background"]{background-color:rgba(16,13,26,.72)!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important}
-[class~="bg-sidebar"]{background-color:rgba(12,9,20,.72)!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important}
-[class~="bg-card"]{background-image:none!important;box-shadow:none!important;backdrop-filter:none!important}
-[class~="bg-card-border"]{border-color:rgba(190,170,255,.16)!important;box-shadow:none!important}
-[data-star-composer]{box-shadow:none!important}
+#star-skin-backdrop::before{content:'';position:absolute;inset:0;background:rgba(8,6,14,${scrim})}
+body,[class~="bg-background"]{background-color:transparent!important;background-image:none!important}
 `;
     if (el.textContent !== css) el.textContent = css;
     return true;

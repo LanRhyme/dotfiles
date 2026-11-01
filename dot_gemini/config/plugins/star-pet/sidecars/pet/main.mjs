@@ -435,15 +435,14 @@ function injectionConfig(state, withFrames = false) {
     lines: BUBBLE_LINES,
     quota: quota ? { fiveHour: quota.fiveHour, weekly: quota.weekly, at: quotaState.at, stale: quota.stale } : null,
     usage: usageToday(),
-    skin: settings.skin ? (() => {
-      const skin = readSkin() || readPalette();
-      if (!skin) return null;
-      // 壁纸强度可由 star-pet skin art <0-1> 覆盖（越小插画越明显）
-      return typeof settings.scrim === 'number' ? { ...skin, scrim: settings.scrim } : skin;
-    })() : null,
+    // 只给壁纸背景，不覆盖宿主任何配色变量
+    skin: settings.skin ? {
+      wallpaper: undefined,
+      scrim: typeof settings.scrim === "number" ? settings.scrim : 0.4,
+    } : null,
   };
   // 壁纸体积大，只在首次注入时带上；热更时沿用页面里已有的那张
-  if (withFrames && config.skin) config.skin = { ...config.skin, wallpaper: wallpaperDataUrl() };
+  if (withFrames && config.skin) config.skin = { ...config.skin, wallpaper: wallpaperDataUrl(), scrim: config.skin.scrim };
   // 帧图近百 KB，只在首次注入时发，之后按需热更，避免每 2 秒推一次大包
   if (withFrames) config.frames = FRAMES;
   return config;
