@@ -302,7 +302,8 @@ export function installStarPet(config) {
       if (!backdrop.isConnected) (document.body || document.documentElement).prepend(backdrop);
       const url = `url("${skin.wallpaper}")`;
       if (backdrop.style.backgroundImage !== url) backdrop.style.backgroundImage = url;
-    } else if (backdrop) { backdrop.remove(); backdropEl = null; }
+    }
+    // 热更的 skin 对象不带 wallpaper（近百 KB），此处必须保留已铺好的背景层
     // 宿主把整套主题变量写成 <html> 的 inline style，注入的声明必须 !important 才压得住
     const body = Object.keys(skin.vars).map((key) => `${key}:${skin.vars[key]}!important;`).join('');
     const accents = skin.accents || {};

@@ -18,7 +18,7 @@ const DATA = join(homedir(), '.gemini/antigravity/sidecar_data/star-pet/pet/data
 const SETTINGS = join(DATA, 'settings.json');
 const LOG = join(DATA, 'pet.log');
 const PORT_FILE = join(homedir(), '.config/Antigravity/DevToolsActivePort');
-const DEFAULTS = { enabled: true, scale: 160, ttlMs: 5200, state: "auto", skin: true };
+const DEFAULTS = { enabled: true, scale: 160, ttlMs: 5200, state: "auto", skin: true, scrim: null };
 const KINDS = ['idle', 'thinking', 'success', 'error', 'offline', 'petting', 'dragged', 'crying'];
 
 function readSettings() {
@@ -110,6 +110,13 @@ async function main() {
       break;
     }
     case 'skin': {
+      if (rest[0] === 'art') {
+        const value = Math.max(0, Math.min(0.95, Number(rest[1])));
+        if (!Number.isFinite(value)) { console.log('用法：star-pet skin art 0.25'); break; }
+        const next = writeSettings({ ...settings, scrim: value });
+        console.log(`壁纸强度：${next.scrim}（越小插画越明显）`);
+        break;
+      }
       const next = writeSettings({ ...settings, skin: rest[0] !== 'off' });
       console.log(`壁纸配色注入：${next.skin ? '已开启' : '已关闭'}`);
       break;
@@ -131,7 +138,7 @@ async function main() {
       if (!result.layer) { console.log('宿主：已连接，图层未挂载 —', result.reason || '可能已关闭'); break; }
       const layer = result.layer;
       console.log(`图层：已挂载 · 状态 ${layer.state} · ${layer.scale}px · 位置 ${layer.pos ? layer.pos.x + ',' + layer.pos.y : '默认'}`);
-      console.log(`配色：${layer.skin ? '已按 morandi 调色板注入' : '未注入'}`);
+      console.log(`配色：${layer.skin ? '设定集配色 + 插画背景已注入' : '未注入'}`);
       if (layer.quota) console.log(`额度：5 小时 ${pct(layer.quota.fiveHour)} · 1 周 ${pct(layer.quota.weekly)}${layer.quota.stale ? '（待更新）' : ''}`);
       else console.log('额度：未知');
       break;

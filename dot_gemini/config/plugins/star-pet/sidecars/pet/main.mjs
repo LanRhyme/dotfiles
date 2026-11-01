@@ -42,7 +42,7 @@ function log(line) {
 }
 
 // --- settings ----------------------------------------------------------------
-const DEFAULT_SETTINGS = { enabled: true, scale: 160, ttlMs: 5200, state: "auto", skin: true };
+const DEFAULT_SETTINGS = { enabled: true, scale: 160, ttlMs: 5200, state: "auto", skin: true, scrim: null };
 let settings = { ...DEFAULT_SETTINGS };
 function readSettings() {
   try {
@@ -53,6 +53,7 @@ function readSettings() {
     };
     settings.enabled = settings.enabled !== false;
     settings.skin = settings.skin !== false;
+    settings.scrim = Number.isFinite(Number(settings.scrim)) ? Math.max(0, Math.min(0.95, Number(settings.scrim))) : null;
     settings.scale = Math.max(120, Math.min(420, Number(settings.scale) || 220));
   } catch { settings = { ...DEFAULT_SETTINGS }; }
   return settings;
@@ -396,7 +397,12 @@ function injectionConfig(state, withFrames = false) {
     lines: BUBBLE_LINES,
     quota: quota ? { fiveHour: quota.fiveHour, weekly: quota.weekly, at: quotaState.at, stale: quota.stale } : null,
     usage: usageToday(),
-    skin: settings.skin ? (readSkin() || readPalette()) : null,
+    skin: settings.skin ? (() => {
+      const skin = readSkin() || readPalette();
+      if (!skin) return null;
+      // 壁纸强度可由 star-pet skin art <0-1> 覆盖（越小插画越明显）
+      return typeof settings.scrim === 'number' ? { ...skin, scrim: settings.scrim } : skin;
+    })() : null,
   };
   // 壁纸体积大，只在首次注入时带上；热更时沿用页面里已有的那张
   if (withFrames && config.skin) config.skin = { ...config.skin, wallpaper: wallpaperDataUrl() };
