@@ -18,7 +18,7 @@ const DATA = join(homedir(), '.gemini/antigravity/sidecar_data/star-pet/pet/data
 const SETTINGS = join(DATA, 'settings.json');
 const LOG = join(DATA, 'pet.log');
 const PORT_FILE = join(homedir(), '.config/Antigravity/DevToolsActivePort');
-const DEFAULTS = { enabled: true, scale: 220, ttlMs: 5200, state: 'auto' };
+const DEFAULTS = { enabled: true, scale: 160, ttlMs: 5200, state: "auto" };
 const KINDS = ['idle', 'thinking', 'success', 'error', 'offline', 'petting', 'dragged', 'crying'];
 
 function readSettings() {

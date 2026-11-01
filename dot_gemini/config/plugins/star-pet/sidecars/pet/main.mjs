@@ -42,7 +42,7 @@ function log(line) {
 }
 
 // --- settings ----------------------------------------------------------------
-const DEFAULT_SETTINGS = { enabled: true, scale: 220, ttlMs: 5200, state: 'auto' };
+const DEFAULT_SETTINGS = { enabled: true, scale: 160, ttlMs: 5200, state: "auto" };
 let settings = { ...DEFAULT_SETTINGS };
 function readSettings() {
   try {

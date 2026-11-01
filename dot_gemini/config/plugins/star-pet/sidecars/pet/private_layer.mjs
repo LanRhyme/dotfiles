@@ -265,6 +265,7 @@ export function installStarPet(config) {
     if (next && typeof next.scale === 'number') {
       scale = Math.max(120, Math.min(420, next.scale));
       wrap.style.width = scale + 'px';
+      bubble.style.width = Math.max(184, Math.min(262, Math.round(scale * 1.06))) + 'px';
       applyPosition(pos || defaultPosition(), false);
     }
     applyState();
@@ -372,6 +373,7 @@ export function installStarPet(config) {
   window.addEventListener('resize', onResize);
 
   wrap.style.width = scale + 'px';
+  bubble.style.width = Math.max(184, Math.min(262, Math.round(scale * 1.06))) + 'px';
   applyPosition(pos || defaultPosition(), false);
   applyState();
   setFrame(baseFrame());
