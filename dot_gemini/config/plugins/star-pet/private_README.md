@@ -25,7 +25,17 @@ sidecars/pet/tools/          从上游源码重建素材
 | `ANTIGRAVITY_APP_DATA_DIR` | `~/.gemini/antigravity`，读 `brain/*/.system_generated/logs/transcript_full.jsonl` |
 | `ANTIGRAVITY_EXECUTABLE_DATA_DIR` | 插件数据目录，存 `settings.json` 与 `pet.log` |
 
-## 配色（Dream Skin 的 Morandi 版）
+## 配色：设定集皮肤
+
+皮肤配色取自 `assets/skin.json`（按 Gemini 设定集插画的紫色调手调），壁纸是同一套设定集插画，压到 1280px 后随首次注入带进页面
+
+- 壁纸铺在 `#root` 之下，`::after` 用径向暗角压暗中间文字区，两侧与底部露出插画
+- 侧栏、卡片、输入框改成半透明玻璃（`backdrop-filter`），透出插画
+- 强度可调：`star-pet skin art 0.25`（scrim，越小插画越明显，0–0.95）
+- 整体关闭：`star-pet skin off`
+- `morandi-gen.py` 的 `write_antigravity_ide` 仍会生成 `~/.config/noctalia/antigravity-ide.json`，当插件自带 `assets/skin.json` 缺失时作为回退
+
+## 配色（morandi 回退模式）
 
 宿主把整套主题变量以 inline style 写在 `<html>` 上，所以注入层用 `!important` 盖住，变量来源是
 `~/.config/noctalia/antigravity-ide.json` —— 由 `morandi-gen.py` 的 `write_antigravity_ide(palette)` 生成
