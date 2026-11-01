@@ -24,7 +24,7 @@
   - **配色返工（2026-11-01 晚）**: 暖橄榄 Morandi 版被否（"配色好奇怪"）—— 壁纸 `mPrimary` 本身偏中性, 强行加饱和只会得到一片土黄; 一度改用皮肤自带设定集插画, 又被否（"背景用我的壁纸"）
   - **最终口径（2026-11-01 深夜）**: 背景改用**当前桌面壁纸** —— 从 `~/.local/state/noctalia/settings.toml` 读 `[wallpaper.monitors.eDP-1] path`（回退 monitors 首项 / last / default）, sidecar 用 `magick` 压到 1600px q70 存 `sidecar_data/.../wallpaper.jpg`（约 250KB）, 按源文件 mtime 重算, 换壁纸自动重载
   - **全部拍平**: 去掉所有渐变（径向暗角、侧栏 linear-gradient）、所有 `box-shadow`（含卡片/输入框/桌宠气泡/猫的 drop-shadow）与 `backdrop-filter`; 壁纸之上只盖一层纯色半透明遮罩（`skin.json` 的 `scrim`, 默认 0.5, 面板 bg-background / bg-sidebar 各 .72）
-  - **最终口径（2026-11-02 定稿）**: 用户要「原配色原 UI，只加背景」—— 皮肤现在**不覆盖任何主题变量**（`skin.vars` 机制保留但不使用）, 只做三件事: 壁纸铺在 `#root` 之下、`body` 与 `[class~="bg-background"]` 设成透明让壁纸透出来、盖一层纯色半透明遮罩（默认 0.4, `star-pet skin art <0-0.95>` 可调）; 侧栏/卡片/输入框/圆角/字体/配色全部保持宿主原样
+  - **最终口径（2026-11-02 定稿）**: 用户要「原配色原 UI，只加背景」—— 皮肤现在**不覆盖任何主题变量**（`skin.vars` 机制保留但不使用）, 只做三件事: 壁纸铺在 `#root` 之下、`body` 与 `[class~="bg-background"]` 设成透明让壁纸透出来、盖一层半透明遮罩 —— **遮罩颜色必须是宿主自己的 `var(--background)`**, 用近黑色会把整窗色相拉偏（用户反馈「颜色不对劲」）; 默认 0.4, `star-pet skin art <0-0.95>` 可调（0.9 时壁纸只剩淡淡纹理, 但色温和原版一致）; 侧栏/卡片/输入框/圆角/字体/配色全部保持宿主原样
   - **两个连环 bug（都踩了）**: (1) 热更包里带了不完整的 `skin`（缺 wallpaper）, `Object.assign` 把壁纸对象冲掉, `applySkin` 于是删掉背景层 —— 首帧有、两秒后没; 修法: 皮肤只在首次注入下发 + 图层侧对 `next.skin` 做浅合并; (2) `Number(null) === 0`, 把「跟随默认」的 `scrim: null` 读成 0, 遮罩强度归零 —— 判空必须显式
   - 保留: 上游源码 `~/.local/share/antigravity-star-suite`（26MB, 供 `tools/build-assets.sh` 重建素材）, 独立窗口版 Electron 桌宠仍可 `npm run start:widget` 手动跑
 
