@@ -21,7 +21,11 @@
   - **皮肤「看不出变化」根因**: (1) 宿主把主题变量写成 `<html>` 的 inline style, 注入的 `:root{...}` 被压住, 必须每条声明加 `!important`; (2) 只在 `body` 上画渐变完全无效, 因为主壳 `[class~="bg-background"]`、侧栏 `[class~="bg-sidebar"]`、输入框 `[class~="bg-card-border"]` / `bg-card` 各自自绘背景, 渐变必须命中这些容器; (3) 选择器要用 `[class~="bg-card"]`（完整 class token）而不是 `[class*="bg-card"]`, 否则 `hover:bg-card`、`data-[state]:bg-card` 这些变体会被一起染色, 每一行都变成渐变卡片
   - **调色板偏中性的处理**: 壁纸 source 色 `#eee6ba` 虽然 s≈60%, 但 `mPrimary #dad8ce` 只有 s=14%, 直接推导出的暗色面几乎和 IDE 自带暖灰撞成一片; 故在 `write_antigravity_ide` 里给饱和度下限 15、亮度分别取 10/13/17/22 → bg `#1c1b16`、sidebar `#25231c`、card `#302f25`、secondary `#3f3c30`, 强调色取 `palette["gold"]` `#bdb79a`, 边框 `gold 34%`
   - **宿主 sidecar 重启有延迟**: SIGTERM 掉 sidecar 后宿主约 **45 秒**才按 `restart_policy: always` 重新拉起, 期间 `star-pet off/on` 会打到还没死的旧进程, 导致改了代码却没换图层 —— 判断是否换了新代码看 `pet.log` 里有没有新的 `injected layer`, 没有就先 `star-pet off` 再 `on` 强制重挂
-  - 配色现状（暗色 Morandi 暖调）: 见上, 视觉上整窗偏暖橄榄, 侧栏顶部有暖色渐变, 输入框边框与光晕走 gold
+  - **配色返工（2026-11-01 晚）**: 暖橄榄 Morandi 版被否（"配色好奇怪"）—— 壁纸 `mPrimary` 本身偏中性, 强行加饱和只会得到一片土黄; 一度改用皮肤自带设定集插画, 又被否（"背景用我的壁纸"）
+  - **最终口径（2026-11-01 深夜）**: 背景改用**当前桌面壁纸** —— 从 `~/.local/state/noctalia/settings.toml` 读 `[wallpaper.monitors.eDP-1] path`（回退 monitors 首项 / last / default）, sidecar 用 `magick` 压到 1600px q70 存 `sidecar_data/.../wallpaper.jpg`（约 250KB）, 按源文件 mtime 重算, 换壁纸自动重载
+  - **全部拍平**: 去掉所有渐变（径向暗角、侧栏 linear-gradient）、所有 `box-shadow`（含卡片/输入框/桌宠气泡/猫的 drop-shadow）与 `backdrop-filter`; 壁纸之上只盖一层纯色半透明遮罩（`skin.json` 的 `scrim`, 默认 0.5, 面板 bg-background / bg-sidebar 各 .72）
+  - **最终口径（2026-11-02 定稿）**: 用户要「原配色原 UI，只加背景」—— 皮肤现在**不覆盖任何主题变量**（`skin.vars` 机制保留但不使用）, 只做三件事: 壁纸铺在 `#root` 之下、`body` 与 `[class~="bg-background"]` 设成透明让壁纸透出来、盖一层纯色半透明遮罩（默认 0.4, `star-pet skin art <0-0.95>` 可调）; 侧栏/卡片/输入框/圆角/字体/配色全部保持宿主原样
+  - **两个连环 bug（都踩了）**: (1) 热更包里带了不完整的 `skin`（缺 wallpaper）, `Object.assign` 把壁纸对象冲掉, `applySkin` 于是删掉背景层 —— 首帧有、两秒后没; 修法: 皮肤只在首次注入下发 + 图层侧对 `next.skin` 做浅合并; (2) `Number(null) === 0`, 把「跟随默认」的 `scrim: null` 读成 0, 遮罩强度归零 —— 判空必须显式
   - 保留: 上游源码 `~/.local/share/antigravity-star-suite`（26MB, 供 `tools/build-assets.sh` 重建素材）, 独立窗口版 Electron 桌宠仍可 `npm run start:widget` 手动跑
 
 - **noctalia 从 AUR 夜版切换到官方稳定版 5.4.0 与 v5 配置分层真相 (2026-10-31, 完成)**:
