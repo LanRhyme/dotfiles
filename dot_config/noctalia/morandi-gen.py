@@ -235,51 +235,64 @@ def write_antigravity(palette):
 
 def write_antigravity_ide(palette):
     """Antigravity IDE（Web 渲染器）配色，供 star-pet 插件通过 CDP 注入
-    变量名对齐宿主用的 Tailwind v4 / shadcn 主题（--background、--card、--color-* 别名）
+    变量名对齐宿主用的 Tailwind v4 主题（--background、--card、--color-* 别名）
+    底色按壁纸主色相着色，强调色取调色板的 gold，避免与 IDE 自带的暖灰撞成一片
     """
     out = Path.home() / ".config/noctalia/antigravity-ide.json"
-    bg, fg = palette["base"], palette["text"]
-    accent = palette["iris"]
+    fg = palette["text"]
+    accent = palette["gold"]
+    link = palette["term_blue"]
+    hue, sat, _ = hex_to_hsl(palette["gold"])
+
+    def surface(light, sat_cap=13):
+        return hsl_to_hex(hue, min(max(sat * 0.95, 9), sat_cap), light)
+
     try:
+        deep = surface(10)
+        shell = surface(13)
+        card = surface(17)
+        raised = surface(22)
+        line = surface(38)
         data = {
             "source": "morandi-gen.py",
             "scheme": "dark",
             "vars": {
-                # 宿主把整套变量以 inline style 写在 <html> 上，注入层必须用 !important 才能盖住
-                "--background": bg,
-                "--content": bg,
+                # 宿主把整套变量写在 <html> 的 inline style 上，注入层必须 !important 才盖得住
+                "--background": deep,
+                "--content": deep,
                 "--foreground": fg,
-                "--card": f"color-mix(in srgb, #ffffff 6%, {bg})",
-                "--card-border": f"color-mix(in srgb, {fg} 6%, {bg})",
-                "--sidebar": f"color-mix(in srgb, #ffffff 2%, {bg})",
-                "--sidebar-secondary": f"color-mix(in srgb, #ffffff 9%, {bg})",
-                "--sidebar-muted": f"color-mix(in srgb, #ffffff 2%, {bg})",
-                "--muted": f"color-mix(in srgb, #ffffff 3%, {bg})",
-                "--muted-foreground": f"color-mix(in srgb, {fg} 55%, {bg})",
-                "--placeholder": f"color-mix(in srgb, {fg} 34%, {bg})",
-                "--secondary": f"color-mix(in srgb, #ffffff 11%, {bg})",
-                "--secondary-foreground": f"color-mix(in srgb, {fg} 78%, {bg})",
-                "--border": f"color-mix(in srgb, {fg} 9%, transparent)",
+                "--card": card,
+                "--card-border": f"color-mix(in srgb, {accent} 22%, transparent)",
+                "--sidebar": shell,
+                "--sidebar-secondary": raised,
+                "--sidebar-muted": shell,
+                "--muted": shell,
+                "--muted-foreground": f"color-mix(in srgb, {fg} 58%, {deep})",
+                "--placeholder": f"color-mix(in srgb, {fg} 36%, {deep})",
+                "--secondary": raised,
+                "--secondary-foreground": f"color-mix(in srgb, {fg} 82%, {deep})",
+                "--border": f"color-mix(in srgb, {accent} 34%, transparent)",
                 "--primary": accent,
-                "--primary-foreground": bg,
-                "--link": palette["term_blue"],
+                "--primary-foreground": deep,
+                "--link": link,
                 "--code-foreground": palette["term_yellow"],
                 "--error": palette["term_red"],
                 "--warning": palette["term_yellow"],
                 "--success": palette["term_green"],
-                "--color-background": bg,
+                "--color-background": deep,
                 "--color-foreground": fg,
-                "--color-card": f"color-mix(in srgb, #ffffff 6%, {bg})",
-                "--color-border": f"color-mix(in srgb, {fg} 9%, transparent)",
-                "--color-sidebar": f"color-mix(in srgb, #ffffff 2%, {bg})",
-                "--color-muted": f"color-mix(in srgb, #ffffff 3%, {bg})",
+                "--color-card": card,
+                "--color-border": f"color-mix(in srgb, {accent} 28%, transparent)",
+                "--color-sidebar": shell,
+                "--color-muted": shell,
                 "--color-primary": accent,
-                "--color-primary-foreground": bg,
-                "--color-link": palette["term_blue"],
+                "--color-primary-foreground": deep,
+                "--color-link": link,
                 "--color-error": palette["term_red"],
                 "--color-warning": palette["term_yellow"],
                 "--color-success": palette["term_green"],
             },
+            "accents": {"wash": accent, "glow": link, "line": line},
         }
         out.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
     except Exception:

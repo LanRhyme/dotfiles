@@ -31,15 +31,15 @@ export function installStarPet(config) {
   :host { all: initial; }
   *, *::before, *::after { box-sizing: border-box; }
   .wrap { position: absolute; left: 0; top: 0; width: 220px; pointer-events: none; }
-  .cat { position: relative; width: 100%; pointer-events: auto; cursor: grab; touch-action: none;
+  .cat { position: relative; width: 100%; aspect-ratio: 420 / 351; pointer-events: auto; cursor: grab; touch-action: none;
          user-select: none; -webkit-user-select: none; outline: none;
          filter: drop-shadow(0 12px 24px rgba(12,8,28,.46)); transition: filter .2s ease, transform .2s cubic-bezier(.34,1.56,.64,1); }
+  .cat { animation: star-breathe 6s ease-in-out infinite; transform-origin: 50% 100%; }
   .cat.dragging { cursor: grabbing; transform: scale(.97); filter: drop-shadow(0 8px 16px rgba(12,8,28,.55)); }
   .cat.pressed { transform: scale(.94); }
-  .frame { display: block; width: 100%; height: auto; pointer-events: none;
-           animation: star-breathe 5.2s ease-in-out infinite; transform-origin: 50% 100%; }
-  .frame.b { position: absolute; inset: 0; opacity: 0; }
-  .frame.a, .frame.b { transition: opacity .16s ease; }
+  .frame { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain;
+           pointer-events: none; transform-origin: 50% 100%; transition: opacity .22s ease; }
+  .frame.b { opacity: 0; }
   .dots { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); display: none; gap: 5px; }
   .busy .dots { display: flex; }
   .dots i { width: 6px; height: 6px; border-radius: 50%; background: #c4b0ff; opacity: .35;
@@ -157,6 +157,8 @@ export function installStarPet(config) {
     const src = cfg.frames && cfg.frames[name];
     if (!src || frameName === name) return;
     frameName = name;
+    // 已经显示同一张图就不做动画，否则每次配置推送都会闪一次
+    if (front.getAttribute('src') === src && front.style.opacity === '1') return;
     const next = back;
     next.src = src;
     const swap = () => {
@@ -166,8 +168,6 @@ export function installStarPet(config) {
       const previous = front;
       front = next;
       back = previous;
-      if (next === fa) { fa.style.position = 'relative'; fb.style.position = 'absolute'; }
-      else { fb.style.position = 'relative'; fa.style.position = 'absolute'; }
     };
     if (next.decode) next.decode().then(swap, swap);
     else swap();
@@ -179,18 +179,8 @@ export function installStarPet(config) {
     return 'idle';
   }
 
-  function scheduleBlink() {
-    clearTimeout(blinkTimer);
-    const wait = 3600 + Math.random() * 4600;
-    blinkTimer = setTimeout(() => {
-      if (!alive) return;
-      if (baseFrame() === 'idle' && !dragging) {
-        setFrame('blink');
-        setTimeout(() => { if (alive && baseFrame() === 'idle') setFrame('idle'); }, 130);
-      }
-      scheduleBlink();
-    }, wait);
-  }
+  // 上游 blink.png 是另一次渲染（整张脸位置不同），切过去就是闪一下，故不做眨眼
+  function scheduleBlink() { /* 保留呼吸动画，不切帧 */ }
 
   function bar(track, value) {
     track.classList.remove('warn', 'danger');
@@ -259,11 +249,13 @@ export function installStarPet(config) {
 
   function update(next) {
     if (!alive) return { installed: false };
-    const framesChanged = !!(next && next.frames);
-    Object.assign(cfg, next || {});
-    if (framesChanged) { frameName = ''; setFrame(baseFrame()); }
-    if (next && typeof next.scale === 'number') {
-      scale = Math.max(120, Math.min(420, next.scale));
+    next = next || {};
+    const framesChanged = Boolean(next.frames && next.frames.idle && next.frames.idle !== (cfg.frames && cfg.frames.idle));
+    const previousScale = scale;
+    Object.assign(cfg, next);
+    if (framesChanged) frameName = '';
+    if (typeof next.scale === 'number') scale = Math.max(120, Math.min(420, next.scale));
+    if (scale !== previousScale) {
       wrap.style.width = scale + 'px';
       bubble.style.width = Math.max(184, Math.min(262, Math.round(scale * 1.06))) + 'px';
       applyPosition(pos || defaultPosition(), false);
@@ -294,9 +286,40 @@ export function installStarPet(config) {
     // The host writes every theme variable as an inline style on <html>, so the injected
     // declarations must be !important to win over inline styles.
     const body = Object.keys(skin.vars).map((key) => `${key}:${skin.vars[key]}!important;`).join('');
-    const css = `:root,html{${body}}html{color-scheme:dark!important}`;
+    const accents = skin.accents || {};
+    const wash = accents.wash || 'var(--primary)';
+    const glow = accents.glow || 'var(--link)';
+    const css = `
+:root,html{${body}}
+html{color-scheme:dark!important}
+body{background-color:var(--background)!important}
+[class~="bg-background"]{background-color:var(--background)!important;background-image:radial-gradient(1000px 560px at 76% -12%,color-mix(in srgb,${wash} 16%,transparent),transparent 62%)!important}
+[class~="bg-sidebar"]{background-color:var(--sidebar)!important;background-image:linear-gradient(180deg,color-mix(in srgb,${wash} 14%,transparent),transparent 44%)!important}
+[class~="bg-card-border"]{border-color:color-mix(in srgb,${wash} 42%,transparent)!important;box-shadow:0 14px 36px rgba(0,0,0,.34)!important}
+[class~="bg-card"]{background-image:linear-gradient(160deg,color-mix(in srgb,${wash} 10%,transparent),transparent 58%)!important}
+[data-star-composer]{border-color:color-mix(in srgb,${wash} 40%,transparent)!important}
+`;
     if (el.textContent !== css) el.textContent = css;
     return true;
+  }
+
+  // 标记输入框外壳，供上面的玻璃规则命中；宿主 DOM 没有稳定 class，只能按几何与样式找
+  function markComposer() {
+    try {
+      const editable = document.querySelector('[contenteditable="true"]');
+      if (!editable) return;
+      let el = editable;
+      for (let i = 0; i < 12 && el && el !== document.body; i++, el = el.parentElement) {
+        const cs = getComputedStyle(el);
+        const radius = parseFloat(cs.borderTopLeftRadius) || 0;
+        const border = parseFloat(cs.borderTopWidth) || 0;
+        const rect = el.getBoundingClientRect();
+        if (radius >= 10 && rect.width >= 280 && (border > 0 || cs.backgroundColor !== 'rgba(0, 0, 0, 0)')) {
+          el.setAttribute('data-star-composer', '');
+          return;
+        }
+      }
+    } catch (error) { /* 标记失败不影响桌宠 */ }
   }
 
   // The host rewrites document.body while booting and after some navigations, which detaches
@@ -304,7 +327,7 @@ export function installStarPet(config) {
   const keepAlive = setInterval(() => {
     if (!alive) { clearInterval(keepAlive); return; }
     if (!host.isConnected && document.body) document.body.appendChild(host);
-    if (cfg.skin) { const skin = document.getElementById('star-skin-style'); if (!skin) applySkin(cfg.skin); }
+    if (cfg.skin) { const skin = document.getElementById('star-skin-style'); if (!skin) applySkin(cfg.skin); markComposer(); }
   }, 1000);
 
   function destroy() {
@@ -316,6 +339,7 @@ export function installStarPet(config) {
     host.remove();
     const skin = document.getElementById('star-skin-style');
     if (skin) skin.remove();
+    for (const el of document.querySelectorAll('[data-star-composer]')) el.removeAttribute('data-star-composer');
     try { delete window[KEY]; } catch (e) { window[KEY] = undefined; }
     return { removed: true };
   }

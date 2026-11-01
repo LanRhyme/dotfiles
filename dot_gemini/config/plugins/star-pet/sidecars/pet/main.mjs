@@ -355,21 +355,33 @@ function deriveState() {
 // --- session -----------------------------------------------------------------
 let client = null;
 let lastQuotaAt = 0;
+let lastSignature = null;
 let stopRequested = false;
 
-function injectionConfig(state) {
+function injectionConfig(state, withFrames = false) {
   const quota = quotaState.value;
-  return {
+  const config = {
     owner,
     scale: settings.scale,
     ttlMs: settings.ttlMs,
     state,
-    frames: FRAMES,
     lines: BUBBLE_LINES,
     quota: quota ? { fiveHour: quota.fiveHour, weekly: quota.weekly, at: quotaState.at, stale: quota.stale } : null,
     usage: usageToday(),
     skin: settings.skin ? readPalette() : null,
   };
+  // 帧图近百 KB，只在首次注入时发，之后按需热更，避免每 2 秒推一次大包
+  if (withFrames) config.frames = FRAMES;
+  return config;
+}
+
+function configSignature(config) {
+  return JSON.stringify([
+    config.state, config.scale, config.ttlMs,
+    config.quota ? [config.quota.fiveHour, config.quota.weekly, config.quota.at, config.quota.stale] : null,
+    config.usage ? config.usage.steps : null,
+    config.skin ? [config.skin.vars['--background'], Object.keys(config.skin.vars).length] : null,
+  ]);
 }
 
 async function ensureClient() {
@@ -386,7 +398,7 @@ async function ensureClient() {
 async function injectIfNeeded(state) {
   const alive = await client.evaluate('typeof window.__starPet === "object" && window.__starPet !== null');
   if (alive) return false;
-  const source = `(${installStarPet.toString()})(${JSON.stringify(injectionConfig(state))})`;
+  const source = `(${installStarPet.toString()})(${JSON.stringify(injectionConfig(state, true))})`;
   const result = await client.evaluate(source);
   log(`injected layer ${JSON.stringify(result)}`);
   return true;
@@ -412,8 +424,15 @@ async function tick() {
     const active = await ensureClient();
     if (!active) return;
     const injected = await injectIfNeeded(state);
-    if (!injected) {
-      await active.evaluate(`window.__starPet.update(${JSON.stringify(injectionConfig(state))})`);
+    if (injected) {
+      lastSignature = null;
+    } else {
+      const patch = injectionConfig(state, false);
+      const signature = configSignature(patch);
+      if (signature !== lastSignature) {
+        await active.evaluate(`window.__starPet.update(${JSON.stringify(patch)})`);
+        lastSignature = signature;
+      }
     }
   } catch (error) {
     log(`tick failed: ${error.message}`);
