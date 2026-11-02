@@ -5,6 +5,17 @@
 
 ## 最近动态
 
+- **Zen 浏览器拿不到代理的根因: Flatpak 沙箱内读不到宿主 gsettings，实际供代理的是 Bettbox 内嵌核 (2026-11-02, 已修复待重启验证)**:
+  - 现象: Zen 里所有站点都走直连, `ss -tnp` 里 Zen 到 `127.0.0.1:7890` 的连接数为 0, 同时 Zen 直接对外连 `146.75.121.91:443` 这类公网 IP
+  - **谁在供 7890（排查半天才定死）**: 监听者 uid 0 且 `ss -p` 看不到归属进程 —— 真身是 `BettboxCore`（`/usr/share/Bettbox/BettboxCore`, ruid 1000 / **euid 0**, 由 GUI `Bettbox` 拉起, SUID root 是为了 TUN）, 它内嵌了 mihomo 核（二进制里 `mixed-port` / `fake-ip` / `rule-providers` 等特征串 12747 条）, 配置在 `~/.local/share/com.appshub.bettbox/config.yaml` 的 `"mixed-port": 7890`; 实测该端口 **HTTP 与 SOCKS5 同端口可用**（mixed 口特征）, 走代理的出口 IP 与直连不同
+  - 重要事实: **FlClash 当时根本没在跑**（无进程、无 TUN 网卡）, `/usr/bin/flclash` 只是壳; `~/.bashrc` 里 7890 的注释写的是 FlClash, 实际两个客户端都把 mixed-port 定到 7890, 谁先起来谁占
+  - 系统代理是谁写的: `org.gnome.system.proxy` mode=manual / http+https+socks 全 `127.0.0.1:7890`, 而 `~/.config/dconf/user` 的 mtime 正好是 BettboxCore 启动的 12:30, 即 Bettbox 启动时自己写的
+  - **根因**: Zen 是 Flatpak（`app.zen_browser.zen` 1.21.3b, profile 在 `~/.var/app/app.zen_browser.zen/.zen/rlujjvm3.Default (release)`）, Firefox 系默认 `network.proxy.type=5` 读系统代理, libxul 里确实有 `org.gnome.system.proxy` 字符串, 但沙箱内 `gsettings get org.gnome.system.proxy mode` 恒为 `none` —— 因为 **runtime 里没有 dconf GIO 模块**（`/usr/lib/x86_64-linux-gnu/gio/modules/` 只有 `libgiognomeproxy` / `libgiognutls` / `libgiolibproxy`）, 设 `GSETTINGS_BACKEND=dconf` 直接报 `Can't find module 'dconf'`; profile 的 prefs.js 里也没有任何 `network.proxy.*`
+  - 试过但无效: `flatpak override --filesystem=~/.config/dconf:ro --env=DCONF_USER_CONFIG_DIR=/home/lanrhyme/.config/dconf` 之后沙箱内仍是 `none`（模块缺失, 挂数据库也没用）, 已回滚
+  - 落地: 在 profile 的 `user.js` 追加显式手动代理（`network.proxy.type=1`, http/ssl 均 `127.0.0.1:7890`, `no_proxies_on` 排本地与内网, `allow_hijacking_localhost=false` 保住 `127.0.0.1:3080` 的 DSH, `failover_direct=true` 兜底）, 备份在 `~/tmp/zen-user.js.bak-*`
+  - 端到端验证手法: 用 `flatpak run --command=sh app.zen_browser.zen <脚本>` 起临时 profile 的 headless Zen（脚本写 user.js + `--headless --no-remote --screenshot`）, 宿主侧轮询 `ss -tnp | grep 127.0.0.1:7890 | grep zen`, 第 2 次采样就出现 Zen→7890 连接, 证明沙箱内 `127.0.0.1` 就是宿主 loopback 且手动代理生效
+  - 注意: user.js 只在启动时生效且会压过 prefs.js, 重启 Zen 后设置里会显示「手动代理」; 若日后想跟系统代理联动, 得先给 runtime 补 dconf 模块, 否则只能继续写死端口
+
 - **逃生 1 (Outlast, AppID 238320) 卡顿排查 + 3DM 汉化落地 (2026-11-01, 已完成)**:
   - 现场: 22:38:27 启动, 22:43:22 退出 (码 -1), 全程只有一个 1280x720 窗口, 窗口类 `OLGame.x86_64`, 进程 RSS 4.9GB / 35 线程
   - 根因一: **跑在核显上** —— 进程 maps 里 NVIDIA 库 0 条、Mesa/iris 库 10411 条, 同时 `nvidia-smi` 只有 niri 与 steam 两个图形上下文, RTX 3050 全程 1% / 14W; 因为 2026-10-29 移除了全局 PRIME offload 改按需 prime-run, 而该游戏没设启动选项
@@ -159,7 +170,7 @@
 - OBS：屏幕采集依赖 mesa EGL 核显渲染（强制覆盖 desktop Exec：`env -u __NV_PRIME_RENDER_OFFLOAD -u __GLX_VENDOR_LIBRARY_NAME __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json obs`）；编码器使用核显 QSV（`obs_qsv11_v2`）；B 站推流插件位于 `~/.config/obs-studio/plugins/bilibili-stream-for-obs/`（含 PR #27 扫码登录补丁）
 - Caelestia KDE Shell：KWin 6.7.4 + caelestia-shell 2.4.0 精简安装，配置位于 `~/.config/quickshell/caelestia/`，会话 `~/.local/bin/start-kwin-caelestia.sh`；缩略图依赖 PipeWire，nvidia.conf 严禁设全局 PRIME offload 变量防黑屏
 - 显卡策略：默认全部走核显，严禁在 `environment.d/nvidia.conf` 或 niri `environment` 段设全局 PRIME offload（面板与合成器都在核显，全局强制独显会让每帧跨 GPU 拷贝并吃掉 144Hz 帧预算）；需要独显用 `prime-run` 前缀，桌面项覆盖见 `~/.local/share/applications/` 下的 blender / org.kde.krita / DaVinciResolve / com.lunarclient.LunarClient
-- Zen 浏览器 (Flatpak)：2026-10-29 已用 `flatpak override --user --unset-env` 去掉 `__NV_PRIME_RENDER_OFFLOAD` / `__GLX_VENDOR_LIBRARY_NAME` / `VK_ICD_FILENAMES`，改走 Mesa 核显；user.js 仍启用 `layers.dmabuf.disable=true` 防止 2D canvas 合成失效；D-Bus portal 授权只读访问 fcitx5 目录
+- Zen 浏览器 (Flatpak)：2026-10-29 已用 `flatpak override --user --unset-env` 去掉 `__NV_PRIME_RENDER_OFFLOAD` / `__GLX_VENDOR_LIBRARY_NAME` / `VK_ICD_FILENAMES`，改走 Mesa 核显；user.js 仍启用 `layers.dmabuf.disable=true` 防止 2D canvas 合成失效；D-Bus portal 授权只读访问 fcitx5 目录；**代理必须写死在 user.js（手动 127.0.0.1:7890）**, 沙箱内没有 dconf 模块, 系统代理对它有等于无
 - SPlayer-Next：AUR `splayer-next-bin`，二进制 `/opt/SPlayer-Next/SPlayer-Next`，命令 `/usr/bin/splayer-next`
 - slugcatpet 桌宠：`~/Projects/slugcatpet`，GTK3 窗口必须设为 Layer.TOP；GTK3 桥按 Qt 侧 `_dirty_rect` 算好的脏矩形做 `queue_draw_area` 局部重绘，禁止退回每帧整屏 `queue_draw`（全屏透明面整屏重绘会把合成器整屏混合负载拉满）
 
