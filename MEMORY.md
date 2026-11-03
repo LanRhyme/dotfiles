@@ -5,6 +5,20 @@
 
 ## 最近动态
 
+- **QQNT 琉璃主题接入（LiteLoaderQQNT + bwrap 免 root 补丁）(2026-11-03, 完成)**:
+  - 上游 `LilycleHeart/qqnt-liuli-theme` v1.3.2 官方只声明支持 Windows QQ 9.9.36（Electron 40），本机是官方源 `linuxqq 3.2.29_49738`（Electron 37.1.0 / Node 22.16 / Chrome 138），实测 Linux 可用
+  - **入口真相**: QQ 真正加载的是 `/opt/QQ/resources/app/package.json`（启动日志打印 `app_package_filename` 与 `resourcesPath: /opt/QQ/resources`），`~/.config/QQ/versions/3.2.29-49738/` 只是热更新副本，改它无效
+  - 本会话在 bwrap 沙箱内（`--ro-bind / /` + no_new_privs）sudo 被挡，改用免 root 方案：家目录 `~/.local/share/qqnt-patch/` 放改过 main 的 package.json + `app_launcher/LiteLoader.js`，启动时 `bwrap --dev-bind / / --ro-bind ...` 覆盖到 /opt，pacman 升级 QQ 也冲不掉补丁
+  - **Electron 的 main 是 `path.join(appPath, main)` 而非 resolve**，写绝对路径会被拼到 app 目录后面（踩过 `Cannot find module '/opt/QQ/resources/app/home/...'`），必须用相对路径 + 目录 bind
+  - LiteLoaderQQNT 1.4.1 装在 `~/.local/share/LiteLoaderQQNT`（profile 默认就在本体目录，因此不需要设 `LITELOADERQQNT_PROFILE`，该变量只在 /opt 无写权限时才需要），`src/main/store.js` 的 `dirent.path` 已改为 `LiteLoader.path.plugins`（Node 22+ 兼容）
+  - 主题插件位于 `~/.local/share/LiteLoaderQQNT/plugins/liuli-dsh-theme`，自身日志在 `data/liuli-dsh-theme/session.log`，实测 `main loaded | liteloader=1.4.1 qqnt=3.2.29-49738` 与 `renderer ready in 428ms`
+  - 壁纸不随插件发布，已用当前桌面壁纸 `图片/WallPapers/kita.png` 预置 `assets/wallpaper.jpg`（2560 宽 q86，取色用）与 `assets/wallpaper.css`（base64 内联 `#app::before`，1.4MB），boot 时动态层 `cleared:true` 清空后静态规则生效
+  - 启动链路：`~/.local/share/applications/qq.desktop`（Exec 指向 wrapper）→ `~/.local/bin/linuxqq`（bwrap）→ `/usr/bin/linuxqq` → `/opt/QQ/qq`
+  - QQ 升级或补丁丢失后跑 `~/.local/bin/qqnt-liteli-setup` 重建（幂等）
+  - 已纳入 chezmoi：wrapper、setup 脚本、qq.desktop（提交 `216e9a3`）
+  - 回滚：删 `~/.local/share/applications/qq.desktop` 即恢复原版启动，或直接用 `/usr/bin/linuxqq`
+  - 踩坑复现：`pkill -f '/opt/QQ/qq'` 会匹配到执行它的 bash 自杀，杀 QQ 要用 /proc cmdline 精确匹配
+
 - **Zen 浏览器拿不到代理的根因: Flatpak 沙箱内读不到宿主 gsettings，实际供代理的是 Bettbox 内嵌核 (2026-11-02, 已修复待重启验证)**:
   - 现象: Zen 里所有站点都走直连, `ss -tnp` 里 Zen 到 `127.0.0.1:7890` 的连接数为 0, 同时 Zen 直接对外连 `146.75.121.91:443` 这类公网 IP
   - **谁在供 7890（排查半天才定死）**: 监听者 uid 0 且 `ss -p` 看不到归属进程 —— 真身是 `BettboxCore`（`/usr/share/Bettbox/BettboxCore`, ruid 1000 / **euid 0**, 由 GUI `Bettbox` 拉起, SUID root 是为了 TUN）, 它内嵌了 mihomo 核（二进制里 `mixed-port` / `fake-ip` / `rule-providers` 等特征串 12747 条）, 配置在 `~/.local/share/com.appshub.bettbox/config.yaml` 的 `"mixed-port": 7890`; 实测该端口 **HTTP 与 SOCKS5 同端口可用**（mixed 口特征）, 走代理的出口 IP 与直连不同
