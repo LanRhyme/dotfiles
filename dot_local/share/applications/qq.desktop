@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=QQ
+Exec=/home/lanrhyme/.local/bin/linuxqq %U
+Terminal=false
+Type=Application
+Icon=qq
+StartupWMClass=QQ
+Categories=Network;
+Comment=QQ

@@ -1,0 +1,35 @@
+#!/bin/bash
+# QQNT 琉璃主题 —— 生成 LiteLoader 启动补丁（幂等，QQ 升级后重跑即可）
+# 原理：家目录放一份改过 main 的 package.json + app_launcher/LiteLoader.js
+#       启动时由 linuxqq wrapper 用 bwrap 覆盖到 /opt/QQ，无需 root、不受 pacman 更新影响
+set -euo pipefail
+
+APP=/opt/QQ/resources/app
+PATCH="$HOME/.local/share/qqnt-patch"
+LITELOADER="$HOME/.local/share/LiteLoaderQQNT"
+
+if [ ! -f "$APP/package.json" ]; then
+    echo "找不到 $APP/package.json，QQ 未安装？" >&2
+    exit 1
+fi
+if [ ! -d "$LITELOADER" ]; then
+    echo "找不到 $LITELOADER，请先安装 LiteLoaderQQNT" >&2
+    exit 1
+fi
+
+mkdir -p "$PATCH/app_launcher"
+# 保留 app_launcher 原有桩文件，只额外补 LiteLoader.js
+cp -a "$APP"/app_launcher/. "$PATCH/app_launcher"/ 2>/dev/null || true
+
+printf 'require(String.raw`%s`)\n' "$LITELOADER" > "$PATCH/app_launcher/LiteLoader.js"
+
+python3 - "$PATCH/package.json" <<'PY'
+import io, json, sys
+j = json.load(io.open("/opt/QQ/resources/app/package.json", encoding="utf-8"))
+j["main"] = "./app_launcher/LiteLoader.js"
+io.open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(j, ensure_ascii=False, indent=2) + "\n")
+PY
+
+echo "补丁已生成: $PATCH"
+echo "  main = $(python3 -c "import json;print(json.load(open('$PATCH/package.json'))['main'])")"
+echo "  入口 = $(cat "$PATCH/app_launcher/LiteLoader.js")"

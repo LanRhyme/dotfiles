@@ -1,0 +1,16 @@
+#!/bin/bash
+# QQNT + LiteLoaderQQNT（琉璃主题）启动包装
+# 用 bwrap 把补丁版 package.json 与 app_launcher 覆盖到 /opt/QQ
+# 无需 root，pacman 更新 QQ 也不会冲掉补丁
+PATCH="/home/lanrhyme/.local/share/qqnt-patch"
+APP="/opt/QQ/resources/app"
+
+if [ ! -f "$PATCH/package.json" ] || [ ! -d "$PATCH/app_launcher" ] || ! command -v bwrap >/dev/null 2>&1; then
+    exec /usr/bin/linuxqq "$@"
+fi
+
+exec bwrap \
+    --dev-bind / / \
+    --ro-bind "$PATCH/package.json" "$APP/package.json" \
+    --ro-bind "$PATCH/app_launcher" "$APP/app_launcher" \
+    /usr/bin/linuxqq "$@"
