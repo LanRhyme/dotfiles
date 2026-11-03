@@ -1,11 +1,22 @@
 #!/bin/bash
 # QQNT + LiteLoaderQQNT（琉璃主题）启动包装
 # 用 bwrap 把补丁版 package.json 与 app_launcher 覆盖到 /opt/QQ
-# 无需 root，pacman 更新 QQ 也不会冲掉补丁
+# 无需 root；pacman 更新 QQ 冲不掉补丁；QQ 升级后自动重建补丁
 PATCH="/home/lanrhyme/.local/share/qqnt-patch"
 APP="/opt/QQ/resources/app"
+SETUP="/home/lanrhyme/.local/bin/qqnt-liteli-setup"
 
-if [ ! -f "$PATCH/package.json" ] || [ ! -d "$PATCH/app_launcher" ] || ! command -v bwrap >/dev/null 2>&1; then
+if ! command -v bwrap >/dev/null 2>&1; then
+    exec /usr/bin/linuxqq "$@"
+fi
+
+# QQ 的 package.json 比补丁新 → 说明 QQ 升级过，重建补丁（幂等，失败则沿用旧的）
+if [ -x "$SETUP" ] && { [ ! -f "$PATCH/package.json" ] || [ "$APP/package.json" -nt "$PATCH/package.json" ]; }; then
+    "$SETUP" >/dev/null 2>&1 || true
+fi
+
+# 补丁缺失时回落原版启动，绝不让 QQ 打不开
+if [ ! -f "$PATCH/package.json" ] || [ ! -d "$PATCH/app_launcher" ]; then
     exec /usr/bin/linuxqq "$@"
 fi
 
