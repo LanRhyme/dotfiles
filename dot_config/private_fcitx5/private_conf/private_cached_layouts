@@ -534,7 +534,7 @@ Language=pl
 Label="pl (colemak_dh)"
 
 [keyboard-pl-colemak_dh_ortho]
-Description="键盘 - 波兰语 - Polish (Colemak-DH Ortholinear)"
+Description="键盘 - 波兰语 - 波兰语（Colemak-DH 正交）"
 Language=pl
 Label="pl (colemak_dh_ortho)"
 
@@ -1079,9 +1079,14 @@ Language=ar
 Label="ar (ara)"
 
 [keyboard-pk-snd]
-Description="键盘 - 乌尔都语（巴基斯坦） - 信德语"
+Description="键盘 - 乌尔都语（巴基斯坦） - Sindhi (M.B. Sindhi)"
 Language=sd
 Label="sd (snd)"
+
+[keyboard-pk-brahui]
+Description="键盘 - 乌尔都语（巴基斯坦） - 布拉灰语（巴基斯坦）"
+Language=brh
+Label="brh (brahui)"
 
 [keyboard-pk-urd-navees]
 Description="键盘 - 乌尔都语（巴基斯坦） - 乌尔都语（巴基斯坦，Navees）"
@@ -1593,6 +1598,11 @@ Description="键盘 - 白俄罗斯语 - 白俄罗斯语（语音助记）"
 Language=be
 Label="by (phonetic)"
 
+[keyboard-by-typographic]
+Description="键盘 - 白俄罗斯语 - 白俄罗斯语（排版）"
+Language=be
+Label="by (typographic)"
+
 [keyboard-by-ru]
 Description="键盘 - 白俄罗斯语 - 俄语（白俄罗斯）"
 Language=ru
@@ -1837,6 +1847,16 @@ Label="hr (unicodeus)"
 Description="键盘 - 克罗地亚语 - 克罗地亚语（美国）"
 Language=hr
 Label="hr (us)"
+
+[keyboard-hr-glag]
+Description="键盘 - 克罗地亚语 - 克罗地亚语（格拉哥里字母）"
+Language=hr
+Label="hr (glag)"
+
+[keyboard-hr-glagyz]
+Description="键盘 - 克罗地亚语 - 克罗地亚语（格拉哥里字母，交换 Zemlja 和 Jeru）"
+Language=hr
+Label="hr (glagyz)"
 
 [keyboard-ma]
 Description="键盘 - 阿拉伯语（摩洛哥）"
@@ -3252,6 +3272,11 @@ Label=az
 Description="键盘 - 阿塞拜疆语 - 阿塞拜疆语（西里尔）"
 Language=az
 Label="az (cyrillic)"
+
+[keyboard-az-standard]
+Description="键盘 - 阿塞拜疆语 - 阿塞拜疆语（标准）"
+Language=az
+Label="az (standard)"
 
 [keyboard-kh]
 Description="键盘 - 高棉语（柬埔寨）"
