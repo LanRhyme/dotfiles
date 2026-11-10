@@ -193,6 +193,17 @@
 
 ## 项目
 
+### MoClock 墨钟 — `~/Projects/MoClock`
+- Material 3 风格安卓桌面时钟小部件（Compose 主界面 + Jetpack Glance 小部件，包名 `io.github.lanrhyme.moclock`），5 种版式（数字/表盘/文字/双城/日历）+ 30 余项配置 + 7 套预设
+- 工具链：AGP 8.7.3 / Gradle 8.11.1 / Kotlin 2.1.0 / Compose BOM 2024.12.01 / Glance 1.1.1，compileSdk 35、minSdk 26；依赖解析需阿里云镜像兜底（mavenCentral 的 repo1 会 403）
+- 配置双写：DataStore `moclock_settings`（app 内列表用）+ Glance Preferences 状态（小部件渲染真实来源，写入即触发重组，顺带解决时间不刷新）；state 里 cfg/dark/dynamic/seed/tick 五键
+- 排版纯函数在 `design/`（Metrics 尺寸、ClockText 文案、Palette 取色、AnalogFace 画表盘、MonthGrid），Glance 渲染器与 Compose 预览共用同一份，保证预览≈桌面
+- Glance 1 没有 rotate/Canvas：表盘用 android.graphics 画成 Bitmap 再交给 `Image(ImageProvider(bitmap))`
+- 刷新：AlarmManager 整分对齐，开秒且亮屏时 1s 一次，息屏降回整分；TIME_SET/TIMEZONE/DATE/BOOT/MY_PACKAGE_REPLACED 均重排
+- 构建：`./gradlew :app:assembleDebug`（release 走 R8，2.1MB）；验证机 emulator-5554 与平板 100.107.36.2:5555
+- **未完成验证**：桌面侧无法自动化加小部件（Pixel Launcher 上 `requestPinAppWidget` 返回 false、`input draganddrop` 无效、`dumpsys appwidget grantbind` 也不生效），真实 Glance 渲染尚未在真机看到；`app/src/debug` 里有 `DebugHostActivity` 可用 AppWidgetHost 直连渲染，需先拿到 BIND_APPWIDGET
+- 副作用记录：本轮为跑截图用了 `emulator -avd Medium_Phone_API_36.1 -wipe-data`，该 AVD 原有数据已被清空
+
 ### MiuiCamera-Fix — `~/Projects/MiuiCamera-Fix`
 - 小米澎湃OS移植包相机机型与版本校验不匹配强退修复 Xposed 模块（Java + Xposed API 82，目标包 `com.android.camera`，测试机 ed3fdd92）
 - 包名：`io.github.lanrhyme.camerafix`
