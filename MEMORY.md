@@ -151,6 +151,8 @@
 - 激活 Xposed：LuckyTool v1.3.4、CorePatch v4.9、InxLocker（已启用并绑定 android/0，配套 InstallerX Revived 锁定默认安装器）、WeType-Kaomoji、WeTypeHook、couiexpressive、soulfrog
 - 授权机制：轻量主板 ID 验证（本机 ID `0x0000043bfce1db8a`），授权凭据位于 `/mi_ext/product/etc/security/verificationlist.bin`（SHA-256 Token）；补丁包采用 Zip 伪加密，消除中心目录标志位后卡刷成功
 - adb 要点：操作前核对 `dumpsys window mCurrentFocus`；用户使用手机时切勿抢占操作
+- 远程接入链（root 守护，不走 Tailscale App）：二进制与状态在 `/data/adb/tailscale/`（`tailscaled --state=... --socket=... --tun=tailscale0 --netfilter-mode=off`），开机由 `/data/adb/service.d/tailscaled.sh` 拉起并自带 30s watchdog（uidrange 0-0 出口规则 + 控制面连续不可达自愈），`/data/adb/service.d/adbd-tcp.sh` 设 `service.adb.tcp.port=5555`，PC 侧 `~/.local/bin/adb-autoconnect.sh` 每 10s 自动 `adb connect`
+- 血泪坑 (2026-11-10)：KernelSU 只执行 `/data/adb/service.d/` 下带 +x 的脚本，文件被重新落盘掉执行位后开机静默跳过（日志 `ksud::module: /data/adb/service.d/xxx.sh is not executable, skip`），表现为 tailnet 里 lastseen 停在数天前且 5555 不通；排查顺序 `logcat -d -b events | grep KernelSU` → `ls -la /data/adb/service.d/` → 修复 `chmod 755` 后手动 `sh /data/adb/service.d/tailscaled.sh`，平板侧同款脚本未掉位则照常运行
 
 ### 一加平板2 Pro (OPD2413 / c84b9192)
 - 硬件规格：骁龙 8 至尊版 (SM8750P / sun 平台)，Wi-Fi 版开发者选项 OEM 解锁后 Fastboot 物理音量键确认秒解
@@ -164,6 +166,7 @@
   - 应用列表隐藏：HMA-OSS 直写双路径配置（`/data/misc/hide_my_applist_aimdadlejpdcwkeh/config.json` 属主 `system:system` 600 与 `/data/user/0/org.frknkrc44.hma_oss/files/config.json` 属主 `u0_a346:u0_a346` 600），屏蔽 KowSU Pro、Vector、LuckyTool、CorePatch、fuckbiliads、HMA-OSS
   - 运维脚本：`~/.local/bin/android-hide-app`（`android-hide-app [-l] [-r] <包名>`），自动维护双路径与 Tricky Store 名单，全静默执行无触摸交互
 - 禁忌红线：严禁刷入第三方 Recovery；严禁跨版本/降级刷机触发 ARB 熔断；严禁使用手机端防误触或手写笔旁路模块（`patch-trackmotion`、`disable-stylus-blocker`）以保护平板原生防误触与手写笔功能
+- 联网拓扑（关键）：Wi-Fi 版无蜂窝，日常靠手机的「通信共享」取网 —— 平板侧 `ovnet1 192.168.250.254/24` + `bt-vnet 192.168.199.1/24`，默认路由经 `bt-vnet` 链路本地网关指向手机（手机侧对应 `bt-vnet 192.168.199.2/24`）；共享链路一断平板立刻整机断网，表现为 tailnet 里先 `offline`（控制面 long-poll 超时）再彻底 ping 不通，而手机自身始终在线
 
 ### 盖世小鸡 启明星2 (GameSir Nova 2 Lite)
 - 识别特征：VID `3537` (Zikway/GameSir)，接收器按手柄平台模式换身份 —— Xbox 平台 `045e:028e`(本机枚举失败)+ 备用 `3537:1098`，Switch 平台 `057E:2009`，PS4 平台 `054c:09cc` DualShock 4
