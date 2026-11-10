@@ -235,16 +235,16 @@ transition_duration = 2300
 transition_on_startup = true
 
     [wallpaper.default]
-    path = "/home/lanrhyme/图片/WallPapers/kita.png"
+    path = "/home/lanrhyme/图片/WallPapers/F379C3105516F488B91D73135D19D462.png"
 
     [wallpaper.last]
-    path = "/home/lanrhyme/图片/WallPapers/kita.png"
+    path = "/home/lanrhyme/图片/WallPapers/F379C3105516F488B91D73135D19D462.png"
 
     [wallpaper.monitors.HDMI-A-1]
     path = "/home/lanrhyme/图片/WallPapers/0AC05BDD4AD6BF1001C952501B00DFD3.png"
 
     [wallpaper.monitors.eDP-1]
-    path = "/home/lanrhyme/图片/WallPapers/kita.png"
+    path = "/home/lanrhyme/图片/WallPapers/F379C3105516F488B91D73135D19D462.png"
 
     [[wallpaper.favorite]]
     palette_source = "wallpaper"
