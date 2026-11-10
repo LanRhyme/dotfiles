@@ -5,6 +5,17 @@
 
 ## 最近动态
 
+- **K60 桌面拦截第三方 app 钉小组件（requestPinAppWidget）真因 (2026-11-10, 处理中)**:
+  - 现象: Material You Widgets Pro 里点「添加到桌面」，桌面闪一下就回原样，弹一句「请长按桌面后到“卡片 - 插件”添加」，AppWidgetService 里不出现任何新 widget id
+  - **真因是 OplusLauncher 自己的白名单，不是权限问题**：桌面 `com.android.launcher3.dragndrop.AddItemActivity.isAllowedAddWidget()` 先过闸，只放行 `PackageUtils.isSystemApp()` / 预装可卸载列表 `isRemovableApp()` / 持 `oplus.permission.OPLUS_COMPONENT_SAFE` 签名权限 / `WidgetControlHelper.isInWhiteList(componentName|packageName)`；否则弹 `launcher_widget_control_toast`（就是那句「请长按桌面后到“卡片 - 插件”添加」）并 finish
+  - 白名单来自 RUS 云配置 `app_nebula_fwk_widget_wl`（`RusBaseXmlType1ConfigManager` 读 assets 同名文件 + provider `content://com.oplus.romupdate.provider.db/update_list` 的 filtername），**本机该 provider 不存在、APK 里也没有同名 asset → 白名单恒为空**；闸门总开关 `FeatureOption.isSupportWhiteListControl() = !isExp`，国内机型恒为 true
+  - 证据链: `logcat` 里三次点按（18:14:50 / 18:39:33 / 18:45:23）都是 `wm_create_activity AddItemActivity` → 150 ms 内 `wm_finish_activity`，随后一条 994x361 长 toast（`SystemUi--Notification: content = no_need_print`，看不到文字）；`dumpsys appwidget` 一直只有 id=5/6 两个老 widget
+  - **桌面长按 → 卡片-插件 这条路从来没被限制**，现有两个小组件（MoClock id=5、WidgetsPro id=6）就是手动加的
+  - 绕过方案（按代价排序）：LuckyTool 已启用且作用域含 `com.android.launcher`，其「移除组件添加请求白名单」开关可能已 hook 同一处 / 自写 LSPosed 模块 hook `com.android.launcher3.widget.WidgetControlHelper.isInWhiteList` 返回 true / 把 app 系统化挂到 `/system_ext/priv-app` 走 isSystemApp 分支（副作用: 该 app 不能正常更新）
+  - 排查用到的设备侧格式（备忘）: 桌面活动布局在 `/data/user_de/0/com.android.launcher/databases/launcher.db` 的 **`singledesktopitems_draw`** 表（widget 为 itemType=5、卡片为 itemType=100、`appWidgetId` 与 AppWidgetService 对应），`singledesktopitems` 是单层桌面模式的休眠布局；没有 `favorites` 表，不能套泛 Launcher3 经验
+  - LuckyTool 的 XSharedPreferences 在 `/data/misc/7219f0d0-be06-4819-ba1a-186be6bd9ad1/prefs/com.luckyzyx.luckytool/ModulePrefs.xml`（dex 字符串被加壳，静态翻不到 pref key）；LSPosed 作用域/启用状态在 `/data/adb/lspd/config/modules_config.db` 的 `modules` / `scope` 表
+  - 排查脚本与中间产物留在 `~/tmp/k60-launcher/`（launcher dumpsys、DB 副本、jadx 反编译的 AddItemActivity / WidgetControlHelper / FeatureOption / PackageUtils 等）
+
 - **QQNT 琉璃主题接入（LiteLoaderQQNT + bwrap 免 root 补丁）(2026-11-03, 完成)**:
   - 上游 `LilycleHeart/qqnt-liuli-theme` v1.3.2 官方只声明支持 Windows QQ 9.9.36（Electron 40），本机是官方源 `linuxqq 3.2.29_49738`（Electron 37.1.0 / Node 22.16 / Chrome 138），实测 Linux 可用
   - **入口真相**: QQ 真正加载的是 `/opt/QQ/resources/app/package.json`（启动日志打印 `app_package_filename` 与 `resourcesPath: /opt/QQ/resources`），`~/.config/QQ/versions/3.2.29-49738/` 只是热更新副本，改它无效
