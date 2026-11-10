@@ -201,6 +201,8 @@
 - Glance 1 没有 rotate/Canvas：表盘用 android.graphics 画成 Bitmap 再交给 `Image(ImageProvider(bitmap))`
 - 刷新：AlarmManager 整分对齐，开秒且亮屏时 1s 一次，息屏降回整分；TIME_SET/TIMEZONE/DATE/BOOT/MY_PACKAGE_REPLACED 均重排
 - 构建：`./gradlew :app:assembleDebug`（release 走 R8，2.1MB）；验证机 emulator-5554 与平板 100.107.36.2:5555
+- **视觉口径（2026-11-10 晚按老大反馈返工）**：老大要的是 Pixel 那种组件，第一版被否；现已改成 Pixel 排版——大数字用 sans-serif-light、冒号与数字同色、日期紧跟时间下方（`dateSize=0.26*timeSize` clamp 12–18）、内边距 18dp、时间上限 96dp；表盘改为 `DialStyle.PIXEL` 素盘（12 短刻度 alpha195 + 圆头锥形指针 + 中心双点），默认关秒针
+- **装机**：K60 `100.127.72.106:5555` 已装 release APK（versionName 0.1.0，5 个 provider 注册成功）；注意 Tailscale 上 `adb install` 会卡死（stream install 挂住），可靠做法是 `adb push` 到 /data/local/tmp 再 `pm install -r`，另外 `adb kill-server` 后需要 `adb connect` 重连
 - **未完成验证**：桌面侧无法自动化加小部件（Pixel Launcher 上 `requestPinAppWidget` 返回 false、`input draganddrop` 无效、`dumpsys appwidget grantbind` 也不生效），真实 Glance 渲染尚未在真机看到；`app/src/debug` 里有 `DebugHostActivity` 可用 AppWidgetHost 直连渲染，需先拿到 BIND_APPWIDGET
 - 副作用记录：本轮为跑截图用了 `emulator -avd Medium_Phone_API_36.1 -wipe-data`，该 AVD 原有数据已被清空
 
