@@ -24,6 +24,16 @@
   - **DO 冷启动坑（已修）**: `ensure()` 里无脑 `phase='idle'` 会让每次 DO 被收回再唤醒时把进行中的局重置掉（现象：admin/start 返回 running，紧接着 submit 返回 409）。改成按 `startedAt` 超过 2 小时才判过期，`running` 且已过 `endsAt` 则转 `ended`
   - **wrangler dev 的坑**: `npm install` 时 esbuild/workerd 的 postinstall 被 allowScripts 拦了，但 `@cloudflare/workerd-linux-64` 走 optionalDependencies 已带二进制，dev 仍可用；首帧会有 `Unable to fetch the Request.cf object` 的 warn，无害
   - **线上稳定性已验**: `/api/qr.svg` 与 `/api/health` 各 20 次全 200（部署完成瞬间有过一次 500，属传播期的瞬时现象）
+  - **v3 改成每人自己的 90 秒（提交 a4ea404）**: 去掉主持人「开始」这一步，同学随时扫码、填名字就开始自己的 90 秒，一人一次（名字即身份，重名 409），到点提交一律 409。大屏二维码常驻，随便什么时候进来都行；空格揭底、B 回分数墙、R 清空重来
+  - **状态机抽到 `lib/game.mjs`**: 纯函数，Node 与 Durable Object 共用一份，两边行为不会漂
+  - **计时以服务端为准**: 每人一个 `endsAt`，手机本地只是照着跑（用 `performance.now()` 换算，绕开本机时钟差）。原来靠服务端每 2 秒 tick 一次，现在改成随看板下发 `endsAt`、前端自己每秒重算「已完成/进行中」
+  - **⚠️ Durable Object 更新代码的坑（踩得很深）**: DO 实例里只要跑着永不停止的 `setInterval`（哪怕是 `state.storage.setAlarm` 之外的普通定时器），实例就永远不空闲 → **`wrangler deploy` 明明成功、Current Version 也变了，线上还在跑旧代码**。表现为：新字段不出现、老校验不生效，怎么重部署都没用。实测坑法：
+    - 先试着删 secret / 重部署 / 换 DO 实例名，都没用
+    - `deleted_classes` 迁移会报 `10061 不能删还有 binding 引用的类`
+    - 只加新类不改旧导出会报 `10064 新版本没有导出 Room`
+    - **最终解法：`wrangler delete --force` 删掉整个 Worker，类改名（Room → ScorerRoom），迁移从 v1 重来，再 deploy**。DO 存储会一起没，但对这种一次性活动无所谓
+    - 教训：DO 里不要放常驻定时器；需要定时就把时间点下发给前端，让前端自己算
+  - **shell 引号事故**: 用 `python3 -c "..."` 改 README 时，正文里的反引号被 bash 当成命令替换执行了，真的跑了一次 `wrangler secret put ADMIN_TOKEN`（值成了字面量 `<管理口令>`），站点被意外上锁。改用 `python3 <<'PYEOF'` heredoc（带单引号）就不会替换。**改含反引号/美元符的文件一律用 heredoc**
   - 抽帧给大屏做中间态截图时注意：`tools/shot.mjs` 是 CDP 一次性抓图，页面每次重载揭底动画都从 0 开始，所以传不同的 `waitMs` 就能稳定拿到各个阶段；后台 `node server.mjs` 用 setsid 起也会随 bash 调用结束被杀，服务 + 造数 + 截图必须放在**同一次** bash 调用里
 
 - **K60 桌面拦截第三方 app 钉小组件（requestPinAppWidget）真因 (2026-11-10, 处理中)**:
