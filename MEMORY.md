@@ -34,6 +34,12 @@
     - **最终解法：`wrangler delete --force` 删掉整个 Worker，类改名（Room → ScorerRoom），迁移从 v1 重来，再 deploy**。DO 存储会一起没，但对这种一次性活动无所谓
     - 教训：DO 里不要放常驻定时器；需要定时就把时间点下发给前端，让前端自己算
   - **shell 引号事故**: 用 `python3 -c "..."` 改 README 时，正文里的反引号被 bash 当成命令替换执行了，真的跑了一次 `wrangler secret put ADMIN_TOKEN`（值成了字面量 `<管理口令>`），站点被意外上锁。改用 `python3 <<'PYEOF'` heredoc（带单引号）就不会替换。**改含反引号/美元符的文件一律用 heredoc**
+  - **v3.1 提速 + 补时（提交 55df9b9）**: 用户反馈「很慢」和「算分时也在计时」
+    - **算分时间不吃玩家 90 秒**: 时间判定用请求到达时刻，等完把 `thinkingMs` 加回 `endsAt`（`lib/game.mjs` 的 `refundTime`）；本地倒计时在请求期间冻结，出分后按 `remainingMs` 追平
+    - 假思考从 `760 + 16/字` 降到 `300 + 6/字`（15 字≈0.5s，80 字≈1s），并加 `THINK_SCALE` 旋钮（0 = 立即出分）
+    - 出分覆盖层 1350ms → 520ms，且点一下就关
+    - 实测线上单次提交 842ms ＝ 假思考 550ms + 网络 292ms（之前 `/api/health` 测出 1~2s 是冷启动，稳定后网络只有 ~290ms）
+  - **⚠️ DO 被旧代码钉死：只能换实例名，不能靠等**: 上一轮以为去掉常驻定时器、等实例回收就行 —— 实测**静置 70 秒仍然跑旧代码**。可靠做法是实例名带版本号 `idFromName('room:' + env.ROOM_VERSION)`，改了 DO 相关代码就把 `ROOM_VERSION` 加一再部署（老实例的数据带不过来，一次性活动无所谓）
   - 抽帧给大屏做中间态截图时注意：`tools/shot.mjs` 是 CDP 一次性抓图，页面每次重载揭底动画都从 0 开始，所以传不同的 `waitMs` 就能稳定拿到各个阶段；后台 `node server.mjs` 用 setsid 起也会随 bash 调用结束被杀，服务 + 造数 + 截图必须放在**同一次** bash 调用里
 
 - **K60 桌面拦截第三方 app 钉小组件（requestPinAppWidget）真因 (2026-11-10, 处理中)**:
