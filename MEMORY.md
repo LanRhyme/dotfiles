@@ -87,6 +87,14 @@
     - **配图取法（重要）**: Openverse 与 Wikimedia 都被墙，但 `images.pexels.com` 与 `images.unsplash.com` 直连可用。Pexels 的页面 URL 里的数字 ID 直接对应 CDN：`images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg`。用 web_search 找页面 → 抽 ID → 下 CDN
     - 用到的两张：window #30573891（窗边剪影）、desk #1635974（深夜桌面）
     - 坑：canvas 容器没设尺寸会画成一小坨；照片页 `.hdr` 直接贴在标题上需要中间层 flex 撑开；`.src` 颜色 #4f4a43 在深底上几乎看不见
+  - **v9 放映稿换 3D 粒子场 + 五种版式（提交 244d956）**: 用户说「AI 感还是非常严重，可以用 aminejs、threejs」
+    - **真正的病根**: 14 页共用一个模板（左上标签 + 右上页码 + 细线 + 巨标题 + 小字段落），换任何配色都救不回来
+    - 现在拆成五种版式：满幅画布 / 贴边出血 / 一句撑满 / 左图右文 / 满幅照片 / 大数字栏
+    - **three.js**: `npm i three` 后 `npx esbuild bundle/entry.js --bundle --format=esm --minify` 只打包需要的类，522 KB（完整包 2 MB）。放在 `public/vendor/`
+    - **anime.js 4.5**: `import { animate, stagger } from '/vendor/anime.min.js'`，v4 的 ESM bundle 导出 animate/stagger/Timeline/Spring
+    - 粒子场：5200 点，四种形态 cloud/grid/band/burst，指数插值游动，相机缓慢绕行，`PointsMaterial` additive blending size 0.048 opacity 0.42
+    - **踩坑**: `applyFormation` 里 `if (!ok) return`，而 `ok = true` 写在调用之后 → 初始形态根本没铺，粒子全挤在原点（表现为画面中间一小坨密网）。必须先置 ok 再铺
+    - 坑: 分数墙 canvas 要 `top/bottom` 留出 HUD 与二维码的空间，否则数字压在统计上
   - 抽帧给大屏做中间态截图时注意：`tools/shot.mjs` 是 CDP 一次性抓图，页面每次重载揭底动画都从 0 开始，所以传不同的 `waitMs` 就能稳定拿到各个阶段；后台 `node server.mjs` 用 setsid 起也会随 bash 调用结束被杀，服务 + 造数 + 截图必须放在**同一次** bash 调用里
 
 - **K60 桌面拦截第三方 app 钉小组件（requestPinAppWidget）真因 (2026-11-10, 处理中)**:
