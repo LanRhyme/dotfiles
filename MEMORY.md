@@ -18,6 +18,12 @@
   - **关键设计洞察**: 纯随机两次就被看穿；有假刻度后玩家的「我在进步」假设被反复证实，90 秒内不会怀疑。反转也从「分数是随机的」升级为「**分数有刻度，只是它量错了东西**」，对完美主义更致命
   - **假 LLM 推理延迟**: 服务端每次提交静默 `760 + min(1500, 字数×16) + 0~380ms`（8 字≈1.1s，80 字≈2.3s，**时长与字数正相关**，这是猜不到的第二个假刻度）；手机端配「分析语句结构 → 比对评分语料 → 生成评分」+ 一顿一顿的进度条
   - **大屏两幕反转**: 42 张小图（分数，形状「很像但不完全一样」）→ 字数分档对照表（78.07 / 79.83 / 79.45，差值就是内容项）→ 换成 skeleton 序列并坍缩（42 条落在同一条线）→「分数是有刻度的 / 只是它量错了东西」。揭底 15 步自动推进约 30 秒，**空格可随时跳到下一步**
+  - **已上线 Cloudflare Workers (提交 2495263)**: `https://scorer.lanrhyme.top/`，大屏 `/board?token=<口令>`，口令在 `worker/.admin-token`（已 git 忽略）。账号 `Xiao_ren233@foxmail.com` / `193b043004e73d4f91b79b65a69c621e`
+  - **本机 wrangler 早就登录好了**：`~/.config/.wrangler/config/default.toml` 有 OAuth token，权限含 `workers_scripts:write` / `workers_routes:write`，直接 `npx wrangler deploy` 即可，不需要用户再给 API Token。`cloudflared` 装的是隧道客户端，跟部署无关
+  - **必须用自定义域名**：`*.workers.dev` 国内被 DNS 污染（用户自己在 ReveriePaint 遥测工程里实测 SocketTimeoutException），所以 `wrangler.toml` 用 `routes = [{ pattern = "scorer.lanrhyme.top", custom_domain = true }]`，首次部署自动建 DNS + 签证书
+  - **DO 冷启动坑（已修）**: `ensure()` 里无脑 `phase='idle'` 会让每次 DO 被收回再唤醒时把进行中的局重置掉（现象：admin/start 返回 running，紧接着 submit 返回 409）。改成按 `startedAt` 超过 2 小时才判过期，`running` 且已过 `endsAt` 则转 `ended`
+  - **wrangler dev 的坑**: `npm install` 时 esbuild/workerd 的 postinstall 被 allowScripts 拦了，但 `@cloudflare/workerd-linux-64` 走 optionalDependencies 已带二进制，dev 仍可用；首帧会有 `Unable to fetch the Request.cf object` 的 warn，无害
+  - **线上稳定性已验**: `/api/qr.svg` 与 `/api/health` 各 20 次全 200（部署完成瞬间有过一次 500，属传播期的瞬时现象）
   - 抽帧给大屏做中间态截图时注意：`tools/shot.mjs` 是 CDP 一次性抓图，页面每次重载揭底动画都从 0 开始，所以传不同的 `waitMs` 就能稳定拿到各个阶段；后台 `node server.mjs` 用 setsid 起也会随 bash 调用结束被杀，服务 + 造数 + 截图必须放在**同一次** bash 调用里
 
 - **K60 桌面拦截第三方 app 钉小组件（requestPinAppWidget）真因 (2026-11-10, 处理中)**:
