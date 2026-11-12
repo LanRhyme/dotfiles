@@ -5,6 +5,16 @@
 
 ## 最近动态
 
+- **心理汇报《完美主义》打分器 (2026-11-12, 已完成可交付)**:
+  - 需求: 用户下周心理小组汇报, 开场要一个 90 秒小游戏 —— 屏幕给一句话, 同学扫码改得更好, 提交拿分, 想更高就继续改; 结尾反转「分数是随机的, 你追了 90 秒的东西从头到尾都不存在」; 现场 60 人以上同时在线
+  - 交付: `~/Projects/perfectionism-scorer`（零 npm 依赖、无构建），本轮已 git 提交 `47dc9b9` / `6eab05b`
+  - **分数模型**: `分数 = 基准曲线(第几次提交) + FNV 哈希个人偏移(-1/0/+1)`；基准固定在 77..81，全场落在 76..82，82 是硬天花板永远出不了 83；第 8 与第 19 次出现 81 配 +1 得 82，制造「再改一次就到顶」的假希望；第 27 次基准正好 79 对上台词
+  - **个人偏移全程恒定且永不触发钳制** —— 所以所有人曲线形状严格相同，只整体平移。这是反转最硬的一张图，也意味着**进行中的大屏绝对不能画个人曲线**（会立刻穿帮），改为 42 格「分数墙」；曲线只在结尾出现：一人一张小图 → 按第一分对齐（真动数据，不是特效）→ 淡出合成一条线
+  - **自研零依赖二维码** `lib/qr.mjs`（字节模式 v1-10、L/M/Q/H、8 掩码按惩罚分择优、内联 PNG 编码）。两个必踩坑：① 格式信息区必须先以 mask 0 占位写入并标记 `isFunction`，否则数据会写进格式区（表现为解码器能定位但「data irrecoverable」）② 列遍历遇到第 6 列（竖直时序图形）必须用 `col <= 6 ? col - 1 : col` 派生局部变量，**不能改循环变量**，否则会漏掉一整列、832 个模块少 5 位
+  - 验证口径 `npm test`：曲线校准（2000 人 9 条断言，含「所有参与者曲线形状完全相同」）+ 二维码 zbarimg 解码 40 项 + 端到端压测（80 并发，p95 5~18ms、max 26ms、无 5xx）
+  - 截图不用装浏览器：`tools/shot.mjs` 直接复用 playwright 缓存里的 `~/.cache/ms-playwright/chromium-1246/chrome-linux64/chrome` + 裸 CDP（Node 26 自带 global WebSocket）截图
+  - **部署口径**: 用户服务器在大陆、无域名 → 无法备案，只能 IP + 非标端口直连（务必避开 80/443，云厂商只在这两个端口做备案拦截）；属未备案运行、法理不合规但现实概率极低，活动结束即停服。README 与 `deploy/perfectionism-scorer.service` 已写明
+
 - **K60 桌面拦截第三方 app 钉小组件（requestPinAppWidget）真因 (2026-11-10, 处理中)**:
   - 现象: Material You Widgets Pro 里点「添加到桌面」，桌面闪一下就回原样，弹一句「请长按桌面后到“卡片 - 插件”添加」，AppWidgetService 里不出现任何新 widget id
   - **真因是 OplusLauncher 自己的白名单，不是权限问题**：桌面 `com.android.launcher3.dragndrop.AddItemActivity.isAllowedAddWidget()` 先过闸，只放行 `PackageUtils.isSystemApp()` / 预装可卸载列表 `isRemovableApp()` / 持 `oplus.permission.OPLUS_COMPONENT_SAFE` 签名权限 / `WidgetControlHelper.isInWhiteList(componentName|packageName)`；否则弹 `launcher_widget_control_toast`（就是那句「请长按桌面后到“卡片 - 插件”添加」）并 finish
@@ -203,6 +213,14 @@
 - slugcatpet 桌宠：`~/Projects/slugcatpet`，GTK3 窗口必须设为 Layer.TOP；GTK3 桥按 Qt 侧 `_dirty_rect` 算好的脏矩形做 `queue_draw_area` 局部重绘，禁止退回每帧整屏 `queue_draw`（全屏透明面整屏重绘会把合成器整屏混合负载拉满）
 
 ## 项目
+
+### perfectionism-scorer 打分器 — `~/Projects/perfectionism-scorer`
+- 心理汇报《完美主义》开场游戏：90 秒内反复改一句话拿分，结尾揭穿分数只取决于「这是你第几次提交」
+- 零依赖 Node 服务（无 npm 依赖、无构建）+ SSE 实时推送 + 每 400ms 原子写 `data/state.json`；手机端 `public/play.html`，大屏 `public/board.html`
+- 分数 `lib/score.mjs`：基准曲线 77..81 + FNV 个人偏移 ±1 → 全场 76..82，形状全员严格一致；改曲线后必须跑 `npm run check:curve`
+- 二维码 `lib/qr.mjs` 自研（v1-10 字节模式、掩码择优），`npm run check:qr` 用 zbarimg 验证
+- 大屏阶段（空格推进）：待机二维码 → 分数墙 → 时间到数据 → 一人一张小图 → 对齐 → 合成一条线 → 反转
+- 工具：`tools/seed.mjs` 造 42 人假数据、`tools/loadtest.mjs` 80 并发压测、`tools/shot.mjs` CDP 截图
 
 ### MoClock 墨钟 — `~/Projects/MoClock`
 - Material 3 风格安卓桌面时钟小部件（Compose 主界面 + Jetpack Glance 小部件，包名 `io.github.lanrhyme.moclock`），5 种版式（数字/表盘/文字/双城/日历）+ 30 余项配置 + 7 套预设
