@@ -43,7 +43,7 @@
   - **正式上线大陆服务器（提交 0473093）**: 阿里云 `47.95.242.43`（`iZ2zeardpd4aavpdclqa1wZ` / Alibaba Cloud Linux 3 / Node v24.16.0 已预装）。代码在 `/opt/perfectionism-scorer`，systemd 单元 `perfectionism-scorer`，运行用户 `scorer`，端口 8890，`THINK_SCALE=0.8`，`config.json` 里 `publicUrl` 写死 `http://47.95.242.43:8890/`
     - **实测对比**: 大陆直连 163ms / 首屏 0.26s / e2e p50 582ms；Cloudflare 独立版 1316ms / e2e p50 1131ms → **快 8 倍**
     - 服务器上 80 被 nginx 占、8080 被 python 占；firewalld 未启用、SELinux Disabled；安全组原本只放行 22/80，用户手工加了 8890
-    - SSH: root 可登录（密码认证），`ssh -F /dev/null` 绕开本机损坏的 `/etc/ssh/ssh_config.d/20-systemd-ssh-proxy.conf`；非交互用 `SSH_ASKPASS_REQUIRE=force` + askpass 脚本；**用过的密码文件用完必须 shred**
+    - SSH: root 可登录（密码认证），除 `22` 外已额外放行并监听 `2563`（校园网封 22 端口时用 `-p 2563`）；`ssh -F /dev/null` 绕开本机损坏的 `/etc/ssh/ssh_config.d/20-systemd-ssh-proxy.conf`；非交互用 `SSH_ASKPASS_REQUIRE=force` + askpass 脚本；**用过的密码文件用完必须 shred**（已同步 `present.html` 提交 `71afa07` 上线）
     - 机器出网被墙（`api.ipify.org` 取不到），但应用不需要出网
   - **⚠️ CF 反代到大陆这条路走不通**: 写好了 `worker-proxy/`（纯反代 `https://live.lanrhyme.top` → `http://47.95.242.43:8890`），`wrangler deploy` 明确显示 custom domain 已挂载，但边缘返 `403 error code: 1003`。换 `board.` / `live.` 两个子域、反复重部署、等几分钟都不行。`scorer.lanrhyme.top` 是唯一能正常工作的自定义域 → 判断是 zone 层面问题（疑与 `*.lanrhyme.top` 通配记录冲突），需要控制台处理。**结论：大屏直接开大陆 IP，比绕 CF 快 8 倍且少一个故障点**
   - **两套部署不能混用**: 大陆与 CF 各有一份独立数据，大屏开在哪边只看得到哪边的分数
