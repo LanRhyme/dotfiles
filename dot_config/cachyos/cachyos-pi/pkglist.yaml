@@ -14,7 +14,7 @@
 
 - name: "Browsers"
   packages:
-    - librewolf-bin
+    - librewolf
     - firefox
     - firefox-esr-bin
     - firefox-pure
@@ -34,7 +34,6 @@
     - neochat
     - fractal
     - element-desktop
-    - wire-desktop
     - signal-desktop
     - mumble
 
@@ -121,7 +120,6 @@
     - filezilla
     - putty
     - warpinator
-    - nitroshare
     - jdownloader2
 
 - name: "Mail"
@@ -156,7 +154,6 @@
     - joplin
     - onlyoffice-bin
     - wps-office wps-office-mime
-    - yozo-office yozo-office-fonts
     - calligra
     - skrooge
     - kmymoney
