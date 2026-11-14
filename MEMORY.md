@@ -96,6 +96,14 @@
     - **踩坑**: `applyFormation` 里 `if (!ok) return`，而 `ok = true` 写在调用之后 → 初始形态根本没铺，粒子全挤在原点（表现为画面中间一小坨密网）。必须先置 ok 再铺
     - 坑: 分数墙 canvas 要 `top/bottom` 留出 HUD 与二维码的空间，否则数字压在统计上
   - 抽帧给大屏做中间态截图时注意：`tools/shot.mjs` 是 CDP 一次性抓图，页面每次重载揭底动画都从 0 开始，所以传不同的 `waitMs` 就能稳定拿到各个阶段；后台 `node server.mjs` 用 setsid 起也会随 bash 调用结束被杀，服务 + 造数 + 截图必须放在**同一次** bash 调用里
+  - **v10 细节打磨与全量预加载稳定性加固 (提交 `cea3f50`)**:
+    - **禁止鼠标左键划词**: 全局 CSS `user-select: none` + 禁用拖拽与上下文 callout + `::selection` 设为透明 + JS 监听 `selectstart` 与 `dragstart` 阻断默认行为，杜绝演示手抖选中大片文本
+    - **鼠标右键改为翻回上一页**: 拦截 `contextmenu` 调用 `clearAuto(); go(S.slide - 1)`，左键点击前进限制 `e.button === 0`，键盘同步增加 `Backspace` / `PageUp` 回翻支持
+    - **莫兰迪极简纸感全量预加载层 `#loader`**: 预载 7 大关键资源（排版字型、Three.js 3D 粒子波场、罗小黑买菜篮特写 `/img/lxh-p10.jpg`、罗小黑木筏巨鲸特写 `/img/lxh-p12-raft.jpg`、音频元数据/预解压、实时看板网络连接），附带进度条与百分比；单项 3.2s 超时与全局 4.2s 兜底防假死，资源就绪后平滑淡出进入 P01
+  - **v11 内容驱动排版系统上线 (提交 `7dee8db`)**:
+    - **内容语义分流**: 拆解全篇 21 页文本气质，建立四套字体栈（现代交互黑体 `--sans`、正统学术宋体 `--serif`、温润抒情叙事体 `--narrative`、冲击力大标黑体 `--display`）
+    - **各页精准映射**: P01/P02/P03/P04/P06 保持现代黑体与等宽数字；P05 揭底启用 `--display` 850 磅冲击大标；P07/P08/P09/P11/P13/P14 贯穿典雅学术宋体；P10/P12 罗小黑特写写真页换入 `--narrative` 仿宋/楷书笔意叙事体；P15-20 金句与鸣谢保持诗意宋体
+    - **双端部署**: 大陆服务器与 Cloudflare 双节点已同步编译与热重载生效
 
 - **K60 桌面拦截第三方 app 钉小组件（requestPinAppWidget）真因 (2026-11-10, 处理中)**:
   - 现象: Material You Widgets Pro 里点「添加到桌面」，桌面闪一下就回原样，弹一句「请长按桌面后到“卡片 - 插件”添加」，AppWidgetService 里不出现任何新 widget id
