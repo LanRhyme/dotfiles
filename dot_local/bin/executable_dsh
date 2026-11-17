@@ -7,4 +7,10 @@ fi
 if [ -n "$ALL_PROXY" ] && [ "${ALL_PROXY#socks}" != "$ALL_PROXY" ]; then
     unset ALL_PROXY
 fi
+
+# 无参启动时默认进入 web 界面
+if [ $# -eq 0 ]; then
+    set -- web
+fi
+
 exec /usr/bin/dsh "$@"

@@ -5,6 +5,16 @@
 
 ## 最近动态
 
+- **DSH 与插件升级 + 安装 ds-harness-remote (2026-11-17, 已完成)**:
+  - **dsh 本体构建**: 已审查 PKGBUILD 并完成编译打包 `deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst`（来源官方 npm `@deepseek-ai/dsh@0.2.2-rc.1`），归档于 `~/tmp/deepseek-harness-bin/` 与 `~/.cache/paru/clone/deepseek-harness-bin/`，终端执行 `sudo pacman -U ~/.cache/paru/clone/deepseek-harness-bin/deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst` 即可升级
+  - **新插件安装**: 已安装 `ds-harness-remote@0.6.5`（P2P/WebRTC 端到端加密远程接入）并写入 `~/.dsh/profiles/web/package.json` 的 `dependencies` 与 `bundles`，移除旧 `dsh-remote`
+  - **插件全量升级与排障**:
+    - `dsh-dream-skin`: 修复原 GitHub 仓库不可达问题，切为 npm 官方包 `^11.16.0`（升级至 11.16.0）
+    - `dsh-opencode-zen`: 补齐缺失的 `cordis.patch.yml` 并添加 0.2.2-rc.1 版本豁免
+    - `dsh-better-sidebar`: 升级至 0.31.1（精确对齐 DSH 0.2.2-rc.1），并保留 0.2.0-rc.2 兼容豁免
+    - 全量升级 `@liustack/modlens` 3.27.5、`@liustack/modsearch` 5.10.14、`dsh-agy-link` 0.6.29、`dsh-better-sidebar` 0.31.1、`dsh-client-auto-continue` 0.19.0、`dsh-context` 0.85.1、`dsh-plugin-smooth-stream` 1.6.3、`dsh-pocket` 2.13.1、`dsh-skin-market` 0.1.83、`dsh-turn-fold` 0.7.3、`dshmarket` 1.73.20
+    - 配置备份于 `~/tmp/dsh-web-backup-20261117081034/`，启动测试端口 3081/3082/3083 验证通过无报错，`ds-harness-remote` 成功挂载并就绪 OpenCode/Antigravity ACP 桥接
+
 - **心理汇报《完美主义》打分器 (2026-11-12, 已完成可交付)**:
   - 需求: 用户下周心理小组汇报, 开场要一个 90 秒小游戏 —— 屏幕给一句话, 同学扫码改得更好, 提交拿分, 想更高就继续改; 结尾反转「分数是随机的, 你追了 90 秒的东西从头到尾都不存在」; 现场 60 人以上同时在线
   - 交付: `~/Projects/perfectionism-scorer`（零 npm 依赖、无构建），本轮已 git 提交 `47dc9b9` / `6eab05b`
