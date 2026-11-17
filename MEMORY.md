@@ -15,6 +15,10 @@
   - **不能移除 proxy.conf**: 直连实测 TCP 可以握手（192.200.0.x:443 / derp 205.147.105.30:443 均在 0.2-0.4s 建连）但 TLS 被切断，属 GFW 特征，Tailscale 控制面与 DERP 必须走 7890 代理
   - **当前链路形态**: 两端都只能走 DERP 中继（K60→hkg、平板→nue），`direct connection not established`，RTT 约 650-900ms，原因是 Clash TUN 会代理 tailscaled 的 UDP 使打洞失败，P2P 直连在当前配置下拿不到
   - **结论**: 代理层任何抖动（FlClash 换节点/重载配置/短暂断连）都会让 tailscaled 进入不可自愈状态，需要外部看门狗兜底，手机侧 `/data/adb/service.d/tailscaled.sh` 已有 30s 自愈逻辑，PC 侧尚无
+  - **自愈看门狗 (2026-11-17 17:22 上线)**: 脚本 `~/.local/bin/tailscale-watchdog.sh` + 用户单元 `~/.config/systemd/user/tailscale-watchdog.service`（enabled 开机自启），逻辑为每 60s 判一次「`BackendState==Running` 且（`Self.Online==false` 或状态文本出现控台失联告警 或 近 3min 内 `controlhttp: failed dialing` ≥6 次）」，连续 2 次命中才动手
+  - **看门狗的三道保险**: 动手前先确认 `127.0.0.1:7890` 可连且 controlplane 经代理可达，任一不满足就判定为机场侧问题不动手；600s 冷却期内最多自愈一次，避免传文件时反复打断；`BackendState` 非 Running（用户主动 down/未登录）一律不干预
+  - **写脚本踩的坑**: jq 的 `//` 运算符会把 `false` 当空值吞掉，`.Self.Online // true` 永远返回 `true`，导致卡死检测恒失效，必须直接写 `.Self.Online`，调试时用 `TS_WATCHDOG_ONCE=1` 空跑
+  - **看门狗验证方式**: 用假 `tailscale` 桩程序覆盖 PATH 造三种场景（卡死/主动 down/正常），配合 `XDG_RUNTIME_DIR` 指向临时目录避免污染真实冷却戳，三场景与冷却期均按预期分支
 
 - **DSH 与插件升级 + 安装 ds-harness-remote (2026-11-17, 已完成)**:
   - **dsh 本体构建**: 已审查 PKGBUILD 并完成编译打包 `deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst`（来源官方 npm `@deepseek-ai/dsh@0.2.2-rc.1`），归档于 `~/tmp/deepseek-harness-bin/` 与 `~/.cache/paru/clone/deepseek-harness-bin/`，终端执行 `sudo pacman -U ~/.cache/paru/clone/deepseek-harness-bin/deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst` 即可升级

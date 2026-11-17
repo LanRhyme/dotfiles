@@ -1,0 +1,14 @@
+[Unit]
+Description=Tailscale Watchdog (auto re-register after proxy flap)
+After=network.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/lanrhyme/.local/bin/tailscale-watchdog.sh
+Restart=always
+RestartSec=30
+Nice=10
+
+[Install]
+WantedBy=default.target
