@@ -1,0 +1,1244 @@
+# MEMORY 归档 2026
+
+`MEMORY.md` 最近动态里滚出窗口的已结束条目，原文逐条保留不删改
+按批次倒序累积，最新整理批次在文件末尾；索引与检索说明见 `MEMORY-archive.md`
+
+条目格式：`- **<标题> (日期, 状态)**` 加两格缩进的子条目
+本卷范围 2026-09-12 ~ 2026-11-12，共 93 条
+
+- **平板二次离线根因: 通信共享出口识别缺陷与看门狗破坏性清理 (2026-10-26, 完成)**:
+  - 现象: 平板 08:34:24 掉出 tailnet, 但用户确认平板通信共享上网正常, 说明有网而守护自身出不去
+  - 外部触发: 手机 `dumpsys tethering` 记录 `2026-10-26T08:33:44 OBSERVED iface=wlan2 state=0`, 即喵～热点被关, 平板失去原 WiFi 通路, 40 秒后掉线; 此后平板改走 OPPO 通信共享, 出口接口为 `ovnet1` (192.168.250.254/24), 手机侧对应 `bt-vnet` (192.168.199.2/24), 平板在 bt-vnet 侧另答 192.168.199.1
+  - 看门狗 v1 两个致命缺陷: 出口白名单只认 wlan/rmnet_data/eth/p2p0, 把 ovnet1/bt-vnet 当虚拟网卡丢弃 → pick_uplink 返回空; 更糟的是 apply_rules 在 UPLINK 为空时仍执行 `ip rule del pref 4800`, 把原本指向 wlan0 的旧规则也删了, 守护彻底无出口, 报 `logged out / fetch control key / connect: network is unreachable`, 并被每 3-15 分钟白重启一次 (证据见 watchdog.log 的 uplink=none 与重复 daemon started)
+  - v3 修复: 出口识别改排除法 (仅排 tun/tailscale/dummy/ifb/vgate 与系统表), 优先信任 netd 的 `fwmark 0x0/0xffff` 默认网络表并接受数字表号, 接口可用性只校验有全局 v4 地址 (通信共享接口状态显示 UNKNOWN 而非 UP, 不能靠 UP 判断); UPLINK 为空时绝不动 pref 4800; 完全无出口时不重启守护; 重启加 300 秒退避; 已刷双端运行 (平板 uplink=ovnet1, 手机 uplink=rmnet_data3), 双端 Health 均为空
+  - 应急跳板 (平板只在通信共享网内时可用): 手机 root 下 `ip rule add to <平板IP>/32 pref 100 lookup main` 与 `ip route replace <平板IP>/32 dev bt-vnet`, 再用 busybox nc 加 FIFO 转发 `nc -l -p 6666 < fifo | nc <平板IP> 5555 > fifo`, PC 侧 `adb connect 100.127.72.106:6666` 即可进入平板; 用完删规则与进程
+  - 备份: 双端 `/data/adb/service.d/tailscaled.sh.bak-20261026` 为原始开机脚本, `tailscaled.sh.v1-20261026` 为首版看门狗
+
+- **kde-material-you-colors 用户单元 203/EXEC 重启风暴清理 (2026-10-26, 完成)**:
+  - 现象: `~/.config/systemd/user/kde-material-you-colors.service` 自开机起每 3 秒拉起一次, ExecStart 指向的 `~/.local/bin/kde-material-you-colors` 早已不在磁盘, 状态 203/EXEC, 本次开机 4 小时 31 分累计 25180 条日志与 5035 次重启
+  - 根因: 单元只写了 `Restart=on-failure` 与 `RestartSec=3`, 未显式声明 `StartLimitIntervalSec`/`StartLimitBurst`, 在 systemd 默认 5 次/10 秒的门槛下 3 秒一次的重启永远凑不满 5 次, 默认限流形同虚设
+  - 处置: 配色早已由 `~/.config/noctalia/morandi-gen.py` 接管, 该单元纯属历史残留, 故执行 `StopUnit` + `DisableUnitFiles` + `ResetFailedUnit` + `Reload`, 移除 `graphical-session.target.wants/` 软链与 unit 文件本体, 一并清掉遗留 `~/.config/kde-material-you-colors/config.conf`, 备份落在 `~/tmp/disabled-units/`
+  - 验证: 停机后该单元真实日志 0 条, `LoadState` 为 `not-found`, 静置观察窗无新增
+  - 环境注记: DSH 的 bwrap 沙箱内 `systemctl --user` 连 `/run/user/1000/systemd/private` 会在 AUTHENTICATING 阶段返回 ENODATA, 只能改用 `busctl --user call org.freedesktop.systemd1` 同一 Manager 接口驱动用户管理器, 详见踩坑速查
+
+- **Tailscale 双端掉线根因排查与 Root 守护态自愈 (2026-10-26, 完成)**:
+  - 现象与控制台基线: 电脑端 cachyos (100.73.79.77) 全程健康, 手机 k60 于 21:12 离线, 平板于 23:05 离线, 双端 KeyExpiry 均为 2027-04 未过期, 控制台状态为 online=no 而非 logged out
+  - 根因定位: 双端均为 `/data/adb/tailscale/tailscaled` 原生 Root 守护 (非 App VpnService), 断网后日志卡死在 `Rebind; defIf=... rebind-no-localaddr` 与 `dial ... connect: network is unreachable` 死循环, 永远无法向 controlplane 轮询 netmap, 只有重启守护进程才能恢复
+  - 触发时刻: 手机 21:11 移动数据重拨 (10.91.232.58/30 -> 10.239.213.179/29) 叠加热点与通信共享链路重整; 平板 23:04 从 192.168.250.254 切换至喵～ WiFi (10.85.125.91)
+  - 平板附加故障: 开机脚本 `DEFAULT_IFACE=$(ip route show table 0 | awk ...)` 只排除 dummy/tailscale, 未排除 tun/vgate 虚拟网卡, 当前会命中 Clash 的 `default dev tun0`, 生成失效的 `ip rule pref 4800 lookup 1015` (表 1015 早已随旧网络删除), 需改为挑选物理出口
+  - 处置: 手机执行 `sh /data/adb/service.d/tailscaled.sh` 重启, 平板手工 `killall -9 tailscaled` + nohup 重启 + `ip rule add iif lo uidrange 0-0 pref 4800 lookup wlan0`, `tailscale up --accept-dns=false --netfilter-mode=off`, 双端恢复 (平板经 10.85.125.91 直连电脑, 手机经 DERP hkg 中继)
+  - 副作用: 手机 adbd 无线监听 (5555) 随守护重启短暂丢失后自行恢复, 现已稳定走 Tailscale 通道 100.127.72.106:5555 (局域网 10.85.125.98:5555 通道记为 stale offline)
+  - 加固落地 (双端同版脚本): `/data/adb/service.d/tailscaled.sh` 重写为「启动 + 看门狗」单文件 (旧版备份 tailscaled.sh.bak-20261026), 出口改为动态解析 netd 的 `31000 fwmark 0x0/0xffff lookup <iface>` 规则 (只认 wlan*/rmnet_data*/eth*/p2p0, 显式排除 tun/vgate/dummy/ifb), 网卡变化立刻刷新 pref 4700 与 4800 规则; 看门狗每 30 秒读 `tailscale status --json --peers=false` 的 Health 数组, 命中 network map / coordination server / network is unreachable / logged out 连续 6 次 (3 分钟) 自动重启守护, 进程消失也自动拉起, 日志落 `/data/adb/tailscale/watchdog.log` (超 256KB 自截断)
+  - 关键纠正 (覆盖 2026-10-24 结论): 手机端 pref 4800 规则不可删除. 实测 00:30 删除后 00:32 立即失联, 守护进程自身 socket 命中 Android mark 规则链的 `unreachable` 分支报 ENETUNREACH, 取不到 control key 显示 logged out, 重启守护也无效; 00:39 恢复 `pref 4800 lookup rmnet_data3` 后 3 秒内重新登录成功. `iif lo` 限定只匹配本机生成流量, 通信共享转发包 iif 非 lo 不会命中, 故双端统一 UID0_RULE=1
+  - 自愈实测: 手机 00:34-00:37 因规则缺失进入 mapresponse-timeout, 看门狗第 6 次探测 (00:37:14) 自动重启守护, 恢复后 00:39:23 重新 active login; 平板 4800 出口由 wlan0 动态维持, 两观察窗内无任何误重启
+
+- **ReveriePaint-native 添加繁体中文、日语与猫猫语本地化支持并确立大版本多语言维护规范 (2026-10-26, 完成)**:
+  - 核心架构与多语言体系扩展:
+    - LanguageManager 接入新语言枚举：扩展 AppLanguage 包含 JA（ja / 日本語）、ZH_TW（zh-TW / 繁體中文 (台灣)）与 CAT（cat / 猫猫语），在 getLocale 与 isChinese 中完成标准映射（CAT 映射为 Locale("cat") 并获 Android 原生兼容支持）
+    - 设置界面动态联动：GeneralSettingsSubPage 通用设置页面语言选择器完整接入跟随系统、简体中文、English、日本語、繁體中文与猫猫语 6 项语言切换选项
+  - 多语言资源全量覆盖与校验:
+    - 繁体中文（values-zh-rTW）：基于 opencc (s2twp 台湾术语规范) 全量转换 2992 条字符串，涵盖图层、笔刷、滴管、色彩增值、復原与重做等标准设计术语
+    - 猫猫语（values-cat）：采用「自然萌系轻猫化」策略，保留核心专业绘画名词（画布、图层、笔刷、选区、滤镜、混合模式），重点在操作交互按钮、提示弹窗与状态反馈上融入软萌猫咪动作（好喵！、算啦、倒退一爪、重新抓一爪、藏好啦、叼进来、叼出去、一爪拍飞、改个名、分身等），杜绝机械句尾加喵与冗余括号，全量 2992 条字符串 XML 校验通过
+    - 日语（values-ja）：基于 Krita 官方翻译记忆（po/ja/krita.po）结合 8 路特工分队并行精细化校验，严格对齐 Clip Studio Paint / Photoshop / Krita 日本标准 UI 术语并保证 100% 格式占位符 (%s, %d) 精度，全量覆盖 2992 条字符串
+  - 开发规范更新与真机部署验证:
+    - 项目级 AGENTS.md 更新第 6 节（编码规范）与第 13 节（发版流程），确立日常开发仅维护简体中文与英文、扩展多语言仅在大版本发版前或用户明确指示时全量增量补全的维护原则
+    - testDebugUnitTest 全量单元测试全绿通过，assembleDebug 编译打包成功并已通过 ADB 静默安装至一加平板 2 Pro（c84b9192）真机运行验证
+    - 修复 Android Lint 检查拦截：针对 CI 中 `:app:lintDebug` 将 debug 目录专用的未翻译性能标尺（PerfHud）文案及扩展语种缺失作为致命错误拦截（42 项 MissingTranslation 报错）的问题，在 app/src/debug/res/values/strings.xml 中为 resources 根标签添加 tools:ignore="MissingTranslation"，并在 app/build.gradle.kts 的 lint 配置块中增加 disable += "MissingTranslation"，彻底保障日常开发中无需同步全部扩展语种即可畅通通过 CI 自检与自动化构建（commit: d8b49160）
+    - 代码已提交并推送到 GitHub 远端 main 分支（commit: d8b49160）
+
+- **ReveriePaint-native 修复导入 KRA 工程无法识别继承透明度与图层组穿透模式 (2026-10-25, 完成)**:
+  - 核心架构与底层解析修复:
+    - 根治继承透明度与透明度锁定丢失：Krita 原生保存 .kra 时使用 channelflags 与 channellockflags 掩码位标识通道启用与锁定状态，官方不输出 inherit-alpha 属性；在 ReverieCoreIO.cpp 的 loadKraNodesDom 中接入通道掩码解析，当检测到 alpha 位禁用时自动激活 l->disableAlphaChannel(true)，当检测到 alpha 锁定未置位时激活 pl->setAlphaLocked(true)，并在写出 .kra 时补齐 channellockflags 序列化
+    - 补齐图层组穿透混合模式：解析 passthrough/pass_through 属性与 pass_through 复合模式，同步注入 g->setPassThroughMode，并在写出 .kra 与 REVP meta.json 时补齐图层组 passthrough 状态回写
+  - 单元测试与代码推送:
+    - ClippingMaskLogicTest 补齐 KRA 继承透明度通道位解析与图层组穿透判定单测，testDebugUnitTest 全量测试全绿通过，代码已推送至 GitHub main 分支（commit: 1b0f5b13，关联 Issue #119）
+
+- **ReveriePaint-native 支持设置中关闭双指与三指长按连续撤销与重做 (2026-10-25, 完成)**:
+  - 架构与防误触状态机重构:
+    - 根除手掌误触触发连续撤销：针对三星 Galaxy Tab 等大屏设备手掌边缘搭屏误触发两指/三指长按连撤连做导致画作被快速清空的问题，在 CanvasTouchView 的 continuousUndoRunnable 与 continuousRedoRunnable 任务执行入口及调度前置判断处增加 gestureContinuousUndo 状态门禁，关闭后彻底阻断长按连撤连做循环，仅允许轻点单击触发单步撤销/重做
+  - 配置持久化与界面呈现:
+    - PaintViewModel 引入 gestureContinuousUndo 响应式状态与持久化配置项，并在手势设置面板「辅助与画布控制」卡片中提供「长按连续撤销与重做」开关（默认开启），支持恢复默认手势时统一重置
+    - 补齐 values 与 values-en 多语言文案定义
+  - 单元测试与代码推送:
+    - GestureConfigTest 补齐门禁逻辑测试，全量单元测试全绿通过，代码已推送至 GitHub main 分支（commit: 00258a26，关联 Issue #124）
+
+- **ReveriePaint-native 移除系统 MotionPredictor 崩溃源与手写笔硬件 SDK 算法残留 (2026-10-25, 完成)**:
+  - 核心架构与闪退根治:
+    - 根除 C++ 底层 SIGABRT 闪退：定位到用户落笔绘制首笔崩溃栈为 libinput.so 中 android::MotionPredictor::record 触发 LOG_ALWAYS_FATAL_IF 并调用 abort()；彻底剥离 CanvasTouchView 中对 androidx.input.motionprediction.MotionEventPredictor (系统级预测器) 的全部声明、初始化与调用，落笔预测完全收口至纯 Kotlin 实现的 4 阶卡尔曼前向预测器 universalPredictor，杜绝非兼容硬件与第三方 ROM 上的原生 abort 闪退（commit: dcb5af0a）
+  - 界面与设置逻辑精简:
+    - 移除硬件 SDK 预测算法单选项：手写笔设置子页面（StylusSettingsSubPage）移除已失效的「硬件SDK算法」与「APP软件算法」单选组，触控与笔画预测分组项数收敛为 3 项；PaintViewModel 中 stylusPredictionMasterEnabled 与 updateStylusPredictionMaster 直接收口至超低延迟前向预测开关 frontBufferPredictionEnabled，彻底清除 stylusPredictionAlgorithmType 假代码（commit: e9aefad2）
+  - 编译构建与代码推送:
+    - testDebugUnitTest 全量单元测试全绿通过，代码已推送至 GitHub main 分支
+
+- **ReveriePaint-native 通用与 Ugee/XP-Pen 手写笔双侧键映射与临时橡皮冲突修复 (2026-10-25, 完成)**:
+  - 核心架构与侧键状态机重构:
+    - 按键通道位掩码重构：彻底剥离 GenericStylusAdapter 与 StylusDriver.isSideButtonEraseActive 中对 MotionEvent.BUTTON_PRIMARY (1) 的误判定，消除笔尖接触屏幕被误当侧键按压的问题；接入 BUTTON_STYLUS_PRIMARY (32) 与 BUTTON_STYLUS_SECONDARY (64) 标准键位，并向下兼容数位板/EMR 鼠标兼容键位（下侧键对应 BUTTON_SECONDARY = 2，上侧键对应 BUTTON_TERTIARY = 4 / BACK = 8 / FORWARD = 16），解决 Ugee UT2PRO 与 XP-Pen 上侧键完全未被识别、下侧键错位为副键的问题
+    - 临时橡皮笔画抑制逻辑纠偏：重构 strokeHappened 判定，仅在运笔时真实带压感 (pressure > 0.01f) 且位移超过 24px 时判定为临时橡皮笔画；松键时仅在开启按住侧键橡皮 (genericSideButtonErase) 且确实画过笔画时抑制动作，开启按键映射时悬空单击或轻触单击 100% 正常触发动作映射
+    - 悬空离开与按键边沿派发加固：onStylusHoverExited 补齐抬笔释放判定，笔尖离开感应场时自动结算释放动作；在 CanvasTouchView 的 onHoverEvent、onGenericMotionEvent 以及 MainActivity.dispatchGenericMotionEvent 中完整下发 ACTION_BUTTON_PRESS 与 ACTION_BUTTON_RELEASE，静止悬空按压与释放动作不再漏判
+    - 物理按键扩展识别与防抖：GenericStylusAdapter.onStylusKeyEvent 与 StylusDriver.isStylusKeyEvent 补齐 KEYCODE_BUTTON_A (96)、KEYCODE_BUTTON_B (97)、KEYCODE_BUTTON_3 (190)、304、305、310、311，并在 MotionEvent 与 KeyEvent 双通道间设置 150ms 防抖，杜绝重复触发
+  - 测试构建与代码推送:
+    - StylusModelsTest 补齐位掩码与扩展按键单元测试，testDebugUnitTest 与 assembleDebug 编译打包全绿通过
+    - 代码提交至 main 分支并推送到 GitHub 远端仓库（commit: 06841d2b，关联 Issue #133）
+
+- **ReveriePaint-native 面板固定跳变越界修复与笔刷橡皮切换快捷操作纠偏 (2026-10-25, 完成)**:
+  - 核心架构与面板固定/平移统一容器重构:
+    - 消除坐标系硬断裂跳变：原实现在钉住面板时将 AnimatedVisibility 的 modifier 切换为硬编码对齐与偏移（PaintingPage 中写死 CenterStart / TopEnd / BottomStart），且将内部卡片脱离外层 fillMaxSize 容器，丢失了 floatingUiConfig 的 toolRailPosition / topBarPosition / sliderRailPosition 动态对齐与 inwardMargin 内缩外边距；重构为 AnimatedVisibility 统一使用 fillMaxSize，三大面板（BrushPanel、LayerPanel、ColorPanel）内部容器统一维持 Box(fillMaxSize)，钉住时仅移除 noRippleClickable(onClose) 遮罩并登记 PINNED_* 孔径，保留完全相同的 baseAlign、basePaddingModifier 与 offset，彻底消灭钉住瞬间卡片瞬移数千像素的跳变
+    - 自由平移拖拽越界钳位：在 DragPillHandle 的 onDrag 处理中接入 LocalConfiguration 屏幕宽高，将 brushPanelOffset、layerPanelOffset 与 colorPanelOffset 严格限制在 ±85% 屏幕尺寸内（coerceIn），彻底杜绝面板卡片被拖拽至屏幕可视区域之外
+    - 取消钉住与面板关闭状态重置：统一在取消固定与面板关闭回调中重置 offset 为 Offset.Zero，并在 updatePanelPinningEnabled 关闭全局开关时级联清理色板固定状态与偏移
+  - 笔刷与橡皮切换快捷操作纠偏:
+    - 逻辑纠偏：PaintViewModel.executeQuickAction 中 TOGGLE_ERASER 原先在 eraser 状态下 fallback 到 applyTool(lastToolId.ifEmpty { "brush" })，导致套索、涂抹等工具切入橡皮后再切回时回退到上个工具，沦为「当前所选工具与橡皮切换」；修正为 eraser 状态下强制切换为 brush，非 eraser 状态下切换为 eraser，严格履行「笔刷与橡皮切换」
+    - 文案与快捷键定义校正：同步修正 PaintViewModelShortcuts、values/strings.xml 与 values-en/strings.xml 中 toggle_eraser 的名称定义（画笔与橡皮切换 / Toggle Brush / Eraser）
+  - 测试构建与多端验证:
+    - 执行 testDebugUnitTest 单元测试全绿通过
+    - assembleDebug 成功打包并通过 ADB 推送到一加平板 2 Pro（c84b9192）真机安装验证
+    - 代码提交至 main 分支并推送到 GitHub 远端仓库（commit: dfa562b9）
+
+- **红米 K60 ColorOS 16.1 (Baklava/ac68c1a) 脏刷更新与 SukiSU/隐匿生态无损继承 (2026-10-25, 完成)**:
+  - 核心架构与固件刷写:
+    - 完整性校验与纯净备份：新版固件 `ColorOS16.1_REDMIK60_ac68c1a_20261012.zip` MD5（`ac68c1a...`）校验无误，提取纯净原厂 `boot.img` 归档至 `~/刷机/k60/原厂备份/boot_20261012_clean.img`
+    - 授权补丁脱壳：对 `VerificationPatchV2_20260914.zip` 清除中心目录伪加密标志位（0x0009 -> 0x0008），生成 `VerificationPatchV2_fixed.zip` 并推送至手机
+    - TWRP 全自动刷写：手机重启至 TWRP，通过 ADB CLI 触发安装，自动模拟硬件按键 `VOLUMEUP` 确认 MD5、SukiSU Ultra 及定制 Recovery 部署，流式解压写入 `super.img.zst`，随后无缝安装授权验证补丁
+  - 模块与防检测继承校验:
+    - 系统成功进入 ColorOS 16.1（PLQ110_11_A.01 / AetherKernel 5.10.246），保留数据更新零丢损
+    - SukiSU Ultra 4.2.0 (40900 / UAPI=2) 正常常驻
+    - Zygisk Next 1.5.0 正常注入，`enforce_denylist` 维持 0，Vector 守护进程保持 `unshare -m`，Tricky Store 与 HMA 模块自然继承生效
+    - 全面冻结系统 OTA 组件：已在红米 K60 与一加平板 2 Pro（100.107.36.2:5555）上将 `com.oplus.ota`、`com.oplus.cota`、`com.oplus.romupdate` 与 `com.oplus.upgradeguide` 全局及用户层级彻底禁用并清理缓存，双端彻底杜绝系统更新提示与后台静默下载
+
+- **Tailscale 异地全端互联、通信共享无损分流与全自动无线 ADB 守护落地 (2026-10-24, 完成)**:
+  - 核心架构与全端互联:
+    - 电脑端（Linux CachyOS）：`tailscale` 安装并启用 `tailscaled.service`，绑定 IP 为 `100.73.79.77`，配置代理环境与 `--accept-dns=false` 彻底消除 DNS 冲突，授权 `lanrhyme` 无密码操作
+    - 平板端（一加平板 2 Pro / c84b9192）：原生 ARM64 `tailscale` / `tailscaled` 部署至 `/data/adb/tailscale/`，认证上线绑定 IP 为 `100.107.36.2`
+    - 手机端（红米 K60 / ed3fdd92）：静默安装官方 Tailscale App；部署原生 ARM64 二进制至 `/data/adb/tailscale/`，配置开机自启守护 `/data/adb/service.d/tailscaled.sh`，认证上线绑定 IP 为 `100.127.72.106`
+  - ColorOS 通信共享与策略路由避坑重磅发现:
+    - Netfilter 强力阻断避坑：Tailscale 默认的 `--netfilter-mode=on` 会在 `FORWARD` 链首部插入 `ts-forward` 丢弃非 `tailscale0` 的转发包，导致手机向平板共享蜂窝数据（`p2p0` -> `rmnet_data`）彻底断网；通过 `--netfilter-mode=off` 彻底清空防火墙链予以根治
+    - 内核转发无 UID 陷阱：在 Linux 内核转发中，转发流量在某些路由阶段会被内核视为 uid 0，导致早前添加的 `uidrange 0-0 pref 4800 lookup $IFACE` 将互联网回给平板的包误路由回外网形成路由环路；彻底移除 rule 4800 并改用最高优先级 `pref 4700 to 100.64.0.0/10 lookup 52`，使 Tailscale 流量优先直入 WireGuard 隧道，其余流量自然走系统原生策略路由，通信共享与内网直连 100% 完美共存
+  - 全自动无线 ADB 守护体系 (PC + 手机/平板双端自启):
+    - 移动双端自启开机监听：红米 K60 与一加平板 2 Pro 均部署 `/data/adb/service.d/adbd-tcp.sh`，开机自动执行 `setprop service.adb.tcp.port 5555 && setprop ctl.restart adbd`，监听本地 `0.0.0.0:5555`
+    - 双端开机分流优化：两台移动设备 `/data/adb/service.d/tailscaled.sh` 均配置 `--netfilter-mode=off` 与 `pref 4700 to 100.64.0.0/10 lookup 52`，平板配合 `iif lo uidrange 0-0 pref 4800` 动态绑定默认出口，实现蜂窝共享/Wi-Fi/Tailscale 零冲突
+    - 电脑端后台守护与自启：编写 `~/.local/bin/adb-autoconnect.sh` 并配置 `~/.config/systemd/user/adb-autoconnect.service`，随电脑开机登录自启；轻量探测 `100.127.72.106:5555` 与 `100.107.36.2:5555`，一旦设备上线或进入网络自动执行 `adb connect`，两台设备均完全脱离 USB 数据线
+  - Tailscale Serve 服务化注册 (Services 目录激活):
+    - 官方服务注册：通过 `tailscale serve --bg 8787` 与 `tailscale serve --bg --https=5000 5000` 将 NyanoMuse 云端服务 (`:8787`) 与 Dufs WebDAV 文件服务 (`:5000`) 分别挂载至 Tailscale Serve 目录
+    - 控制台服务呈现：服务正式在 Tailscale Admin Console 的 **Services** 目录上架显示，内置获得原生 HTTPS 反向代理支持
+    - 双轨访问矩阵：对端既可通过 `tailscale.lanrhyme.top:8787` 与 `tailscale.lanrhyme.top:5000` 直连，亦可通过 Tailscale 官方虚拟服务域名无缝协同
+  - 互通验证：
+    - 平板端与手机端均成功与电脑双向通信（`ping 100.73.79.77` 0% packet loss），且电脑通过 Tailscale 同时稳定挂载 `100.127.72.106:5555` 与 `100.107.36.2:5555` 双端无线 ADB
+    - 平板端直连请求 `http://tailscale.lanrhyme.top:8787/healthz` 响应正常（`ok: true, version: 0.26.0`），彻底摆脱公网 DNS/CDN 波动与校园网隔离限制
+
+- **Antigrative Dashboard、Brain Visualizer 与 Link 扩展部署 (2026-10-24, 完成)**:
+  - 核心架构与多端安装:
+    - 仓库归档：源码归档至 `~/.local/share/antigrative-dashboard`
+    - 桌面端插件：安装至 `~/.gemini/config/plugins/antigravity-pulse`，运行时模式挂载成功（已连接活动渲染窗口）
+    - CLI 状态栏：通过 `manage.py install-cli --language zh-CN` 配置于 `~/.gemini/antigravity-cli/settings.json`，支持上下文、缓存率与额度监控
+    - Brain Visualizer：下载并解压官方最新 v0.7.1 二进制，部署至 `~/.local/bin/agy-brain-viz`，支持可视化检查本地 `~/.gemini/antigravity/brain/`
+    - Antigravity Link：下载最新 v1.0.20 VSIX，成功安装至 VS Code 扩展（`cafetechne.antigravity-link-extension`）
+  - 运维与状态校验：
+    - `python3 manage.py status` 与 `python3 manage.py status-cli` 校验均已正常 enabled
+    - `agy-brain-viz --version` 与 `code --list-extensions` 均校验通过
+
+- **NyanoMuse 跨端生图授权安全门与双轨情绪标签复制泄漏修复 (2026-10-23, 完成)**:
+  - 核心架构与安全分级加固:
+    - Hub 跨端生图授权安全门：将 image.generate 纳入 GATED_ACTIONS，杜绝免批准调用桌面端能力，未获用户授权前无法执行
+    - 路径穿越防护与参数规范化：image_name 实施严格白名单正则校验（^[A-Za-z0-9_-]{1,64}$），移除 subprocess.run 中无效的单引号转义并采用 json.dumps 规范编码，防止自然语言提示注入与路径穿越
+  - 双轨情绪闭环与选区复制防漏:
+    - 选区复制标签泄漏根治：在 ChatFlatItems.buildFlatChatItems 入口处统一对助手消息正文与工具块执行 mood 标签剥离，根治跨代码块选区复制时剪贴板携带 nm:mood 标签的问题
+    - 心境反哺提取顺序纠偏：ChatViewModel 调整情绪反馈提取顺序为本轮文本 turnText 优先于跨轮累积文本
+    - 讽刺检测增量保留与互抑上限微调：CompanionMoodStore.applyFeedback 调准 suppressCap 为 1.5f，并在反哺时保留端侧检测到的讽刺生闷气增量（当端侧检测到讽刺且模型误判为开心得意时保留 50% 生闷气增量）
+  - 测试与全平台构建验证:
+    - CompanionMoodStoreTest 补齐讽刺保留单测，安卓全量 1762+ 项单元测试全绿通过
+    - Python 端 test_coding.py 15 项测试全绿通过
+    - assembleDebug 成功编译打包生成 57MB debug APK
+    - 桌面端 harness 重新编译构建并同步部署至 ~/.local/opt/nyanomuse/
+
+- **NyanoMuse 编程工具集成 Antigravity 与移动端跨端 agy 生图体系落地 (2026-10-23, 完成)**:
+  - 核心架构与桌面端 Antigravity 接入 (nanomuse/coding & harness/dsh-nanomuse):
+    - 运行时 5 代理支持：Python 端 `nanomuse/coding/agents.py` 与 TypeScript 端 `coding-readers.ts` 新增 `antigravity`，定义 `bins=("agy",)`、`process=("agy", "antigravity")`，动态索引 IDE 目录 `~/.gemini/antigravity` 与 CLI 目录 `~/.gemini/antigravity-cli` 下 `conversation_summaries.db` SQLite 索引数据库与 `transcript.jsonl` 会话流
+    - 代理执行与事件归一化：`runner.py` 与 `coding-runner.ts` 接入 `agy --output-format stream-json --dangerously-skip-permissions`，并将 `agy` 的 `step_update` (text_delta)、`tool_call` 与 `state=DONE` 精准归一化为统一 coding 流程流式事件
+    - Hub 生图动作注入：`nanomuse/hub/actions.py` 与 `harness/dsh-nanomuse/src/actions.ts`、`cloud.ts` 注册并实现 `image.generate` 动作，调用 `agy` 工具并解析 `file://...` 或 `brain/<cid>` 图片输出，封装 Base64 与多媒体元数据返回，并接入桌面端 Toast 提醒
+  - 移动端双模触发与生图大图卡片交互 (Android):
+    - 伴生体自主工具注入：`NativeSystemTools` 新增 `TOOL_IMAGE_GENERATE = "image_generate"` 工具定义与执行逻辑，自动探测 Hub 在线电脑设备并分发 `image.generate`，返回图片二进制并保存至 `context.filesDir/generated_images`
+    - 手动 Slash 命令分发：`ChatViewModel` 接入 `/image <prompt>` 与 `/draw <prompt>`，自动装配并展示带加载状态的生图卡片，生成完成后将图片注入聊天气泡与流式 markdown 中
+    - 交互式图片卡片操作面板：`ChatToolDetailUI` 与 `ChatToolFormatting` 为 `image_generate` 挂载预览卡片，提供「设为壁纸」（联动 `ChatWallpaperManager` 动态应用为全局莫兰迪壁纸）与「保存相册」（通过 `MediaStore` 写入公共相册）快捷动作
+  - 编译测试与多端部署验证:
+    - Python 端 `pytest tests/test_coding.py` 15 项单测全绿通过
+    - 桌面端 harness `pnpm run build && pnpm test` 全量 359 项单测全绿通过，并同步部署至 `~/.local/opt/nyanomuse/`
+    - 移动端 `testDebugUnitTest` 单元测试通过，`assembleDebug` 打包成功并通过 ADB 成功安装至红米 K60 (ed3fdd92) 与一加平板 2 Pro (c84b9192) 真机
+
+- **NyanoMuse 移动端交互式终端与命令执行原生 Root 与 Host 模式深度适配 (2026-10-23, 完成)**:
+  - 核心架构与交互式终端解绑 PRoot 容器:
+    - 交互式终端 TerminalSession 执行模式动态路由：移除开机硬编码强制检查与启动 PRoot 容器的限制，根据用户在设置中选择的 ExecutionMode（ROOT、HOST_SHELL、PROOT_SANDBOX）分流；在 Root 模式下动态探测 su 路径（/system/bin/su、/system/xbin/su、/sbin/su、/data/adb/ksu/bin/su 等），PTY 直接以 root 环境变量（PATH 包含系统与 su 工具链、HOME=/storage/emulated/0、SHELL=/system/bin/sh 等）启动原生 root shell；在 Host 模式下直接启动 /system/bin/sh -i 原生宿主终端；在 PRoot 模式下保留既有 Alpine 容器沙箱启动流
+    - 路径切换与鉴权提示保护：消除进入终端后硬编码 cd /var/minis && clear 导致的安卓宿主报错，仅在 PRoot 沙箱模式下执行容器路径切换，Root/Host 模式下工作目录默认指向 /storage/emulated/0 或会话专属目录；su 启动失败或权限被拒时在 PTY 终端内输出清晰的授权引导提示
+  - 单次与后台命令执行及依赖检测适配:
+    - ShellExecutor 单次与后台执行解耦：ShellExecutor 新增 executeHostOrRoot，在非 PRoot 模式下通过 ProcessBuilder 调用 su -c 或 sh -c，执行前跳过 PRoot 容器启动检查
+    - 按需 Bash 检测适配：OnDemandBash 仅在 PRoot 容器内尝试执行 apk add bash，在 Root 与 Host 模式下直接探测宿主是否存在原生 bash，消除缺失 apk 命令导致的崩溃抛错
+    - Hub 动作守护：HubActions.boot 仅在 ExecutionMode == PROOT_SANDBOX 时才触发 PRoot 容器启动
+  - 界面呈现与模式切换联动:
+    - 状态徽标与标题联动：TerminalScreen 顶部栏根据当前活跃模式动态展示 nanoMuse Shell (Root)、(Host) 或 (PRoot)
+    - 切换模式生命周期终止：在设置界面（SettingsScreen）更改执行模式时，立即通过 ExecutionCoordinator.stopCurrentCommand 终止旧模式下的持久化 Shell 会话
+  - 测试与真机部署验证:
+    - 新增 ExecutionModeTest 覆盖各种执行模式判定与分支逻辑，单测全绿通过
+    - assembleDebug 成功编译打包并通过 ADB 静默安装至红米 K60（ed3fdd92）真机
+    - 提交记录 48f80a14 与 7537c03f
+
+- **NyanoMuse 伴侣 33 种心境体系与双出口情绪感知面板落地 (2026-10-23, 完成)**:
+  - 核心架构与 33 种心境分值引擎 (参考 dsh-mood):
+    - 三层心境枚举与基线空间：新建 CompanionMoodStore，定义基础 11 种（CALM、HAPPY、CURIOUS、FOCUSED、EXCITED、TIRED、ANNOYED、DOWN、FEAR、DISGUST、SURPRISE）、复合 18 种（HURT、SULK、PROUD、GLOOMY、ANXIOUS、NUMB、LONELY、FLUTTER、LOVE、JEALOUS、SHAME、GUILT、AWKWARD、SYMPATHY、DISAPPOINTED、NOSTALGIA、COY、CONFLICT）、当代 4 种（BURNOUT、CRACKED、CHECKEDOUT、HYPER），每种配置独立自然基线分值（0~100）与行为倾向
+    - 讽刺过滤与反向压制矩阵：detectSarcasm 提前拦截阴阳怪气与反讽用语，剔除「真厉害啊」「真行啊」等高频真诚夸奖误判词，压制误判并精准识别讽刺并转向委屈生闷气；judgeMessage 对用户输入进行意图识别并应用微调（±0.5~3.5），深度融合心理反向压制逻辑（真诚夸奖增加得意/开心/恋慕/撒娇并消解生闷气/委屈/烦躁，晚安睡眠强化困倦恬静，冷淡打发增加生闷气，摆烂内耗压制焦虑与防御，破防增加委屈低落并抑制烦躁火气）
+    - 昼夜节律与周期衰减闭环：circadianOffset 动态注入深夜自然困倦与清晨活力，并与持久化主导心境判定解耦（仅参与分值与混合态 secondary 计算，不侵蚀带防抖和保持期的 primary）；checkPeriodicDecay 接入 ChatViewModel 与 CompanionAlarmReceiver 每 3~6 小时定期将分值以确定性微抖动回落至基线；sessionTurns 与 sessionErrors 记录单会话回合与错误疲劳
+    - 大模型真实情感反哺与双轨去重闭环：建立端侧定「量」与模型定「义」的分工体系，支持大模型在回复末尾通过 <nm:mood feel="id" reason="..."/> 表达真实情感触动；applyFeedback 自动撤销端侧本轮临时预判增量以彻底消除双轨重复计数，并由客户端 FEEDBACK_DELTA 标定增量克服大模型自正面偏差与跨模型漂移；互抑总量硬封顶 <= 2.0；模型理由作为 modelNarrative 仅供仪表盘呈现而绝不回灌进入 prompt；权威落库点集中剥离并在桌面端 RemoteBubbles 增加兜底清洗
+    - 防抖切换与混合态计算：主导心境切换要求分值高出原主导 >= 5 分且维持 >= 15 分钟（或单次跃迁分值差 >= 15 分），消灭心境频繁跳跃抖动；次高心境与主导心境分值差距 < 8 分时判定为混合气味共存并在标题体现
+    - 客观事实切片与旧链清理：记录最近心境切换的时间戳、原始心境、目标心境与触发用户话语片段，严格以伴随客观事实呈现，避免生硬机械归因；彻底清理 ChatViewModel 中旧有的 appraiseUserTurn/impulseForAct 与 dynamic_bias 死代码
+  - 危机安全硬线守护 (DistressGuard):
+    - 绝望自伤敏感词硬线匹配：自杀、自残、割腕、想死、不想活了、撑不下去了等多字显式模式严格拦截，命中后激活 30 分钟硬线守护
+    - 角色让位与通用心理热线支持：DistressGuard.safetyOverridePrompt 强制模型收起所有傲娇、戏谑与角色扮演表演，以沉稳克制温暖的语气提供陪伴并通用引导寻求当地心理援助热线与危机干预公共渠道，彻底移除硬编码电话号码
+  - 提示词双出口与头像定制动效:
+    - 深度思考内心戏与回复语气双出口：ChatViewModel.buildSystemPrompt 注入内心戏指引，要求在 think 深度思考流露真实小反差内心 OS，正式回复语气自然渗透心境倾向但严禁自报分值数值
+    - 提示词黄金自检与易混情绪辨析指引：在 CompanionMoodStore.promptAddendum 注入三条黄金自检法则（换个人成立吗/替对方编了吗/姿态当内容了吗）、5 组易混情绪辨析（烦躁/生闷气、麻木/摆烂、焦虑/内耗、破防/吵架、兴奋/上头）、做不到的未来与同理心克制界限，以及极端痛苦自伤求救角色让位硬线；单测 testPromptAddendumQualityAndConstraints 全绿
+    - 头像动效扩充：AgentAvatar 扩充支持 SULK_JEALOUS（生闷气微颤背身）、CRACKED_HURT（委屈缩紧低头）、HYPER（上头高频弹性跳跃）专属动效，其余 30 种心境优雅归入 8 大动效家族
+  - 心境罗盘半屏仪表盘 (MoodDashboardSheet):
+    - 交互式面板：直观展示当前主导心境、混合态气味、最近转移客观事实与回合信息、33 种心境分类（全部/基础/复合/当代）实时分值进度条与基线刻度，支持一键重置回基线分值
+    - 双入口接入与深度多语言：主聊天顶栏副标题胶囊点击直接滑出 MoodDashboardSheet；伴侣设置界面（CompanionSettingsSheet）内响应式监听 emotionVersion 实时联动；状态胶囊与仪表盘文案全量接入 17 语种国际化
+  - 全语言多端与自动化测试:
+    - 17 种语言完整补齐心境名称、仪表盘、倾向、共存与转移事实等 19 个新 key 并通过 NmStringsParityTest 严格校验
+    - CompanionMoodStoreTest 覆盖 33 种心境初始化、真诚夸奖不误判、讽刺拦截、昼夜节律、分值夹持、反向压制、防抖门槛、混合态共存、周期回落、重置基线以及安全硬线单测，全量通过
+    - assembleDebug 编译打包成功
+
+- **NyanoMuse 伴侣主动聊天历史上下文丢失与重复早安缺陷修复 (2026-10-23, 完成)**:
+  - 核心架构与并发加载竞态修复:
+    - 历史会话异步加载竞态消除：定位到 HeadlessChatRunner 在触发主动提问时仅等待 activeEntryId 就立即调用 sendMessage，此时 ChatViewModel 的 loadSession 仍处于 IO 线程解析 Room 数据库消息阶段，导致 sendMessage 抓取到的 agentHistory 为空，模型在零历史上下文状态下输出；通过在 ChatViewModel 暴露 isSessionLoaded 并在 sendMessage 协程开头执行 sessionLoaded.first { it }，同时在 HeadlessChatRunner 显式等待 isSessionLoaded，彻底杜绝历史消息加载与发送的并发竞态
+    - 历史上下文完整性双重守卫：ChatViewModel 在 runAgentLoop 前置增加防御校验，若 agentHistory 仅包含当前新回合但数据库历史消息数量大于 1，自动从数据库重构 agentHistory，保证模型永远携带完整上下文
+  - 伴侣情绪与早安意图防重逻辑优化:
+    - 活跃互动场景优先守护：CompanionEmotion.evaluate 将 idleMs < 1h 的 FRESH_RESONANCE 判定前置，只要用户在 1 小时内有过真实对话，强制保持低意愿（proactiveScore = 0.15f）与静默陪伴，杜绝刚聊完天又被后台主动打扰
+    - 早安问候每日单次与已互动豁免：引入 hasGreetedMorningToday 标志位与今日 06:00 起已有互动的拦截校验，用户今早打过招呼或已发送过早安后，同一自然日绝不再触发 MORNING_GREETING，而是平滑流转为 CALM_COMPANION 或 CURIOUS_CHECKIN
+    - 主动提问频率真实用户消息守卫：CompanionPrefs.checkCanTrigger 增加 lastRealUserMessageTime 冷却校验，用户 1 小时内发言时阻断后台主动探访
+    - 上下文延续引导增强：RoutineWakes.armCompanion 注入 Context Continuity 指令，明确要求伴侣结合前文自然承接已有对话，严禁机械重复打招呼
+  - 测试与构建验证:
+    - CompanionEmotionTest 补充早安前置活跃、已问候流转与今早已有互动防护单测，全部通过
+    - assembleDebug 构建打包成功
+
+- **NyanoMuse 多端同步时延极限压缩与重连秒级增量补偿落地 (2026-10-22, 完成)**:
+  - 核心架构与同步链路时延优化:
+    - 移动端人工延迟消除：ConversationSync 中 PUSH_DELAY_MS 由 2000ms 压缩至 200ms，TURN_END_SETTLE_MS 由 1500ms 压缩至 200ms，消灭单次回合结束后长达 3.5s 以上的人工滞后，WAL 落盘即刻触发推送
+    - 前台自愈轮询提频：PULL_EVERY_MS 从 60000ms 优化至 15000ms，前台活跃期 15 秒快速自愈兜底，退后台自动停止轮询保持零耗电
+    - 会话切入即时拉取：ChatScreen 挂载 LaunchedEffect(sessionId)，切换或进入会话时经 200ms 触发 ConversationSync.pullSoon，消灭进会话等待广播帧的时差
+    - Hub 重连秒级全量补偿：HubClient 在 onState 变为 true（WebSocket 重连并握手完成）时立即调用 ConversationSync.syncSoon 与 FeedSync.triggerSync，彻底解决移动端锁屏休眠唤醒后漏广播导致的旧数据死区
+    - 桌面端多端参数对齐：harness/dsh-nanomuse/src/sync.ts 同步调整 PUSH_DELAY_MS 与 FRAME_COALESCE_MS 为 200ms，PULL_EVERY_MS 调整为 15000ms，重新构建 lib 并同步部署至 ~/.local/opt/nyanomuse/ 运行时目录
+  - 测试与多端部署:
+    - 桌面端 pnpm test 全量 359 项单测全绿通过
+    - 移动端 testDebugUnitTest 单测通过（io.github.nanomuse.sync.* 全绿）
+    - assembleDebug 编译通过，并通过 ADB 成功静默安装至一加平板 2 Pro（c84b9192）与红米 K60（ed3fdd92）
+    - 桌面端后台进程 nyanomuse-desktop 平滑重载
+
+- **NyanoMuse 代码块超长折叠交互优化与伴侣全功能环境感知体系落地 (2026-10-22, 完成)**:
+  - 核心架构与代码块视口折叠:
+    - 行数阈值自适应折叠：StreamingMarkdownText 与 MarkdownText 实现超长代码保护，代码行数大于 12 行时自动折叠，仅保留前 5 行代码预览并在底部覆盖垂直渐变阴影，提供「展开全部 (共 N 行)」按钮；展开后顶部工具栏右侧常驻收起图标，长代码底部提供轻量收起手风琴，右上角常驻一键复制代码并带触觉震动与对勾反馈
+    - 流式打字视口稳定守卫：通过 LocalIsStreaming 与 LocalLiveIncremental 动态感知流式输出阶段，正在生成打字中的代码块保持展开状态，彻底杜绝打字过程视口高度抖动
+    - 全语言本地化与视口一致性：17 种国际化语言补全展开与收起文案，通过 NmStringsParityTest 严格校验
+  - 伴侣环境感知工具链与主动迎候引擎:
+    - 原生前台应用感知工具 foreground_app：NativeSystemTools 新增 TOOL_FOREGROUND_APP 只读工具，通过 Root 模式 dumpsys window mCurrentFocus 解析当前前台应用包名与 Activity，并转换为用户友好的应用标签（如哔哩哔哩、微信、QQ、游戏等）；非 Root 环境接入 Accessibility 与 ActivityManager 降级回退；附带当前电量、充电状态与系统时刻
+    - 阶梯式感知架构：RoutineWakes.armCompanion 提示词注入环境感知引导，伴侣可自主先调用 foreground_app 或 device_info 感知用户动态，若需深入理解屏幕画面（如游戏战局、视频、代码报错）再自主按需调用 screen_capture 截图并通过视觉通道深度解析
+    - 双重主动触发流与冷却防打扰：ChatScreen 挂载主聊天时接入前台迎候（Foreground Greeting），离开应用超过 30 分钟重新进入时，伴侣自动感知当前上下文并发出亲昵开场白；后台关怀每日上限 3~5 次并遵循夜间免打扰策略
+  - 测试与真机部署:
+    - NmStringsParityTest 国际化单测与 CompanionEmotionTest 单测全绿通过
+    - assembleDebug 编译打包成功并已通过 ADB 静默安装至红米 K60（ed3fdd92）与一加平板 2 Pro（c84b9192）
+
+- **NyanoMuse 桌面端真实动态同步打通与全页面全局壁纸背景透视落地 (2026-10-22, 完成)**:
+  - 核心架构与桌面端动态通道修复:
+    - 桌面端 DSH 扩展注册与广播：定位到电脑端实际运行的 Electron DSH 插件 harness/dsh-nanomuse/src/cloud.ts，此前未在 actions 声明 feed.posts 与 feed.activity 导致对端无法发现；在 actions() 注册这两项并在 Service.init 中挂载处理函数，直接读取 rooms.json 中的真实动态（400+ 行）与 activity 返回，重新构建 lib 并部署到运行时目录，重启 DSH 后台服务生效
+    - 移动端多变体时间戳与日期容错解析：FeedSync 适配 rooms.json 的 at 毫秒时间戳字段（兼容 created_at、ts 与 at），若 day 为空自动格式化为 yyyy-MM-dd；目标设备选择策略优化，兼顾 online 状态与 actions 列表
+    - 用户操作反馈与 Hub 状态监听：triggerSync 支持 userInitiated 模式，在手动同步成功或失败时通过 Toast 即时反馈导入条数与总数；FeedTab 监听 Hub.connected 与 Hub.devices，当设备上线时自动触发后台增量同步；FeedTab 接入 Material3 PullToRefreshBox 原生下拉刷新手势，随手下拉即可触发全量同步
+  - 全页面全局壁纸背景与通透磨砂层级:
+    - 根级壁纸容器 AppWallpaperBackground：封装对 ChatWallpaperManager 路径、高斯模糊与暗色遮罩的实时监听，通过 LocalHasAppWallpaper CompositionLocal 向全应用提供壁纸状态
+    - 全页面透明化与卡片磨砂效果：修改 MainActivity 将 AppNavigation 包裹在 AppWallpaperBackground 中；AppNavigation 根级 NavHost modifier 设置透明背景消除对底层壁纸的遮盖；NanoMuseHome 非会话页外层 Surface、FeedTab、IdeasTab、GoalsTab、LibraryTab、SettingsScreen、SettingsScaffold、AvatarStudioScreen 与 AgentProfileScreen 的底层背景在存在壁纸时自动设为透明；MuseCard、FeedCard、Segmented 控件采用 0.88 混合半透明微磨砂质感，让壁纸在全应用通透沉浸呈现
+    - 会话页去重：ChatScreen 接入 LocalHasAppWallpaper，移除自身多余的壁纸二次解码与模糊渲染，与全局底层壁纸无缝衔接且零闪烁
+  - 构建与真机部署:
+    - assembleDebug 构建通过，并通过 ADB 成功安装至红米 K60（ed3fdd92）
+  - 提交记录 95be5bb9、36280c3b 与 7c99eedf
+
+- **NyanoMuse 伴侣情绪夜间锁死修复与顶栏头像 8 情绪专属微动效落地 (2026-10-22, 完成)**:
+  - 核心架构与情绪流转修复:
+    - 夜间与静默时段活跃对话感知：CompanionEmotion.evaluate 引入 isActivelyEngaged = idleMs < 30min 判断，用户在 21:30~22:59 晚安关怀时段与 23:00~08:00 静默时段仍在前台活跃对话时，不再无条件锁死为困倦 SLEEPY，而是正常进入欢快活跃心境 FRESH_RESONANCE
+    - 日常闲聊正向心境保持：blendWithAsymmetricDecay 中 CASUAL_CHAT 在活跃衰减期保持 PrimaryMood.HAPPY，消灭此前因价态门槛过高而频繁跌回夜间困倦状态的问题
+    - 对话意图识别词库扩充与时间戳剥离：appraiseUserTurn 前置通过 BubbleTimeFormatter.stripUserPromptTimestamp 清洗尾部注入的提示词时间戳，扩充涵盖「可以可以」「好耶」「帮我看看」等高频日常口语词典，并增强闲聊打趣的愉悦冲量
+    - 响应式状态流与即时通知：CompanionStatus 增加 emotionVersion: StateFlow<Long>，在 recordEmotionImpulse、recordLastRealUserMessageTime 以及情绪开关与强度调整时立即自增通知；ChatScreen 将其接入 remember key，彻底终结此前 60 秒轮询导致的状态迟钝
+    - 发送即时感知：ChatViewModel 在用户点击发送与注入排队回合瞬间即刻执行意图与冲量计算，顶栏头像与状态秒级响应，模型提示词组装时直接读取最新情绪
+  - 头像多维专属微动效系统:
+    - 瞬时弹性入场动效：AgentAvatar 监听 companionMood，8 种情绪切换时分别触发定制弹簧与关键帧动画（EXCITED 活力跳跃、HAPPY 欢快双跳、TOUCHED 温暖双心跳脉冲、SHY 害羞歪头微红、CURIOUS 竖耳探头向上、SLEEPY 困倦低头、CARING 温柔关切侧倾、LONGING 依恋思念延展）
+    - 差异化呼吸与位移节奏：针对不同情绪定制呼吸周期（EXCITED 1200ms、HAPPY 2000ms、CARING 2800ms、SLEEPY 3600ms）与微悬停位移幅度，实现生动细腻的伴侣级互动感
+  - 自动化测试与构建:
+    - CompanionEmotionTest 补充夜间活跃对话、晚安关怀活跃豁免与时间戳清洗单测，全量通过
+    - assembleDebug 编译通过
+  - 提交记录 45cdccc9
+
+- **NyanoMuse 手机平板与电脑动态跨端同步与活动流展示落地 (2026-10-22, 完成)**:
+  - 核心架构与跨端同步流打通:
+    - 电脑端 Hub 动作扩展：nanomuse/hub/service.py 在 _extra_actions 注册 feed.posts 与 feed.activity 动作，并在分发调度器中对接 svc.feed_posts 与 svc.feed(limit)，打通电脑向移动端输出每日早报与后台离开期间活动流的能力
+    - 移动端存储与持久化去重落盘：FeedStore 引入 RemotePost 数据结构与 importRemotePosts 方法，按日期分目录落盘 markdown 文件并按标题不区分大小写去重，完成后自动触发 reload 与 prune
+    - 移动端 P2P 同步单例：新建 FeedSync 单例，封装 sync 与 triggerSync，自动识别 Hub 在线电脑设备并并发拉取 feed.posts 与 feed.activity，解析后台任务、文件产出与通知事件；同时提供 handleLocalPostsCall 响应对端设备的动态请求
+    - 动态广播与静默唤醒：ConversationSync 在 Hub 接收到 what == "feed" 的广播同步帧时，自动唤醒 FeedSync.triggerSync 执行增量拉取
+    - 移动端 FeedTab 视觉呈现与活动流展示：FeedTab 监听 FeedSync.activities 与 isSyncing，在进入动态页时自动触发静默同步；新增 While you were away（在你离开期间）活动卡片流与分类图标、相对时间戳与一键跳转所属会话能力；空白状态与设置弹窗中增加从电脑同步动态操作入口与进度指示器
+    - 国际化文案支持：nm_strings.xml 与 values-zh 补齐在你离开期间、从电脑同步动态与正在同步动态等词条
+  - 构建验证:
+    - assembleDebug 编译打包通过，生成 57MB debug APK
+  - 提交记录 871dc73a
+
+- **NyanoMuse 手机端侧边栏 UI 重构与主导航移入抽屉落地 (2026-10-22, 完成)**:
+  - 核心架构与交互重构:
+    - 聊天界面全屏纯粹化：彻底移除手机聊天页面底部悬浮的 MuseBottomBar，输入框（Composer）自然贴近屏幕底部手势线，为聊天消息流腾出完整的纵向空间，nmBottomOverlay 设为 0dp
+    - 侧边栏顶部功能导航：在侧边栏顶部伴侣名字下方，集成自适应横向 5-Tab 胶囊导航栏（聊天、动态、灵感、目标、知识库），点击平滑切换并自动收起抽屉，全应用支持边缘滑动呼出侧边栏
+    - 侧边栏结构精简与重排：主聊天卡片使用低饱和微透明卡片与高亮边框替代生硬黑底，搜索栏移至全部会话列表正上方支持即时过滤与一键清空，底部移除重复新建按钮与挤压搜索框，仅保留精致清爽的设置与文档入口
+  - 构建与真机部署:
+    - assembleDebug 编译通过，并通过 ADB 静默安装至红米 K60（ed3fdd92）
+  - 提交记录 fec910a7
+
+- **NyanoMuse 伴侣多气泡切分提示词强引导与容错解析增强 (2026-10-22, 完成)**:
+  - 核心架构与提示词引导增强:
+    - 纯指令式提示词与边界规约：重构 bubbleFlowAddendum，摒弃冗长示例与弱语气英文，替换为极简纯中文直接指令，明确日常闲聊拆分 2~3 个短气泡及代码技术严禁切分的场景边界
+    - 容错正则解析下沉：BubbleTimeFormatter 引入 BUBBLE_REGEX（忽略大小写，兼容带空格如 <nm:bubble /> 与变体），ChatFlatItems 与 ChatRepository 全面接入，杜绝因轻微语法差异导致漏切分
+    - 气泡文本首尾清洗：ChatFlatItems 切分后执行 trim() 清洗，消除分段产生的换行与空白，保证自适应单行与时间戳测算精确生效
+    - 流式节奏解耦全局支持：解除流式打字停顿对 isMain 的硬编码限制，只要出现气泡切分标签即触发 450ms 拟人停顿
+  - 自动化测试与真机部署:
+    - 507 项单元测试全绿通过，assembleDebug 编译打包通过，并通过 ADB 静默刷入平板（c84b9192）与手机（ed3fdd92）
+
+- **NyanoMuse 消息列表自适应分页加载与历史静默预加载落地 (2026-10-22, 完成)**:
+  - 核心架构与无感分页机制:
+    - UI 视图层自适应分页（UI Windowing）：超长会话初次进入仅加载最新 60 条消息，大幅减少初始 FlatChatItem 构建与 Markdown 解析节点，彻底根除深层嵌套导致的内存峰值与 OOM 隐患；底层 agentHistory、LLM 上下文滑动窗口与 SQLite 数据无损完整保留
+    - 动态增量视窗模型：以 initialSessionMessageCount 锚定历史基数，新发送与实时接收的新消息动态追加视窗容量，杜绝传统 takeLast 导致旧消息被挤出视口的吞消息隐患
+    - 接近顶部静默无感预加载：通过 snapshotFlow 动态监听 LazyColumn 触顶距离（距顶部不超过 8 项时自动触发），无感后台递增 40 条历史，节流防抖平滑无跳变
+    - 极简双态顶部指示器：存在更早历史时展示 16dp 微型转圈与「正在加载更早历史…」，加载完毕且会话超过 60 条时展示低饱和「已加载全部历史消息」极简文本
+  - 自动化测试与构建验证:
+    - 安卓端全量 505 项单元测试通过，assembleDebug 编译打包通过
+
+- **NyanoMuse 顶栏纯余额胶囊展示、阶梯式全量预热与长会话滚动极致性能优化 (2026-10-22, 完成)**:
+  - 核心架构与长对话滚动性能重构:
+    - 顶栏纯余额胶囊：DeepSeekStatus displayText 精简移除「今日花费」，仅显示「¥余额」，极简紧凑且点击仍完整呼出 Token 消费详情面板
+    - 渐进式二级 Markdown 预热（Two-Tier Prewarming）：ChatScreen 彻底打破原有 16 条视口限制，Tier 1 优先后台预热首屏 16 条保证冷启秒开，Tier 2 在后台以 yield 协程协作模式分批预热全量剩余历史消息，彻底消除长会话向上飞抛滚动时的冷解析预览闪烁、动态高度跳变与布局抖动
+    - 自适应气泡 O(1) 零开销测算：ChatBubbleAdaptiveLayout 引入先验水平宽度校验，并通过 FirstBaseline == LastBaseline 原生判断单行，彻底消除滚动期间对 measurables[0].minIntrinsicHeight 的重复二次测量遍历开销，消息气泡追加 50 字快速短路保护
+    - 冷解析日志去噪限频：StreamingMarkdownText 仅对超过 15ms 的重型解析输出日志，消灭滚动期间持续磁盘 I/O 开销
+  - 自动化测试与构建验证:
+    - 安卓端全量 505 项单元测试通过，assembleDebug 编译打包通过
+
+- **NyanoMuse 跨端多气泡形态统一、列表预览过滤与时间戳清洗下沉 (2026-10-22, 完成)**:
+  - 架构统合与端到端闭环:
+    - 跨端多气泡形态一致性：Transcript.kt 恢复保留同步文本中的 `<nm:bubble/>`，RemoteBubbles.ts 桌面端实现多气泡分割（上限 3 气泡）并注入自适应圆角与纵向间距，实现手机端与桌面端完全一致的拟真多气泡流式视觉
+    - 会话列表预览全链路清洗：ChatRepository.cleanPreview 过滤 `<nm:bubble/>` 为空格，桌面端 ui.plain 同步清洗，会话列表与搜索预览绝不泄漏分隔符
+    - 时间戳与字符串工具下沉解耦：BubbleTimeFormatter 集中管理 NM_BUBBLE_TAG、BUBBLE_CADENCE_DELAY_MS、USER_PROMPT_TIMESTAMP_REGEX、stripUserPromptTimestamp 与 countOccurrences，ChatViewModel 委托调用；MemoryExtractor 提取前置清洗时间戳，杜绝时间戳污染被动记忆
+    - CHANGELOG 全量补齐：CHANGELOG.md 补齐伴侣情绪系统、多气泡连续流与消息时间感知全部用户可见特性
+  - 自动化测试与构建:
+    - 安卓端全量 505+ 项单元测试全绿，桌面端 359/359 全绿且类型检查通过，assembleDebug 构建通过
+  - 提交记录 c59732f5
+
+- **NyanoMuse 跨端同步与历史回放气泡标签剥离、多气泡间距与探针脱敏修复 (2026-10-22, 完成)**:
+  - 架构防御与跨端标签治理:
+    - 剥离跨端同步与 LLM 历史气泡标签：Transcript.kt 与 RemoteBubbles.ts 在同步文本中将 `<nm:bubble/>` 剥离为双换行；ChatViewModel 在 agentHistory.add 与 toLLMMessage 中将助手消息中的 `<nm:bubble/>` 替换为双换行，彻底杜绝多端泄露与上下文失控失真
+    - 解决多气泡间距假死代码：NmHomeChrome 修复 topPad 与 bottomPad 硬编码 2.dp 导致的簇内与边界间距未分化问题，簇内设为 1.5.dp（相邻累加 3.dp），边界分别设为 4.dp 与 6.dp，恢复真实聚类层次
+    - 消除正则重复编译与常量提取：提取 NM_BUBBLE_TAG、BUBBLE_CADENCE_DELAY_MS 与 countOccurrences 纯字符遍历，彻底消灭流式打字中每 chunk 重复编译正则开销
+    - 区分 blockIndex 与 segmentIndex：AssistantMarkdownBlock 与 ChatScreen 明确区分块索引与分段索引，key、slotKey、stableKey 与 shardId 补全段索引，彻底杜绝长文本与多段选择碰撞
+    - 压缩摘要过滤提示词时间戳：buildConversationTextForSummary 过滤 USER_PROMPT_TIMESTAMP_REGEX，杜绝时间戳被当作对话历史记忆总结
+    - 探针英文脱敏与文档更新：CompanionStatus.probeDetails 标签改为中性英文，docs/android.md 补充主聊天伴侣实时提示词增量说明
+  - 自动化测试与构建:
+    - 单元测试与 assembleDebug 100% 绿色构建通过
+  - 提交记录 a5ca5359
+
+- **NyanoMuse 消息气泡 Telegram 风格时间戳与主聊天用户发言时间感知落地 (2026-10-22, 完成)**:
+  - 核心架构与拟真时间体验:
+    - AI 时间感知零缓存破坏注入：仅在主聊天中，用户发言进入 agentHistory 与历史重建（toLLMMessage）时，在回合文本末尾附带发送真实时间戳 [yyyy-MM-dd EEE HH:mm]（如 [2026-10-22 周四 16:05]），前文历史前缀字节 100% 保持稳定无损，模型可精确感知跨天、深夜问候与数小时闲置间隔；副聊天严格排除该注入
+    - 全局 Telegram 风格气泡时间戳：UserMessageBubble 与 NmAssistantBubble 右下角排布 11sp 微型时间角标（formatBubbleTime 输出 HH:mm），用户气泡半透明柔和显示，AI 气泡采用 ChatColors.tertiaryText
+    - 多气泡聚合群规约：多气泡连续流中仅最后一个气泡显示时间戳，群内前序气泡保持极简干净，流式接收中动态抑制时间戳，完毕后平滑显现
+    - 数据贯穿与持久化还原：ChatMessage 增加 createdAt 字段，toChatMessage 映射 SQLite entity.createdAt 真实入库时间戳，连续助手回合合并时正确继承最新时间戳，FlatChatItem 完整承接
+  - 单元测试与构建验证:
+    - BubbleTimeFormatterTest 覆盖时刻格式化、边界值防御与国际化完整日期星期格式化测试
+    - AssistantBubbleGroupingTest 补充 createdAt 在 AssistantMarkdownBlock 上的传递校验
+    - 全量单测绿色通过，assembleDebug 编译通过
+  - 提交记录 51c19619
+
+- **NyanoMuse 主对话拟真多气泡连续消息与打字节奏流全链路落地 (2026-10-22, 完成)**:
+  - 核心架构与拟真人性化设计:
+    - 结构性气泡语法解耦：采用显式语义标签 `<nm:bubble/>` 作为连续消息切分点，由模型在随意聊天、情绪共鸣或简短问候时自主触发，单回合最多 2 次切分（最多连续 3 个短气泡），长篇说明、技术讲解与代码块严禁拆分；Prompt 指导仅规范结构性排版，不预设也不侵入用户自定义人格
+    - 流式打字节奏与动态停顿：ChatViewModel 在收集到 `<nm:bubble/>` 时即刻刷写 UI 封口当前气泡，并在协程层引入 450ms 拟人停顿与打字脉冲（BouncingDots），随后流式吐出下一气泡，还原真人打字断句与发消息节奏
+    - 聚类气泡视觉与自适应圆角：NmAssistantBubble 与 AssistantMarkdownBlock 支持 clusterIndex 与 clusterSize，同簇气泡垂直间距紧凑（4dp），外侧角采用 18dp 莫兰迪大圆角，内侧相邻角收缩为 4dp 微圆角，形成微信/Telegram 风格的自然聚合气泡群
+    - 数据展平与生命周期守卫：ChatFlatItems 在历史展平时安全解析 `<nm:bubble/>`，上限保护为最多 3 个气泡，首气泡承接 leadingThinking 思考引线，尾气泡承接流式状态与 selectedAnswer 作答，流式空尾段保留以展现打字指示器
+  - 自动化测试与构建:
+    - AssistantBubbleGroupingTest 补齐多气泡切分、簇数量上限截断、流式空尾气泡保留与思考引线归属全部用例，100% 绿色通过
+    - assembleDebug 构建通过
+  - 提交记录 814c5ed6
+
+- **NyanoMuse 伴侣情绪系统全链路闭环优化与对话感知微动效联动 (2026-10-22, 完成)**:
+  - 核心架构与二轮审查深度落实:
+    - 落实外部 AI 审查报告 v2 提出的全部必改项与优化项（P0-1 助手落库点、P0-2 规避自指循环、P0-3 对话行为评估矩阵、P1-1 安全边界与独立开关、P1-2 负向自愈防打架、P1-3 前缀缓存零损耗、P1-4 可观测探针长按防冲突）
+    - Dialogue Act 确定性矩阵：摒弃脆弱词典法与自指输入，appraiseUserTurn 仅严格解析用户发言文本，内置前置反讽/阴阳怪气识别（如「呵呵」「真棒呢」），支持 6 大行为类别（PRAISE/VENTING/PLAYFUL_TEASE/GREETING_NIGHT/QUESTION_CURIOUS/CASUAL_CHAT）
+    - 非对称半衰衰减模型：blendWithAsymmetricDecay 纯函数实现积极情绪半衰期 15min、负向情绪半衰期 5min，当倾诉（VENTING）被识别后关切心境（CARING）持续主导 10min（ratio > 0.25），明确指示模型温柔关切绝不嬉皮笑脸，下一次用户互动即刻按新行为重构心境，杜绝死锁与失忆
+    - 助手精准落库与幂等钩子：ChatViewModel runAgentLoop 仅在 no tool calls -> break 最终助手回合（:9356）触发单次情绪计算，以 lastAppraisedAssistantMsgId 实施幂等守卫，从 agentHistory 逆向提取最后一条用户文本，排查并避开中间工具轮与占位气泡
+    - Prompt Cache 零损耗注入：在 buildSystemPrompt 的 volatileSections 尾部注入 MATE 规范的伴侣心境增量（Companion Heart & Disposition），严格位于 runtimeContext 之前，保持 stableSections 前缀字节完全稳定，DeepSeek / Anthropic 前缀缓存 100% 命中
+    - 情绪与主动独立解耦：CompanionPrefs 新增 companion_emotion_enabled 独立开关，情绪表现（主聊心境感知）与主动陪伴（定时问候）可各自独立启闭；CompanionSettingsSheet 支持克制/正常/生动三档强度与好感度可见可重置
+    - 顶栏心境探针与 Compose 微动效：主聊顶栏头像下方状态胶囊改用 combinedClickable，短按跳转档案，长按弹出包含效价、唤醒度、好感度与半衰期的实时探针 Toast；AgentAvatar 保持 5 态资源管线稳定，通过 graphicsLayer 读取伴侣心境并渲染害羞轻晃、好奇侧耳与兴奋雀跃微动效
+    - 17 种国际化语言与穷举守卫：全量补齐 17 种语言 nm_strings.xml，CompanionNotifications 与 CompanionWake 穷举处理所有 8 种 PrimaryMood
+  - 代码终审精细化缺陷修复 (emotion_system_code_review.md):
+    - P0-1 称呼 key 拼写修复：FirstConversation.KEY_ADDRESS 改为 internal 统一引用，彻底解决 first_conversation_address 无点导致的读取失效问题，增加 12 字符安全截断防超长污染 prompt
+    - P0-2 独立维度非对称衰减：提取 decayOne 纯函数，P（效价）与 A（唤醒度）分别按符号独立选择半衰期，解绑共用 ratio 缺陷，确保用户倾诉（VENTING）时高唤醒持续 15 分钟温情陪伴
+    - P0-3/P1-5 反讽检测与误伤治理：词表补充中文高频阴阳怪气词句（「行吧」「你开心就好」「我可谢谢你了」等），移除易产生歧义的「你最好」，补全「辛苦了」，引入二段式防讽刺复查
+    - P0-4 偏置累积与时间连续衰减统一：recordEmotionImpulse 移除与时间脱节的固定 0.4 系数，记录新冲量时先按 elapsedMs 执行 decayOne 衰减再累加，持久化数值严格反映当前真实偏置
+    - P1-1/P1-2 顶栏状态性能与 60s 刷新：ChatScreen 单次计算 compState 并通过 60 秒低频 ticker 驱动重组，自然平复衰减在 UI 上清晰可感
+    - 完备单元测试补齐：CompanionEmotionTest 新增 6 类行为判定、反讽拦截、单维度衰减数学、倾诉唤醒度保持与称呼安全截断全量用例
+  - 测试与构建验证:
+    - 单元测试 1721 项全部通过，assembleDebug 打包成功
+  - 提交记录 ffe798c3, 6792a0c5
+
+- **NyanoMuse 深度思考卡片融合进消息气泡与极简引线手风琴重构 (2026-10-22, 完成)**:
+  - 核心痛点与视觉重塑:
+    - 根除突兀亮蓝硬编码：彻底移除原先孤立的 Color(0xFF015CFB) 亮蓝实框大卡片，深度融入全局 Morandi 配色体系（ChatColors.thinking 与二级字色 ChatColors.secondaryText），告别刺眼视觉噪声
+    - 极简引线手风琴交互：借鉴 DeepSeek 与 Claude 现代设计，外层去除繁重边框与底色，收缩时呈现单行轻量手风琴头部，展开时采用 2.5dp 莫兰迪圆角左引线 + 8dp 呼吸缩进，配合 drawBehind 规避 Compose 嵌套内嵌滚动测量问题
+    - 中文自然字体排版：正文字体取代全等宽生硬 Monospace 字体，字号 13.sp、行高 19.5.sp，中文阅读舒适自然
+    - 实时计时与状态分化：思考中展示旋转指示器与实时计时「思考中 (Xs)…」，思考结束自动收起并转换为「已深度思考 (Xs)」
+  - 同气泡一体融合架构:
+    - ChatFlatItems 构建时将紧邻正文的思考块作为 leadingThinking 注入 AssistantMarkdownBlock，NmAssistantBubble 内部气泡首行优先渲染思考手风琴，正文紧接着在下方顺滑衔接，真正消除两个卡片断裂感；纯思考流式阶段同样包裹统一气泡
+    - ChatViewModel 完善思考块创建与结束计时（startTimeMs 与 durationMs 闭环记录）
+    - 17 种国际化语言全面补齐思考中与完成文案并经 NmStringsParityTest 严格校验通过
+  - 测试与构建:
+    - 编写并更新 AssistantBubbleGroupingTest 覆盖融合气泡与流式独立气泡全部用例
+    - 全量 1715 项单元测试 100% 绿色通过，assembleDebug 构建成功
+  - 提交记录 46b2ec9c
+
+- **NyanoMuse 安卓端动态配置弹窗滚动与保存按钮常驻优化 (2026-10-22, 完成)**:
+  - 核心痛点根除与布局重构:
+    - 针对 FeedSettingsSheet 原 OutlinedTextField 无最大高度约束且父容器缺少滚动与 imePadding，导致输入内容较长或输入法弹起时保存按钮被直接挤出可视区域的问题
+    - 输入框 OutlinedTextField 增加 heightIn(min = 120.dp, max = 220.dp) 边界，超长内容内部滚动
+    - 上半部分表单封装进 weight(1f, fill = false).verticalScroll(rememberScrollState()) 滚动容器，底部保存按钮独立常驻于底部并外挂 imePadding，无论内容多长或软键盘弹出均牢牢保持可见可用
+  - 测试与部署:
+    - assembleDebug 编译通过并已部署至一加平板 2 Pro（c84b9192）与红米 K60（ed3fdd92）
+
+- **NyanoMuse 伴侣主动对话、情绪系统、侧边栏主聊天与大模型上下文扩充落地 (2026-10-22, 完成)**:
+  - 核心架构与落地细节:
+    - 阶段一 (纯函数情绪状态机与流控持久化): PAD 纯函数 CompanionEmotion，输入当前时钟、真实用户消息闲置时长（ChatDao allUserMessageStamps 排除虚拟 RoutineWakes 消息）与按本地时区聚合真实真人互动天数，计算确定性心境；清理未使用的 lastUserMessageCreatedAt；免打扰、冷却防抖、每日限额与今日计数存储于 nanomuse 偏好；专属高优先级通知通道
+    - 阶段二 (无感评估、调度触发与发话投递): 注册 CompanionAlarmReceiver 30 分钟省电对齐闹钟监听开机自启；场景 tag 全面规范化（normalizeScenario 杜绝短前缀关不掉问题）；CompanionWake 使用 try-finally 恢复会话原始模型绑定；通过 HeadlessChatRunner.prompt 后台无声投递，后台时触发高优先级横幅通知；NmRoutineWakeRow 专属单行静默渲染
+    - 阶段三 (主聊天大容量滑动窗口与异步记忆蒸馏): MainChatContextPolicy 针对 128k 至 1M 大模型动态放宽至 64k 至 256k Token 预算，意在保持主聊天细节绝对无损，溢出才触发蒸馏；ChatViewModel 彻底旁路主聊天三处 compactAll 入口规避累加衰减，溢出消息异步经 MainChatMemoryDistiller 蒸馏写入 StructuredMemory（事实 source='distilled'，羁绊 category='bond'），游标 companion_distilled_msg_ids 全消息去重防重复追加并加入 5MB 归档文件轮转保护
+    - 阶段四 (UI、侧边栏常驻、多语言本地化与配置中心): 移动端 SideChatDrawer 与电脑端 MuseChats.tsx 顶部新建会话下方均常驻「主聊天」专属快捷入口，带有 Home 图标与选中指示圆点，列表剔除主会话防重；NanoMuseHeader 接入伴侣实时心境副标题；SettingsScreen 新增「伴侣与情绪系统」入口并挂载 CompanionSettingsSheet 底部弹窗；设置面板内场景列表、小时单位与上限标题全量补齐 17 种国际化语言文案并经 NmStringsParityTest 严格校验
+  - 测试与部署:
+    - 20 项 Companion/ContextPolicy 专项单元测试全部通过，全量 1711 项单元测试 100% 绿色通过，桌面端 358 项全绿
+    - assembleDebug 构建通过并通过 ADB 成功热更新安装至手机端（ed3fdd92）与平板端（c84b9192）
+    - 桌面端编译生成 lib 产物并部署至 ~/.local/opt/nyanomuse/，重载桌面端进程（nyanomuse-desktop）正常运行
+
+- **NyanoMuse AI 输出完成通知提醒、触觉振动与内容摘要全链路落地 (2026-10-21, 完成)**:
+  - 核心病因根治与提醒体系升级:
+    - 原生缺口与体验痛点：原先 BackgroundTaskNotifier 仅在应用彻底退入后台时发通知，且通知通道被设为 IMPORTANCE_DEFAULT（低优先级静默无横幅），通知内容机械固定为「点击打开聊天查看回复」，未显示 AI 真实回复；同时前台无任何振动触觉反馈，前台切换到其他 Tab（如 Ideas/Goals/Library/Settings）或在桌面使用其他应用时，用户完全感知不到生成完毕
+    - 全新高优先级横幅通知流：重构 BackgroundTaskNotifier，升级专属通知通道 nanomuse_task_completed 为 IMPORTANCE_HIGH 并启用振动与声音，以浮动横幅（Heads-up）形式直观弹出；标题智能提取 Agent 名称（如 nanoMuse / 小喵），正文动态携带真实回复摘要（lastReplyExcerpt / BigTextStyle），副标题显示会话标题，点击一键唤醒直达对应会话
+    - 前台多场景智能感知与触觉触感：新增 VIBRATE 权限与轻量触感反馈（vibrateCompletion），AI 输出结束时触发轻快触感脉冲；智能感知 ChatViewModelStore.activeSessionId，用户正在注视当前对话时不冗余弹状态栏通知，在离开当前会话或切换页面时精准补发横幅提醒
+    - 生命周期闭环清理：ChatScreen 挂载该会话时定向取消对应通知，不再在应用启动时粗暴清空所有未读完成消息
+  - 自动化测试与部署:
+    - 编写 BackgroundTaskNotifierTest 单元测试覆盖前台当前抑制、前台异屏放行、开关状态判断与指定取消等全部用例，100% 绿色通过
+    - assembleDebug 构建通过并通过 ADB 成功部署安装至手机端（ed3fdd92）
+  - 提交记录 e3d9fd10
+
+- **NyanoMuse 应用重启默认进入最后活跃会话全链路打通 (2026-10-21, 完成)**:
+  - 核心病因根除与架构重构:
+    - 根因定位：NanoMuseHome 原逻辑在冷启动时硬编码 `if (chatSessionId == null) chatSessionId = main`，而 MainChat.resolve 会永久锁定偏好中首次创建的 KEY_SESSION（主聊天），导致无论用户在哪个副聊天中对话或收到跨端同步新消息，一旦重启应用均会被强行拽回最古老的主聊天；且草稿晋升（onPromoted）与会话切换均未持久化记录上次活跃会话
+    - 启动恢复引擎升级：MainChat 引入 resolveLaunchSession，联动 KEY_LAUNCH_SESSION 偏好配置（模式 2 新对话 / 模式 3 主页 / 模式 0 自动与模式 1 上次会话）；自动比对本地最后活跃时间戳与数据库最新更新时间戳，智能承接跨端同步新会话或本地刚离开的会话；草稿完成首次发送晋升为真实会话时通过 StateFlow 实时回传并固化 last_active_session
+    - 宿主双向同步绑定：NanoMuseHome 接入 LaunchedEffect(chatSessionId) 实时双向登记活跃会话，草稿晋升瞬时无缝切换当前活跃 ID 并高亮侧边栏行
+  - 测试与部署:
+    - 编写 MainChatTest 独立单测覆盖新对话、主页锁定、跨端最新覆盖与本地连续会话恢复等全场景，单元测试全绿通过
+    - assembleDebug 打包并通过 ADB 成功部署安装至手机端（ed3fdd92）
+  - 提交记录 af58ef05
+
+- **NyanoMuse 提问工具挂起中实时推送与作答后卡片双向保留修复 (2026-10-21, 完成)**:
+  - 核心病因深挖与修复:
+    - 挂起中未入库导致不同步：ChatViewModel 在 runAgentLoop 中原先推迟至所有工具执行结束才调用 persistAssistantTurn，而 ask_user_question 在 executeAskUserQuestion 处挂起等待用户点击，导致提问等待期间该轮助手消息从未写入 SQLite，LocalChats 读不到新行，SyncEngine 无法推送，对端设备在提问中完全看不到卡片；修复为在执行 toolCalls 循环前检测到 isAskQuestionTool 即刻预先持久化，记录 assistantDbId 并触发 ConversationSync.changed 与 turnEnded，轮次全部结束时若已存在 assistantDbId 则 updateMessageParts 避免重复插入
+    - 作答后分段覆盖导致卡片丢失：Transcript.Row 原先将所有带 toolResult 的消息视为非真人消息合并到同一分段，seg.lastOrNull 选取最终助手回复，导致提问工具调用卡片被永久吞噬；修复为识别问答工具结果 isQuestionAnswer，将其作为独立分段起始（isPersons = true），提取用户选择文本，使得提问卡片与用户答复、后续回复全部完整保留在转录流中
+  - 测试与部署:
+    - 补齐 Fakes.questionResult 与 TranscriptTest 问答完整轮次双向保留单测，单元测试全绿
+    - assembleDebug 构建通过并已部署安装至手机端（ed3fdd92）与平板端（c84b9192）
+  - 提交记录 4165041e
+
+- **NyanoMuse 提问工具跨端同步卡片渲染与作答回显全链路修复 (2026-10-21, 完成)**:
+  - 核心病因与数据流打通:
+    - 根因定位：多端会话同步（SyncEngine / Transcript）原本仅提取 parts 中的纯文本（type == "text"），而模型调用的 ask_user_question 为 toolUse 块，不仅导致问题内容在生成推送文本时被全部丢弃，还因 hasToolUse 判定使得提问阶段的消息被误判为未完成轮次而直接阻断推送；拉取端收到空文本后无法解析任何卡片；即使收到历史问答，InteractiveQuestionCard 也未承接后续用户作答 selectedAnswer
+    - 转录推送层升级：Transcript.Row 识别 isAskQuestionTool，将提问参数自动无损打包为 `<question>...</question>` 标准标签并合入 text，同时放行提问交互轮次的同步推送，确保对端设备实时可见问题卡片；桌面端 cloud.ts 同步补全 sessionLines 提问参数注入
+    - 拉取与回显闭环：QuestionCardParser.extractQuestion 全面委托至 parseFromToolArgs 完整健壮解析器并支持嵌套代码围栏；ChatFlatItems 为 AssistantMarkdownBlock 注入后续用户消息作为 selectedAnswer，已答状态下卡片自动进入折叠与高亮回显模式
+    - 桌面端联动：FenceCards 扩展监听 .nm-remote-bubble 远端气泡与代码围栏，打通双向全端卡片化渲染
+  - 测试与部署:
+    - 补齐 TranscriptTest 提问轮次推送单测与 QuestionCardTest 复合结构解析单测，全量通过
+    - 桌面端 pnpm test 358 项全绿
+    - assembleDebug 构建通过并已部署至手机端（ed3fdd92）与平板端（c84b9192）
+  - 提交记录 d3bb7c46
+
+- **NyanoMuse 提问工具多选题复选交互与合并提交落地 (2026-10-21, 完成)**:
+  - 多选交互状态与视觉重构:
+    - 修复此前 InteractiveQuestionCard 未感知 isMultiSelect 导致点击选项立即单选触发提交的问题
+    - 引入 selectedOptions 状态容器与多选交互分支：在 isMultiSelect 为 true 时支持选项点击自由勾选或反选，选项前置复选框（RoundedCornerShape 方形带对勾）替代传统单选圆环
+    - 标题栏动态附带「多选」指示胶囊，底部新增多选状态栏与「确认提交」操作按钮，实时显示当前已选项目数量，点击确认后统一聚合为逗号分隔字符串回传
+    - 已提交回答回显支持按多选拆分（逗号、顿号、换行）高亮呈现全部已选项
+    - QuestionCardParser 扩充 multiple 字段兼容检测
+  - 测试与部署:
+    - QuestionCardTest 补全蛇形与驼峰命名多选参数识别测试，单测 100% 通过
+    - assembleDebug 编译通过并已部署安装至手机端（ed3fdd92）与平板端（c84b9192）
+  - 提交记录 67148dcf
+
+- **NyanoMuse 提问工具调用（ask_user_question / ask_question / ask_user）卡片渲染与参数解析全端修复 (2026-10-21, 完成)**:
+  - 核心病因根治与容错加固:
+    - 根因定位：AgentTools 中 ask_user_question 工具参数被声明为 `type: "string"`，导致 LLM 回传 JSON 字符串或直接传递对象，而 QuestionCardParser 仅按单一 JSONArray 提取；当解析为空时 ChatScreen 判定 `qData == null` 直接静默跳过渲染，且 Preflight 因参数校验过严产生误阻断，导致提问挂起后屏幕卡片完全空白
+    - QuestionCardParser 全面升级：支持 Markdown 代码块剥离、根级 JSON 数组解析、字符串化 JSON 展开、直接根级 question/options 映射、prompt/choices/answers 兼容别名及文本/描述多字段抽取，在无预设选项时自动提供优雅交互兜底（确认/取消），杜绝解析失败返回 null
+    - 渲染兜底闭环：ChatScreen 在卡片构造器处接入安全兜底，即便原始参数异常也强制渲染问题卡片，保证用户始终可交互作答而不死锁
+    - 跨端工具名与预检对齐：统一覆盖 ask_user_question、ask_question、ask_user 与 ask，ChatViewModel 预检对提问工具放宽直接 question/prompt 参数，桌面端 rooms.ts 同步补全多字段描述提取
+  - 自动化测试与部署验证:
+    - 编写安卓端独立单元测试 QuestionCardTest 覆盖标准数组、字符串化嵌套、根级对象、Markdown 围栏与预检放行等 10 种边界情况，100% 绿色通过
+    - 桌面端 pnpm test 全量 358 项测试 100% 绿色通过
+    - assembleDebug 编译通过，已自动部署安装至手机端（ed3fdd92）并同步更新桌面端安装产物
+  - 提交记录 55a5d18d
+
+- **NyanoMuse 全链路长上下文治理与注意力优化全端落地 (2026-10-21, 完成)**:
+  - 核心架构与注意力治理:
+    - 针对长记忆与上下文注意力稀释问题（Lost in the Middle 与 128k 上下文降智），落地 Tier 3 动态注意力注入（Query-Aware Dynamic Attention Injection）
+    - 废除静态全量灌入 3000 字符常驻记忆机制，重构为置顶核心底护照（Pinned Core Passport）+ 意图相关性动态召回（Dynamic Top-K Recall，上限 8 条记忆，总预算 2000 字符）
+    - 系统提示词动态感知当前会话用户最新 Query，无相关提问时仅保持稳定前缀护照与全局文件，大幅提升 Provider Prompt Cache 命中率与长会话推理聚焦度
+    - 活跃目标（Goals）仅注入 tracking 活跃状态，归档及完成目标彻底移出实时注意力上下文
+  - 结构化四分面压缩提示词重构:
+    - 安卓端 ChatViewModel 压缩提示词升级为 Markdown 四分面结构化契约（任务状态与目标、核心决策与约束、文件产物与代码变动、踩坑与禁止事项）
+    - 杜绝长会话多轮压缩导致的上下文漂移与技术决策失真，严格规避盲目滑动窗口折叠对前缀缓存的破坏
+  - 自动化测试与工程加固:
+    - 抽离纯函数 selectMemoriesForPrompt 至独立模块，双端统一上限约束常量（MAX_PINNED_MEMORIES=6, MAX_PINNED_CHARS=800, MAX_INJECTED_MEMORIES=8, MAX_INJECTED_CHARS=2000），清理死代码
+    - 修复测试虚脱问题：query-aware-context.test.mjs 覆盖置顶硬上限、动态意图排序、回退填充与字数预算；ContextOptimizationTest 直接断言 ChatViewModel 真实四分面标题常数并覆盖安卓端选择器
+    - 同步更新 CHANGELOG.md 与 docs/desktop-muse.md、docs/android.md 文档
+    - 桌面端 pnpm test 全量 357 项测试 100% 绿色通过，安卓端 testDebugUnitTest 全量测试通过，assembleDebug 构建并通过 ADB 安装部署至平板（c84b9192）
+  - 提交记录 35f5c199, 8a7343cc
+
+- **NyanoMuse 零开销语义概念扩展与被动自然偏好捕获全端落地 (2026-10-21, 完成)**:
+  - 零开销语义概念与同义词泛化扩展:
+    - 针对本地离线与轻量运行场景，彻底摆脱笨重 Embedding 模型开销，建立双向等价同义词表（EQUIVALENT_SYNONYMS）与单向上下位概念层级（HYPERNYM_EXPANSIONS）
+    - FTS 查询构建器（buildFtsQuery）实现概念自动展开扩充，精准覆盖设备、系统、窗口管理器、包管理器、开发工具及日常饮食习惯
+    - 应用层打分器（scoreCandidate）注入 0.5 语义覆盖增益，解决非字面重叠语义召回（如搜热饮召回拿铁，搜电脑系统召回 PC 操作系统）
+  - 安全被动自然偏好捕获流（extractPassiveMemories）:
+    - 严格遵守防投毒边界，仅对来自 user 角色的真实用户发言执行被动提取，绝对阻断工具调用与网页注入伪造
+    - 精准识别硬件环境、居所变动、习惯、称呼、健康约束及沟通规范，内置 transient 过滤规则自动拦截瞬态即时指令与闲聊反问
+    - 提取事实通过冲突消解体系（findDirectConflict / supersede）安全入库，多端保持一致
+  - 自动化测试与工程验证:
+    - 桌面端 pnpm test 全量 352 项测试 100% 绿色通过，pnpm typecheck 与 pnpm build 构建正常
+    - 安卓端 testDebugUnitTest 全量测试通过，assembleDebug 构建并通过 ADB 安装部署至平板（c84b9192）
+  - 提交记录 bd331198
+
+- **NyanoMuse 记忆冲突消解与时态演进系统全端落地 (2026-10-21, 完成)**:
+  - 核心架构与冲突消解闭环:
+    - 落地信念修正与时态演进机制（Belief Revision & Temporal Evolution），杜绝事实冲突导致的常驻记忆污染
+    - 双端引擎（MemoryStore / LocalMemoryDb）实现原子化 supersede：自动将旧事实标记归档至 Cold 持久区（is_archived = 1，降权），同时将新事实写入 Hot 常驻区并继承分类与置顶状态，双路操作同步派发 OpLog
+    - 内置高精度直接属性冲突检测器（findDirectConflict）：针对称呼、居住地、核心硬件/OS、关键工具偏好等事实实现自动命中与静默覆盖，支持 detectConflicts 拓扑粗筛
+  - 工具层与提示词注入升级:
+    - 桌面 remember 与安卓 memory_write 工具参数扩充 replaces_id，模型可显式传入冲突旧记忆 ID 完成原子替换
+    - 系统提示词动态注入记忆句柄：常驻记忆统一输出 `[- [id] 内容]` 显式锚点，并在上下文附带冲突消解指令，模型发现偏好或状态变更时精准调用覆盖
+  - 自动化测试与验证:
+    - 桌面端 pnpm test 全量 350 项测试 100% 绿色通过，pnpm build 构建正常
+    - 安卓端 testDebugUnitTest 全绿，assembleDebug 打包并通过 ADB 部署至平板（c84b9192）
+
+- **NyanoMuse 桌面端与安卓端设置记忆管理界面现代化重构 (2026-10-21, 完成)**:
+  - 桌面端 (dsh-nanomuse):
+    - 设置中设立独立记忆管理中心板块（Settings -> Memory），MuseSettings 注册主导航入口并绑定脑电波图标
+    - 界面全面对接底层持久化 MemoryStore，支持实时多语种与 CJK 模糊即时检索，具备活跃/归档状态与分类多维筛选胶囊
+    - 记忆卡片支持置顶/取消置顶、归档/恢复、实时编辑与二次确认删除，保留底层 MEMORY.md 浏览与数据导入导出入口
+    - 样式深度注入莫兰迪亚克力毛玻璃质感，适配深浅双色主题
+    - pnpm typecheck、pnpm build 与 pnpm test 全量 348 项测试 100% 绿色通过
+  - 安卓端 (com.openminis.app & io.github.nanomuse):
+    - MemoryManagementScreen 深度重构为 Jetpack Compose 现代仪表盘与卡片流
+    - 顶部聚合常驻/归档/总计三联统计看板，支持关键字实时检索与状态/分类多维过滤胶囊
+    - 列表项支持一键置顶、归档/取消归档、内联弹窗编辑与安全删除，底部收纳折叠式历史 Markdown 日志直达入口
+    - LocalMemoryDb 与 MemoryRepository 补全封装接口，多语言资源全量对齐
+    - 单元测试与 assembleDebug 构建通过，安装部署至平板（c84b9192）验证通过
+
+- **NyanoMuse 会话全量漫游契约确立与记忆系统健壮性闭环 (2026-10-21, 完成)**:
+  - 会话同步契约终局对齐：
+    - 正式确立「全部会话默认同步漫游」为新架构契约，彻底统一桌面与移动端体验（会话即会话，不再区分主旁）
+    - 同步更新 sync.ts 架构注释，在 sync.test.mjs 中完善断言：未迁移旧状态默认升级为同步开启（true），同时显式关闭（sideChats: false）依然安全保全
+  - 记忆系统健壮性与安全防护加固：
+    - 修复 upsert 显式传入不存在 ID 时误触 UPDATE 导致返回 null 且未落库的严重缺陷：仅在未传 ID 时做内容查重（findByContent），显式 ID 不存在时一律 INSERT，配套编写单测验证通过
+    - 增加 FTS 粗筛候选集硬上限（LIMIT 500），防止海量数据下 MATCH 结果导致 IN 查询语句参数爆满
+    - 安卓 LocalMemoryDb 补全 episodes 与 episodes_fts 虚表结构，保持双端 DDL 架构 100% 精确一致
+    - 云端中继 sync.py 增加 client_time 与 updated_at 异常类型防御（ValueError/TypeError 降级回退），杜绝 500 崩溃
+    - rooms-tools.ts 落地系统提示词记忆注入硬预算：单次对话最多注入 30 条或 3000 字符（约 1000~1500 tokens），置顶优先，超出部分友好提示引导调用 recall_memory
+  - 自动化测试与验证：
+    - 桌面端 pnpm test 全量 342 项单测 100% 绿色通过，pnpm build 构建正常
+    - 安卓端 testDebugUnitTest 全绿，assembleDebug 构建并通过 ADB 安装部署至平板（c84b9192）
+  - 提交记录 c2061a87, fcc49472
+
+- **NyanoMuse 长期可检索记忆系统检索召回加固与全端落地 (2026-10-21, 完成)**:
+  - 检索召回与分词缺陷根治：
+    - 修复 FTS 查询空格隐式 AND 导致的召回归零问题，FTS 查询短语统一以 OR 语法拼接（buildFtsQuery），FTS 粗筛召回全部重叠候选后由应用层统一打分器（scoreCandidate）执行精准排序，评测集召回率由 0/8 跃升至 8/8（Top-1 100% 命中）
+    - 分词器扩展支持全 Unicode 字母与数字范围（\p{L}\p{N} 与 Character.isLetterOrDigit），彻底规避重音字母、西里尔与特殊字符截断
+  - 数据安全、去重与重置隐私闭环：
+    - rooms.ts 与 LocalMemoryDb 在 upsert 阶段增加基于内容哈希/titleKey 的重复判定，彻底杜绝重复内容反复插入生成脏 ID
+    - resetData 修复数据库连接残留与隐私泄漏风险：显式关闭数据库连接并彻底物理抹除 memory.db、memory.db-wal 与 memory.db-shm 后重建空库
+    - exportData 补全全量记忆归档：导出 Zip 包时自动将全局记忆结构化转储为 nanomuse/memories.json
+    - rooms-tools.ts 修复记忆注入倒序截断缺陷：将 memory.slice(-120) 纠正为 memory.slice(0, 100)，优先保留置顶记忆与最新高权重记忆
+  - 移动端连接与全量测试闭环：
+    - MemoryRepository 深度集成 LocalMemoryDb：在 loadGlobalMemoryFragment 注入常驻结构化记忆，在 getMemory 关键字检索时双路并发查询 Markdown 日志与 SQLite FTS
+    - 移除 MemorySearchTest 中硬编码绝对路径，动态向上解析测试集资源
+    - 桌面端 pnpm test 全量 341 项测试 100% 绿色通过，安卓端 testDebugUnitTest 全绿并完成 assembleDebug 打包安装至平板（c84b9192）
+  - 提交记录 90fdc9ae
+
+- **NyanoMuse 长期可检索记忆系统全链路全端落地 (2026-10-21, 完成)**:
+  - 核心架构与决策闭环：
+    - 废除 FTS 内建打分依赖，两端统一采用预分词 CJK Bigram + 单词切分（tokenizeForSearch），排序在应用层由统一算法（scoreCandidate）确定性计算，彻底消除 Android FTS4 缺 bm25 导致的跨端歧义
+    - 废除 400 条硬编码截断，构建 Hot（活跃常驻区）与 Cold（持久归档区）分级体系，将系统提示词记忆输入预算由 500 放宽至 1500~2000 Tokens，配套提供 recall_memory 原生工具支持深度追溯
+    - 确立客户端本地第一公民地位，离线与未登录下 100% 可用，云端作为轻量追加式 OpLog 中继与单调自增 seq 分配器
+    - 确立防投毒边界：仅允许 user 角色输入触发自动记忆提炼，绝对阻断工具输出与外部网页内容注入伪造事实
+  - 桌面端 (dsh-nanomuse)：
+    - 实测 Electron 44.7.0 原生内置 Node 24.21.0 与 SQLite 3.53.4，基于 node:sqlite 构建持久化 MemoryStore，独立 FTS5 虚表显式事务双写
+    - 接入 rooms.ts 与 rooms-tools.ts，提供 /memory/search 路由与 recall_memory 原生工具，历史 rooms.json 自动无缝迁移
+    - 编写 memory-search.test.mjs 与 memory-store.test.mjs，全量通过评测基准测试
+  - 云端中继 (nanomuse_cloud)：
+    - db.py 增加 sync_memory_oplog 表（包含 seq, op_id 幂等校验, before_content 回滚），sync.py 实现 push_memory_ops 与 pull_memory_ops
+    - api.py 暴露 /v1/sync/memory/push 与 /v1/sync/memory/pull 接口，完成 test_memory_sync.py 单元测试全绿
+  - 安卓移动端 (io.github.nanomuse.memory)：
+    - 落地 MemoryTokenizer 与 MemoryScorer，与桌面端算法 100% 精确对齐
+    - 实现 LocalMemoryDb（基于 SQLiteOpenHelper 与 FTS4），通过 MemoryRepository 与 MinisApp.kt 挂载双写与检索支持
+    - 编写 MemorySearchTest 通过黄金评测集，完成 assembleDebug 打包并通过 adb 部署至平板（c84b9192）
+  - 提交记录 cce12372
+
+- **NyanoMuse 安卓端全量对齐统一会话架构与草稿流新建 (2026-10-21, 完成)**:
+  - 会话抽屉与侧边栏深度重构：
+    - SideChatDrawer 移除割裂的「主要聊天」独立行，全面合并为统一扁平的全部会话列表，置顶会话优先、按更新时间倒序排列
+    - 抽屉顶部新增高亮「＋ 新建会话」药丸行动按钮，点击即刻进入草稿流新会话，长按会话支持置顶/取消置顶、重命名与安全删除
+    - 废除返回主聊天的异常回退拦截逻辑，NanoMuseHome 移除强占返回键的 BackHandler，底部栏切换不再无故跳回主要聊天
+  - 会话顶栏体验均质化与莫兰迪玻璃拟态：
+    - ChatScreen 顶栏抹平主旁会话差异，全量会话均展示 30dp 动态情绪猫咪头像、会话标题、DeepSeek 实时官方余额胶囊与副标题动态状态行
+    - 多语言资源字符串全面对齐：消除所有旁聊与主要聊天陈旧表述，统一更名为全部会话、新建会话与同步所有会话
+  - 完成 assembleDebug 打包并通过 adb 安装部署至平板端（c84b9192）截屏校验通过，提交记录 d12b8e14
+
+- **NyanoMuse 统一会话列表架构、上线草稿流新建会话与自定义壁纸引擎 (2026-10-21, 完成)**:
+  - 会话概念深度归一与草稿流新建体验：
+    - 废除桌面端「主要聊天」与「旁聊」两极割裂的陈旧交互设计，界面呈现统一按置顶与最近更新时间倒序排列的会话列表
+    - 会话侧边栏顶部增加高亮「＋ 新建会话」行动按钮与即时搜索框，点击触发 actions.startSession 开启空白草稿会话并聚焦输入区，在首条消息发送前不落库污染
+    - 顶栏移除多余的返回主聊天按钮，会话右键菜单精炼为置顶、重命名与归档
+  - 多端同步架构兼容与静默保护：
+    - 保持云端中继数据库单一 kind='main' 约束的兼容性，在 SyncEngine 底层保持默认同步开启（sideChats: true），所有会话自动双向同步漫游
+    - 界面层完全抹平主旁会话差异，对用户保持「会话即会话」的统一认知
+  - 自定义壁纸系统与莫兰迪玻璃拟态：
+    - cloud.ts 接入 /wallpaper RESTful 接口支持读取、保存与删除壁纸配置，支持一键读取 Noctalia 莫兰迪当前壁纸与用户本地图片上传
+    - wallpaper.ts 动态挂载全屏壁纸图层与可调毛玻璃模糊度（0-40px）与暗化遮罩（0-85%）
+    - MuseHeader.tsx 顶栏嵌入「壁纸」微型胶囊药丸，呼出沉浸式亚克力壁纸调节弹窗，样式全链路同步 Morandi 质感
+  - 完成 build.mjs 编译部署覆盖并重启桌面端校验，提交记录 c20084eb
+
+- **NyanoMuse 问答选择题卡片支持作答折叠与双端莫兰迪玻璃拟态UI深度对齐 (2026-10-20, 完成)**:
+  - 移动端选择题卡片交互升级与折叠机制：
+    - QuestionCard.kt 重构状态管理，作答后（selectedAnswer != null）自动平滑折叠为紧凑胶囊摘要条（22dp 对勾徽标、题目单行省略、高亮选项药丸与折叠展开箭头）
+    - 展开视图全面重构：16dp 圆角、0.8dp 极细描边、26dp 帮助图标微型胶囊、已回答标签与顶栏收起按钮，选项行采用 11dp 莫兰迪药丸、选中态高亮与单选对勾指示
+    - 结合 animateContentSize 实现平滑伸缩过渡，编译并在平板端安装部署校验通过
+  - 桌面端（dsh-nanomuse）全链路对齐与部署：
+    - FenceCards.ts 全面升级 questionCard：解析支持 questions 数组与单体 question 结构，引入 selectedAnswer 与 isExpanded 状态回路
+    - 选项点击自动即时折叠为胶囊胶囊药丸，支持点击胶囊随时展开复查或重新作答
+    - styles.ts 注入完整莫兰迪玻璃拟态样式（nm-question-card、nm-question-collapsed、nm-question-expanded、nm-question-option 等），并针对 Harness 原生 QuestionComposer 与 ToolRow 注入一致的圆角毛玻璃微调
+    - 顶栏 DeepSeek 官方余额胶囊同步上线：cloud.ts 挂载 /balance 安全接口读取环境或凭据中的密钥并代理查询，MuseHeader.tsx 中心顶栏无缝渲染绿色状态圆点与实时余额，与移动端保持 100% 体验一致
+    - 完成 build.mjs 编译覆盖并重启桌面端进程验证，提交记录 a9bc6655
+
+- **NyanoMuse grill-me 全面重构为原生 ask_user_question 工具调用与协程挂起交互架构 (2026-10-20, 完成)**:
+  - 架构升级与原生工具注册：
+    - 废弃基于正文 `<question>` 结构化标签的伪交互协议，全面对齐 DeepSeek Harness 的原生 `ask_user_question` / `ask_question` 工具调用标准
+    - 在 AgentTools.kt 中完成 askUserQuestionDefinition 注册，涵盖 questions 数组、question 精炼陈述、options 数组与 is_multi_select 声明
+  - 协程挂起与双向交互响应回路：
+    - ChatViewModel.kt 引入 pendingQuestionDeferreds 字典与 CompletableDeferred 挂起机制，当代理调用 ask_user_question 时挂起当前工具执行流
+    - 用户在界面卡片点击选项或在输入框发送自定义文本时调用 answerQuestion，立即恢复挂起协程并返回「User selected: <choice>」工具执行结果，支持流式取消与重试清理
+  - 渲染拦截与图层穿透防护：
+    - ChatFlatItems.kt 增加 FlatChatItem.AssistantAskQuestion 独立卡片类型，在工具块遍历时前置拦截 ask_user_question 避免被 showSteps = false 隐藏，保证问题交互卡片永远可见
+    - hasVisibleContent 与 stepsOnlyTurn 视其为可见内容，避免提问等待时出现无意义的闪烁输入中指示器
+    - ChatScreen.kt 将其接入 InteractiveQuestionCard，绑定 answerQuestion 回调，并支持根据 content 结果展示「已回答」状态与选项高亮
+  - 多端协议同步与构建部署：
+    - 更新 SkillRepository.kt 的 GRILL_ME_CONTENT，版本升级为 2.0.0，并在 Android 打包时强制同步更新
+    - 同步更新 ~/.nyanomuse/desktop/skills/grill-me/SKILL.md、~/.agents/skills/ 与 ~/.dsh/skills/
+    - 编译 assembleDebug 通过并在平板端（c84b9192）完成安装部署
+
+- **NyanoMuse 修复问答卡片重叠与高光渲染异常并全量部署更新桌面端 (2026-10-20, 完成)**:
+  - 安卓端问答卡片（QuestionCard）布局重叠与颜色反差根治：
+    - 排查定位 NmAssistantBubble 内部原使用 Box 容器，且 ChatScreen.kt 中 MarkdownBlock 与 InteractiveQuestionCard 作为无容器包裹的平级子项，导致卡片在坐标 (0, 0) 与上文 Markdown 描述文本物理重叠互相穿透
+    - 将 NmAssistantBubble 内部容器调整为 Column，并在 ChatScreen.kt 中使用 Column(modifier = Modifier.fillMaxWidth()) 严格封装文本与卡片，彻底根除图层遮挡与穿透
+    - 修复深色模式白底白字渲染异常：深色主题下 ChatColors.sendButton 为纯白（#FFFFFF），原先用作推荐徽标背景与边框导致严重刺眼高光且文字不可见；全面重构为 ChatColors.link（#58A6FF 莫兰迪蓝高对比主题色），推荐徽标改为半透明蓝色药丸底配同色加粗文字，选项卡片采用 toolCapsuleBg 与 toolBorder
+    - 优化选项排版对齐：单项 Row 改为 Alignment.Top 顶端对齐，彻底解决长文本折行时徽标和圆点在垂直居中位置悬空的排版不适
+    - 重新编译 assembleDebug 并通过 adb 安装至平板端（c84b9192）
+  - 桌面端（dsh-nanomuse）深度对齐与全量构建部署：
+    - 会话顶栏高度收缩：将 --nm-header-h 从 108px 压缩至 68px，顶栏渐变高度降低并叠加 backdrop-filter: blur(10px) 毛玻璃
+    - 交互式问答卡片支持：在 FenceCards.ts 中增加对 <question> 结构化标签与代码块的动态扫描与解析，以 Web 标准 DOM 生成一致风格的交互选择题卡片，点击选项自动填充并即时发送
+    - 桌面端 DeepSeek Harness 接入 /grill-me 技能：同步部署至 ~/.nyanomuse/desktop/skills/grill-me/SKILL.md、~/.agents/skills/ 与 ~/.dsh/skills/
+    - 运行 build.mjs 完成全量编译，同步替换至 ~/.local/opt/nyanomuse/resources/dsh/node_modules/dsh-nanomuse/，并重启桌面端进程（nyanomuse-desktop）正常运行，提交记录 faef36d8
+
+- **NyanoMuse 修复DeepSeek余额与今日花费胶囊在主聊天顶栏未显示问题 (2026-10-20, 完成)**:
+  - 顶栏胶囊未展示根因定位与布局修复：
+    - 排查定位 ChatScreen.kt 中原 DeepSeek 胶囊放置于 `else if (!nmHideModelRows)` 模型副标题列内部，由于主聊天默认开启极简模式（nmHideModelRows 为 true），导致整列副标题与 DeepSeek 胶囊在主聊天中被完全短路跳过未渲染
+    - 废弃纵向副标题内的旧版胶囊，将其提升至顶栏中心标题行（与 displayTitle / sessionTitle 水平居中并列排布），不增加顶栏任何纵向高度，保持 50dp 极致紧凑顶栏
+    - displayTitle 增加 weight(1f, fill = false) 弹性收缩保护，在保证标题与胶囊同屏优雅并排的同时杜绝超长标题导致的文本折行与视觉挤压
+  - 余额获取与多模型适配全链路加固：
+    - DeepSeekTracker.kt 的 isDeepSeekModel 扩展支持联合校验 modelId、displayName、providerName 与 baseUrl，全面覆盖直接调用、自建代理中继及模型别名
+    - ChatViewModel.kt 的 refreshDeepSeekStatus 智能识别当前活跃实例：若当前实例为第三方中继且无官方余额接口，自动从配置中搜寻已启用的官方 DeepSeek 实例密钥查询官方余额（https://api.deepseek.com/user/balance），兼顾今日花费实时统计与官方真实余额展示
+    - 新增流式结束（_isStreaming 翻转为 false）与会话加载完成（sessionLoaded）时的自动触发刷新机制，点击胶囊即刻强刷并呼出用量热力图底栏
+  - 编译打包并通过 adb 安装至平板端（c84b9192）截屏验证，余额与花费正常展示，提交记录 f857a558
+
+- **NyanoMuse 会话顶栏紧凑度与渐变模糊优化、多轮工具命令合并与底部悬浮条移除 (2026-10-20, 完成)**:
+  - 会话顶栏高度压缩与渐变模糊优化：
+    - 废弃原先纵向堆叠的大型头像圆盘（76dp）与双行药丸，重构为极致紧凑的水平 Row 布局（30dp 微型头像与标题状态垂直居中排布）
+    - TopAppBar 的 expandedHeight 从 112~140dp 深度裁剪至 50dp（降幅超 60%），顶栏 hazeEffect 渐变模糊层高度减半，彻底解决遮挡聊天内容问题
+    - 滚动列表 contentPadding 相应收窄，会话内容自然上浮呈现
+  - 多轮命令与工具调用聚合为单张可展开折叠卡片：
+    - 针对连续多轮工具调用（如 shell_execute 连续探测与多步排查），在 ChatFlatItems 中将工具组收集状态提升到消息循环层级
+    - 消除模型中间推理思考（reasoning_content）对工具序列的切断影响，全回合连续工具/命令无缝合并为单张 ToolCallGroup 折叠胶囊
+    - 默认以微型胶囊形态收纳（展示「已执行 N 个工具/命令 · 耗时 X.Xs ⌄」），支持点击平滑内联展开/收起全部工具执行细节
+  - 移除执行命令时的底部冗余悬浮窗：
+    - 移除输入框上方伴随工具运行而弹出的 FloatingToolStatusBar 悬浮条及其缩略图，将工具运行与完成状态完全收拢至消息流内联折叠卡中，保持输入区清爽干净
+  - 编译并在平板端（c84b9192）完成安装验证，全链路测试通过，提交记录 45ab6263
+
+  - 会话顶栏 DeepSeek 专属余额与今日花费胶囊：
+    - 新增 io.github.nanomuse.chat.DeepSeekTracker：内置 DeepSeek 官方费率阶梯计算模型（V3: 输入¥1/M、缓存命中¥0.1/M、输出¥2/M；R1/Reasoner: 输入¥4/M、输出¥16/M），基于本地 Room 数据库扫描今日 00:00 至今的所有 UsageRecord 实时毫秒级计算累计今日花费
+    - 异步调用 DeepSeek 官方余额接口（GET https://api.deepseek.com/user/balance），获取成功时展示「余额: ¥xx.xx · 今日花费: ¥x.xx」，第三方中继或超时时优雅降级仅展示「今日花费: ¥x.xx」，杜绝占位符报错
+    - ChatScreen 顶栏模型副标题下方接入半透明毛玻璃微型芯片胶囊，点击即时触发余额强制刷新并弹出用量详情底栏
+  - GitHub 风格用量贡献热力图与日周月多维看板重构：
+    - UsageStatsScreen 深度重构：引入 7 行 × 26 周（近半年 182 天）横向平滑滚动的活动贡献热力图网格，动态映射当前系统莫兰迪主题阶梯色阶，自动平滑滚动定位至今日
+    - 热力图交互下钻：点击具体日期展开当日卡片，清晰呈现当日总 Token、输入/输出/缓存明细、预估花费与活跃模型标签徽标
+    - 日/周/月分段切换控制看板：提供「今日 / 本周 / 本月」胶囊切换，实时统计所选周期的总 Token、输入输出分布、缓存命中率与预估花费金额
+    - TokenUsageSheet 与主导航新增直达入口，全链路互通
+  - 全量单元测试 testDebugUnitTest 100% 绿色通过，Android Debug APK 构建完成，GitHub main 分支完成提交推送（4bd39144）
+
+- **NyanoMuse 中继同步作用域修复、端点空URL防御与Root模式截图路径归一化 (2026-10-20, 完成)**:
+  - 云端中继会话同步异常与 500 崩溃根治：
+    - 排查定位 cloud/nanomuse_cloud/sync.py 中在 deleted 变量声明前提前引用（deleted = bool(conv.get("deleted"))），导致客户端推送带特定标题或更新时间戳时触发 UnboundLocalError 引发 HTTP 500
+    - 调整赋值时序至前置判断之前，修复后 pytest 24/24 测试套件全绿通过并热重启 8787 端口中继服务
+  - 安卓端登录与连接空 URL 防御：
+    - 排查定位 CloudSignInScreen.kt 在服务器地址留空或异常重置时直接调用 login 导致 IllegalArgumentException
+    - 增加非空校验拦截与友好错误反馈，并在 Hub.kt 中增加 baseUrl 空串拦截防止构建非法 WebSocket 协议连接
+  - Root 模式跨设备截屏与文件下发真实路径直通：
+    - ReachOffloadHandler.kt 原先硬编码返回 /var/minis/attachments/... 虚拟路径，在 Root 模式下脱离 PRoot 导致 AI 误判文件丢失或沙箱损坏
+    - 将返回值 path 调整为宿主文件系统真实绝对路径（dest.absolutePath），同时保留 minis_path 与 markdown 便于界面富文本渲染
+  - 全量单元测试与 Debug APK 编译验证通过，推送远端分支（05a2b690）
+
+- **NyanoMuse 多端会话同步修复、PC端重连与Root模式系统提示词加固 (2026-10-20, 完成)**:
+  - 桌面端与多端会话同步断连根因定位与修复：
+    - 排查定位桌面端 ~/.nyanomuse/desktop/nanomuse/cloud.json 中 sync.accountId 留存旧账户 ID，启动时 cloud.ts 未检查内存与存储账户 ID 是否一致，导致桌面端 SyncEngine 游标无法与自建中继对齐
+    - 修复 harness/dsh-nanomuse/src/cloud.ts：在启动挂载时检测如果 sync.state.accountId 与当前 account.id 不一致，自动触发 sync.accountChanged 重置同步引擎并对齐会话
+    - 重新编译构建 dsh-nanomuse 并同步覆盖安装目录，重启桌面端进程，验证 devices 表中 CachyOS 成功上线（last_seen 实时心跳）
+  - 安卓端旁聊默认同步机制开启：
+    - 排查定位 ConversationSync.kt 与 SyncEngine.kt 中 sideChats（同时同步旁聊）默认写死为 false，导致只有主聊能同步，平板与手机侧边抽屉旁聊列表始终为空
+    - 将 sideChats 默认值修改为 true（用户仍可在数据控制中自主关闭），并更新 harness 同步逻辑，实现平板与电脑双向无缝漫游
+  - Root 模式系统提示词加固与远程设备离线指引：
+    - 排查定位 ChatViewModel.kt 的基础系统提示词写死 Alpine PRoot 沙箱与 /var/minis，导致在 Root 模式下模型误以为沙箱损坏并幻觉报错
+    - 系统提示词全面区分 isRootMode：Root 模式下明确告知当前直通安卓宿主 root shell（su），PRoot 沙箱属于刻意停用，内置 CLI 工具（nanomuse-pc、android-* 等）由宿主环境直接分发
+    - Computers.kt 提示词加固：当远端设备离线时，明确要求模型以一行简洁话术提示用户检查桌面端运行状态，禁止使用 root 盲目刺探本地端口或沙箱文件
+  - 全量单元测试 100% 绿色通过，APK 构建完成，GitHub main 分支完成提交推送（23789a8c）
+
+- **NyanoMuse 聊天输入框完全透明修复与动态页面主题色一致性对齐 (2026-10-20, 完成)**:
+  - 聊天输入框完全透明无背景问题根治：
+    - 排查定位 ChatScreen.kt 中输入框 Column 在 hazeState != null 时只应用了 hazeEffect 却完全省略了 Modifier.background(...)，且采样的是外层外壳的全局 hazeState，因祖先容器包含 hazeSource 导致循环依赖或未对齐消息层
+    - ChatScreen.kt 内部独立建立专属 chatHazeState 节点，将消息列表 Box 注册为 hazeSource(chatHazeState)，顶栏 TopAppBar 与输入框胶囊无缝采样滚动消息层
+    - 输入框 Column 与顶栏 Box 无条件显式填充半透明表面背景（composerBg 与 topBarBg）并配置描边，彻底解决无消息滑动或毛玻璃未就绪时输入框 100% 镂空穿透的问题
+    - MuseBottomBar、MuseNavRail 与 SideChatDrawer 同步补充显式 background 兜底，防止极端情况下出现图层穿透
+  - 动态（Feed）页面背景颜色统一对齐：
+    - 排查定位 FeedTab.kt 中 LazyColumn 误用硬编码调色板 MuseTones.canvas（深色下写死纯黑 #000000，浅色下为 #F3F3F5），导致与 Ideas、Goals、Library 以及莫兰迪动态主题严重割裂
+    - 将 FeedTab.kt 的 LazyColumn 背景颜色无缝修改为 ChatColors.background，与其他功能标签页及全局主题配色完全统一
+  - 平板大屏细节打磨：
+    - 平板分栏展开时隐藏聊天顶栏多余的侧边栏折叠圆按钮，统一由最左侧 Navigation Rail 顶部按钮总控，消除界面元素重复与卡片视觉遮挡
+  - 全量单元测试 100% 通过，APK 编译完成并推送到 GitHub 远端仓库（34a15b31）
+
+- **NyanoMuse 统一手机与平板端主页UI、全面应用Haze毛玻璃与大屏自适应架构 (2026-10-20, 完成)**:
+  - 架构统一与大屏自适应（Adaptive nanoMuse Home）：
+    - 废除 AppNavigation.kt 中平板大屏强制分流到 OpenMinis 老版 ChatSplitScaffoldRoute 的旧逻辑，全设备统一由 NanoMuseHome 统一自适应承接，彻底消除手机与平板像是两套软件的割裂感
+    - 新增 MuseNavRail.kt：平板横屏与大屏展开时，左侧自适应呈现纵向磨砂毛玻璃 Navigation Rail，优雅收纳 Chat、Feed、Ideas、Goals、Library 5 个核心标签胶囊，底部提供新建会话与设置快捷入口
+    - 双栏工作台与可折叠会话列表：在 Chat 模式下，大屏左侧自适应呈现 SideChatDrawer 会话栏（主聊、副聊、设备），支持点击顶栏或导航栏图标一键丝滑折叠展开（expandHorizontally / shrinkHorizontally），右侧为主聊天工作流；其他标签页自适应居中并限制 900dp 黄金阅读宽度，杜绝 3K 超宽屏横向拉伸疲劳
+  - 全局 Haze 玻璃拟态深度铺设与高分辨率性能调优：
+    - ChatScreen.kt 顶栏 TopAppBar 与输入框卡片全面接入 HazeState 与 hazeEffect 磨砂玻璃质感，输入卡片与底部 MuseBottomBar 悬浮双胶囊质感遥相呼应
+    - 侧边抽屉底板从死板的纯色 Surface 改为半透明磨砂层（hazeEffect + 0.5dp 细分界线）
+    - 针对高分辨率屏幕调优渲染开销：将模糊半径统一优化为 22dp、噪点系数 0.05，共享单根 HazeState 节点，彻底杜绝多层离屏重复采样导致的掉帧卡顿
+  - 键盘人体工程学与细节打磨（IME Ergonomics）：
+    - 监听软键盘 insets（WindowInsets.ime）：手机端打字弹起键盘时，底部 MuseBottomBar 自动下沉淡出避让，输入框直接吸附于键盘上沿并消除多余空白；键盘收起后平滑弹回
+    - 修复 MenuOpen 图标使用为 AutoMirrored 版本消除编译弃用告警
+    - 全量自动化单元测试 100% 绿色通过，APK 构建完成并推送到 GitHub 远端仓库（159e2977）
+
+- **NyanoMuse 开放Root模式全局文件系统直通、系统实时截屏工具上线与工具链深度加固 (2026-10-20, 完成)**:
+  - Root 模式全局文件系统直通与路径归一化：
+    - PRootKernel.kt 重构路径解析：非 PRoot 容器环境（Root 模式与宿主模式）解除前缀白名单限制，任意绝对路径直连底层文件系统，支持波浪号（~）自动映射至真实存储空间与临时目录，支持常见系统分区（system、vendor、data、sdcard、dev、proc、sys 等）省略前导斜杠时自动归一化补全
+    - SettingsScreen.kt 在当前执行模式为 ExecutionMode.ROOT 时自动隐藏「挂载外部文件夹」配置入口，避免对具备全盘操作能力的 Root 模式产生冗余误导
+  - 系统实时屏幕截屏工具（screen_capture）与多端视觉管线集成：
+    - NativeSystemTools.kt 新增 screen_capture 原生系统工具：Root 模式下通过 su 管道直通 /system/bin/screencap -p 零延迟捕获无损 PNG 字节流，非 Root 模式下无缝回退至 AccessibilityService 屏幕快照
+    - ChatViewModel.kt 的 executeToolCall 将 screen_capture 深度接入视觉解析管线：原生支持视觉的多模态大模型直接接收像素分析屏幕，无原生视觉模型自动分发给 Vision Group 协同生成详细屏幕描述
+  - 文件读写、编辑与图像解析工具链深度加固：
+    - FileReadTool.kt 补全 Root 环境目录探测保护（直接读取目录时给出友好提示并指引使用 shell_execute ls 列出），优化非 root 权限文件大小探测，采用 sed 与 tail 分页安全读取大文件防内存溢出
+    - ReadImageTool.kt 深度适配 Root 模式：当 Java 权限受限时自动通过 su 管道流读取底层受限目录（如 /data/local/tmp、/data/data/ 等）中的图片字节并由 BitmapFactory 内存解码，增加目录误读拦截
+    - FileWriteTool.kt 与 FileEditTool.kt 全面采用 POSIX 单引号安全转义（'\''），彻底消除路径中包含特殊字符、美元符变量（$）或空格时的 Shell 变量展开漏洞，父目录缺失时自动递归补建（mkdir -p）
+    - ToolSelfHealing 扩展支持 screen_capture、file_write 与 read_image 的自愈诊断提示
+  - Root 模式原生扩展 CLI 工具链（nanomuse-pc、android-*）直发直通支持：
+    - NativeOffloadServer 新增 canHandle 与 dispatchDirect，并在 ExecutionCoordinator 中无缝拦截分发，彻底解决过去在 Root 模式下执行 nanomuse-pc、android-device 等命令时因脱离 PRoot Alpine 沙箱导致提示找不到命令（127）的断层问题，免除重装 Alpine 沙箱镜像的额外开销
+  - 虚拟路径解析优先级修正与多端协同遗留文案清理：
+    - PRootKernel.kt 调整路径解析优先级：确保以 /var/minis/ 开头的应用内部虚拟路径（记忆、技能、工作区、附件、minis://）在 Root 模式下优先解析至真实的内部 filesDir 存储目录，避免被普通绝对路径规则短路到宿主根目录
+    - Computers.kt 与 ReachOffloadHandler.kt 全面清理旧版官方云遗留文案，统一对齐自建中继服务
+  - 关键系统分区与敏感文件风控告警防护：
+    - RiskGate.kt 新增 checkFileModification 与 assessFileModification 校验门控，精确识别 dev/block、proc/sys、sys/fs、sys/kernel 以及 system、vendor、product、apex、packages.xml、init 脚本等核心高危系统路径
+    - ChatViewModel.kt 的 executeToolCall 在执行 FileWriteTool 与 FileEditTool 时前置接入风险拦截，涉及高危路径时抛出二次审批卡片，常规目录（sdcard、data/adb/modules、data/local/tmp、用户沙盒等）保持零摩擦极速执行
+    - 全量自动化单元测试 100% 绿色通过，APK 构建完成并推送到 GitHub 远端仓库（8fe19a00）
+
+- **NyanoMuse 初始引导对话移除、平板气泡自适应宽度、多端设备自动识别与多语言资源对齐 (2026-10-20, 完成)**:
+  - 初始引导对话剧本彻底移除：
+    - 排查定位 FirstConversation.kt 中硬编码的开屏引导剧本（包含「你好，我是 nanoMuse」、「我该怎么称呼你？」及改名卡片），将其 shouldShowIntro 设为 false，状态默认锁定为 Phase.DONE，intro 与 promptAddendum 返回空
+    - ChatViewModel.kt 的 nmSeedFirstConversation() 增加虚拟消息 nm_intro_* 与改名卡片硬清除
+    - harness/dsh-nanomuse/src/firstrun.ts 同步将 showsIntro 置为 false
+  - 平板与大屏气泡最大宽度自适应重构：
+    - NmHomeChrome.kt 中原先写死 Modifier.widthIn(max = 340.dp) 导致在一加平板 2 Pro（12.1 寸大屏）上气泡过于狭窄
+    - 改用 BoxWithConstraints 动态适配：小屏手机保持原有优雅宽度，平板与宽屏自适应扩展至 minOf(760.dp, maxWidth * 0.88f)
+  - 多端设备类型自动识别与标识增强：
+    - Hub.kt 与 NanoMuseCloud.kt 引入 isTablet 屏幕尺寸探测（smallestScreenWidthDp >= 600）
+    - 平板设备自动赋予 tablet- 设备 ID 前缀并在默认设备名称后追加 (Tablet) 后缀，自建中继多端列表中手机与平板设备一眼区分
+  - 多语言资源对齐与单测全量修复：
+    - 清理剩余代码与资源中遗留的官方 nanoMuse Cloud 文案，统一为「自建中继 / 自建服务」
+    - 修复 nm_cloud_err_allowance 与 nm_cloud_warn_line 占位符格式化参数缺失，并在全部 16 种语言包中补全 nm_cloud_title
+    - 全量单元测试 testDebugUnitTest 100% 绿色通过，Android Debug APK 构建完成，GitHub main 分支完成提交推送（43caf8fe）
+
+- **NyanoMuse 自建服务页面暗色文字根治与智能体黑猫人设记忆防覆盖保护 (2026-10-20, 完成)**:
+  - 自建服务与多端同步页面深色模式黑字根治：
+    - 排查定位 MuseChrome.kt 中 MuseCard 仅设置 color = MuseTones.surface（#1C1C1E），未显式指定 contentColor，Compose M3 的 contentColorFor 无法匹配自定义色值导致 Color.Unspecified，使得未显式设色的 Text 组件全部回退到 Color.Black
+    - MuseCard 内部显式补充 contentColor = MaterialTheme.colorScheme.onSurface
+    - 在 CloudAccountScreen.kt 中为登录用户名（a?.hint）、免费开源非营利卡片标题（R.string.nm_cloud_notice_title）以及未登录卡片标题（R.string.nm_cloud_not_signed_in）显式传入 color = MaterialTheme.colorScheme.onSurface，确保深色模式下全部清晰反白
+  - 智能体黑猫人格与记忆防覆盖保护：
+    - 排查定位手机端登录自建账号后，远端 ConfigSync 误用默认空模板拉取覆盖了本地真实的 SOUL.md 与黑猫人设
+    - 从本地备份恢复 2405 字节完整纯黑大蓝眼小猫人设与记忆至 K60（SOUL.md，属主 u0_a545:u0_a545）
+    - 修复自建中继数据库 profiles 表唯一所有者人设名称为 nanoMeow，同步本地 shared_prefs
+    - 重构 ConfigSync.kt 下发保护逻辑：若本地已存在定制 SOUL.md，远端默认模板绝对不覆盖本地内容，仅当远端更新时间戳更新且内容为定制设定时才允许合并
+    - 重新编译打包 Android Debug APK 并通过 ADB 静默安装至 Redmi K60，GitHub 提交推送完成
+
+- **NyanoMuse 聊天页面底部黑色阴影清除与深色模式气泡文字配色全面优化 (2026-10-19, 完成)**:
+  - 聊天底部黑色阴影根治：
+    - 排查定位 `ChatScreen.kt` 中 `NmComposerVignette` 滚屏渐变遮罩、输入框外部 `Modifier.shadow` 4dp 黑影及 `MuseBottomBar.kt` 中 `amoledNavPillSurround` 底栏强绘制纯黑遮罩
+    - 彻底移除 `NmComposerVignette` 与底栏多余修饰符，剥离输入卡片多余投影，恢复平滑自然的沉浸通透渲染
+  - 深色模式文字与气泡配色全面修正：
+    - 排查定位旧版深色模式下用户气泡错误写死为白底黑字（`userBubble = Color.White`、`onUserBubble = Color.Black`）的视觉颠倒问题
+    - 重构 `ChatColors.kt` 与 `ThemePalette.kt`（含莫兰迪、经典蓝、OLED纯黑、猫猫暖樱、Material You）：深色模式下用户气泡改为沉稳暗色容器，文字统一调整为高对比度清晰白字
+    - 修复 `MorandiDarkColorScheme`、`SakuraDarkColorScheme` 与 `OledDarkColorScheme` 中 `onSecondary` 误设为纯黑的问题
+    - 优化 `MuseBottomBar` 激活态底色为 `primaryContainer` 与 `onPrimaryContainer`，杜绝暗色模式下底栏白底黑图标刺眼对比
+    - 重新编译生成 Android Debug APK 并通过 ADB 安装部署至 Redmi K60
+
+- **NyanoMuse 后台动态批处理会话阻断与多端旁聊僵尸会话自愈清理系统 (2026-10-19, 完成)**:
+  - 动态会话旁聊泄露根因定位：
+    - 桌面端 DeepSeek Harness 插件层 `rooms.ts` 中 `refreshFeed()` 每日后台批处理任务使用普通会话临时生成动态卡片（标题为「动态 · YYYY年MM月DD日」或「Feed · YYYY年MM月DD日」）
+    - 桌面 `SyncEngine` 与 `nanomuse/sync/engine.py` 未对批处理会话进行排查，在开启「同时同步旁聊」时将该临时会话以 `kind: "side"` 格式推送到自建中继
+    - 手机端从自建中继拉取远程会话并以 `source = "sync"` 写入本地数据库，导致手机侧边抽屉中涌入大量「动态 · ...」孤儿会话
+  - 全链路四层阻断防护：
+    - 桌面插件层拦截：`rooms.ts` 新增 `isBatchSession` 并在批处理生命周期内全程锁定；`cloud.ts` 与 `sync.ts` 在会话列表、推流过滤与变更广播阶段全方位丢弃批处理与动态标题会话
+    - 桌面服务阻断：`nanomuse/sync/engine.py` 的 `_eligible` 增加动态标题前缀硬拦截
+    - 自建中继防护：`cloud/nanomuse_cloud/sync.py` 在推送端增加动态会话拒绝逻辑，并在中继数据库中将历史 9 条动态残留会话批量标为墓碑并推进游标
+    - 移动端双层过滤：`SyncEngine.kt` 丢弃远程动态标题；`LocalChats.kt` 与 `ChatRepository.kt` 在查询与展示层彻底过滤动态会话
+  - 启动自愈与历史僵尸清理：
+    - Android 端 `ConversationSync.init()` 引入启动自愈清理逻辑，自动扫描并彻底擦除本地数据库与同步引擎中的历史动态残留会话及消息记录
+    - Android Debug APK 完成打包并通过 ADB 安装部署至 Redmi K60
+
+- **NyanoMuse 服务商与模型多端配置端到端加密同步与冲突自愈系统落地 (2026-10-19, 完成)**:
+  - 核心架构与端到端加密（E2EE）保障：
+    - 自建服务端新增 `sync_configs` 存储表与 REST 接口（`GET/PUT /v1/sync/config`），采用零知识加密存储，中继仅负责中转密文与版本控制
+    - 客户端使用 PBKDF2-HMAC-SHA256（100,000 次迭代）结合主账户 ID 派生 256 位密钥，通过 AES-256-GCM 进行认证加密
+    - 手机端 `ConfigSync` 与桌面桥接器 `nanomuse-bridge` 双端均实现本地自动快照备份（`backups/configs/`），防止异常合并
+  - 同步范围与负向排除范围：
+    - 同步对象：AI 服务商实例配置（`providers`）、API 密钥、自定义 Base URL、核心模型插槽映射（`slots` 包括 chat、hands 等）及智能体人设与提示词（`SOUL.md`）
+    - 负向排除范围：严格排除主题方案（Morandi、Sakura、OLED、默认蓝等）与聊天壁纸，两类属性 100% 仅保存在各设备本地，不参与多端漫游
+  - 冲突处理与多端广播联动：
+    - 版本控制采用单调递增版本号 `rev`，字段级合并遵循最后写入者胜（LWW）策略
+    - 服务端通过 WebSocket Hub 实时广播 `config` 变更帧，多端接收后平滑解密并热更新本地存储与仓储实例
+    - 移动端 `CloudAccountScreen` 增加 E2EE 配置同步状态与密码设置交互，Android APK 编译通过并已部署至 Redmi K60
+
+- **NyanoMuse 单用户独占服务端锁定、Grok-bot科技感默认立绘全面替换与全栈去额度化 (2026-10-19, 完成)**:
+  - 自建服务端单用户独占安全锁定：
+    - `config.py` 新增 `single_user` 开关（自建中继默认开启）
+    - `service.py` 严格校验账户数，当已有所有者账户时立即抛出 403 `registration_closed` 拒绝任何后续新用户注册
+    - 清理服务端历史冗余测试账户，将黑猫形象、名字与会话数据全量平移至当前唯一所有者账户 `lanrhyme`（版本提升至 rev 15 触发多端即时覆盖更新）
+  - 全局默认形象全面重构为 Grok-bot 科技机器人：
+    - 彻底剔除全工程奶龙（custard dragon）资源，由极简暗黑赛博 Grok 风格发光机器人接管（涵盖 idle/working/waiting/happy/error 五种状态 1024x1024 纯净 WebP）
+    - 移动端 `AgentAvatar` 与 Web 前端剔除旧版 MP4 动画依赖，由 Compose 与 CSS 原生弹性物理动画驱动
+    - 移动端全语种 `nm_avatar_default_description` 与 Web 前端文案同步更新为科技机器人设定
+  - 移动端与 Web 端去额度化与品牌深度重构：
+    - 移动端 `CloudAccountScreen` 彻底剥离额度池进度条、用量明细分类、好友邀请码与 Star 弹窗组件，专注设备会话管理与自建同步
+    - Web 前端完成 NyanoMuse 全局品牌文案重构，重新编译并打包静态资源至 `nanomuse/server/static/`
+    - Electron 桌面原生包完成编译并部署至 `~/.local/opt/nyanomuse/`，Android Debug APK 构建完成
+
+- **NyanoMuse 手机号短信登录全面清除、自建中继直连IP与账号密码认证落地 (2026-10-19, 完成)**:
+  - 手机号短信与邀请码彻底剔除：
+    - 全面清除移动端、桌面与 Web 端的中国大陆手机号限制、海外号段拦截告警、短信验证码获取、60秒倒计时及好友邀请码逻辑
+    - 登录界面全面重构为「服务器地址 (IP/域名) + 用户名/账号 + 密码」直连模式，提供即时连接可用性检测
+  - 自建中继后端认证全流程打通：
+    - 中继 `identifiers.py` 扩展支持通用用户名（`user` 渠道），不再强制要求邮箱或手机号正则
+    - `service.py` 优化自建服务下的密码认证，开放注册模式下首次使用账号密码登录自动创建账号并写入哈希，彻底摆脱短信初始化依赖
+    - 桌面端 Electron、Web 前端与 Android 客户端完成全量重构与构建，ADB 部署至 Redmi K60 并推送远端（`5c278c8a`）
+
+- **NyanoMuse 官方云服务彻底剥离、代码私有地址脱敏、设置层级重构与导航条透明渲染 (2026-10-19, 完成)**:
+  - 代码库私有地址彻底脱敏：
+    - 全面清除代码库中所有硬编码的自建中继域名与官方云地址，改为由环境变量（`NYANOMUSE_RELAY_URL` / `NANOMUSE_CLOUD_URL`）、用户本地输入或配置文件动态解析，代码库保持绝对纯净开源规范
+  - 官方云服务与 branding 剥离：
+    - 移动端、桌面与 Web 端剥离 nanoCloud 官方云依赖，仅保留自建中继服务器（Self-Hosted Relay）连接模式
+    - 界面标题与文案统一重构为「自建服务与多端同步」，清除服务器重置逻辑不再回退到任何私有硬编码
+  - Android 设置页面层级重构：
+    - 按照模型与中继服务、智能体人设与能力、跨设备协同与控制、系统执行与权限、界面网络与数据、关于与支持 6 大板块进行 MuseSectionLabel 结构重整，信息架构清晰易读
+  - 手机端壁纸导航栏黑边根治：
+    - 排查定位 `MuseBottomBar` 中的 `amoledNavPillSurround` 在有壁纸时依然强制裁剪并绘制纯黑底色覆盖导航栏缝隙的问题
+    - 增加 `!hasWallpaper` 守卫条件，在启用聊天背景壁纸时使胶囊导航条外侧及屏幕底端系统手势区实现完全透通渲染
+  - 部署与推送：
+    - Android Debug APK 重新编译通过并通过 ADB 静默安装至 Redmi K60（`ed3fdd92`）
+    - 桌面端 Electron 原生包重新打补丁并构建更新至 `~/.local/opt/nyanomuse/`
+    - Git 提交规范化推送至 GitHub `main` 分支（`8627ff1e`）
+
+- **NyanoMuse 品牌包名全面重构、Android 数据无缝迁移与 Electron 桌面端原生构建部署 (2026-10-19, 完成)**:
+  - 品牌与包名全栈重构：
+    - 应用显示名称全端统一为 `NyanoMuse`（涵盖 Android 17 种语言资源、Web 前端与桌面窗口菜单）
+    - Android 端包名与 Application ID 由 `io.github.nanomuse.app` 彻底变更为 `top.lanrhyme.nyanomuse`，快捷方式与广播接收器动作全面切为 `top.lanrhyme.nyanomuse.*`
+    - 桌面端 AppId 设为 `top.lanrhyme.nyanomuse.desktop`，可执行文件命名为 `nyanomuse-desktop`
+    - 数据主目录全面迁至 `~/.nyanomuse`，桌面配置与状态路径平滑过渡
+  - Android 移动端（Redmi K60 / ed3fdd92）无缝数据迁移：
+    - ADB 交互严格执行非前台避让原则，在用户使用前台（Bilibili）期间执行全静默后台作业
+    - 通过 root 权限全量备份原应用数据目录（SQLite 数据库、files、shared_prefs），安装新版 APK 后恢复并修正 `u0_a545` 属主与 SELinux MLS 安全标签
+    - 卸载旧版 `io.github.nanomuse.app` 并清理临时备份，广播接收器 `RELOAD_CONFIG` 校验成功
+  - 桌面端 Electron 构建与深度系统集成：
+    - 使用 `pnpm` 编译 `dsh-nanomuse` 插件层并注入 DeepSeek Harness 运行时依赖
+    - 运行 `electron-builder --dir` 编译生成原生 Linux 目录版本（`linux-unpacked`），彻底规避 AppImage 与 FUSE 开销，部署至 `~/.local/opt/nyanomuse/`
+    - 建立 `~/.local/bin/nyanomuse` 主执行链接与防递归 MCP 包装脚本，部署 `~/.local/share/applications/nyanomuse.desktop` 桌面项
+    - 迁移 `~/.nanomuse` 至 `~/.nyanomuse` 并保留软链接向后兼容
+    - Chezmoi dotfiles 同步更新 Niri 窗口规则（`rules.kdl` 支持 `nyanomuse-desktop` 隔离至后台工作区 `bg` 且不抢占焦点）与自启（`autostart.kdl`）
+  - 外部 AI 桥接联动：
+    - `nanomuse-bridge.py` 同步支持 `~/.nyanomuse` 优先与 `top.lanrhyme.nyanomuse` 广播，创建双向命令别名 `nyanomuse-bridge`
+
+- **NyanoMuse 官方服务彻底剥离、自定义立绘包导入与外部 AI 自由配置系统上线 (2026-10-19, 完成)**:
+  - 官方依赖清空与自建云端锁死：
+    - 全面剔除所有指向官方 `cloud.nanomuse.cn` 与 `nanomuse.cn` 的硬编码中继地址、下载检查与遥测通道，默认全面切为自建高可用中继 `https://nyanomuse.lanrhyme.top`
+    - 更新检查与文档完全回退并接入 GitHub 官方仓库 `https://github.com/LanRhyme/NyanoMuse`，遥测与数据贡献开关默认关闭，杜绝任何外部数据外泄
+  - 自定义多状态立绘包导入系统（全端就绪）：
+    - Android 端新增 `AvatarPackImporter`，支持解压 ZIP 压缩包或读取本地图片，自动语义识别 `idle`、`working`、`waiting`、`happy`、`error` 5 种表情状态，硬件级裁剪缩放为 512x512 WebP 并写入 `AvatarStore`，同时联动 `ProfileSync` 自动推送云端中继
+    - `AvatarStudioScreen` 新增显式「导入立绘包 (ZIP/多图)」快速操作按钮与菜单项
+    - 桌面与 Web 端支持通过桥接工具直接打包注入与即时全端漫游，全套 5 状态黑猫立绘包（`~/tmp/nyanomuse_avatar_pack.zip`，哈希 `1e9abf11ff90`）已成功固化到桌面并同步至自建中继与手机端
+  - 外部 AI 自由配置与双向热重载桥接系统：
+    - 打造 `nanomuse-bridge` CLI 工具（软链接至 `~/.local/bin/nanomuse-bridge`），赋予外部 AI 代理（Antigravity、Claude Code 等）对 `SOUL.md`、`profile.json`、`cloud.json`、模型提供商与立绘资源的无沙箱全权控制与命令行读写能力
+    - Android 端实现 `ExternalAiReceiver` 广播接收器，外部脚本或 ADB 可通过 `io.github.nanomuse.UPDATE_SOUL`、`io.github.nanomuse.IMPORT_AVATAR`、`io.github.nanomuse.UPDATE_RELAY` 和 `io.github.nanomuse.RELOAD_CONFIG` 动作实现免重启热注入
+    - 撰写并提交 `docs/zh/ai-bridge.md` 开发者规范，严格恪守无句号无表情符号规则
+  - 部署与验证：
+    - Android Debug APK 完成打包并经 ADB 静默安装至 Redmi K60（`ed3fdd92`），避开前台用户活跃应用，广播注入 SOUL 设定与立绘包成功
+    - 桌面端 Web 前端 Vite 重新打包输出至 `nanomuse/server/static/`
+    - 所有改动经 Git 规范化提交（`feat: 剔除官方服务依赖、支持自定义立绘包导入与外部 AI 自由配置接口`）并推送至 GitHub 远端 `799fde16`
+
+- **NyanoMuse 多预设主题、聊天壁纸、毛玻璃特效与工具系统全面进化 (2026-10-19, 全端就绪)**:
+  - 主题与调色盘系统（移动端与桌面/Web端同步）：
+    - 预设色调引擎：莫兰迪 Morandi（默认暖灰/鼠尾草护眼）、OLED 纯黑（极致对比度与节能）、猫猫暖樱 Sakura Pink（甜美粉嫩萌系专属）、经典蓝 Default Blue，以及 Android 12+ Material You / Monet 动态壁纸取色
+    - Android 端由 `ThemePalette` 与 `ThemePalettes` 驱动全局 `ColorScheme` 与 `ChatPalette` 解析，`AppearanceScreen` 提供色块可视化切换并实时联动 Compose 全局重组
+    - 桌面与 Web 端由 `theme.ts` 与 `index.css` 提供 `data-palette` 与 CSS 变量切换，在 Settings 的 Appearance 中提供图形化选项
+  - 聊天背景壁纸与毛玻璃效果系统（移动端与桌面/Web端同步）：
+    - 移动端由 `ChatWallpaperManager` 集中管理图片持久化存储、暗化蒙版（0% 至 85%）与高斯模糊（0 至 25dp），在 `ChatScreen` 底层以 `AsyncImage` 与硬件级模糊分层渲染
+    - 桌面与 Web 端支持本地图片上传至 `localStorage`，支持暗化遮罩与模糊滑块调节，结合 CSS `backdrop-filter` 与 `color-mix` 落地全景半透明亚克力与 Mica 毛玻璃质感（`data-glass`）
+  - 工具系统全方位进化（Android 原生工具库与自愈管线）：
+    - 新增 `device_info`：免 Root/有 Root 双通只读工具，读取设备电池电量、充电状态、RAM 与内置存储空间利用率、网络连接类型与系统内核环境
+    - 新增 `app_launch`：支持按包名或按中英文应用名称模糊检索并启动已安装应用（如微信、设置、相机等）
+    - 新增 `system_notify`：支持发送带 nanoMuse 专属头像图标的系统状态栏通知或即时 Toast 提示
+    - 智能容错自愈：新增 `ToolSelfHealing`，在工具失败时根据失败模式自动注入文件搜索、PATH 缺失排查及 su 权限指导等自愈提示，防止模型盲目重复失败
+    - 测试与构建：Android 全量单元测试 `testDebugUnitTest` 100% 绿色通过，桌面/Web 端 Vite 生产构建与 18 个测试套件 112 项测试全数通过，改动已提交并推送至 `LanRhyme/NyanoMuse` 的 main 分支
+  - 桌面端自建中继适配与本地配置（2026-10-19，完成）：
+    - 桌面端彻底剔除 nanoMuse Cloud 专有文案与残留配置，设置项导航与文案变更为自建同步服务
+    - 登录界面改用服务器地址、用户名与密码验证体系，移除短信验证码与邀请码残留
+    - 桌面端主进程与插件支持从本地 `~/.nyanomuse/desktop/desktop.json`（`relayUrl`）或 `environment.d` 读取私有服务器地址直连
+    - 全面剔除账户页面的额度池（Allowance）、用量明细（Usage）、邀请好友（Invite）与 Star 弹窗组件，停用 80% 额度预警
+    - 本地清除历史官方云残留会话（cloud.json 与 .credentials.yaml 中的旧 Token），确保桌面端处于未登录净态
+    - 全量单测 333 项测试通过，完成 Electron 桌面端构建并热部署至 `~/.local/opt/nyanomuse/`
+  - 平板端（一加平板 2 Pro / OPD2413）完成 NyanoMuse 最新版 APK 安装与原 io.github.nanomuse.app 全量数据无缝迁移，电池优化白名单与后台权限已配置完成
+
+- **nanoMuse 跨设备 AI Agent 全端部署、Niri 静默自启与黑猫灵魂/AGENTS.md 双轨联动 (2026-10-18, 完成)**:
+  - 架构：开源跨设备自主 Agent（v1.0.5）；手机端（K60）与平板端（一加平板 2 Pro）均安装 `io.github.nanomuse.app` 并配置电池白名单，电脑端安装 AppImage 至 `~/.local/opt/nanomuse/nanoMuse.AppImage` 并创建 CLI 链接 `~/.local/bin/nanomuse`
+  - 桌面与自启：提取官方图标生成 `nanomuse.desktop`；配置 `~/.nanomuse/desktop/desktop.json` 启用常驻托盘；在 Niri `autostart.kdl` 添加自启并在 `rules.kdl` 配置规则隔离至后台工作区 `bg` 且不抢占焦点，变更已纳入 Chezmoi
+  - 自定义立绘与云端固化：生成全套 5 状态黑猫立绘，调用 `PUT /v1/me/profile` 固化至云端账号（Rev 11 / `4c82dd34732c`），三端完全继承
+  - 角色灵魂与 AGENTS.md 链接：排查定位此前 AGENTS.md 中写死「对话回复保持简洁直接和专业」导致模型压制猫猫人设；重构 AGENTS.md 第 4 节确立双轨制（日常助手交流全面放开软萌撒娇小黑猫性格、称呼老大、穿插动作拟声与萌系颜文字；工程执行严守安全红线与格式约束）；变更已提交 Chezmoi 并同步推送至平板
+  - 状态：手机与平板均已静默部署；电脑端后台常驻与多端灵魂守则就绪
+
+- **网易 UU 远程 Linux 被控端部署、Wayland 适配、输入法防吞字与黑屏自愈 (2026-10-18, 优化完成)**:
+  - 架构与安装：AUR `uu-remote-bin` 基础环境；拉取官方源码 (v0.1.22) 启用 `--features wayland,portal` 编译部署于 `/usr/bin/uuremote-server`，解决官方预编译包不支持 Wayland 桌面串流问题
+  - 权限与输入：部署 `/usr/lib/udev/rules.d/60-uu-remote-linux-uinput.rules` 赋予 `/dev/uinput` 用户级访问权限，内核级注入虚拟键鼠，绕过 Wayland 输入隔离限制
+  - 移动端输入法吞字与回弹根治（混合输入终极方案）：排查定位手机端连续发词切分过碎导致剪贴板覆盖踩踏与冲突吞字；重构 CONTROL_DATA_CHANNEL 落地混合输入：1. 单字符（a-z、A-Z、0-9、空格、换行、Tab、退格）走 uinput 物理硬件扫描码直发，毫秒级即时上屏完全不经剪贴板；2. 复合/中文文本引入 45ms 滑动防抖合并，在写入前快照备份剪贴板，粘贴完成 100ms 后静默还原旧剪贴板，实现本地剪贴板历史零污染；配合 30ms selection 缓冲、30ms/40ms/25ms 稳健组合键注入与 40ms 冷却保护，杜绝连续输入踩踏；彻底剥离监听回调中的 6 处被动 Ctrl+V 注入，支持通过 niri 识别终端切为 Ctrl+Shift+V，并把回弹屏蔽窗口扩充至 5000ms
+  - 串流画质与局域网直连：码率基准提升至 `UU_VIDEO_BITRATE=8000k`、峰值 `UU_VIDEO_MAX_KBPS=12000`、缓冲区 `UU_VIDEO_BUFSIZE=12000k`，解除 VBV 限制并在 3K 屏幕下画质提升 3 倍；UFW 放行局域网网段并过滤 Clash TUN 伪 IP（`198.18.0.1`），恢复 WebRTC P2P 低延迟直连
+  - 远控活跃状态与 Noctalia 剪贴板防骚扰：在 `uuremote-server` 的 WebRTC desktop 会话生命周期中维护 `/tmp/uu_remote_active` 状态文件；在 Noctalia `clipboard-osd` 插件（`main.luau`）的 shell 触发条件与事件处理双层注入判断，远控期间全静音避免手机打字与快照恢复频繁触发复制桌面弹窗，远控结束后自动恢复正常通知
+  - 开机自启常驻连入黑屏自愈：排查定位开启 linger 时服务随 `default.target` 较早启动，此时桌面尚未建立且缺乏 `WAYLAND_DISPLAY`（受原配置写死 `DISPLAY=:0` 误导），导致底层初始化为 X11 后端从 `:0` 抓取 Xwayland 空白根窗口（表现为仅显示客户端自绘光标而画面全黑），且登录桌面后原有进程无法感知后端变更；修复方案：1. 在 `desktop_backend.rs` 新增 `ensure_wayland_env` 自动扫描探测 `/run/user/<uid>/wayland-*` 活跃可连通 Socket 并动态补齐环境；2. 在 `main.rs` 的 Offer 接入流中增加后端变更自愈检测，一旦检测到 Wayland 就绪或与启动时绑定的后端不一致，立即重载重建 `ScreenCapture::new()`；3. 优化 `/usr/lib/systemd/user/uu-remote-native.service` 移除硬编码 `DISPLAY=:0` 并透传 Wayland 变量
+  - 游戏按键映射与触控轮盘修复：逆向兼容 mobile 客户端下发的 input_keys 对象数组、内联 JSON 字符串及逗号分隔格式，将 keyboard 与 mouse 设备精准分发至虚拟按键与鼠标点击
+  - 键鼠输入动态自愈与全桌面优先：排查开机随 systemd 启动（开启 linger）时因图形界面尚未完全建立被误判为 X11 后端，原逻辑跳过 uinput 初始化且写死旧状态，导致后续连入时向 Wayland 盲目调用 X11 XTest 接口失败（日志狂报 `Desktop mouse injection failed: -1`、`Pointer button audit: result=-1`），键鼠完全瘫痪；修复方案：1. `src/uinput.rs` 中 `wanted` 调整为全桌面默认优先使用内核 uinput；2. `src/input.rs` 将 `InputInjector` 的 `uinput` 设备改为 `Mutex<Option<Devices>>` 并引入 `with_uinput` 惰性自愈探测，未打开时每次事件触发动态补建；3. 废除写死的 `backend` 字段，改用 `current_backend()` 实时感知桌面合成器状态；4. `systemd` 服务补充 `Environment=UU_INPUT_BACKEND=uinput` 并重新编译部署
+  - 凭据与常驻：登录凭据存储于 `~/.config/uuremote/config.json`；启用 systemd 用户服务 `uu-remote-native.service` 实现开机自动登录并常驻连接网易远控网络
+
+- **CodeBuddy IDE (腾讯云代码助手) 独立桌面端安装 (2026-10-18, 安装完成)**:
+  - 架构与安装：通过 PKGBUILD 安全审查后从 AUR 安装 `codebuddy-ide-cn 4.12.0.37847260-1`，解包腾讯官方 DEB 并完成针对 Electron 37 缺失原生模块（node-pty、policy-watcher 等）的本地重编
+  - 可执行程序与桌面图标：生成 `/usr/bin/codebuddy-ide-cn` 与 `/usr/share/applications/codebuddy-ide-cn.desktop`
+
+- **DeepSeek Harness (DSH) 升级与全量插件更新 (2026-10-18, 完成)**:
+  - 核心架构升级：AUR `deepseek-harness-bin` 升级至 `0.2.0rc.2-1`（dsh 0.2.0-rc.2），通过 PKGBUILD 安全审查
+  - 插件全量升级：运行 `dsh plugin --profile web update --latest`，全量更新全部 18 个扩展插件至最新兼容版本
+  - 兼容豁免与修复：针对 `dsh-opencode-zen` 授权版本兼容豁免（`allow-version`），补齐缺失的 patch 文件消除加载告警
+  - 插件 Hub 同步：本地 `~/dsh-plugin-hub` 仓库快进拉取上游最新提交
+  - 统计插件与代理报错修复：`dsh-token-usage-counter` 因 DSH 0.2 移除 `ctx.settings.register` 报错，更新至最新 GitHub 上游（v0.5.0，适配 `storageDomain` 持久化）；编写 `~/.local/bin/dsh` 启动包装脚本，自动过滤 SOCKS 协议的 `all_proxy` 避免启动告警，同时保留 HTTP 代理生效
+
+
+- **WorkBuddy 前端卡顿根治与 Wayland 硬件加速解锁 (2026-10-18, 优化完成)**:
+  - 根因定位：WorkBuddy 内置 GPU 降级保护机制，当检测到 `gpu-crash-info.json` 中崩溃计数 ≥1 时自动禁用硬件加速；在 Linux Wayland 下正常退出时 GPU 子进程被主进程杀死（SIGTERM），因非 clean-exit 误判为 GPU 崩溃并累加计数，导致应用永久陷入 CPU 软件栅格化与前端极度卡顿
+  - 死锁切断：将 `~/.workbuddy/app/gpu-crash-info.json` 软链接至 `/dev/null`，使得配置读取永远返回 `{}`（不触发降级门控），写崩溃计数直接吸收入黑洞
+  - 硬件加速配置：在 `~/.config/electron44-flags.conf` 配置 Wayland 原生 GPU 合成参数（`--enable-features=UseOzonePlatform,WaylandWindowDecorations`、`--ozone-platform=wayland`、`--enable-gpu-rasterization`、`--enable-zero-copy`、`--ignore-gpu-blocklist`），并纳入 Chezmoi 仓库管理
+
+- **IntelliJ IDEA 莫兰迪配色与主题引擎集成 (2026-10-15, 配置完成)**:
+  - 主题架构：在 `~/.config/noctalia/morandi-gen.py` 扩展 `write_idea(palette)`，生成独立的编辑器配色方案（`Morandi.icls`）与配套 UI 主题插件包（`morandi-theme.jar`）并在 `main()` 接入自动重载
+  - 本地化配置：部署解除版本限制的官方中文语言包至 `~/.local/share/JetBrains/IdeaIC2026.2/zh/lib/zh.jar`，在 `ide.general.xml` 与 `idea64.vmoptions` 写入语言环境配置
+
+- **ReveriePaint v1.4.0 版本发布与全量架构升级 (2026-10-02, 发布完成)**:
+  - 版本号与构建体系：版本号自 1.3.10 (27) 升级至 1.4.0 (28)，打标签 `v1.4.0` 并推送至 GitHub 触发 Release 打包工作流
+  - 核心功能升级集成：集成快捷笔刷悬浮面板、快捷操作悬浮面板、防崩溃快照恢复系统、Procreate 风格动态流动斑马纹选区与黑白相间矢量流动蚂蚁线系统、界面动效速度设置三档调节、边缘侧滑返回手势与起笔防误画优化
+  - 核心崩溃与视觉修复：修复多步撤销 Swap 溢出崩溃（软限制调至 50% 与 maxSwapSize 8GB）、移除引发原生 Abort 的 MotionPredictor 回退调用；利用 ARM NEON 矢量加速直通 BGRA 预乘透明度并修复变换预览与缩略图过曝泛光；修复边缘侧滑手势排除与图层重命名冲突
+
+- **MicYou 主仓库迁移至 MicYou-Dev 组织 (2026-10-01, 迁移完成)**:
+  - 迁移目标：由 `LanRhyme/MicYou` 完整迁移至官方组织 `MicYou-Dev/MicYou`，保留应用包名及 Bundle Identifier `com.lanrhyme.micyou`，批量更新 Issue 模板、文档与客户端接口地址，更新本地 Git remote 并推送
+
+- **代理客户端切换为 Bettbox (2026-10-01, 双客户端共存过渡)**:
+  - 架构：安装 AUR `bettbox-bin 1.19.3-1`（Flutter + Mihomo 内核），迁移 profiles、数据库与 GEO 规则库；内核 `BettboxCore` 具 SUID root 支持免密 TUN；调整配置关闭开机自连避免与运行中的 FlClash 冲突，供前端平滑切换
+
+- **Redmi K60 (mondrian) 底层完整备份与 ColorOS 16.1 全量刷入 (2026-09-14 ~ 2026-09-25, 成功)**:
+  - 底层备份：提取基带校准（`modemst1/2`、`fsg/fsc`）、硬件校准（`persist`）、设备信息（`devinfo`）及原厂 HyperOS 4 引导恢复全套镜像归档至 `~/刷机/k60/原厂备份/`
+  - 固件刷写与授权：运行原生 Fastboot 脚本全量写入双槽位固件与 SukiSU Boot 镜像；清除授权补丁伪加密标志位后卡刷成功，向 `/mi_ext/product/etc/security/verificationlist.bin` 写入授权 Token
+  - 模块与生态修复：修复 `magic_mount_rs` 软链接递归缺陷恢复 28 个 Material You overlay 挂载；修复 Vector 守护进程服务脚本为 `unshare -m`；执行 `znctl enforce-denylist disabled`（0）关闭黑名单排除
+
+- **一加平板2 Pro (OPD2413 / c84b9192) 解锁、KowSU Pro Root 与隐匿模块链全量部署 (2026-09-12, 成功)**:
+  - 机型规格：骁龙 8 至尊版 (SM8750P / sun 平台)，Wi-Fi 版 OEM 解锁后 Fastboot 秒解；SpiderDroid GKI 6.6.118 定制内核 + KowSU Pro (35700-2 / UAPI=2) + SuSFS 2.3.0；`stock_boot.img` 归档至 `~/刷机/一加平板2Pro/原厂备份/`
+  - 打包标准：必须使用 raw ARM64 Image 并由 `avbtool add_hash_footer` 注入 Hash Footer（分区尺寸严格设定为 96MB）
+  - 游戏防检测 (三角洲行动)：KernelSU 内核隐匿特性全开；TS Enhancer Extreme 伪装 green 与锁 bootloader；Tricky Store 目标列表伪装；Vector Xposed 白名单隔离；HMA-OSS 直写双路径配置并经 `android-hide-app` 自动维护
+  - 禁忌红线：严禁刷第三方 Recovery、严禁降级防 ARB 硬件熔断、严禁使用手机端防误触或触控旁路补丁
+
+- **局域网 WebDAV 服务 (Dufs) 与 Cloudflare Tunnel 部署 (2026-09-14, 成功)**:
+  - 架构：安装 AUR `dufs-bin 0.46.0-2`，数据根目录 `~/WebDAV`（预设 `reader` 与 `backup`），全私有 Basic 认证（配置 `~/.config/dufs/config.yaml` 权限 600 并加入 `.chezmoiignore`）
+  - 服务与公网绑定：编写 systemd user 服务 `dufs.service`（开启 linger），配合 Cloudflare Tunnel（`cloudflared-webdav.service`）绑定 `https://webdav.lanrhyme.top/`，ufw 放行 5000/tcp
+
+
+---
+
+归档批次: 2026-11-17 18:00（整理范围 2026-10-29 ~ 2026-11-12，原文未删减）
+
+- **心理汇报《完美主义》打分器 (2026-11-12, 已完成可交付)**:
+  - 需求: 用户下周心理小组汇报, 开场要一个 90 秒小游戏 —— 屏幕给一句话, 同学扫码改得更好, 提交拿分, 想更高就继续改; 结尾反转「分数是随机的, 你追了 90 秒的东西从头到尾都不存在」; 现场 60 人以上同时在线
+  - 交付: `~/Projects/perfectionism-scorer`（零 npm 依赖、无构建），本轮已 git 提交 `47dc9b9` / `6eab05b`
+  - **分数模型**: `分数 = 基准曲线(第几次提交) + FNV 哈希个人偏移(-1/0/+1)`；基准固定在 77..81，全场落在 76..82，82 是硬天花板永远出不了 83；第 8 与第 19 次出现 81 配 +1 得 82，制造「再改一次就到顶」的假希望；第 27 次基准正好 79 对上台词
+  - **个人偏移全程恒定且永不触发钳制** —— 所以所有人曲线形状严格相同，只整体平移。这是反转最硬的一张图，也意味着**进行中的大屏绝对不能画个人曲线**（会立刻穿帮），改为 42 格「分数墙」；曲线只在结尾出现：一人一张小图 → 按第一分对齐（真动数据，不是特效）→ 淡出合成一条线
+  - **自研零依赖二维码** `lib/qr.mjs`（字节模式 v1-10、L/M/Q/H、8 掩码按惩罚分择优、内联 PNG 编码）。两个必踩坑：① 格式信息区必须先以 mask 0 占位写入并标记 `isFunction`，否则数据会写进格式区（表现为解码器能定位但「data irrecoverable」）② 列遍历遇到第 6 列（竖直时序图形）必须用 `col <= 6 ? col - 1 : col` 派生局部变量，**不能改循环变量**，否则会漏掉一整列、832 个模块少 5 位
+  - 验证口径 `npm test`：曲线校准（2000 人 9 条断言，含「所有参与者曲线形状完全相同」）+ 二维码 zbarimg 解码 40 项 + 端到端压测（80 并发，p95 5~18ms、max 26ms、无 5xx）
+  - 截图不用装浏览器：`tools/shot.mjs` 直接复用 playwright 缓存里的 `~/.cache/ms-playwright/chromium-1246/chrome-linux64/chrome` + 裸 CDP（Node 26 自带 global WebSocket）截图
+  - **部署口径**: 用户服务器在大陆、无域名 → 无法备案，只能 IP + 非标端口直连（务必避开 80/443，云厂商只在这两个端口做备案拦截）；属未备案运行、法理不合规但现实概率极低，活动结束即停服。README 与 `deploy/perfectionism-scorer.service` 已写明
+  - **v2 重构 (提交 2ca106d)**: 计分从「纯曲线」升级为「**假刻度**」—— `分数 = 基准(77..80, 400 值不循环) + 个人偏移(±1) + 内容项(0/1)`，严格落在 76..82。内容项**只认三个纯结构指标**：字数 ≥24 / ≥46、标点种类 ≥3、分句 ≥3，累计 ≥3 才 +1 → 「写长一点真的涨分，改词不改结构一分不动」。82 变成传说级（需基准站上 80 + 偏移 +1 + 内容项命中）
+  - **关键设计洞察**: 纯随机两次就被看穿；有假刻度后玩家的「我在进步」假设被反复证实，90 秒内不会怀疑。反转也从「分数是随机的」升级为「**分数有刻度，只是它量错了东西**」，对完美主义更致命
+  - **假 LLM 推理延迟**: 服务端每次提交静默 `760 + min(1500, 字数×16) + 0~380ms`（8 字≈1.1s，80 字≈2.3s，**时长与字数正相关**，这是猜不到的第二个假刻度）；手机端配「分析语句结构 → 比对评分语料 → 生成评分」+ 一顿一顿的进度条
+  - **大屏两幕反转**: 42 张小图（分数，形状「很像但不完全一样」）→ 字数分档对照表（78.07 / 79.83 / 79.45，差值就是内容项）→ 换成 skeleton 序列并坍缩（42 条落在同一条线）→「分数是有刻度的 / 只是它量错了东西」。揭底 15 步自动推进约 30 秒，**空格可随时跳到下一步**
+  - **已上线 Cloudflare Workers (提交 2495263)**: `https://scorer.lanrhyme.top/`，大屏 `/board?token=<口令>`，口令在 `worker/.admin-token`（已 git 忽略）。账号 `Xiao_ren233@foxmail.com` / `193b043004e73d4f91b79b65a69c621e`
+  - **本机 wrangler 早就登录好了**：`~/.config/.wrangler/config/default.toml` 有 OAuth token，权限含 `workers_scripts:write` / `workers_routes:write`，直接 `npx wrangler deploy` 即可，不需要用户再给 API Token。`cloudflared` 装的是隧道客户端，跟部署无关
+  - **必须用自定义域名**：`*.workers.dev` 国内被 DNS 污染（用户自己在 ReveriePaint 遥测工程里实测 SocketTimeoutException），所以 `wrangler.toml` 用 `routes = [{ pattern = "scorer.lanrhyme.top", custom_domain = true }]`，首次部署自动建 DNS + 签证书
+  - **DO 冷启动坑（已修）**: `ensure()` 里无脑 `phase='idle'` 会让每次 DO 被收回再唤醒时把进行中的局重置掉（现象：admin/start 返回 running，紧接着 submit 返回 409）。改成按 `startedAt` 超过 2 小时才判过期，`running` 且已过 `endsAt` 则转 `ended`
+  - **wrangler dev 的坑**: `npm install` 时 esbuild/workerd 的 postinstall 被 allowScripts 拦了，但 `@cloudflare/workerd-linux-64` 走 optionalDependencies 已带二进制，dev 仍可用；首帧会有 `Unable to fetch the Request.cf object` 的 warn，无害
+  - **线上稳定性已验**: `/api/qr.svg` 与 `/api/health` 各 20 次全 200（部署完成瞬间有过一次 500，属传播期的瞬时现象）
+  - **v3 改成每人自己的 90 秒（提交 a4ea404）**: 去掉主持人「开始」这一步，同学随时扫码、填名字就开始自己的 90 秒，一人一次（名字即身份，重名 409），到点提交一律 409。大屏二维码常驻，随便什么时候进来都行；空格揭底、B 回分数墙、R 清空重来
+  - **状态机抽到 `lib/game.mjs`**: 纯函数，Node 与 Durable Object 共用一份，两边行为不会漂
+  - **计时以服务端为准**: 每人一个 `endsAt`，手机本地只是照着跑（用 `performance.now()` 换算，绕开本机时钟差）。原来靠服务端每 2 秒 tick 一次，现在改成随看板下发 `endsAt`、前端自己每秒重算「已完成/进行中」
+  - **⚠️ Durable Object 更新代码的坑（踩得很深）**: DO 实例里只要跑着永不停止的 `setInterval`（哪怕是 `state.storage.setAlarm` 之外的普通定时器），实例就永远不空闲 → **`wrangler deploy` 明明成功、Current Version 也变了，线上还在跑旧代码**。表现为：新字段不出现、老校验不生效，怎么重部署都没用。实测坑法：
+    - 先试着删 secret / 重部署 / 换 DO 实例名，都没用
+    - `deleted_classes` 迁移会报 `10061 不能删还有 binding 引用的类`
+    - 只加新类不改旧导出会报 `10064 新版本没有导出 Room`
+    - **最终解法：`wrangler delete --force` 删掉整个 Worker，类改名（Room → ScorerRoom），迁移从 v1 重来，再 deploy**。DO 存储会一起没，但对这种一次性活动无所谓
+    - 教训：DO 里不要放常驻定时器；需要定时就把时间点下发给前端，让前端自己算
+  - **shell 引号事故**: 用 `python3 -c "..."` 改 README 时，正文里的反引号被 bash 当成命令替换执行了，真的跑了一次 `wrangler secret put ADMIN_TOKEN`（值成了字面量 `<管理口令>`），站点被意外上锁。改用 `python3 <<'PYEOF'` heredoc（带单引号）就不会替换。**改含反引号/美元符的文件一律用 heredoc**
+  - **v3.1 提速 + 补时（提交 55df9b9）**: 用户反馈「很慢」和「算分时也在计时」
+    - **算分时间不吃玩家 90 秒**: 时间判定用请求到达时刻，等完把 `thinkingMs` 加回 `endsAt`（`lib/game.mjs` 的 `refundTime`）；本地倒计时在请求期间冻结，出分后按 `remainingMs` 追平
+    - 假思考从 `760 + 16/字` 降到 `300 + 6/字`（15 字≈0.5s，80 字≈1s），并加 `THINK_SCALE` 旋钮（0 = 立即出分）
+    - 出分覆盖层 1350ms → 520ms，且点一下就关
+    - 实测线上单次提交 842ms ＝ 假思考 550ms + 网络 292ms（之前 `/api/health` 测出 1~2s 是冷启动，稳定后网络只有 ~290ms）
+  - **⚠️ DO 被旧代码钉死：只能换实例名，不能靠等**: 上一轮以为去掉常驻定时器、等实例回收就行 —— 实测**静置 70 秒仍然跑旧代码**。可靠做法是实例名带版本号 `idFromName('room:' + env.ROOM_VERSION)`，改了 DO 相关代码就把 `ROOM_VERSION` 加一再部署（老实例的数据带不过来，一次性活动无所谓）
+  - **正式上线大陆服务器（提交 0473093）**: 阿里云 `47.95.242.43`（`iZ2zeardpd4aavpdclqa1wZ` / Alibaba Cloud Linux 3 / Node v24.16.0 已预装）。代码在 `/opt/perfectionism-scorer`，systemd 单元 `perfectionism-scorer`，运行用户 `scorer`，端口 8890，`THINK_SCALE=0.8`，`config.json` 里 `publicUrl` 写死 `http://47.95.242.43:8890/`
+    - **实测对比**: 大陆直连 163ms / 首屏 0.26s / e2e p50 582ms；Cloudflare 独立版 1316ms / e2e p50 1131ms → **快 8 倍**
+    - 服务器上 80 被 nginx 占、8080 被 python 占；firewalld 未启用、SELinux Disabled；安全组原本只放行 22/80，用户手工加了 8890
+    - SSH: root 可登录（密码认证），除 `22` 外已额外放行并监听 `2563`（校园网封 22 端口时用 `-p 2563`）；`ssh -F /dev/null` 绕开本机损坏的 `/etc/ssh/ssh_config.d/20-systemd-ssh-proxy.conf`；非交互用 `SSH_ASKPASS_REQUIRE=force` + askpass 脚本；**用过的密码文件用完必须 shred**（已同步 `present.html` 提交 `71afa07` 上线）
+    - 机器出网被墙（`api.ipify.org` 取不到），但应用不需要出网
+  - **⚠️ CF 反代到大陆这条路走不通**: 写好了 `worker-proxy/`（纯反代 `https://live.lanrhyme.top` → `http://47.95.242.43:8890`），`wrangler deploy` 明确显示 custom domain 已挂载，但边缘返 `403 error code: 1003`。换 `board.` / `live.` 两个子域、反复重部署、等几分钟都不行。`scorer.lanrhyme.top` 是唯一能正常工作的自定义域 → 判断是 zone 层面问题（疑与 `*.lanrhyme.top` 通配记录冲突），需要控制台处理。**结论：大屏直接开大陆 IP，比绕 CF 快 8 倍且少一个故障点**
+  - **两套部署不能混用**: 大陆与 CF 各有一份独立数据，大屏开在哪边只看得到哪边的分数
+  - **v4 按用户反馈重做（提交 3d52042）**: 四条意见一起改
+    - **分数区间拉开**: 基准 72..88（单次可掉 4 涨 3），个人偏移改三档 ±3，内容项改 0/2/5 三档 → 全场 69..96。原来 76..82 只 7 档，玩家觉得「变化太小」
+    - **同句同分（关键破绽）**: 每人一张 `文本 FNV 哈希 → 分数` 的 memo，改回旧版本拿回旧分数。不这么做的话「交 A 得 79 → 改 B 得 81 → 改回 A 得 77」两次就试穿了
+    - **追分引擎**: 手机常驻「全场最高 XX（某某）／你还差 X 分」，差 ≤2 追加「就差一点」；大屏右栏实时排行榜前五；墙上最高分暖色标注
+    - **时长 90 秒 → 120 秒**，后端默认 / systemd / wrangler.toml / install.sh 四处同步
+    - **大屏视觉重做**: 用户说「很丑」。去掉等权重卡片，改成排版式分数墙（无卡片、无边框、靠字号与留白），名称小字 + 大号细体数字 + 刻度条；还在改的人名字后挂呼吸点；右栏 QR 白卡 + 排行榜；底部一行三个大数字
+  - **e2e 已达 30 条断言**，本地与大陆线上各跑一遍全绿；p50 695ms（含 0.8 倍假思考）
+  - **部署到大陆的密码处理**: 每次要 SSH 都得临时重建 askpass 文件，用完立刻 `shred -u` + 删目录。用户没配公钥，密码在对话里出现过
+  - **v5 大屏第三次重做 + 管理页 + 汇报开场（提交 7e1916a / 4486e5a）**:
+    - **大屏按分数排序**（不再按入场顺序），高分暖金低分冷灰，墙自己形成左上到右下的坡度，右栏排行榜因此可以删掉
+    - 格子带位置插值（`S.pos` Map，`1 - exp(-dt/95)` 帧率无关），分数一变就滑到新排名；名字后呼吸点表示还在改
+    - 二维码改成浮空按钮，点击或按 `Q` 放大成全屏（`.qrmodal`），后排也扫得到
+    - 移除底部句子提示，统计挤到顶部一行并给二维码留出 `padding-right`
+    - **新增 `/admin`**: 揭底 / 回到分数墙 / 导出 CSV / 清空、参与者表格（次数、当前、最高、状态、进度条）、实时日志
+    - **新增 `/ppt`**: 空格/→/点击翻页，F 全屏。第一页「我们先来玩个游戏」逐字浮起 + 分隔线生长 + 背景分数残影（中心 0.52 半径内淡出，别压文字）
+    - `latest` 补上 `best` 与 `endsAt`（管理页和看板的 `recount` 都要）
+    - 路由别名统一：`/`→play，`/board`，`/admin`，`/ppt`
+  - **v6 放映稿统一 + 稿纸设计（提交 01e265b）**: 用户说「ppt 和大屏应该连在一起」「ai 感好强，来点好的设计」
+    - **新增 `/present`**: 一页到底的放映稿，六页——开场 / 分数墙 / 全部曲线 / 曲线合并 / 「它不存在」/ 提交次数排名。空格翻页，不用切窗口
+    - **设计语言换掉**: 从「深色 + 橙色 + 等宽数字 + 居中大字」（配置式审美）换成 **被红笔批改过的稿纸**——暖白纸 `#f4f0e7`、黑墨 `#18170f`、红笔 `#b0342a`；标题宋体、正文黑体；全左对齐；页眉页脚细线 + 页码建立「这是一份文档」的感觉；开场用 SVG 路径画一道手写红线
+    - **揭底用 `skeletons` 做连续变形**: 把内容项按条减掉再对齐起点，40 条曲线 2 秒内合成一条红线。只减首点偏移是不够的（不同长度的曲线合不拢）
+    - **第 06 页** 按提交次数排名，并自动对比「交得最多的 X 改了 N 次拿了 M 分 · 拿到最高分的 Y 只改了 K 次」
+    - **踩到三个坑**:
+      - HTML 注释写成 `<!-- 04 去掉内容项 */`（少了 `-->`），整个 `<section>` 被注释吞掉，`querySelectorAll('.slide')` 只有 5 个
+      - `.bar i` 绝对定位但只给了 `left/top/bottom`，没给 `width`，宽度塌成 0，`scaleX` 动效完全看不见
+      - SSE 每次提交都触发重绘，把入场动画打断；改成按数据签名去重
+    - **调试工具改进**: `tools/shot.mjs` 现在会回显 extraJs 的返回值；`present.html` 暴露 `window.__go/__slide/__err` 方便逐页截图
+    - 教训：截图前必须在**同一个 bash 调用里**起服务，否则后台进程被回收，页面 404 但截图照样"成功"，会误判成代码问题
+  - **v7 放映稿换成电影片头质感（用户说「AI 感更强」「没动效」）**: 参考最近 Opus 写代码做的动效短片
+    - 用户口中的「opus 视频」= Claude Opus 5.5 用代码（HTML/CSS/JS）生成的那批爆火动效短片，不是视频模型
+    - 关键认识：**「AI 感」的根子不是配色，是静止**。上一版纸面稿只有文字淡入，其余全部不动
+    - 现在：暖近黑底 + 34s 漂移红光 + 全屏颗粒（0.9s 跳帧）+ 暗角；进场缩放去模糊；标题遮罩上推逐行错开；数字滚动；分数墙滑位+弹跳+辉光；曲线逐条画出；排名条弹性填充；二维码悬停/全屏
+    - 保留 \ 兜底
+  - **v8 放映稿补到 14 页（提交 025e0f5）**: 用户先要求手机端可提前结束，再用 grill-me 对齐后半场
+    - 手机端「改完了，提前结束」安静文字按钮 + 二次确认，结算页区分「时间到」与「你自己选择结束了」
+    - grill-me 结论：落点=机制→怎么办；篇幅先按 10 分钟 8 页；配图=情绪页照片+机制页生成图形；研究依据少量点缀
+    - 07 定义 / 08 三面孔（Hewitt & Flett 1991）/ 09 靶子会上移（canvas 台阶图）/ 10 条件化自我价值（照片）/ 11 拖延循环 / 12 代价（照片）/ 13 三件能做的事 / 14 结尾
+    - **配图取法（重要）**: Openverse 与 Wikimedia 都被墙，但 `images.pexels.com` 与 `images.unsplash.com` 直连可用。Pexels 的页面 URL 里的数字 ID 直接对应 CDN：`images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg`。用 web_search 找页面 → 抽 ID → 下 CDN
+    - 用到的两张：window #30573891（窗边剪影）、desk #1635974（深夜桌面）
+    - 坑：canvas 容器没设尺寸会画成一小坨；照片页 `.hdr` 直接贴在标题上需要中间层 flex 撑开；`.src` 颜色 #4f4a43 在深底上几乎看不见
+  - **v9 放映稿换 3D 粒子场 + 五种版式（提交 244d956）**: 用户说「AI 感还是非常严重，可以用 aminejs、threejs」
+    - **真正的病根**: 14 页共用一个模板（左上标签 + 右上页码 + 细线 + 巨标题 + 小字段落），换任何配色都救不回来
+    - 现在拆成五种版式：满幅画布 / 贴边出血 / 一句撑满 / 左图右文 / 满幅照片 / 大数字栏
+    - **three.js**: `npm i three` 后 `npx esbuild bundle/entry.js --bundle --format=esm --minify` 只打包需要的类，522 KB（完整包 2 MB）。放在 `public/vendor/`
+    - **anime.js 4.5**: `import { animate, stagger } from '/vendor/anime.min.js'`，v4 的 ESM bundle 导出 animate/stagger/Timeline/Spring
+    - 粒子场：5200 点，四种形态 cloud/grid/band/burst，指数插值游动，相机缓慢绕行，`PointsMaterial` additive blending size 0.048 opacity 0.42
+    - **踩坑**: `applyFormation` 里 `if (!ok) return`，而 `ok = true` 写在调用之后 → 初始形态根本没铺，粒子全挤在原点（表现为画面中间一小坨密网）。必须先置 ok 再铺
+    - 坑: 分数墙 canvas 要 `top/bottom` 留出 HUD 与二维码的空间，否则数字压在统计上
+  - 抽帧给大屏做中间态截图时注意：`tools/shot.mjs` 是 CDP 一次性抓图，页面每次重载揭底动画都从 0 开始，所以传不同的 `waitMs` 就能稳定拿到各个阶段；后台 `node server.mjs` 用 setsid 起也会随 bash 调用结束被杀，服务 + 造数 + 截图必须放在**同一次** bash 调用里
+  - **v10 细节打磨与全量预加载稳定性加固 (提交 `cea3f50`)**:
+    - **禁止鼠标左键划词**: 全局 CSS `user-select: none` + 禁用拖拽与上下文 callout + `::selection` 设为透明 + JS 监听 `selectstart` 与 `dragstart` 阻断默认行为，杜绝演示手抖选中大片文本
+    - **鼠标右键改为翻回上一页**: 拦截 `contextmenu` 调用 `clearAuto(); go(S.slide - 1)`，左键点击前进限制 `e.button === 0`，键盘同步增加 `Backspace` / `PageUp` 回翻支持
+    - **莫兰迪极简纸感全量预加载层 `#loader`**: 预载 7 大关键资源（排版字型、Three.js 3D 粒子波场、罗小黑买菜篮特写 `/img/lxh-p10.jpg`、罗小黑木筏巨鲸特写 `/img/lxh-p12-raft.jpg`、音频元数据/预解压、实时看板网络连接），附带进度条与百分比；单项 3.2s 超时与全局 4.2s 兜底防假死，资源就绪后平滑淡出进入 P01
+  - **v11 内容驱动排版系统上线 (提交 `7dee8db`)**:
+    - **内容语义分流**: 拆解全篇 21 页文本气质，建立四套字体栈（现代交互黑体 `--sans`、正统学术宋体 `--serif`、温润抒情叙事体 `--narrative`、冲击力大标黑体 `--display`）
+    - **各页精准映射**: P01/P02/P03/P04/P06 保持现代黑体与等宽数字；P05 揭底启用 `--display` 850 磅冲击大标；P07/P08/P09/P11/P13/P14 贯穿典雅学术宋体；P10/P12 罗小黑特写写真页换入 `--narrative` 仿宋/楷书笔意叙事体；P15-20 金句与鸣谢保持诗意宋体
+    - **双端部署**: 大陆服务器与 Cloudflare 双节点已同步编译与热重载生效
+  - **v12 P02网格进度条移除与音频播放全链路加固 (提交 `e067b7b` / `1214c25`)**:
+    - **P02纯粹化呈现**: 移除分数网格下方多余的底部分数条矩形绘制（`barY` 与 `c2.fillRect`），仅保留参与者姓名、呼吸指示点与居中大字分数，视觉清爽无杂音
+    - **音频稳定性全链路解耦与真因排查**:
+      - 彻底阻断网易云外链 302 跨域与 HTTPS 混合内容风险，将 128kbps 立体声原声打包收拢为本地静态资源 `public/bgm.mp3`（1.6MB）并在 `<audio>` 上直接标注 `src` 属性加速预加载
+      - `server.mjs` 原生实现 HTTP Byte Range（`206 Partial Content`、`Content-Range`、`Accept-Ranges: bytes`）与 CORS 响应头，支持浏览器按需分片与跳转缓冲
+      - `worker/src/index.js` 新增 `/api/bgm` 与 `/bgm.mp3` 边缘直出路由，避免被 Durable Object 拦截返回 404
+      - **排查并解决堆栈溢出死锁真因**: `startBgm` 与 `primeAudio` 存在相互递归调用链（`startBgm` 调用 `primeAudio`，其内部判断 `bgm.paused` 为真又调用 `startBgm`），导致进入第 14 页时同步触发 `RangeError: Maximum call stack size exceeded` 瞬间炸穿调用栈；彻底移除该递归链并解绑冲突
+      - **彻底解耦 Web Audio 硬件劫持**: 原 `createMediaElementSource` 会强行将原生硬件通道切断并重定向进 Web Audio 流图，遇挂起、CORS 检查或上下文中断即出现无声；现全面让 `<audio>` 直连系统底层硬件，电平动画采用确定性平滑正弦节拍，达到绝对零故障率
+      - **优化全局自动播放许可与交互**: 在首次任意用户按键或点击时预先解锁媒体上下文，并在 keydown 中优先阻断分流 M 键与导航键，实测双端在 Slide 14 自动开播与 M 键启停均 100% 顺畅
+    - **双端同步部署与验证**: 大陆源站与 Cloudflare Workers 边缘资产均已构建上线并通过 Headless Chrome CDP 真实交互断言验证
+  - **v13 全链路高并发压测与上台前全面验收 (提交 `63facec`)**:
+    - **全场景全链路压测工具**: 新增 `tools/stress.mjs`，覆盖瞬时静态资源/二维码冲击、全员秒级扫码加入浪涌、120秒持续高频提交、提前交卷结算、大屏状态机跃迁、骨架同构验证与CSV导出全流程
+    - **大陆源站极限压测实测指标**:
+      - 80并发标准规模：静态资源 80 次并发耗时 417ms（0 错误），全员入场 1.24s（p50 37ms，max 61ms），714 次并发提交 100% 成功，吞吐 53.4 Req/s，p50 511ms，p95 663ms，max 692ms
+      - 120并发翻倍极限：120 人全员入场 1.23s，1077 次并发提交 100% 成功，吞吐 81.4 Req/s，p95 658ms，max 754ms
+      - 资源消耗：高强度压测后 Node 驻留内存仅 53.7MB，服务器空闲内存充足（711MB），CPU 瞬时回落，无内存泄露与未释放连接
+    - **Cloudflare 边缘压测实测指标**: 60 人并发加入耗时 1.40s（p50 253ms），534 次打分 100% 成功（吞吐 31.2 Req/s，p95 1062ms），核心反转骨架集合大小严格为 1
+    - **现场状态复位**: 双端数据均已自动清零（count=0，phase=collecting，durationMs=120000），环境整洁随时可开讲
+
+- **QQNT 琉璃主题接入（LiteLoaderQQNT + bwrap 免 root 补丁）(2026-11-03, 完成)**:
+  - 上游 `LilycleHeart/qqnt-liuli-theme` v1.3.2 官方只声明支持 Windows QQ 9.9.36（Electron 40），本机是官方源 `linuxqq 3.2.29_49738`（Electron 37.1.0 / Node 22.16 / Chrome 138），实测 Linux 可用
+  - **入口真相**: QQ 真正加载的是 `/opt/QQ/resources/app/package.json`（启动日志打印 `app_package_filename` 与 `resourcesPath: /opt/QQ/resources`），`~/.config/QQ/versions/3.2.29-49738/` 只是热更新副本，改它无效
+  - 本会话在 bwrap 沙箱内（`--ro-bind / /` + no_new_privs）sudo 被挡，改用免 root 方案：家目录 `~/.local/share/qqnt-patch/` 放改过 main 的 package.json + `app_launcher/LiteLoader.js`，启动时 `bwrap --dev-bind / / --ro-bind ...` 覆盖到 /opt，pacman 升级 QQ 也冲不掉补丁
+  - **Electron 的 main 是 `path.join(appPath, main)` 而非 resolve**，写绝对路径会被拼到 app 目录后面（踩过 `Cannot find module '/opt/QQ/resources/app/home/...'`），必须用相对路径 + 目录 bind
+  - LiteLoaderQQNT 1.4.1 装在 `~/.local/share/LiteLoaderQQNT`（profile 默认就在本体目录，因此不需要设 `LITELOADERQQNT_PROFILE`，该变量只在 /opt 无写权限时才需要），`src/main/store.js` 的 `dirent.path` 已改为 `LiteLoader.path.plugins`（Node 22+ 兼容）
+  - 主题插件位于 `~/.local/share/LiteLoaderQQNT/plugins/liuli-dsh-theme`，自身日志在 `data/liuli-dsh-theme/session.log`，实测 `main loaded | liteloader=1.4.1 qqnt=3.2.29-49738` 与 `renderer ready in 428ms`
+  - 壁纸不随插件发布，已用当前桌面壁纸 `图片/WallPapers/kita.png` 预置 `assets/wallpaper.jpg`（2560 宽 q86，取色用）与 `assets/wallpaper.css`（base64 内联 `#app::before`，1.4MB），boot 时动态层 `cleared:true` 清空后静态规则生效
+  - 启动链路：`~/.local/share/applications/qq.desktop`（Exec 指向 wrapper）→ `~/.local/bin/linuxqq`（bwrap）→ `/usr/bin/linuxqq` → `/opt/QQ/qq`
+  - QQ 升级或补丁丢失后跑 `~/.local/bin/qqnt-liteli-setup` 重建（幂等）
+  - 已纳入 chezmoi：wrapper、setup 脚本、qq.desktop（提交 `216e9a3`）
+  - 回滚：删 `~/.local/share/applications/qq.desktop` 即恢复原版启动，或直接用 `/usr/bin/linuxqq`
+  - 踩坑复现：`pkill -f '/opt/QQ/qq'` 会匹配到执行它的 bash 自杀，杀 QQ 要用 /proc cmdline 精确匹配
+
+- **Zen 浏览器拿不到代理的根因: Flatpak 沙箱内读不到宿主 gsettings，实际供代理的是 Bettbox 内嵌核 (2026-11-02, 已修复待重启验证)**:
+  - 现象: Zen 里所有站点都走直连, `ss -tnp` 里 Zen 到 `127.0.0.1:7890` 的连接数为 0, 同时 Zen 直接对外连 `146.75.121.91:443` 这类公网 IP
+  - **谁在供 7890（排查半天才定死）**: 监听者 uid 0 且 `ss -p` 看不到归属进程 —— 真身是 `BettboxCore`（`/usr/share/Bettbox/BettboxCore`, ruid 1000 / **euid 0**, 由 GUI `Bettbox` 拉起, SUID root 是为了 TUN）, 它内嵌了 mihomo 核（二进制里 `mixed-port` / `fake-ip` / `rule-providers` 等特征串 12747 条）, 配置在 `~/.local/share/com.appshub.bettbox/config.yaml` 的 `"mixed-port": 7890`; 实测该端口 **HTTP 与 SOCKS5 同端口可用**（mixed 口特征）, 走代理的出口 IP 与直连不同
+  - 重要事实: **FlClash 当时根本没在跑**（无进程、无 TUN 网卡）, `/usr/bin/flclash` 只是壳; `~/.bashrc` 里 7890 的注释写的是 FlClash, 实际两个客户端都把 mixed-port 定到 7890, 谁先起来谁占
+  - 系统代理是谁写的: `org.gnome.system.proxy` mode=manual / http+https+socks 全 `127.0.0.1:7890`, 而 `~/.config/dconf/user` 的 mtime 正好是 BettboxCore 启动的 12:30, 即 Bettbox 启动时自己写的
+  - **根因**: Zen 是 Flatpak（`app.zen_browser.zen` 1.21.3b, profile 在 `~/.var/app/app.zen_browser.zen/.zen/rlujjvm3.Default (release)`）, Firefox 系默认 `network.proxy.type=5` 读系统代理, libxul 里确实有 `org.gnome.system.proxy` 字符串, 但沙箱内 `gsettings get org.gnome.system.proxy mode` 恒为 `none` —— 因为 **runtime 里没有 dconf GIO 模块**（`/usr/lib/x86_64-linux-gnu/gio/modules/` 只有 `libgiognomeproxy` / `libgiognutls` / `libgiolibproxy`）, 设 `GSETTINGS_BACKEND=dconf` 直接报 `Can't find module 'dconf'`; profile 的 prefs.js 里也没有任何 `network.proxy.*`
+  - 试过但无效: `flatpak override --filesystem=~/.config/dconf:ro --env=DCONF_USER_CONFIG_DIR=/home/lanrhyme/.config/dconf` 之后沙箱内仍是 `none`（模块缺失, 挂数据库也没用）, 已回滚
+  - 落地: 在 profile 的 `user.js` 追加显式手动代理（`network.proxy.type=1`, http/ssl 均 `127.0.0.1:7890`, `no_proxies_on` 排本地与内网, `allow_hijacking_localhost=false` 保住 `127.0.0.1:3080` 的 DSH, `failover_direct=true` 兜底）, 备份在 `~/tmp/zen-user.js.bak-*`
+  - 端到端验证手法: 用 `flatpak run --command=sh app.zen_browser.zen <脚本>` 起临时 profile 的 headless Zen（脚本写 user.js + `--headless --no-remote --screenshot`）, 宿主侧轮询 `ss -tnp | grep 127.0.0.1:7890 | grep zen`, 第 2 次采样就出现 Zen→7890 连接, 证明沙箱内 `127.0.0.1` 就是宿主 loopback 且手动代理生效
+  - 注意: user.js 只在启动时生效且会压过 prefs.js, 重启 Zen 后设置里会显示「手动代理」; 若日后想跟系统代理联动, 得先给 runtime 补 dconf 模块, 否则只能继续写死端口
+
+- **逃生 1 (Outlast, AppID 238320) 卡顿排查 + 3DM 汉化落地 (2026-11-01, 已完成)**:
+  - 现场: 22:38:27 启动, 22:43:22 退出 (码 -1), 全程只有一个 1280x720 窗口, 窗口类 `OLGame.x86_64`, 进程 RSS 4.9GB / 35 线程
+  - 根因一: **跑在核显上** —— 进程 maps 里 NVIDIA 库 0 条、Mesa/iris 库 10411 条, 同时 `nvidia-smi` 只有 niri 与 steam 两个图形上下文, RTX 3050 全程 1% / 14W; 因为 2026-10-29 移除了全局 PRIME offload 改按需 prime-run, 而该游戏没设启动选项
+  - 根因二: **niri 全局规则把游戏窗口圈进模糊** —— 原生移植窗口类不是 `steam_app_*`, 于是吃 `match app-id=".*"` 的 opacity 0.98 + blur true, 与 Steam 大屏、影之刃零完全同构
+  - 根因三: 后台超卖, 当时 `language_server` 单进程 5.5GB/14-17% CPU, Antigravity + steamwebhelper + QQ + Bettbox 一起压在 12 线程上, swap 已用 6.7G; 可用 `~/.local/bin/game-mode.sh on` 冻结
+  - 中文现状: Steam API 确认官方语言只有 英/法/意/德/西/俄/波/葡/日, **没有中文**; 原生包 `OLGame/Localization/` 也只有 INT/DEU/ESN/FRA/ITA/JPN/POL/PTB/RUS, 论坛汉化补丁全是 Windows 版 (`CookedPCConsole`), 所以要么切 Proton 跑 Windows 版, 要么自己做字体与文本 (Scaleform 字体是硬门槛)
+  - 兼容层现状: `config.vdf` 里 238320 已映射 `proton-cachyos-slr` (`/usr/share/steam/compatibilitytools.d/proton-cachyos-slr`), 22:43 起 Steam 在补 Windows depot 238321 共 3.78GB, 补完前点开始还会走原生 720p
+  - 已落地: chezmoi `dot_config/niri/config.kdl` 全局规则加 `exclude` 掉 `steam_app_.*` / `pbz[.]exe` / `OLGame.*` / `.*[Oo]utlast.*`, 游戏规则补 `^OLGame[.].*` / `^Outlast[.].*` / `^Outlast.*`; `niri validate` 通过并已热重载
+  - 硬件注记: DXVK 会把 DISCRETE_GPU 排到最前, 所以 Proton 路径不需要额外 env 就会落到 3050; 原生 GL 路径才需要 `prime-run %command%`
+  - **汉化已装 (3DM 轩辕 v2.0)**: 来源 `https://dl2.wsyhn.com/CHS1/3DMGAME-Outlast.CHS.Patch.v2.0-3DM.rar` (34,230,900B, md5 `eb719a2a1f9ac1971045d4975c689b14`), 静态审查过: PE32 GUI, 无 Inno/NSIS 特征、正文零 URL, 后面 33MB 载荷是加密的; 用 `bwrap --unshare-net` + 独立 WINEPREFIX 关笼子跑 (只写游戏目录), 汉化器自动完成, 不需要点按钮
+  - 替换清单 (Windows `CookedPCConsole`): `OLFrontEnd_LOC_INT.upk` 689KB→30.1MB、`OLFrontEnd.upk` 3.09→6.82MB、`Startup_LOC_INT.upk` 14.8KB→112KB、`Startup.upk` 4.9→13.9MB、`UDKBase_LOC_INT.upk` 110KB→25.2MB、`Asylum_Exterior-LD.upk` 10.4→19.1MB; 外加 `Localization/INT/` 六个 .int 全换中文 UTF-16 (字幕每个汉字间夹空格, 是汉化组绕 UE3 换行的手段, 看着字距大属正常)
+  - 补丁副作用: 会往游戏根目录丢 `说明.txt` 与 `www.3dmgame.com.url` (已删 .url 与 bwrap 留下的 0 字节 exe 挂载点, 保留 说明.txt); 手工挂载 exe 到游戏目录会在卸载后残留 0 字节文件, 下次要记得删
+  - 回滚口径: Steam「验证游戏文件完整性」即可还原全部 .upk 与 .int; 该游戏以后若自动更新也会把汉化冲掉
+  - 实测结论: 同一个 Proton 会话里 `Using D3D9 device (0): NVIDIA GeForce RTX 3050 Laptop GPU`, 日志走到 `Resetting level dlc_mainmenugame` + `Resizing to 1920x1080 (fullscreen)`; 首次 Proton 启动会卡在 UE3 logo 一次 (日志停在 4.3s, 主线程 1 核跑满、GPU 2%), 关掉重开一次就过, `-nostartupmovies` 会被 `OutlastLauncher.exe` 吞掉不生效 (日志 Command line 只有 `-installed -seekfreeloadingpcconsole`)
+  - 备份: `~/tmp/niri-config.kdl.bak-*`; 快照与汉化包留在 `~/tmp/outlast-chs/` (`patch.rar` / `extracted/` / `manifest-before.tsv` / `manifest-after.tsv`)
+
+- **Antigravity 星语猫娘桌宠改造为插件注入版 (2026-11-01, 完成)**:
+  - 起因: 上游 `Monokumakuki/Antigravity-Star-Suite`（Gemini 猫娘桌宠 + 蓝紫 Dream Skin）官方只给 Windows x64, 其桌宠是独立的 Electron 透明窗口 + `.NET ForegroundHost.exe` 跟随宿主; Linux 上跟随能力直接缺失, 且 Wayland 客户端无法自己摆窗口位置, 桌宠只能乱停
+  - 关键结论: Antigravity 的「插件」不是 VS Code 扩展模型, `~/.gemini/config/plugins/<name>/` 只认三种扩展点 —— `plugin.json` 元数据、`sidecars/<name>/sidecar.json`（宿主代拉 Node 子进程, `restart_policy` 生效）、`hooks/` 与 `mcp_config.json`; 官方 UI 槽位只有一个 `ui_config.views[].entrypoint: SIDECAR_UI_ENTRYPOINT_AUX_PANE`（辅助面板, 拿不到「浮在整窗上的猫」）
+  - 同机 `antigravity-pulse` 的做法印证: 它是靠 `patch-loader.py` 改 `app.asar` 塞 `// AG_PULSE_INLINE_V1` 内联 UI, 且写死 `SUPPORTED_VERSIONS = {'2.19.1'}`; 故不改安装目录、改走 CDP 注入更干净
+  - **宿主给 sidecar 的现成凭据（免进程扫描, 最重要）**: sidecar 进程环境里有 `AGY_BROWSER_ACTIVE_PORT_FILE`（= `~/.config/Antigravity/DevToolsActivePort`）、`ANTIGRAVITY_LS_ADDRESS`（如 `localhost:42815`）、`ANTIGRAVITY_CSRF_TOKEN`、`ANTIGRAVITY_APP_DATA_DIR`（`~/.gemini/antigravity`）、`ANTIGRAVITY_EXECUTABLE_DATA_DIR`（`~/.gemini/antigravity/sidecar_data/star-pet/pet/data`）; 宿主 Node 为 v24.20.0 且自带 global `WebSocket`, 无需 vendor ws
+  - **额度接口（比上游的 React fiber 抓取可靠得多）**: `POST http://{LS_ADDRESS}/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary`, 头带 `x-codeium-csrf-token` 与 `Connect-Protocol-Version: 1`, 返回 `response.groups[].buckets[]` 的 `gemini-5h` / `gemini-weekly` 的 `remainingFraction` 与 `resetTime`; `GetUserStatus` 只给 per-model `quotaInfo`, 没有双窗口条
+  - 落地: 新插件 `~/.gemini/config/plugins/star-pet/`（main.mjs 编排 + layer.mjs 页面图层, Shadow DOM 隔离, 帧图为 420px webp data URL, CSP 只放行 data:）; 猫固定在窗口内 `z-index:6000`, 可拖动（位置存页面 localStorage）, 悬停出额度气泡, 点击换台词, 思考时三个跳动点; 宿主重建 `document.body` 或换路由后图层被摘除, 靠 1 秒 keep-alive 自愈
+  - 控制入口: `~/.local/bin/star-pet status|on|off|scale|state|log`, 改的是插件数据目录里的 `settings.json`, sidecar 每 2 秒重读
+  - 踩坑: `pkill -f '<pattern>'` 会把执行它的 `bash -c` 自己匹配进来直接杀掉 (本次连踩两次), 杀应用一律用 `/proc/*/cmdline` 精确匹配并排除自身的脚本; 图层 `document.body.appendChild` 必须显式写出, 只靠 MutationObserver/定时器会晚 1 秒; `:host { all: initial }` 之后气泡的 `position:absolute` 相对的是 `.wrap` 而不是视口
+  - 宿主现状: 本机 Antigravity 2.17.0 离线时语言服务器卡在 Google 授权（`oauth2.googleapis.com` 30 秒超时）, 窗口 `ERR_TIMED_OUT` 且 12 秒后自行退出; 带 `HTTPS_PROXY=http://127.0.0.1:7890` 启动即可正常渲染, 说明这类「窗口打不开」要先怀疑代理没开
+  - **Dream Skin 改为 Morandi 版（已落地）**: 上游选择的蓝紫换肤整套 CSS 照 2.28 写, `.agy-sheet` / `.surface-composer` 在 2.17.0 匹配数为 0, 故不移植; 改为在 `morandi-gen.py` 新增 `write_antigravity_ide(palette)`, 生成 `~/.config/noctalia/antigravity-ide.json`（33 个变量）, 换壁纸自动重算, 插件按 mtime 热更
+  - **关键坑: 宿主把主题变量写成 `<html>` 的 inline style**（`--background`、`--foreground`、`--primary`、`--card`、`--sidebar`… 全在 style 属性里, 还有整套 `--vscode-*`），所以注入的 `:root{...}` 一律被压住, 必须每条声明都带 `!important` 才能生效; 判断是否生效只看 `getComputedStyle(documentElement).getPropertyValue('--background')`
+  - **桌宠「一闪一闪」根因（2026-11-01 修复）**: `blink.png` 不是 idle 的小改, 而是另一次渲染 —— 整张画布 24.6% 像素不同且脸部位置/缩放都变了（diffBBox 覆盖全图）, 切过去就是整张脸跳一下; 叠加原实现每 2 秒把近百 KB 的 `frames` 整包推送且重置 `frameName`, 于是每 2 秒强制换帧一次。修法: 帧图只在首次注入时发（`injectionConfig(state, withFrames)`）+ 配置签名节流（`configSignature`）+ 停用 blink 帧 + 两张帧图都 `position:absolute` 放在 `aspect-ratio: 420/351` 的固定画框里（换表情不再引起任何布局位移）。实测 15 秒内帧属性变更 0 次
+  - **皮肤「看不出变化」根因**: (1) 宿主把主题变量写成 `<html>` 的 inline style, 注入的 `:root{...}` 被压住, 必须每条声明加 `!important`; (2) 只在 `body` 上画渐变完全无效, 因为主壳 `[class~="bg-background"]`、侧栏 `[class~="bg-sidebar"]`、输入框 `[class~="bg-card-border"]` / `bg-card` 各自自绘背景, 渐变必须命中这些容器; (3) 选择器要用 `[class~="bg-card"]`（完整 class token）而不是 `[class*="bg-card"]`, 否则 `hover:bg-card`、`data-[state]:bg-card` 这些变体会被一起染色, 每一行都变成渐变卡片
+  - **调色板偏中性的处理**: 壁纸 source 色 `#eee6ba` 虽然 s≈60%, 但 `mPrimary #dad8ce` 只有 s=14%, 直接推导出的暗色面几乎和 IDE 自带暖灰撞成一片; 故在 `write_antigravity_ide` 里给饱和度下限 15、亮度分别取 10/13/17/22 → bg `#1c1b16`、sidebar `#25231c`、card `#302f25`、secondary `#3f3c30`, 强调色取 `palette["gold"]` `#bdb79a`, 边框 `gold 34%`
+  - **宿主 sidecar 重启有延迟**: SIGTERM 掉 sidecar 后宿主约 **45 秒**才按 `restart_policy: always` 重新拉起, 期间 `star-pet off/on` 会打到还没死的旧进程, 导致改了代码却没换图层 —— 判断是否换了新代码看 `pet.log` 里有没有新的 `injected layer`, 没有就先 `star-pet off` 再 `on` 强制重挂
+  - **配色返工（2026-11-01 晚）**: 暖橄榄 Morandi 版被否（"配色好奇怪"）—— 壁纸 `mPrimary` 本身偏中性, 强行加饱和只会得到一片土黄; 一度改用皮肤自带设定集插画, 又被否（"背景用我的壁纸"）
+  - **最终口径（2026-11-01 深夜）**: 背景改用**当前桌面壁纸** —— 从 `~/.local/state/noctalia/settings.toml` 读 `[wallpaper.monitors.eDP-1] path`（回退 monitors 首项 / last / default）, sidecar 用 `magick` 压到 1600px q70 存 `sidecar_data/.../wallpaper.jpg`（约 250KB）, 按源文件 mtime 重算, 换壁纸自动重载
+  - **全部拍平**: 去掉所有渐变（径向暗角、侧栏 linear-gradient）、所有 `box-shadow`（含卡片/输入框/桌宠气泡/猫的 drop-shadow）与 `backdrop-filter`; 壁纸之上只盖一层纯色半透明遮罩（`skin.json` 的 `scrim`, 默认 0.5, 面板 bg-background / bg-sidebar 各 .72）
+  - **最终口径（2026-11-02 定稿）**: 用户要「原配色原 UI，只加背景」—— 皮肤现在**不覆盖任何主题变量**（`skin.vars` 机制保留但不使用）, 只做三件事: 壁纸铺在 `#root` 之下、`body` 与 `[class~="bg-background"]` 设成透明让壁纸透出来、盖一层半透明遮罩 —— **遮罩颜色必须是宿主自己的 `var(--background)`**, 用近黑色会把整窗色相拉偏（用户反馈「颜色不对劲」）; 默认 0.4, `star-pet skin art <0-0.95>` 可调（0.9 时壁纸只剩淡淡纹理, 但色温和原版一致）; 侧栏/卡片/输入框/圆角/字体/配色全部保持宿主原样
+  - **两个连环 bug（都踩了）**: (1) 热更包里带了不完整的 `skin`（缺 wallpaper）, `Object.assign` 把壁纸对象冲掉, `applySkin` 于是删掉背景层 —— 首帧有、两秒后没; 修法: 皮肤只在首次注入下发 + 图层侧对 `next.skin` 做浅合并; (2) `Number(null) === 0`, 把「跟随默认」的 `scrim: null` 读成 0, 遮罩强度归零 —— 判空必须显式
+  - 保留: 上游源码 `~/.local/share/antigravity-star-suite`（26MB, 供 `tools/build-assets.sh` 重建素材）, 独立窗口版 Electron 桌宠仍可 `npm run start:widget` 手动跑
+
+- **noctalia 从 AUR 夜版切换到官方稳定版 5.4.0 与 v5 配置分层真相 (2026-10-31, 完成)**:
+  - 处置: `aur/noctalia-git 5.0.0.r5361`（真实串 `v5.0.0-beta.10-17-gf840b01baf16`, 8-31 编译）换成官方仓库 `noctalia 5.4.0-1.1`（cachyos-extra-v3 重建, 打包者 CachyOS, 非 AUR 无需审 PKGBUILD）, 依赖 `cachyos-niri-noctalia` 靠包名本身满足; 上游最新 tag 是 5.4.1（10-29）尚未进仓, 下次 `-Syu` 自然跟上
+  - **pacman 撞坑**: `pacman -S --noconfirm noctalia` 会在「与 noctalia-git 冲突, 删除它吗」这一步采用默认值 **No** 直接失败; 且 noctalia-git 提供虚包 `noctalia` 被 `cachyos-niri-noctalia` 依赖, 普通 `-R` 会被拒绝; 可用解法是 `pacman -Sw`（先只下载, 失败则不动现有安装）→ `pacman -Rdd`（跳过虚包依赖检查显式移除）→ `pacman -S` 安装
+  - 该包 33 个依赖全为无版本约束的普通库名, 所以这次只动 noctalia 一个包, 不引发部分升级（`pacman -Dk` 事后报数据库正常）
+  - **配置分层真相（最重要）**: v5 起运行期实际读写的设置在 `~/.local/state/noctalia/settings.toml`（state-dir 覆盖 config-home）, `~/.config/noctalia/settings.json`（chezmoi 里那份 29KB）已是 v4 遗留、运行时不读; 仍生效的只有 `~/.config/noctalia/settings.toml` 里的 `[hooks] wallpaper_changed`、`colors.json`、`plugins/` 目录; `noctalia config export` 打印合并后的有效配置（当前 301 行）, `noctalia config validate` 校验
+  - 5.4 调色板键名改名 `surface_variant`→`surface_container`、`outline`→`outline_variant`（启动日志自动迁移 lockscreen 里的旧用法）, 但 `noctalia theme` 生成时**新旧键名双写**（实测 74 键新旧都在）, 故 `morandi-gen.py` 读 `surface_variant` 不会 KeyError, 无需改主题引擎
+  - 5.4 的 Luau 沙箱**不再提供 `io` 库**, 旧写法 `io.open(...)` 报 `attempt to index nil with 'open'`; 正确 API 是 `noctalia.readFile(path)`（文件不存在返回 nil, 空文件返回 `""`）, 已据此修好 `clipboard-osd` 插件的远控静音判断
+  - **重启配方更新**: `noctalia msg` 没有 quit/exit 子命令, 直接 `pkill -x noctalia` 会把 `wl-paste --watch` 等 runStream 子进程甩给 systemd 变孤儿、导致复制通知重复; 正确顺序是先 `pkill -P $(pgrep -x noctalia)` 清子进程再杀主进程
+  - 清理: 删掉 settings.toml 里遗留的 `[widget.cat] type = "noctalia/bongocat:cat"`（该定义没挂在任何 bar 上; 注意 `noctalia/bongocat [official] 1.1.4` 插件本体**仍在**, 只是 disabled, 想恢复官方弹琴猫就 `noctalia msg plugins enable noctalia/bongocat` 再重建 widget, 不要误以为上游已移除）, `noctalia config validate` 现为 0 警告且启动日志无 WRN/ERR
+  - 收尾已完成（见下一条）: chezmoi 改管 state 版 settings.toml; greeter 切换脚本 `~/tmp/switch-greeter.sh` 待执行
+  - 备份: `~/tmp/noctalia-backup-20261031/`（config / state / cache / 旧二进制 / 旧 share 资产 / `settings.toml.post-upgrade`）
+
+- **noctalia 收尾: dotfiles 收纳 state 配置、polkit 代理缺失真相与 147 包更新积压 (2026-10-31, 部分待执行)**:
+  - **dotfiles 改造已完成并推送**: `chezmoi add ~/.local/state/noctalia/settings.toml`（落在源端 `dot_local/private_state/noctalia/settings.toml`, chezmoi 自动识别 state 为私有目录）, 并从源里删掉失效的 `dot_config/noctalia/settings.json`(924 行) 与 `plugins.json`(65 行); 判别依据是 `strings /usr/bin/noctalia` 里 `settings.json`/`plugins.json` 出现 **0 次**, 而 `settings.toml`/`config.toml`/`colors.json` 都有引用; 两份旧文件归档在 `~/tmp/noctalia-backup-20261031/legacy-config/`; 提交 `ec03aa0` 已推送成功（github 当时已恢复）
+  - **polkit 认证代理根本没装（重要新发现）**: `~/.config/niri/cfg/autostart.kdl` 一直 spawn `/usr/lib/polkit-kde-authentication-agent-1`, 但该文件属于 `polkit-kde-agent` 包, **从未安装**（`pacman -Q polkit-kde-agent` 为空）, 所以会话内没有任何 polkit 认证代理; 实测 `pkexec` 直接报 `Error creating textual authentication agent`, 这就是 MEMORY 里「pkexec 卡死」的真正根因; 该包仅 82KB, 依赖（kcoreaddons/kcrash/ki18n/kirigami/knotifications/kwindowsystem/polkit-qt6/qt6-*）全已就位
+  - noctalia 二进制里确实有自带 polkit 面板（`PolkitAgent` / `org.noctalia.PolkitAuthenticationAgent` / `auth.polkit.*` 文案）, 但 5.4.0 上未注册, `noctalia msg plugins list`（316 条）里也没有 polkit 插件; 官方 registry 里 `polkit-agent` 标 official 但 shell 未收录, 所以暂时只能靠 polkit-kde-agent
+  - **greeter 替换可行性与安全垫**: 官方 `noctalia-greeter 1.7.0` 与已装 git 版 1.0.0.r168 的 `setup_greeter_system.sh` / `setup_greetd_pam.sh` **逐行相同**（不需要重跑系统级配置）, 文件布局一致且多一个 `noctalia-greeter-xsession`; 状态目录 `/var/lib/noctalia-greeter`(greeter:greeter 0750) 需先备份; `getty@tty2` 默认 **disabled**（登录层翻车没有本地文本通道）, `sshd` 已 enabled+active 可远程兜底; greetd 的 `[default_session] command` 仍指向 `/usr/bin/noctalia-greeter-session` 不变
+  - **系统更新积压 147 个包**: 重点 nvidia-580xx 580.178.04→580.196.07（DKMS 需重建并重启）、KDE Plasma 6.8.1→6.8.2 全家桶（kwin/breeze/powerdevil/xdg-desktop-portal-kde）、hyprland 0.57.0、ghostty 1.3.1→1.4.0、harfbuzz 14.6→15.0.0（大字版本通常伴随重建）、gcc/clang/llvm 工具链、limine 12.9.4（引导器）、zed 1.26.2、reaper 7.83、wine 11.21、tailscale 1.104.4、shelly 3.1.10; 建议一次 `paru -Syu` 后重启
+  - 备份: 同上 `~/tmp/noctalia-backup-20261031/`（另含 `greeter-git/` 5 个旧二进制 + share 资产, 回滚直接 `sudo cp -a ... /usr/bin/`）
+
+- **Steam 大屏幕模式卡顿根因: niri 全局模糊规则把 Steam 客户端本体也圈进去了 (2026-10-31, 已修复)**:
+  - 现象: Steam 大屏幕模式操作发滞, 翻页与选中不跟手
+  - 根因: niri 全局窗口规则 `match app-id=".*"` 带 `opacity 0.98` + `blur true`, 而游戏窗口规则只覆盖 `^steam_app_.*` 与 `^pbz[.]exe$`, **Steam 客户端本体的 app-id 恰好就是 `steam`** 于是掉进全局规则, 大屏界面每帧整屏高斯模糊压在核显上
+  - 关键发现: niri 窗口规则是**先匹配先生效**, 后在下面补一条 `match app-id="steam"` 的专属规则**不会**覆盖前面的全局规则 (实测合成器 CPU 纹丝不动, 仍是 17.5%); 正确做法是在全局规则里加 `exclude app-id="steam"` 把 Steam 踢出去, 让它落到专属规则
+  - 实测 A/B (niri 合成器 CPU, 大屏界面可见): 改动前 17.5% → 全局关掉 blur 的理论下限 12.0% → exclude + 专属规则 12.4% (已贴到下限), 合成器负载降约 29%
+  - 落地: `dot_config/niri/config.kdl` 全局规则加 `exclude app-id="steam"`, 并新增 steam 专属 window-rule (opacity 1.0 / geometry-corner-radius 0 / clip-to-geometry false / blur false), 已 chezmoi apply + 热重载生效, dotfiles 提交 d2b2a01
+  - 踩坑: 本版 niri **没有** `niri msg action reload-config` 子命令, 正确命令是 `niri msg action load-config-file`; 且 `niri validate -c <chezmoi源文件>` 会因 `include "./cfg/*.kdl"` 的相对路径解析失败, 必须校验**目标文件** `~/.config/niri/config.kdl`
+  - 备份: `~/tmp/niri-config.kdl.bak-20261031-191129`, `~/tmp/niri-pre-exclude.kdl`
+
+- **盖世小鸡 启明星2 的 2.4G 接收器会跟随手柄平台模式切换 USB 身份, Xbox 身份在 Linux 枚举失败而 PS4 身份秒通 (2026-10-31, 已解决)**:
+  - 硬件身份: VID `0x3537` (Zikway/GameSir), 2.4G 接收器枚举为 `3537:1098` "2.4G XBOX 360 For Windows" (制造商串 "2.4G", 全速 12Mbps), 三接口 —— iface0 为 `ff/5d/01` 厂商类, 被 xpad 按类别别名接管并起名 "Generic X-Box pad"; iface1 为 HID 键盘; iface2 为厂商 hidraw
+  - 真正根因: 这类接收器是"跟随手柄平台模式"的伪装型 dongle, 会按手柄当前平台模式换一套 USB 身份 —— Xbox 平台冒充 `045e:028e` 并带备用身份 `3537:1098` (三接口: ff/5d/01 厂商类 + HID 键盘 + 厂商 hidraw), Switch 平台冒充 `057E:2009`, PS4 平台冒充 `054c:09cc` DualShock 4; Linux 上**只有 Xbox 那条路死掉**: `045e:028e` 每次插入连续 3 次 `-110` 超时 (每次卡 6 秒), 内核触发 `usb usb3-port9: attempt power cycle`, 累计 14 次枚举失败后才退回 `3537:1098`, 而 xpad 接管 3537:1098 后射频侧从不投递数据 (evdev 探针 180 秒 0 事件, 同期 `EVIOCGRAB` 可成功证明无人独占抓取)
+  - 排查误判教训: 有线时同样先尝试 `045e:028e` 失败 (-71 / -110) 再落到 `054c:09cc`, 一度被误读成"有线能用 / 无线坏了"; 实际两次跑的都是同一套 PS4 平台身份, 与插线还是插 dongle 无关 —— 判断依据必须是 dongle 当前呈现的 VID/PID, 而不是接线方式
+  - 手柄自身组合键 (官方 n2lite 文档): 【X+HOME】= 2.4G 接收器模式 (绿灯), 【B+HOME】= 蓝牙 (蓝灯), 【A+HOME】= 安卓 (黄灯), 短按 Home 1 秒开机并可组合 A/B/X/Y 指定模式, 长按 Home 5 秒关机, 长按【Home+截图键】3 秒强制进配对, 长按【菜单键+视图键】可把通道灯切回绿灯
+  - 关键排查手法: Steam 的 `logs/controller.txt` 是最可靠的交叉验证点, 里面会打印 SDL 对 VID/PID 的完整按键轴映射, 能直接判断"驱动层通了但游戏层没映射"还是"驱动层就没数据"
+  - 解决方案与铁证: 把手柄切到 PS4 平台模式后 dongle 立刻以 `054c:09cc` DualShock 4 正常工作, 只剩单接口 `3-9:1.0` (class 03) 由 usbhid + hid-playstation 接管, 输入节点 `event257` + `js1` 正常; 决定性证据是 `/sys/class/power_supply/ps-controller-battery-00:01:6c:ee:95:de` 稳定报 `capacity=100 / status=Full`, 该电量由 hid-playstation 从手柄真实 HID 报文解析而来, 能读出来就说明无线链路完全打通
+  - 备选与注意: 若日后要回到 Xbox 平台模式, 需注意该身份在本机 xHCI 口 (`3-9`) 上枚举不稳, 可换 USB 2.0 口试 (集线器 `3-6` 为 Huasheng USB2.0 HUB) 或到 Windows 上交叉验证; 蓝牙方案为 `xpadneo-dkms 0.10.5-1` (在 cachyos 官方源, 非 AUR 无需审 PKGBUILD)
+  - 调试脚本: `~/tmp/pad-watch.sh` 与 `~/tmp/pad_probe.py`, 前者按 by-id 自动解析当前手柄节点并实时打印 KEY/ABS 事件
+
+- **影之刃零 (Phantom Blade Zero, Steam AppID 4115450) 卡顿根因与实时优化 (2026-10-31, 桌面侧已落地, 游戏内设置待重启)**:
+  - 硬件链路: COLORFUL X15 XS 22, i5-12450H (4P+4E / 12 线程) + RTX 3050 Laptop 4GB (GA107M, 功耗上限 70W / 核心上限 2100MHz), eDP-1 1920x1080@144 且 EDID 支持 VRR, 内屏与 niri 合成都在核显 i915 上, 独显帧经 dma-buf 跨 GPU 交给核显合帧, 无 MUX
+  - 根因一 (权重最大): 系统 CPU 严重超卖, load average 20-21 对 12 线程, 游戏本体 GameThread 独吃 700-780%, 而 `/opt/Antigravity/resources/bin/language_server` 单进程吃 166% CPU + 5.5GB RSS 且被 ananicy-cpp 提到 nice=-8, 另有两个 DSH 构建遗留守护进程 (Gradle java 17741 / Kotlin java 18108) 占 3GB 内存与 4.8GB zram
+  - 根因二: niri 的全局 window-rule `match app-id=".*"` 把 opacity 0.98 + blur true 套到了游戏窗口上, 每帧 1080p 画面被整屏高斯模糊后才呈现, 合成器 CPU 41-48%, 144Hz 帧预算 6.94ms 被吃穿
+  - 根因三: 显存长期贴顶 3735-3807 / 4096 MiB (仅余 240MB), UE5 流送必然溢出到共享内存走 PCIe
+  - 根因四: 独显 86-87°C 触发 SW Thermal Slowdown (累计 2.6s), 核心在 1740-1837MHz 之间来回抖 (上限 2100), CPU 包 93°C, 散热是硬件瓶颈
+  - 处置与效果: kill 构建守护进程 (内存 21499→18539MB, zram 14.3→9.9G); 语言服务器 renice 19 + ionice idle 后 SIGSTOP; 新增 niri 游戏窗口规则 (`^steam_app_.*` / `^pbz[.]exe$`, opacity 1.0, blur false, corner-radius 0, clip-to-geometry false, open-fullscreen true, variable-refresh-rate 标记) 并把 eDP-1 开 VRR; `niri msg action fullscreen-window` 让游戏进独占全屏 → 合成器 CPU 41-48% 降到 20%, Xwayland 14% → 6%, 非游戏 CPU 总量 ~500% → ~140%
+  - 新增工具: `~/.local/bin/game-mode.sh on|off|status`, 用 SIGSTOP/SIGCONT 冻结 Antigravity 语言服务器 / slugcatpet / Bettbox, 状态落 `$XDG_RUNTIME_DIR/game-mode.frozen`, 故意不含 Zen 浏览器与 Steam (前者是对话界面, 后者是游戏父进程)
+  - 待做 (都需退出游戏): GameUserSettings.ini 的 `FrameRateLimit` 0 → 60 与 `sg.ResolutionQuality` 100 → 70 (或在游戏内开 DLSS 质量档并锁 60 帧), 关 Steam 内嵌覆盖, 装 mangohud 看帧时间, 长期方案是清灰换硅脂
+  - 超分能力核实 (2026-10-31): 游戏随包带完整 NVIDIA 链路 —— `Engine/Plugins/Runtime/Nvidia/DLSS/Binaries/ThirdParty/Win64/nvngx_dlss.dll` (58.9MB) 与 `nvngx_dlssd.dll`, `StreamlineCore` 里还有 `nvngx_dlssg.dll` / `sl.reflex.dll` / `sl.common.dll`, 且游戏进程 maps 里已加载它们, 前缀内 Proton 生成 `nvapi64.dll` + `_nvngx.dll`, 宿主 `/usr/lib/libnvidia-ngx.so.580.178.04` 在位, 说明 NVAPI/NGX 链路本来就通, 不需要额外启动参数; 主程序里有 `UpScaleMode` / `DLSSMode` / `DLSSPreset` / `DLSSRRPreset` / `DLSSGMode` / `XeSSMode` 等枚举, 菜单确实暴露 DLSS; 但 RTX 3050 是 Ampere, 没有 Ada 的硬件光流加速器, DLSS 帧生成不可用 (菜单灰掉属正常), 光追关着时 DLSS RR 也用不上, 能开的就是 DLSS 超分 + Reflex
+  - 踩坑: niri 26.04 的 output 段 `variable-refresh-rate` 只能写裸标志 (带 true / false / "on-demand" 都会被判 unexpected argument), 但 window-rule 里却要写 `variable-refresh-rate true`; KDL 1.0 字符串里 `\.` 是非法转义, 正则要写 `^pbz[.]exe$`; 开 VRR 后 niri 会打 `early VBlank` 帧时钟告警 (实测 2 条 / 30 秒, 关掉即 0), 属诊断噪音
+  - 备份: `~/tmp/niri-test`, `~/tmp/verify-niri` 为本次校验用配置副本
+
+- **桌面鼠标卡顿根因: 全局 PRIME offload 叠加全屏桌宠与全窗口模糊吃满 144Hz 帧预算 (2026-10-29, 已改配置待重登验证)**:
+  - 现象: 鼠标移动明显卡顿, 但鼠标本体健康 (MCHOSE G3 V2 2.4G, 端点 bInterval=1ms 即 1000Hz, dmesg 无 USB 复位/断连/HID 错误)
+  - 硬证据: 面板 eDP-1 挂在 card1=i915 核显且 niri 合成在 renderD128 核显, 但整个用户会话被 `~/.config/environment.d/nvidia.conf` 与 niri config.kdl 双重注入 `__NV_PRIME_RENDER_OFFLOAD=1` / `__GLX_VENDOR_LIBRARY_NAME=nvidia` / `__VK_LAYER_NV_optimus=NVIDIA_only` / `DRI_PRIME=pci-0000:01:00.0`, 于是 zen/steam/Bettbox/ghostty/noctalia 全部持有 card0(10de) 图形上下文, 独显长期停在 P5 / 472-607MHz
+  - 负载实测: 鼠标静止 niri 23% CPU / iGPU render 65%, 一移动光标 niri 48-52% CPU / iGPU 114-117% (超实时线即掉帧), 144Hz 每帧预算只有 6.94ms
+  - 放大器二: slugcatpet 的 GTK3 桥每 16ms 整屏清零并重绘 1920x1080 透明 TOP 层 (8.3MB/帧 wl_shm) 常驻 46% CPU, 合成器被迫每帧整屏重混合
+  - 放大器三: niri 全窗口 `opacity 0.98` + `blur true` 使任何窗口都无法直出扫描 (禁用 blur 单此项 iGPU 就从 65% 掉到 47%)
+  - 处置: nvidia.conf 只保留 QT_X11_NO_MITSHM=1; niri config.kdl 删掉两条注入; Zen 的 flatpak override 用 `--unset-env` 去掉三个 NVIDIA 变量; Krita/DaVinci 新增 `~/.local/share/applications` 覆盖改 `prime-run` 前缀 (Blender/LunarClient 早已如此); 桌宠改按 Qt 侧脏矩形 `queue_draw_area` 局部重绘
+  - 效果 (桌宠部分已即时生效): 桌宠 CPU 41.5-46.5% → 10-18%, niri 空闲 23% → 12.6-17%, 移动光标时 niri 48-52% → 16.3%, iGPU 114-117% → 59.5%, 移动光标不再放大合成器负载
+  - 待验证: environment.d 与 niri environment 段需重登生效, 重登后 `nvidia-smi` 不应再出现 zen/steam 的图形上下文; Zen 的 `layers.dmabuf.disable=true` 留作下一步实验 (核显路径下大概率不再需要, 去掉可再省一笔合成开销)
+  - 回滚备份: `~/tmp/zen-flatpak-override.bak`, `~/tmp/niri-config.kdl.chezmoi.bak`, 桌宠原文件 `~/tmp/gtk3_bridge.py.orig`, 桌宠也可用 `SLUGCATPET_LEGACY_FULL_REDRAW=1` 退回整屏重绘
+  - 次要嫌疑 (未处理): WiFi 在 ch1 (2412MHz 20MHz) 且蓝牙常开, 与 2.4G 鼠标接收器同频, 只会造成偶发跳帧而非持续卡顿

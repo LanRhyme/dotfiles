@@ -37,14 +37,10 @@
 
 ### 归档索引
 
-`~/MEMORY-archive.md` 原文保留已结束条目，最近一次整理 2026-11-17
-- 2026-11-12 打分器 v2-v13 完整迭代、11-03 QQNT 琉璃主题、11-02 Zen 拿不到代理、11-01 逃生汉化与星语猫娘桌宠
-- 2026-10-31 noctalia 5.4.0 切换与 v5 配置分层、polkit 缺失、Steam 大屏模糊、盖世小鸡手柄、影之刃零优化、10-29 鼠标卡顿
-- 2026-10-26 平板通信共享掉线与看门狗 v3、Tailscale 双端自愈、kde-material-you-colors 单元风暴
-- 2026-10-18 ~ 10-25 ReveriePaint-native 六项（本地化规范、KRA 导入、撤销滑杆、MotionPredictor 清理、手写笔侧键、面板越界）与 K60 ColorOS 16.1 脏刷
-- 2026-10-19 ~ 10-23 NyanoMuse 四十余项（情绪系统、多气泡、跨端同步、长期记忆与冲突消解、grill-me 原生工具化）
-- 2026-10-18 ~ 10-19 nanoMuse 全端部署、UU 远程被控端、CodeBuddy、DSH 升级、WorkBuddy 卡顿、IDEA 配色
-- 2026-09-12 ~ 10-02 设备刷机与备份、MicYou 迁移、Bettbox 切换、Dufs+Cloudflare、ReveriePaint v1.4.0
+`~/MEMORY-archive.md` 是索引，条目原文按年份分卷存放（当前只有 `MEMORY-archive-2026.md`，93 条，2026-09-12 ~ 2026-11-12），最近一次整理 2026-11-17
+- 2026-11（5 条）：打分器 v2-v13 完整迭代、QQNT 琉璃主题、Zen 拿不到代理、逃生汉化与星语猫娘桌宠
+- 2026-10（85 条）：noctalia 5.4 切换与 v5 配置分层、polkit 缺失、Steam 大屏模糊、盖世小鸡手柄、影之刃零优化、鼠标卡顿 PRIME offload、10-26 平板通信共享掉线与 Tailscale 双端自愈、10-18~10-25 ReveriePaint-native 六项与 K60 ColorOS 16.1 脏刷、10-19~10-23 NyanoMuse 四十余项、10-18~10-19 nanoMuse 全端部署与 UU 远程被控端
+- 2026-09（3 条）：设备刷机与备份、MicYou 迁移、Bettbox 切换、Dufs+Cloudflare、ReveriePaint v1.4.0
 
 ## 设备
 
