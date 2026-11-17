@@ -9,6 +9,12 @@
   - **掉线真因**: `/etc/systemd/system/tailscaled.service.d/proxy.conf` 设定了 `ALL_PROXY=socks5://127.0.0.1:7890`，12:36 本地代理短暂断开导致 tailscale 控制面与 DERP 握手失败离线；随后代理恢复，tailscaled 自动重新入网
   - **端口冲突修复**: tailscale serve 配置了 5000 端口（反代本地 dufs），但 `~/.config/dufs/config.yaml` 之前设定 `bind: 0.0.0.0` 霸占全接口，导致 tailscale 报 `localListener failed to listen on 100.73.79.77:5000: bind: address already in use` 循环退避重试；已将 dufs 绑定改为 `127.0.0.1` 并重启服务，tailscale0 顺利接管 5000 端口，HTTPS WebDAV 访问恢复正常
   - **链路核验**: K60 与 OnePlus Pad 在线正常，双端 ADB 已自动重连，双向 ping 与 HTTPS 端口 5000 访问均通过
+  - **15:18 二次掉线且未自愈 (已修复)**: 同一代理链在 FlClash 于 17:03-17:04 重写 `config.yaml` 与 `profiles/*.yaml` 后再次断链，控制面卡死近 2 小时，journal 里 `controlhttp: failed dialing` 约 195 次/小时始终不自愈
+  - **为何不会自愈**: 关键报错 `proxyconnect tcp: failed to resolve "127.0.0.1": dnscache: unexpected hostname "127.0.0.1" doesn't match expected "controlplane.tailscale.com"` 是 Tailscale 对受限 DNS 解析器的缺陷，代理地址写成 IP 字面量后 DialPlan 拨号路径永远失败，只剩 DNS 回退路径可试，一次 EOF 就长期退避
+  - **修复手段**: `tailscale down && tailscale up`，operator 用户权限即可完成、不需要 root 也不需要重启 tailscaled；实测返回 `machineAuthorized=true` 未要求重新登录，netmap 立刻恢复，健康检查清空
+  - **不能移除 proxy.conf**: 直连实测 TCP 可以握手（192.200.0.x:443 / derp 205.147.105.30:443 均在 0.2-0.4s 建连）但 TLS 被切断，属 GFW 特征，Tailscale 控制面与 DERP 必须走 7890 代理
+  - **当前链路形态**: 两端都只能走 DERP 中继（K60→hkg、平板→nue），`direct connection not established`，RTT 约 650-900ms，原因是 Clash TUN 会代理 tailscaled 的 UDP 使打洞失败，P2P 直连在当前配置下拿不到
+  - **结论**: 代理层任何抖动（FlClash 换节点/重载配置/短暂断连）都会让 tailscaled 进入不可自愈状态，需要外部看门狗兜底，手机侧 `/data/adb/service.d/tailscaled.sh` 已有 30s 自愈逻辑，PC 侧尚无
 
 - **DSH 与插件升级 + 安装 ds-harness-remote (2026-11-17, 已完成)**:
   - **dsh 本体构建**: 已审查 PKGBUILD 并完成编译打包 `deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst`（来源官方 npm `@deepseek-ai/dsh@0.2.2-rc.1`），归档于 `~/tmp/deepseek-harness-bin/` 与 `~/.cache/paru/clone/deepseek-harness-bin/`，终端执行 `sudo pacman -U ~/.cache/paru/clone/deepseek-harness-bin/deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst` 即可升级
