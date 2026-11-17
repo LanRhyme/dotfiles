@@ -1,297 +1,46 @@
 # 配置记忆
 
 本文件作为 AI 代理的实时上下文缓冲区，记录系统配置当前状态、活跃任务与环境关键事实，确保会话间平滑交接
-结构：最近动态 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用 → 踩坑速查
+结构：最近动态 → 归档索引 → 设备 → 桌面环境 → 项目 → 安装与服务 → 已弃用/已删除 → 踩坑速查
+维护约定：最近动态只留近一周与仍在进行中的条目，滚出窗口的整段原文搬进 `~/MEMORY-archive.md`
 
 ## 最近动态
 
-- **Tailscale 掉线排查与 Dufs 端口冲突修复 (2026-11-17, 已完成)**:
-  - **掉线真因**: `/etc/systemd/system/tailscaled.service.d/proxy.conf` 设定了 `ALL_PROXY=socks5://127.0.0.1:7890`，12:36 本地代理短暂断开导致 tailscale 控制面与 DERP 握手失败离线；随后代理恢复，tailscaled 自动重新入网
-  - **端口冲突修复**: tailscale serve 配置了 5000 端口（反代本地 dufs），但 `~/.config/dufs/config.yaml` 之前设定 `bind: 0.0.0.0` 霸占全接口，导致 tailscale 报 `localListener failed to listen on 100.73.79.77:5000: bind: address already in use` 循环退避重试；已将 dufs 绑定改为 `127.0.0.1` 并重启服务，tailscale0 顺利接管 5000 端口，HTTPS WebDAV 访问恢复正常
-  - **链路核验**: K60 与 OnePlus Pad 在线正常，双端 ADB 已自动重连，双向 ping 与 HTTPS 端口 5000 访问均通过
-  - **15:18 二次掉线且未自愈 (已修复)**: 同一代理链在 FlClash 于 17:03-17:04 重写 `config.yaml` 与 `profiles/*.yaml` 后再次断链，控制面卡死近 2 小时，journal 里 `controlhttp: failed dialing` 约 195 次/小时始终不自愈
-  - **为何不会自愈**: 关键报错 `proxyconnect tcp: failed to resolve "127.0.0.1": dnscache: unexpected hostname "127.0.0.1" doesn't match expected "controlplane.tailscale.com"` 是 Tailscale 对受限 DNS 解析器的缺陷，代理地址写成 IP 字面量后 DialPlan 拨号路径永远失败，只剩 DNS 回退路径可试，一次 EOF 就长期退避
-  - **修复手段**: `tailscale down && tailscale up`，operator 用户权限即可完成、不需要 root 也不需要重启 tailscaled；实测返回 `machineAuthorized=true` 未要求重新登录，netmap 立刻恢复，健康检查清空
-  - **不能移除 proxy.conf**: 直连实测 TCP 可以握手（192.200.0.x:443 / derp 205.147.105.30:443 均在 0.2-0.4s 建连）但 TLS 被切断，属 GFW 特征，Tailscale 控制面与 DERP 必须走 7890 代理
-  - **当前链路形态**: 两端都只能走 DERP 中继（K60→hkg、平板→nue），`direct connection not established`，RTT 约 650-900ms，原因是 Clash TUN 会代理 tailscaled 的 UDP 使打洞失败，P2P 直连在当前配置下拿不到
-  - **结论**: 代理层任何抖动（FlClash 换节点/重载配置/短暂断连）都会让 tailscaled 进入不可自愈状态，需要外部看门狗兜底，手机侧 `/data/adb/service.d/tailscaled.sh` 已有 30s 自愈逻辑，PC 侧尚无
-  - **自愈看门狗 (2026-11-17 17:22 上线)**: 脚本 `~/.local/bin/tailscale-watchdog.sh` + 用户单元 `~/.config/systemd/user/tailscale-watchdog.service`（enabled 开机自启），逻辑为每 60s 判一次「`BackendState==Running` 且（`Self.Online==false` 或状态文本出现控台失联告警 或 近 3min 内 `controlhttp: failed dialing` ≥6 次）」，连续 2 次命中才动手
-  - **看门狗的三道保险**: 动手前先确认 `127.0.0.1:7890` 可连且 controlplane 经代理可达，任一不满足就判定为机场侧问题不动手；600s 冷却期内最多自愈一次，避免传文件时反复打断；`BackendState` 非 Running（用户主动 down/未登录）一律不干预
-  - **写脚本踩的坑**: jq 的 `//` 运算符会把 `false` 当空值吞掉，`.Self.Online // true` 永远返回 `true`，导致卡死检测恒失效，必须直接写 `.Self.Online`，调试时用 `TS_WATCHDOG_ONCE=1` 空跑
-  - **看门狗验证方式**: 用假 `tailscale` 桩程序覆盖 PATH 造三种场景（卡死/主动 down/正常），配合 `XDG_RUNTIME_DIR` 指向临时目录避免污染真实冷却戳，三场景与冷却期均按预期分支
+- **Tailscale PC 侧掉线根因与自愈看门狗 (2026-11-17, 已完成)**:
+  - 现象: 本机在控台显示 offline、控台同步失败，journal 里 `controlhttp: failed dialing` 约 195 次/小时且持续 2 小时不自愈，当天 12:36 与 15:18 各掉一次
+  - 根因: `/etc/systemd/system/tailscaled.service.d/proxy.conf` 把 tailscaled 钉在 `127.0.0.1:7890`，而 Tailscale 受限 DNS 解析器拒绝 IP 字面量代理地址（`dnscache: unexpected hostname "127.0.0.1" doesn't match expected "controlplane.tailscale.com"`），DialPlan 拨号路径永远失败只剩回退路径，FlClash 换节点或重载配置切断长连接后即长期退避
+  - 修复: `tailscale down && tailscale up`，operator 权限即可完成，重注册返回 `machineAuthorized=true` 不需重新登录，netmap 立刻恢复
+  - `proxy.conf` 不能删: 直连实测 TCP 能握手但 TLS 被切断，属 GFW 特征，控制面与 DERP 必须走 7890 代理
+  - 链路现状: 两端只能走 DERP 中继（K60→hkg、平板→nue），RTT 650-900ms，原因是 Clash TUN 代理了 tailscaled 的 UDP 使 P2P 打洞失败
+  - 看门狗: `~/.local/bin/tailscale-watchdog.sh` + `tailscale-watchdog.service`（enabled），每 60s 判一次、连续 2 次命中才动手，动手前先验 7890 与 controlplane 可达，600s 冷却，`BackendState` 非 Running 一律不干预，空跑用 `TS_WATCHDOG_ONCE=1`
+  - serve 现状: `:443 → 127.0.0.1:8787`、`:5000 → dufs(127.0.0.1:5000)`，访问用 `https://cachyos.tail1d48f3.ts.net:5000/`
 
-- **DSH 与插件升级 + 安装 ds-harness-remote (2026-11-17, 已完成)**:
-  - **dsh 本体构建**: 已审查 PKGBUILD 并完成编译打包 `deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst`（来源官方 npm `@deepseek-ai/dsh@0.2.2-rc.1`），归档于 `~/tmp/deepseek-harness-bin/` 与 `~/.cache/paru/clone/deepseek-harness-bin/`，终端执行 `sudo pacman -U ~/.cache/paru/clone/deepseek-harness-bin/deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst` 即可升级
-  - **新插件安装**: 已安装 `ds-harness-remote@0.6.5`（P2P/WebRTC 端到端加密远程接入）并写入 `~/.dsh/profiles/web/package.json` 的 `dependencies` 与 `bundles`，移除旧 `dsh-remote`
-  - **插件全量升级与排障**:
-    - `dsh-dream-skin`: 修复原 GitHub 仓库不可达问题，切为 npm 官方包 `^11.16.0`（升级至 11.16.0）
-    - `dsh-opencode-zen`: 补齐缺失的 `cordis.patch.yml` 并添加 0.2.2-rc.1 版本豁免
-    - `dsh-better-sidebar`: 升级至 0.31.1（精确对齐 DSH 0.2.2-rc.1），并保留 0.2.0-rc.2 兼容豁免
-    - 全量升级 `@liustack/modlens` 3.27.5、`@liustack/modsearch` 5.10.14、`dsh-agy-link` 0.6.29、`dsh-better-sidebar` 0.31.1、`dsh-client-auto-continue` 0.19.0、`dsh-context` 0.85.1、`dsh-plugin-smooth-stream` 1.6.3、`dsh-pocket` 2.13.1、`dsh-skin-market` 0.1.83、`dsh-turn-fold` 0.7.3、`dshmarket` 1.73.20
-    - 配置备份于 `~/tmp/dsh-web-backup-20261117081034/`，启动测试验证通过无报错，`ds-harness-remote` 成功挂载并就绪 OpenCode/Antigravity ACP 桥接
-    - **启动排障与体验优化**: 清理了 `cordis.patch.yml` 中 18 项废弃插件补丁，禁用 `ds-harness-remote` 未安装的 codex/cursor/acp 告警消除红色刷屏；包装脚本 `~/.local/bin/dsh` 增加无参默认调用 `web` profile，已通过 chezmoi 提交同步
+- **DSH 与插件升级 (2026-11-17, 打包已完成、安装待执行)**:
+  - `deepseek-harness-bin 0.2.2rc.1-1` 已审查 PKGBUILD 并构建打包（来源官方 npm `@deepseek-ai/dsh@0.2.2-rc.1`），归档于 `~/tmp/deepseek-harness-bin/` 与 `~/.cache/paru/clone/deepseek-harness-bin/`，**当前系统里装的仍是 0.2.0rc.2-1**，升级命令 `sudo pacman -U ~/.cache/paru/clone/deepseek-harness-bin/deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst`
+  - 新装 `ds-harness-remote@0.6.5`（P2P/WebRTC 端到端加密远程接入），写入 `~/.dsh/profiles/web/package.json` 的 dependencies 与 bundles，移除旧 `dsh-remote`
+  - 修复 `dsh-dream-skin` 切 npm 官方包 `^11.16.0`、`dsh-opencode-zen` 补 `cordis.patch.yml`、`dsh-better-sidebar` 升 0.31.1 并保留 0.2.0-rc.2 兼容豁免；同轮升级 modlens 3.27.5 / modsearch 5.10.14 / agy-link 0.6.29 / turn-fold 0.7.3 / pocket 2.13.1 / context 0.85.1 等
+  - 清理 `cordis.patch.yml` 里 18 项废弃插件补丁，禁用未安装的 codex/cursor/acp 告警消除红色刷屏；`~/.local/bin/dsh` 包装脚本无参默认走 `web` profile，已入 chezmoi
+  - 配置备份 `~/tmp/dsh-web-backup-20261117081034/`
 
-- **心理汇报《完美主义》打分器 (2026-11-12, 已完成可交付)**:
-  - 需求: 用户下周心理小组汇报, 开场要一个 90 秒小游戏 —— 屏幕给一句话, 同学扫码改得更好, 提交拿分, 想更高就继续改; 结尾反转「分数是随机的, 你追了 90 秒的东西从头到尾都不存在」; 现场 60 人以上同时在线
-  - 交付: `~/Projects/perfectionism-scorer`（零 npm 依赖、无构建），本轮已 git 提交 `47dc9b9` / `6eab05b`
-  - **分数模型**: `分数 = 基准曲线(第几次提交) + FNV 哈希个人偏移(-1/0/+1)`；基准固定在 77..81，全场落在 76..82，82 是硬天花板永远出不了 83；第 8 与第 19 次出现 81 配 +1 得 82，制造「再改一次就到顶」的假希望；第 27 次基准正好 79 对上台词
-  - **个人偏移全程恒定且永不触发钳制** —— 所以所有人曲线形状严格相同，只整体平移。这是反转最硬的一张图，也意味着**进行中的大屏绝对不能画个人曲线**（会立刻穿帮），改为 42 格「分数墙」；曲线只在结尾出现：一人一张小图 → 按第一分对齐（真动数据，不是特效）→ 淡出合成一条线
-  - **自研零依赖二维码** `lib/qr.mjs`（字节模式 v1-10、L/M/Q/H、8 掩码按惩罚分择优、内联 PNG 编码）。两个必踩坑：① 格式信息区必须先以 mask 0 占位写入并标记 `isFunction`，否则数据会写进格式区（表现为解码器能定位但「data irrecoverable」）② 列遍历遇到第 6 列（竖直时序图形）必须用 `col <= 6 ? col - 1 : col` 派生局部变量，**不能改循环变量**，否则会漏掉一整列、832 个模块少 5 位
-  - 验证口径 `npm test`：曲线校准（2000 人 9 条断言，含「所有参与者曲线形状完全相同」）+ 二维码 zbarimg 解码 40 项 + 端到端压测（80 并发，p95 5~18ms、max 26ms、无 5xx）
-  - 截图不用装浏览器：`tools/shot.mjs` 直接复用 playwright 缓存里的 `~/.cache/ms-playwright/chromium-1246/chrome-linux64/chrome` + 裸 CDP（Node 26 自带 global WebSocket）截图
-  - **部署口径**: 用户服务器在大陆、无域名 → 无法备案，只能 IP + 非标端口直连（务必避开 80/443，云厂商只在这两个端口做备案拦截）；属未备案运行、法理不合规但现实概率极低，活动结束即停服。README 与 `deploy/perfectionism-scorer.service` 已写明
-  - **v2 重构 (提交 2ca106d)**: 计分从「纯曲线」升级为「**假刻度**」—— `分数 = 基准(77..80, 400 值不循环) + 个人偏移(±1) + 内容项(0/1)`，严格落在 76..82。内容项**只认三个纯结构指标**：字数 ≥24 / ≥46、标点种类 ≥3、分句 ≥3，累计 ≥3 才 +1 → 「写长一点真的涨分，改词不改结构一分不动」。82 变成传说级（需基准站上 80 + 偏移 +1 + 内容项命中）
-  - **关键设计洞察**: 纯随机两次就被看穿；有假刻度后玩家的「我在进步」假设被反复证实，90 秒内不会怀疑。反转也从「分数是随机的」升级为「**分数有刻度，只是它量错了东西**」，对完美主义更致命
-  - **假 LLM 推理延迟**: 服务端每次提交静默 `760 + min(1500, 字数×16) + 0~380ms`（8 字≈1.1s，80 字≈2.3s，**时长与字数正相关**，这是猜不到的第二个假刻度）；手机端配「分析语句结构 → 比对评分语料 → 生成评分」+ 一顿一顿的进度条
-  - **大屏两幕反转**: 42 张小图（分数，形状「很像但不完全一样」）→ 字数分档对照表（78.07 / 79.83 / 79.45，差值就是内容项）→ 换成 skeleton 序列并坍缩（42 条落在同一条线）→「分数是有刻度的 / 只是它量错了东西」。揭底 15 步自动推进约 30 秒，**空格可随时跳到下一步**
-  - **已上线 Cloudflare Workers (提交 2495263)**: `https://scorer.lanrhyme.top/`，大屏 `/board?token=<口令>`，口令在 `worker/.admin-token`（已 git 忽略）。账号 `Xiao_ren233@foxmail.com` / `193b043004e73d4f91b79b65a69c621e`
-  - **本机 wrangler 早就登录好了**：`~/.config/.wrangler/config/default.toml` 有 OAuth token，权限含 `workers_scripts:write` / `workers_routes:write`，直接 `npx wrangler deploy` 即可，不需要用户再给 API Token。`cloudflared` 装的是隧道客户端，跟部署无关
-  - **必须用自定义域名**：`*.workers.dev` 国内被 DNS 污染（用户自己在 ReveriePaint 遥测工程里实测 SocketTimeoutException），所以 `wrangler.toml` 用 `routes = [{ pattern = "scorer.lanrhyme.top", custom_domain = true }]`，首次部署自动建 DNS + 签证书
-  - **DO 冷启动坑（已修）**: `ensure()` 里无脑 `phase='idle'` 会让每次 DO 被收回再唤醒时把进行中的局重置掉（现象：admin/start 返回 running，紧接着 submit 返回 409）。改成按 `startedAt` 超过 2 小时才判过期，`running` 且已过 `endsAt` 则转 `ended`
-  - **wrangler dev 的坑**: `npm install` 时 esbuild/workerd 的 postinstall 被 allowScripts 拦了，但 `@cloudflare/workerd-linux-64` 走 optionalDependencies 已带二进制，dev 仍可用；首帧会有 `Unable to fetch the Request.cf object` 的 warn，无害
-  - **线上稳定性已验**: `/api/qr.svg` 与 `/api/health` 各 20 次全 200（部署完成瞬间有过一次 500，属传播期的瞬时现象）
-  - **v3 改成每人自己的 90 秒（提交 a4ea404）**: 去掉主持人「开始」这一步，同学随时扫码、填名字就开始自己的 90 秒，一人一次（名字即身份，重名 409），到点提交一律 409。大屏二维码常驻，随便什么时候进来都行；空格揭底、B 回分数墙、R 清空重来
-  - **状态机抽到 `lib/game.mjs`**: 纯函数，Node 与 Durable Object 共用一份，两边行为不会漂
-  - **计时以服务端为准**: 每人一个 `endsAt`，手机本地只是照着跑（用 `performance.now()` 换算，绕开本机时钟差）。原来靠服务端每 2 秒 tick 一次，现在改成随看板下发 `endsAt`、前端自己每秒重算「已完成/进行中」
-  - **⚠️ Durable Object 更新代码的坑（踩得很深）**: DO 实例里只要跑着永不停止的 `setInterval`（哪怕是 `state.storage.setAlarm` 之外的普通定时器），实例就永远不空闲 → **`wrangler deploy` 明明成功、Current Version 也变了，线上还在跑旧代码**。表现为：新字段不出现、老校验不生效，怎么重部署都没用。实测坑法：
-    - 先试着删 secret / 重部署 / 换 DO 实例名，都没用
-    - `deleted_classes` 迁移会报 `10061 不能删还有 binding 引用的类`
-    - 只加新类不改旧导出会报 `10064 新版本没有导出 Room`
-    - **最终解法：`wrangler delete --force` 删掉整个 Worker，类改名（Room → ScorerRoom），迁移从 v1 重来，再 deploy**。DO 存储会一起没，但对这种一次性活动无所谓
-    - 教训：DO 里不要放常驻定时器；需要定时就把时间点下发给前端，让前端自己算
-  - **shell 引号事故**: 用 `python3 -c "..."` 改 README 时，正文里的反引号被 bash 当成命令替换执行了，真的跑了一次 `wrangler secret put ADMIN_TOKEN`（值成了字面量 `<管理口令>`），站点被意外上锁。改用 `python3 <<'PYEOF'` heredoc（带单引号）就不会替换。**改含反引号/美元符的文件一律用 heredoc**
-  - **v3.1 提速 + 补时（提交 55df9b9）**: 用户反馈「很慢」和「算分时也在计时」
-    - **算分时间不吃玩家 90 秒**: 时间判定用请求到达时刻，等完把 `thinkingMs` 加回 `endsAt`（`lib/game.mjs` 的 `refundTime`）；本地倒计时在请求期间冻结，出分后按 `remainingMs` 追平
-    - 假思考从 `760 + 16/字` 降到 `300 + 6/字`（15 字≈0.5s，80 字≈1s），并加 `THINK_SCALE` 旋钮（0 = 立即出分）
-    - 出分覆盖层 1350ms → 520ms，且点一下就关
-    - 实测线上单次提交 842ms ＝ 假思考 550ms + 网络 292ms（之前 `/api/health` 测出 1~2s 是冷启动，稳定后网络只有 ~290ms）
-  - **⚠️ DO 被旧代码钉死：只能换实例名，不能靠等**: 上一轮以为去掉常驻定时器、等实例回收就行 —— 实测**静置 70 秒仍然跑旧代码**。可靠做法是实例名带版本号 `idFromName('room:' + env.ROOM_VERSION)`，改了 DO 相关代码就把 `ROOM_VERSION` 加一再部署（老实例的数据带不过来，一次性活动无所谓）
-  - **正式上线大陆服务器（提交 0473093）**: 阿里云 `47.95.242.43`（`iZ2zeardpd4aavpdclqa1wZ` / Alibaba Cloud Linux 3 / Node v24.16.0 已预装）。代码在 `/opt/perfectionism-scorer`，systemd 单元 `perfectionism-scorer`，运行用户 `scorer`，端口 8890，`THINK_SCALE=0.8`，`config.json` 里 `publicUrl` 写死 `http://47.95.242.43:8890/`
-    - **实测对比**: 大陆直连 163ms / 首屏 0.26s / e2e p50 582ms；Cloudflare 独立版 1316ms / e2e p50 1131ms → **快 8 倍**
-    - 服务器上 80 被 nginx 占、8080 被 python 占；firewalld 未启用、SELinux Disabled；安全组原本只放行 22/80，用户手工加了 8890
-    - SSH: root 可登录（密码认证），除 `22` 外已额外放行并监听 `2563`（校园网封 22 端口时用 `-p 2563`）；`ssh -F /dev/null` 绕开本机损坏的 `/etc/ssh/ssh_config.d/20-systemd-ssh-proxy.conf`；非交互用 `SSH_ASKPASS_REQUIRE=force` + askpass 脚本；**用过的密码文件用完必须 shred**（已同步 `present.html` 提交 `71afa07` 上线）
-    - 机器出网被墙（`api.ipify.org` 取不到），但应用不需要出网
-  - **⚠️ CF 反代到大陆这条路走不通**: 写好了 `worker-proxy/`（纯反代 `https://live.lanrhyme.top` → `http://47.95.242.43:8890`），`wrangler deploy` 明确显示 custom domain 已挂载，但边缘返 `403 error code: 1003`。换 `board.` / `live.` 两个子域、反复重部署、等几分钟都不行。`scorer.lanrhyme.top` 是唯一能正常工作的自定义域 → 判断是 zone 层面问题（疑与 `*.lanrhyme.top` 通配记录冲突），需要控制台处理。**结论：大屏直接开大陆 IP，比绕 CF 快 8 倍且少一个故障点**
-  - **两套部署不能混用**: 大陆与 CF 各有一份独立数据，大屏开在哪边只看得到哪边的分数
-  - **v4 按用户反馈重做（提交 3d52042）**: 四条意见一起改
-    - **分数区间拉开**: 基准 72..88（单次可掉 4 涨 3），个人偏移改三档 ±3，内容项改 0/2/5 三档 → 全场 69..96。原来 76..82 只 7 档，玩家觉得「变化太小」
-    - **同句同分（关键破绽）**: 每人一张 `文本 FNV 哈希 → 分数` 的 memo，改回旧版本拿回旧分数。不这么做的话「交 A 得 79 → 改 B 得 81 → 改回 A 得 77」两次就试穿了
-    - **追分引擎**: 手机常驻「全场最高 XX（某某）／你还差 X 分」，差 ≤2 追加「就差一点」；大屏右栏实时排行榜前五；墙上最高分暖色标注
-    - **时长 90 秒 → 120 秒**，后端默认 / systemd / wrangler.toml / install.sh 四处同步
-    - **大屏视觉重做**: 用户说「很丑」。去掉等权重卡片，改成排版式分数墙（无卡片、无边框、靠字号与留白），名称小字 + 大号细体数字 + 刻度条；还在改的人名字后挂呼吸点；右栏 QR 白卡 + 排行榜；底部一行三个大数字
-  - **e2e 已达 30 条断言**，本地与大陆线上各跑一遍全绿；p50 695ms（含 0.8 倍假思考）
-  - **部署到大陆的密码处理**: 每次要 SSH 都得临时重建 askpass 文件，用完立刻 `shred -u` + 删目录。用户没配公钥，密码在对话里出现过
-  - **v5 大屏第三次重做 + 管理页 + 汇报开场（提交 7e1916a / 4486e5a）**:
-    - **大屏按分数排序**（不再按入场顺序），高分暖金低分冷灰，墙自己形成左上到右下的坡度，右栏排行榜因此可以删掉
-    - 格子带位置插值（`S.pos` Map，`1 - exp(-dt/95)` 帧率无关），分数一变就滑到新排名；名字后呼吸点表示还在改
-    - 二维码改成浮空按钮，点击或按 `Q` 放大成全屏（`.qrmodal`），后排也扫得到
-    - 移除底部句子提示，统计挤到顶部一行并给二维码留出 `padding-right`
-    - **新增 `/admin`**: 揭底 / 回到分数墙 / 导出 CSV / 清空、参与者表格（次数、当前、最高、状态、进度条）、实时日志
-    - **新增 `/ppt`**: 空格/→/点击翻页，F 全屏。第一页「我们先来玩个游戏」逐字浮起 + 分隔线生长 + 背景分数残影（中心 0.52 半径内淡出，别压文字）
-    - `latest` 补上 `best` 与 `endsAt`（管理页和看板的 `recount` 都要）
-    - 路由别名统一：`/`→play，`/board`，`/admin`，`/ppt`
-  - **v6 放映稿统一 + 稿纸设计（提交 01e265b）**: 用户说「ppt 和大屏应该连在一起」「ai 感好强，来点好的设计」
-    - **新增 `/present`**: 一页到底的放映稿，六页——开场 / 分数墙 / 全部曲线 / 曲线合并 / 「它不存在」/ 提交次数排名。空格翻页，不用切窗口
-    - **设计语言换掉**: 从「深色 + 橙色 + 等宽数字 + 居中大字」（配置式审美）换成 **被红笔批改过的稿纸**——暖白纸 `#f4f0e7`、黑墨 `#18170f`、红笔 `#b0342a`；标题宋体、正文黑体；全左对齐；页眉页脚细线 + 页码建立「这是一份文档」的感觉；开场用 SVG 路径画一道手写红线
-    - **揭底用 `skeletons` 做连续变形**: 把内容项按条减掉再对齐起点，40 条曲线 2 秒内合成一条红线。只减首点偏移是不够的（不同长度的曲线合不拢）
-    - **第 06 页** 按提交次数排名，并自动对比「交得最多的 X 改了 N 次拿了 M 分 · 拿到最高分的 Y 只改了 K 次」
-    - **踩到三个坑**:
-      - HTML 注释写成 `<!-- 04 去掉内容项 */`（少了 `-->`），整个 `<section>` 被注释吞掉，`querySelectorAll('.slide')` 只有 5 个
-      - `.bar i` 绝对定位但只给了 `left/top/bottom`，没给 `width`，宽度塌成 0，`scaleX` 动效完全看不见
-      - SSE 每次提交都触发重绘，把入场动画打断；改成按数据签名去重
-    - **调试工具改进**: `tools/shot.mjs` 现在会回显 extraJs 的返回值；`present.html` 暴露 `window.__go/__slide/__err` 方便逐页截图
-    - 教训：截图前必须在**同一个 bash 调用里**起服务，否则后台进程被回收，页面 404 但截图照样"成功"，会误判成代码问题
-  - **v7 放映稿换成电影片头质感（用户说「AI 感更强」「没动效」）**: 参考最近 Opus 写代码做的动效短片
-    - 用户口中的「opus 视频」= Claude Opus 5.5 用代码（HTML/CSS/JS）生成的那批爆火动效短片，不是视频模型
-    - 关键认识：**「AI 感」的根子不是配色，是静止**。上一版纸面稿只有文字淡入，其余全部不动
-    - 现在：暖近黑底 + 34s 漂移红光 + 全屏颗粒（0.9s 跳帧）+ 暗角；进场缩放去模糊；标题遮罩上推逐行错开；数字滚动；分数墙滑位+弹跳+辉光；曲线逐条画出；排名条弹性填充；二维码悬停/全屏
-    - 保留 \ 兜底
-  - **v8 放映稿补到 14 页（提交 025e0f5）**: 用户先要求手机端可提前结束，再用 grill-me 对齐后半场
-    - 手机端「改完了，提前结束」安静文字按钮 + 二次确认，结算页区分「时间到」与「你自己选择结束了」
-    - grill-me 结论：落点=机制→怎么办；篇幅先按 10 分钟 8 页；配图=情绪页照片+机制页生成图形；研究依据少量点缀
-    - 07 定义 / 08 三面孔（Hewitt & Flett 1991）/ 09 靶子会上移（canvas 台阶图）/ 10 条件化自我价值（照片）/ 11 拖延循环 / 12 代价（照片）/ 13 三件能做的事 / 14 结尾
-    - **配图取法（重要）**: Openverse 与 Wikimedia 都被墙，但 `images.pexels.com` 与 `images.unsplash.com` 直连可用。Pexels 的页面 URL 里的数字 ID 直接对应 CDN：`images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg`。用 web_search 找页面 → 抽 ID → 下 CDN
-    - 用到的两张：window #30573891（窗边剪影）、desk #1635974（深夜桌面）
-    - 坑：canvas 容器没设尺寸会画成一小坨；照片页 `.hdr` 直接贴在标题上需要中间层 flex 撑开；`.src` 颜色 #4f4a43 在深底上几乎看不见
-  - **v9 放映稿换 3D 粒子场 + 五种版式（提交 244d956）**: 用户说「AI 感还是非常严重，可以用 aminejs、threejs」
-    - **真正的病根**: 14 页共用一个模板（左上标签 + 右上页码 + 细线 + 巨标题 + 小字段落），换任何配色都救不回来
-    - 现在拆成五种版式：满幅画布 / 贴边出血 / 一句撑满 / 左图右文 / 满幅照片 / 大数字栏
-    - **three.js**: `npm i three` 后 `npx esbuild bundle/entry.js --bundle --format=esm --minify` 只打包需要的类，522 KB（完整包 2 MB）。放在 `public/vendor/`
-    - **anime.js 4.5**: `import { animate, stagger } from '/vendor/anime.min.js'`，v4 的 ESM bundle 导出 animate/stagger/Timeline/Spring
-    - 粒子场：5200 点，四种形态 cloud/grid/band/burst，指数插值游动，相机缓慢绕行，`PointsMaterial` additive blending size 0.048 opacity 0.42
-    - **踩坑**: `applyFormation` 里 `if (!ok) return`，而 `ok = true` 写在调用之后 → 初始形态根本没铺，粒子全挤在原点（表现为画面中间一小坨密网）。必须先置 ok 再铺
-    - 坑: 分数墙 canvas 要 `top/bottom` 留出 HUD 与二维码的空间，否则数字压在统计上
-  - 抽帧给大屏做中间态截图时注意：`tools/shot.mjs` 是 CDP 一次性抓图，页面每次重载揭底动画都从 0 开始，所以传不同的 `waitMs` 就能稳定拿到各个阶段；后台 `node server.mjs` 用 setsid 起也会随 bash 调用结束被杀，服务 + 造数 + 截图必须放在**同一次** bash 调用里
-  - **v10 细节打磨与全量预加载稳定性加固 (提交 `cea3f50`)**:
-    - **禁止鼠标左键划词**: 全局 CSS `user-select: none` + 禁用拖拽与上下文 callout + `::selection` 设为透明 + JS 监听 `selectstart` 与 `dragstart` 阻断默认行为，杜绝演示手抖选中大片文本
-    - **鼠标右键改为翻回上一页**: 拦截 `contextmenu` 调用 `clearAuto(); go(S.slide - 1)`，左键点击前进限制 `e.button === 0`，键盘同步增加 `Backspace` / `PageUp` 回翻支持
-    - **莫兰迪极简纸感全量预加载层 `#loader`**: 预载 7 大关键资源（排版字型、Three.js 3D 粒子波场、罗小黑买菜篮特写 `/img/lxh-p10.jpg`、罗小黑木筏巨鲸特写 `/img/lxh-p12-raft.jpg`、音频元数据/预解压、实时看板网络连接），附带进度条与百分比；单项 3.2s 超时与全局 4.2s 兜底防假死，资源就绪后平滑淡出进入 P01
-  - **v11 内容驱动排版系统上线 (提交 `7dee8db`)**:
-    - **内容语义分流**: 拆解全篇 21 页文本气质，建立四套字体栈（现代交互黑体 `--sans`、正统学术宋体 `--serif`、温润抒情叙事体 `--narrative`、冲击力大标黑体 `--display`）
-    - **各页精准映射**: P01/P02/P03/P04/P06 保持现代黑体与等宽数字；P05 揭底启用 `--display` 850 磅冲击大标；P07/P08/P09/P11/P13/P14 贯穿典雅学术宋体；P10/P12 罗小黑特写写真页换入 `--narrative` 仿宋/楷书笔意叙事体；P15-20 金句与鸣谢保持诗意宋体
-    - **双端部署**: 大陆服务器与 Cloudflare 双节点已同步编译与热重载生效
-  - **v12 P02网格进度条移除与音频播放全链路加固 (提交 `e067b7b` / `1214c25`)**:
-    - **P02纯粹化呈现**: 移除分数网格下方多余的底部分数条矩形绘制（`barY` 与 `c2.fillRect`），仅保留参与者姓名、呼吸指示点与居中大字分数，视觉清爽无杂音
-    - **音频稳定性全链路解耦与真因排查**:
-      - 彻底阻断网易云外链 302 跨域与 HTTPS 混合内容风险，将 128kbps 立体声原声打包收拢为本地静态资源 `public/bgm.mp3`（1.6MB）并在 `<audio>` 上直接标注 `src` 属性加速预加载
-      - `server.mjs` 原生实现 HTTP Byte Range（`206 Partial Content`、`Content-Range`、`Accept-Ranges: bytes`）与 CORS 响应头，支持浏览器按需分片与跳转缓冲
-      - `worker/src/index.js` 新增 `/api/bgm` 与 `/bgm.mp3` 边缘直出路由，避免被 Durable Object 拦截返回 404
-      - **排查并解决堆栈溢出死锁真因**: `startBgm` 与 `primeAudio` 存在相互递归调用链（`startBgm` 调用 `primeAudio`，其内部判断 `bgm.paused` 为真又调用 `startBgm`），导致进入第 14 页时同步触发 `RangeError: Maximum call stack size exceeded` 瞬间炸穿调用栈；彻底移除该递归链并解绑冲突
-      - **彻底解耦 Web Audio 硬件劫持**: 原 `createMediaElementSource` 会强行将原生硬件通道切断并重定向进 Web Audio 流图，遇挂起、CORS 检查或上下文中断即出现无声；现全面让 `<audio>` 直连系统底层硬件，电平动画采用确定性平滑正弦节拍，达到绝对零故障率
-      - **优化全局自动播放许可与交互**: 在首次任意用户按键或点击时预先解锁媒体上下文，并在 keydown 中优先阻断分流 M 键与导航键，实测双端在 Slide 14 自动开播与 M 键启停均 100% 顺畅
-    - **双端同步部署与验证**: 大陆源站与 Cloudflare Workers 边缘资产均已构建上线并通过 Headless Chrome CDP 真实交互断言验证
-  - **v13 全链路高并发压测与上台前全面验收 (提交 `63facec`)**:
-    - **全场景全链路压测工具**: 新增 `tools/stress.mjs`，覆盖瞬时静态资源/二维码冲击、全员秒级扫码加入浪涌、120秒持续高频提交、提前交卷结算、大屏状态机跃迁、骨架同构验证与CSV导出全流程
-    - **大陆源站极限压测实测指标**:
-      - 80并发标准规模：静态资源 80 次并发耗时 417ms（0 错误），全员入场 1.24s（p50 37ms，max 61ms），714 次并发提交 100% 成功，吞吐 53.4 Req/s，p50 511ms，p95 663ms，max 692ms
-      - 120并发翻倍极限：120 人全员入场 1.23s，1077 次并发提交 100% 成功，吞吐 81.4 Req/s，p95 658ms，max 754ms
-      - 资源消耗：高强度压测后 Node 驻留内存仅 53.7MB，服务器空闲内存充足（711MB），CPU 瞬时回落，无内存泄露与未释放连接
-    - **Cloudflare 边缘压测实测指标**: 60 人并发加入耗时 1.40s（p50 253ms），534 次打分 100% 成功（吞吐 31.2 Req/s，p95 1062ms），核心反转骨架集合大小严格为 1
-    - **现场状态复位**: 双端数据均已自动清零（count=0，phase=collecting，durationMs=120000），环境整洁随时可开讲
+- **完美主义打分器交付并线上化 (2026-11-12, 已交付)**:
+  - 代码 `~/Projects/perfectionism-scorer`，零 npm 依赖无构建；完整 v2-v13 迭代细节、DO 钉死旧代码的坑、反引号 heredoc 事故都在 `~/MEMORY-archive.md` 同名条目
+  - 大陆生产 `http://47.95.242.43:8890/`（阿里云，systemd 单元 `perfectionism-scorer`，运行用户 `scorer`，`THINK_SCALE=0.8`），Cloudflare 独立版 `https://scorer.lanrhyme.top/`，两套数据不互通，现场用大陆（e2e p50 582ms 对 CF 的 1131ms）
+  - 现场放映走 `/present` 一页到底 14 页放映稿，空格翻页，揭底 15 步约 30 秒；`/admin` 揭底与导出、`/board` 大屏、`/ppt` 旧版
+  - v13 压测: 大陆 80 并发 714 次提交 100% 成功（p95 663ms）、120 并发 1077 次成功（p95 658ms），CF 60 并发 534 次成功（p95 1062ms），双端数据均已清零
+  - 这台机器上 `wrangler` 早就 OAuth 登录过（`~/.config/.wrangler/config/default.toml`），部署直接 `npx wrangler deploy`
 
-- **K60 桌面拦截第三方 app 钉小组件（requestPinAppWidget）真因 (2026-11-10, 处理中)**:
-  - 现象: Material You Widgets Pro 里点「添加到桌面」，桌面闪一下就回原样，弹一句「请长按桌面后到“卡片 - 插件”添加」，AppWidgetService 里不出现任何新 widget id
-  - **真因是 OplusLauncher 自己的白名单，不是权限问题**：桌面 `com.android.launcher3.dragndrop.AddItemActivity.isAllowedAddWidget()` 先过闸，只放行 `PackageUtils.isSystemApp()` / 预装可卸载列表 `isRemovableApp()` / 持 `oplus.permission.OPLUS_COMPONENT_SAFE` 签名权限 / `WidgetControlHelper.isInWhiteList(componentName|packageName)`；否则弹 `launcher_widget_control_toast`（就是那句「请长按桌面后到“卡片 - 插件”添加」）并 finish
-  - 白名单来自 RUS 云配置 `app_nebula_fwk_widget_wl`（`RusBaseXmlType1ConfigManager` 读 assets 同名文件 + provider `content://com.oplus.romupdate.provider.db/update_list` 的 filtername），**本机该 provider 不存在、APK 里也没有同名 asset → 白名单恒为空**；闸门总开关 `FeatureOption.isSupportWhiteListControl() = !isExp`，国内机型恒为 true
-  - 证据链: `logcat` 里三次点按（18:14:50 / 18:39:33 / 18:45:23）都是 `wm_create_activity AddItemActivity` → 150 ms 内 `wm_finish_activity`，随后一条 994x361 长 toast（`SystemUi--Notification: content = no_need_print`，看不到文字）；`dumpsys appwidget` 一直只有 id=5/6 两个老 widget
-  - **桌面长按 → 卡片-插件 这条路从来没被限制**，现有两个小组件（MoClock id=5、WidgetsPro id=6）就是手动加的
-  - 绕过方案（按代价排序）：LuckyTool 已启用且作用域含 `com.android.launcher`，其「移除组件添加请求白名单」开关可能已 hook 同一处 / 自写 LSPosed 模块 hook `com.android.launcher3.widget.WidgetControlHelper.isInWhiteList` 返回 true / 把 app 系统化挂到 `/system_ext/priv-app` 走 isSystemApp 分支（副作用: 该 app 不能正常更新）
-  - 排查用到的设备侧格式（备忘）: 桌面活动布局在 `/data/user_de/0/com.android.launcher/databases/launcher.db` 的 **`singledesktopitems_draw`** 表（widget 为 itemType=5、卡片为 itemType=100、`appWidgetId` 与 AppWidgetService 对应），`singledesktopitems` 是单层桌面模式的休眠布局；没有 `favorites` 表，不能套泛 Launcher3 经验
-  - LuckyTool 的 XSharedPreferences 在 `/data/misc/7219f0d0-be06-4819-ba1a-186be6bd9ad1/prefs/com.luckyzyx.luckytool/ModulePrefs.xml`（dex 字符串被加壳，静态翻不到 pref key）；LSPosed 作用域/启用状态在 `/data/adb/lspd/config/modules_config.db` 的 `modules` / `scope` 表
-  - 排查脚本与中间产物留在 `~/tmp/k60-launcher/`（launcher dumpsys、DB 副本、jadx 反编译的 AddItemActivity / WidgetControlHelper / FeatureOption / PackageUtils 等）
-
-- **QQNT 琉璃主题接入（LiteLoaderQQNT + bwrap 免 root 补丁）(2026-11-03, 完成)**:
-  - 上游 `LilycleHeart/qqnt-liuli-theme` v1.3.2 官方只声明支持 Windows QQ 9.9.36（Electron 40），本机是官方源 `linuxqq 3.2.29_49738`（Electron 37.1.0 / Node 22.16 / Chrome 138），实测 Linux 可用
-  - **入口真相**: QQ 真正加载的是 `/opt/QQ/resources/app/package.json`（启动日志打印 `app_package_filename` 与 `resourcesPath: /opt/QQ/resources`），`~/.config/QQ/versions/3.2.29-49738/` 只是热更新副本，改它无效
-  - 本会话在 bwrap 沙箱内（`--ro-bind / /` + no_new_privs）sudo 被挡，改用免 root 方案：家目录 `~/.local/share/qqnt-patch/` 放改过 main 的 package.json + `app_launcher/LiteLoader.js`，启动时 `bwrap --dev-bind / / --ro-bind ...` 覆盖到 /opt，pacman 升级 QQ 也冲不掉补丁
-  - **Electron 的 main 是 `path.join(appPath, main)` 而非 resolve**，写绝对路径会被拼到 app 目录后面（踩过 `Cannot find module '/opt/QQ/resources/app/home/...'`），必须用相对路径 + 目录 bind
-  - LiteLoaderQQNT 1.4.1 装在 `~/.local/share/LiteLoaderQQNT`（profile 默认就在本体目录，因此不需要设 `LITELOADERQQNT_PROFILE`，该变量只在 /opt 无写权限时才需要），`src/main/store.js` 的 `dirent.path` 已改为 `LiteLoader.path.plugins`（Node 22+ 兼容）
-  - 主题插件位于 `~/.local/share/LiteLoaderQQNT/plugins/liuli-dsh-theme`，自身日志在 `data/liuli-dsh-theme/session.log`，实测 `main loaded | liteloader=1.4.1 qqnt=3.2.29-49738` 与 `renderer ready in 428ms`
-  - 壁纸不随插件发布，已用当前桌面壁纸 `图片/WallPapers/kita.png` 预置 `assets/wallpaper.jpg`（2560 宽 q86，取色用）与 `assets/wallpaper.css`（base64 内联 `#app::before`，1.4MB），boot 时动态层 `cleared:true` 清空后静态规则生效
-  - 启动链路：`~/.local/share/applications/qq.desktop`（Exec 指向 wrapper）→ `~/.local/bin/linuxqq`（bwrap）→ `/usr/bin/linuxqq` → `/opt/QQ/qq`
-  - QQ 升级或补丁丢失后跑 `~/.local/bin/qqnt-liteli-setup` 重建（幂等）
-  - 已纳入 chezmoi：wrapper、setup 脚本、qq.desktop（提交 `216e9a3`）
-  - 回滚：删 `~/.local/share/applications/qq.desktop` 即恢复原版启动，或直接用 `/usr/bin/linuxqq`
-  - 踩坑复现：`pkill -f '/opt/QQ/qq'` 会匹配到执行它的 bash 自杀，杀 QQ 要用 /proc cmdline 精确匹配
-
-- **Zen 浏览器拿不到代理的根因: Flatpak 沙箱内读不到宿主 gsettings，实际供代理的是 Bettbox 内嵌核 (2026-11-02, 已修复待重启验证)**:
-  - 现象: Zen 里所有站点都走直连, `ss -tnp` 里 Zen 到 `127.0.0.1:7890` 的连接数为 0, 同时 Zen 直接对外连 `146.75.121.91:443` 这类公网 IP
-  - **谁在供 7890（排查半天才定死）**: 监听者 uid 0 且 `ss -p` 看不到归属进程 —— 真身是 `BettboxCore`（`/usr/share/Bettbox/BettboxCore`, ruid 1000 / **euid 0**, 由 GUI `Bettbox` 拉起, SUID root 是为了 TUN）, 它内嵌了 mihomo 核（二进制里 `mixed-port` / `fake-ip` / `rule-providers` 等特征串 12747 条）, 配置在 `~/.local/share/com.appshub.bettbox/config.yaml` 的 `"mixed-port": 7890`; 实测该端口 **HTTP 与 SOCKS5 同端口可用**（mixed 口特征）, 走代理的出口 IP 与直连不同
-  - 重要事实: **FlClash 当时根本没在跑**（无进程、无 TUN 网卡）, `/usr/bin/flclash` 只是壳; `~/.bashrc` 里 7890 的注释写的是 FlClash, 实际两个客户端都把 mixed-port 定到 7890, 谁先起来谁占
-  - 系统代理是谁写的: `org.gnome.system.proxy` mode=manual / http+https+socks 全 `127.0.0.1:7890`, 而 `~/.config/dconf/user` 的 mtime 正好是 BettboxCore 启动的 12:30, 即 Bettbox 启动时自己写的
-  - **根因**: Zen 是 Flatpak（`app.zen_browser.zen` 1.21.3b, profile 在 `~/.var/app/app.zen_browser.zen/.zen/rlujjvm3.Default (release)`）, Firefox 系默认 `network.proxy.type=5` 读系统代理, libxul 里确实有 `org.gnome.system.proxy` 字符串, 但沙箱内 `gsettings get org.gnome.system.proxy mode` 恒为 `none` —— 因为 **runtime 里没有 dconf GIO 模块**（`/usr/lib/x86_64-linux-gnu/gio/modules/` 只有 `libgiognomeproxy` / `libgiognutls` / `libgiolibproxy`）, 设 `GSETTINGS_BACKEND=dconf` 直接报 `Can't find module 'dconf'`; profile 的 prefs.js 里也没有任何 `network.proxy.*`
-  - 试过但无效: `flatpak override --filesystem=~/.config/dconf:ro --env=DCONF_USER_CONFIG_DIR=/home/lanrhyme/.config/dconf` 之后沙箱内仍是 `none`（模块缺失, 挂数据库也没用）, 已回滚
-  - 落地: 在 profile 的 `user.js` 追加显式手动代理（`network.proxy.type=1`, http/ssl 均 `127.0.0.1:7890`, `no_proxies_on` 排本地与内网, `allow_hijacking_localhost=false` 保住 `127.0.0.1:3080` 的 DSH, `failover_direct=true` 兜底）, 备份在 `~/tmp/zen-user.js.bak-*`
-  - 端到端验证手法: 用 `flatpak run --command=sh app.zen_browser.zen <脚本>` 起临时 profile 的 headless Zen（脚本写 user.js + `--headless --no-remote --screenshot`）, 宿主侧轮询 `ss -tnp | grep 127.0.0.1:7890 | grep zen`, 第 2 次采样就出现 Zen→7890 连接, 证明沙箱内 `127.0.0.1` 就是宿主 loopback 且手动代理生效
-  - 注意: user.js 只在启动时生效且会压过 prefs.js, 重启 Zen 后设置里会显示「手动代理」; 若日后想跟系统代理联动, 得先给 runtime 补 dconf 模块, 否则只能继续写死端口
-
-- **逃生 1 (Outlast, AppID 238320) 卡顿排查 + 3DM 汉化落地 (2026-11-01, 已完成)**:
-  - 现场: 22:38:27 启动, 22:43:22 退出 (码 -1), 全程只有一个 1280x720 窗口, 窗口类 `OLGame.x86_64`, 进程 RSS 4.9GB / 35 线程
-  - 根因一: **跑在核显上** —— 进程 maps 里 NVIDIA 库 0 条、Mesa/iris 库 10411 条, 同时 `nvidia-smi` 只有 niri 与 steam 两个图形上下文, RTX 3050 全程 1% / 14W; 因为 2026-10-29 移除了全局 PRIME offload 改按需 prime-run, 而该游戏没设启动选项
-  - 根因二: **niri 全局规则把游戏窗口圈进模糊** —— 原生移植窗口类不是 `steam_app_*`, 于是吃 `match app-id=".*"` 的 opacity 0.98 + blur true, 与 Steam 大屏、影之刃零完全同构
-  - 根因三: 后台超卖, 当时 `language_server` 单进程 5.5GB/14-17% CPU, Antigravity + steamwebhelper + QQ + Bettbox 一起压在 12 线程上, swap 已用 6.7G; 可用 `~/.local/bin/game-mode.sh on` 冻结
-  - 中文现状: Steam API 确认官方语言只有 英/法/意/德/西/俄/波/葡/日, **没有中文**; 原生包 `OLGame/Localization/` 也只有 INT/DEU/ESN/FRA/ITA/JPN/POL/PTB/RUS, 论坛汉化补丁全是 Windows 版 (`CookedPCConsole`), 所以要么切 Proton 跑 Windows 版, 要么自己做字体与文本 (Scaleform 字体是硬门槛)
-  - 兼容层现状: `config.vdf` 里 238320 已映射 `proton-cachyos-slr` (`/usr/share/steam/compatibilitytools.d/proton-cachyos-slr`), 22:43 起 Steam 在补 Windows depot 238321 共 3.78GB, 补完前点开始还会走原生 720p
-  - 已落地: chezmoi `dot_config/niri/config.kdl` 全局规则加 `exclude` 掉 `steam_app_.*` / `pbz[.]exe` / `OLGame.*` / `.*[Oo]utlast.*`, 游戏规则补 `^OLGame[.].*` / `^Outlast[.].*` / `^Outlast.*`; `niri validate` 通过并已热重载
-  - 硬件注记: DXVK 会把 DISCRETE_GPU 排到最前, 所以 Proton 路径不需要额外 env 就会落到 3050; 原生 GL 路径才需要 `prime-run %command%`
-  - **汉化已装 (3DM 轩辕 v2.0)**: 来源 `https://dl2.wsyhn.com/CHS1/3DMGAME-Outlast.CHS.Patch.v2.0-3DM.rar` (34,230,900B, md5 `eb719a2a1f9ac1971045d4975c689b14`), 静态审查过: PE32 GUI, 无 Inno/NSIS 特征、正文零 URL, 后面 33MB 载荷是加密的; 用 `bwrap --unshare-net` + 独立 WINEPREFIX 关笼子跑 (只写游戏目录), 汉化器自动完成, 不需要点按钮
-  - 替换清单 (Windows `CookedPCConsole`): `OLFrontEnd_LOC_INT.upk` 689KB→30.1MB、`OLFrontEnd.upk` 3.09→6.82MB、`Startup_LOC_INT.upk` 14.8KB→112KB、`Startup.upk` 4.9→13.9MB、`UDKBase_LOC_INT.upk` 110KB→25.2MB、`Asylum_Exterior-LD.upk` 10.4→19.1MB; 外加 `Localization/INT/` 六个 .int 全换中文 UTF-16 (字幕每个汉字间夹空格, 是汉化组绕 UE3 换行的手段, 看着字距大属正常)
-  - 补丁副作用: 会往游戏根目录丢 `说明.txt` 与 `www.3dmgame.com.url` (已删 .url 与 bwrap 留下的 0 字节 exe 挂载点, 保留 说明.txt); 手工挂载 exe 到游戏目录会在卸载后残留 0 字节文件, 下次要记得删
-  - 回滚口径: Steam「验证游戏文件完整性」即可还原全部 .upk 与 .int; 该游戏以后若自动更新也会把汉化冲掉
-  - 实测结论: 同一个 Proton 会话里 `Using D3D9 device (0): NVIDIA GeForce RTX 3050 Laptop GPU`, 日志走到 `Resetting level dlc_mainmenugame` + `Resizing to 1920x1080 (fullscreen)`; 首次 Proton 启动会卡在 UE3 logo 一次 (日志停在 4.3s, 主线程 1 核跑满、GPU 2%), 关掉重开一次就过, `-nostartupmovies` 会被 `OutlastLauncher.exe` 吞掉不生效 (日志 Command line 只有 `-installed -seekfreeloadingpcconsole`)
-  - 备份: `~/tmp/niri-config.kdl.bak-*`; 快照与汉化包留在 `~/tmp/outlast-chs/` (`patch.rar` / `extracted/` / `manifest-before.tsv` / `manifest-after.tsv`)
-
-- **Antigravity 星语猫娘桌宠改造为插件注入版 (2026-11-01, 完成)**:
-  - 起因: 上游 `Monokumakuki/Antigravity-Star-Suite`（Gemini 猫娘桌宠 + 蓝紫 Dream Skin）官方只给 Windows x64, 其桌宠是独立的 Electron 透明窗口 + `.NET ForegroundHost.exe` 跟随宿主; Linux 上跟随能力直接缺失, 且 Wayland 客户端无法自己摆窗口位置, 桌宠只能乱停
-  - 关键结论: Antigravity 的「插件」不是 VS Code 扩展模型, `~/.gemini/config/plugins/<name>/` 只认三种扩展点 —— `plugin.json` 元数据、`sidecars/<name>/sidecar.json`（宿主代拉 Node 子进程, `restart_policy` 生效）、`hooks/` 与 `mcp_config.json`; 官方 UI 槽位只有一个 `ui_config.views[].entrypoint: SIDECAR_UI_ENTRYPOINT_AUX_PANE`（辅助面板, 拿不到「浮在整窗上的猫」）
-  - 同机 `antigravity-pulse` 的做法印证: 它是靠 `patch-loader.py` 改 `app.asar` 塞 `// AG_PULSE_INLINE_V1` 内联 UI, 且写死 `SUPPORTED_VERSIONS = {'2.19.1'}`; 故不改安装目录、改走 CDP 注入更干净
-  - **宿主给 sidecar 的现成凭据（免进程扫描, 最重要）**: sidecar 进程环境里有 `AGY_BROWSER_ACTIVE_PORT_FILE`（= `~/.config/Antigravity/DevToolsActivePort`）、`ANTIGRAVITY_LS_ADDRESS`（如 `localhost:42815`）、`ANTIGRAVITY_CSRF_TOKEN`、`ANTIGRAVITY_APP_DATA_DIR`（`~/.gemini/antigravity`）、`ANTIGRAVITY_EXECUTABLE_DATA_DIR`（`~/.gemini/antigravity/sidecar_data/star-pet/pet/data`）; 宿主 Node 为 v24.20.0 且自带 global `WebSocket`, 无需 vendor ws
-  - **额度接口（比上游的 React fiber 抓取可靠得多）**: `POST http://{LS_ADDRESS}/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary`, 头带 `x-codeium-csrf-token` 与 `Connect-Protocol-Version: 1`, 返回 `response.groups[].buckets[]` 的 `gemini-5h` / `gemini-weekly` 的 `remainingFraction` 与 `resetTime`; `GetUserStatus` 只给 per-model `quotaInfo`, 没有双窗口条
-  - 落地: 新插件 `~/.gemini/config/plugins/star-pet/`（main.mjs 编排 + layer.mjs 页面图层, Shadow DOM 隔离, 帧图为 420px webp data URL, CSP 只放行 data:）; 猫固定在窗口内 `z-index:6000`, 可拖动（位置存页面 localStorage）, 悬停出额度气泡, 点击换台词, 思考时三个跳动点; 宿主重建 `document.body` 或换路由后图层被摘除, 靠 1 秒 keep-alive 自愈
-  - 控制入口: `~/.local/bin/star-pet status|on|off|scale|state|log`, 改的是插件数据目录里的 `settings.json`, sidecar 每 2 秒重读
-  - 踩坑: `pkill -f '<pattern>'` 会把执行它的 `bash -c` 自己匹配进来直接杀掉 (本次连踩两次), 杀应用一律用 `/proc/*/cmdline` 精确匹配并排除自身的脚本; 图层 `document.body.appendChild` 必须显式写出, 只靠 MutationObserver/定时器会晚 1 秒; `:host { all: initial }` 之后气泡的 `position:absolute` 相对的是 `.wrap` 而不是视口
-  - 宿主现状: 本机 Antigravity 2.17.0 离线时语言服务器卡在 Google 授权（`oauth2.googleapis.com` 30 秒超时）, 窗口 `ERR_TIMED_OUT` 且 12 秒后自行退出; 带 `HTTPS_PROXY=http://127.0.0.1:7890` 启动即可正常渲染, 说明这类「窗口打不开」要先怀疑代理没开
-  - **Dream Skin 改为 Morandi 版（已落地）**: 上游选择的蓝紫换肤整套 CSS 照 2.28 写, `.agy-sheet` / `.surface-composer` 在 2.17.0 匹配数为 0, 故不移植; 改为在 `morandi-gen.py` 新增 `write_antigravity_ide(palette)`, 生成 `~/.config/noctalia/antigravity-ide.json`（33 个变量）, 换壁纸自动重算, 插件按 mtime 热更
-  - **关键坑: 宿主把主题变量写成 `<html>` 的 inline style**（`--background`、`--foreground`、`--primary`、`--card`、`--sidebar`… 全在 style 属性里, 还有整套 `--vscode-*`），所以注入的 `:root{...}` 一律被压住, 必须每条声明都带 `!important` 才能生效; 判断是否生效只看 `getComputedStyle(documentElement).getPropertyValue('--background')`
-  - **桌宠「一闪一闪」根因（2026-11-01 修复）**: `blink.png` 不是 idle 的小改, 而是另一次渲染 —— 整张画布 24.6% 像素不同且脸部位置/缩放都变了（diffBBox 覆盖全图）, 切过去就是整张脸跳一下; 叠加原实现每 2 秒把近百 KB 的 `frames` 整包推送且重置 `frameName`, 于是每 2 秒强制换帧一次。修法: 帧图只在首次注入时发（`injectionConfig(state, withFrames)`）+ 配置签名节流（`configSignature`）+ 停用 blink 帧 + 两张帧图都 `position:absolute` 放在 `aspect-ratio: 420/351` 的固定画框里（换表情不再引起任何布局位移）。实测 15 秒内帧属性变更 0 次
-  - **皮肤「看不出变化」根因**: (1) 宿主把主题变量写成 `<html>` 的 inline style, 注入的 `:root{...}` 被压住, 必须每条声明加 `!important`; (2) 只在 `body` 上画渐变完全无效, 因为主壳 `[class~="bg-background"]`、侧栏 `[class~="bg-sidebar"]`、输入框 `[class~="bg-card-border"]` / `bg-card` 各自自绘背景, 渐变必须命中这些容器; (3) 选择器要用 `[class~="bg-card"]`（完整 class token）而不是 `[class*="bg-card"]`, 否则 `hover:bg-card`、`data-[state]:bg-card` 这些变体会被一起染色, 每一行都变成渐变卡片
-  - **调色板偏中性的处理**: 壁纸 source 色 `#eee6ba` 虽然 s≈60%, 但 `mPrimary #dad8ce` 只有 s=14%, 直接推导出的暗色面几乎和 IDE 自带暖灰撞成一片; 故在 `write_antigravity_ide` 里给饱和度下限 15、亮度分别取 10/13/17/22 → bg `#1c1b16`、sidebar `#25231c`、card `#302f25`、secondary `#3f3c30`, 强调色取 `palette["gold"]` `#bdb79a`, 边框 `gold 34%`
-  - **宿主 sidecar 重启有延迟**: SIGTERM 掉 sidecar 后宿主约 **45 秒**才按 `restart_policy: always` 重新拉起, 期间 `star-pet off/on` 会打到还没死的旧进程, 导致改了代码却没换图层 —— 判断是否换了新代码看 `pet.log` 里有没有新的 `injected layer`, 没有就先 `star-pet off` 再 `on` 强制重挂
-  - **配色返工（2026-11-01 晚）**: 暖橄榄 Morandi 版被否（"配色好奇怪"）—— 壁纸 `mPrimary` 本身偏中性, 强行加饱和只会得到一片土黄; 一度改用皮肤自带设定集插画, 又被否（"背景用我的壁纸"）
-  - **最终口径（2026-11-01 深夜）**: 背景改用**当前桌面壁纸** —— 从 `~/.local/state/noctalia/settings.toml` 读 `[wallpaper.monitors.eDP-1] path`（回退 monitors 首项 / last / default）, sidecar 用 `magick` 压到 1600px q70 存 `sidecar_data/.../wallpaper.jpg`（约 250KB）, 按源文件 mtime 重算, 换壁纸自动重载
-  - **全部拍平**: 去掉所有渐变（径向暗角、侧栏 linear-gradient）、所有 `box-shadow`（含卡片/输入框/桌宠气泡/猫的 drop-shadow）与 `backdrop-filter`; 壁纸之上只盖一层纯色半透明遮罩（`skin.json` 的 `scrim`, 默认 0.5, 面板 bg-background / bg-sidebar 各 .72）
-  - **最终口径（2026-11-02 定稿）**: 用户要「原配色原 UI，只加背景」—— 皮肤现在**不覆盖任何主题变量**（`skin.vars` 机制保留但不使用）, 只做三件事: 壁纸铺在 `#root` 之下、`body` 与 `[class~="bg-background"]` 设成透明让壁纸透出来、盖一层半透明遮罩 —— **遮罩颜色必须是宿主自己的 `var(--background)`**, 用近黑色会把整窗色相拉偏（用户反馈「颜色不对劲」）; 默认 0.4, `star-pet skin art <0-0.95>` 可调（0.9 时壁纸只剩淡淡纹理, 但色温和原版一致）; 侧栏/卡片/输入框/圆角/字体/配色全部保持宿主原样
-  - **两个连环 bug（都踩了）**: (1) 热更包里带了不完整的 `skin`（缺 wallpaper）, `Object.assign` 把壁纸对象冲掉, `applySkin` 于是删掉背景层 —— 首帧有、两秒后没; 修法: 皮肤只在首次注入下发 + 图层侧对 `next.skin` 做浅合并; (2) `Number(null) === 0`, 把「跟随默认」的 `scrim: null` 读成 0, 遮罩强度归零 —— 判空必须显式
-  - 保留: 上游源码 `~/.local/share/antigravity-star-suite`（26MB, 供 `tools/build-assets.sh` 重建素材）, 独立窗口版 Electron 桌宠仍可 `npm run start:widget` 手动跑
-
-- **noctalia 从 AUR 夜版切换到官方稳定版 5.4.0 与 v5 配置分层真相 (2026-10-31, 完成)**:
-  - 处置: `aur/noctalia-git 5.0.0.r5361`（真实串 `v5.0.0-beta.10-17-gf840b01baf16`, 8-31 编译）换成官方仓库 `noctalia 5.4.0-1.1`（cachyos-extra-v3 重建, 打包者 CachyOS, 非 AUR 无需审 PKGBUILD）, 依赖 `cachyos-niri-noctalia` 靠包名本身满足; 上游最新 tag 是 5.4.1（10-29）尚未进仓, 下次 `-Syu` 自然跟上
-  - **pacman 撞坑**: `pacman -S --noconfirm noctalia` 会在「与 noctalia-git 冲突, 删除它吗」这一步采用默认值 **No** 直接失败; 且 noctalia-git 提供虚包 `noctalia` 被 `cachyos-niri-noctalia` 依赖, 普通 `-R` 会被拒绝; 可用解法是 `pacman -Sw`（先只下载, 失败则不动现有安装）→ `pacman -Rdd`（跳过虚包依赖检查显式移除）→ `pacman -S` 安装
-  - 该包 33 个依赖全为无版本约束的普通库名, 所以这次只动 noctalia 一个包, 不引发部分升级（`pacman -Dk` 事后报数据库正常）
-  - **配置分层真相（最重要）**: v5 起运行期实际读写的设置在 `~/.local/state/noctalia/settings.toml`（state-dir 覆盖 config-home）, `~/.config/noctalia/settings.json`（chezmoi 里那份 29KB）已是 v4 遗留、运行时不读; 仍生效的只有 `~/.config/noctalia/settings.toml` 里的 `[hooks] wallpaper_changed`、`colors.json`、`plugins/` 目录; `noctalia config export` 打印合并后的有效配置（当前 301 行）, `noctalia config validate` 校验
-  - 5.4 调色板键名改名 `surface_variant`→`surface_container`、`outline`→`outline_variant`（启动日志自动迁移 lockscreen 里的旧用法）, 但 `noctalia theme` 生成时**新旧键名双写**（实测 74 键新旧都在）, 故 `morandi-gen.py` 读 `surface_variant` 不会 KeyError, 无需改主题引擎
-  - 5.4 的 Luau 沙箱**不再提供 `io` 库**, 旧写法 `io.open(...)` 报 `attempt to index nil with 'open'`; 正确 API 是 `noctalia.readFile(path)`（文件不存在返回 nil, 空文件返回 `""`）, 已据此修好 `clipboard-osd` 插件的远控静音判断
-  - **重启配方更新**: `noctalia msg` 没有 quit/exit 子命令, 直接 `pkill -x noctalia` 会把 `wl-paste --watch` 等 runStream 子进程甩给 systemd 变孤儿、导致复制通知重复; 正确顺序是先 `pkill -P $(pgrep -x noctalia)` 清子进程再杀主进程
-  - 清理: 删掉 settings.toml 里遗留的 `[widget.cat] type = "noctalia/bongocat:cat"`（该定义没挂在任何 bar 上; 注意 `noctalia/bongocat [official] 1.1.4` 插件本体**仍在**, 只是 disabled, 想恢复官方弹琴猫就 `noctalia msg plugins enable noctalia/bongocat` 再重建 widget, 不要误以为上游已移除）, `noctalia config validate` 现为 0 警告且启动日志无 WRN/ERR
-  - 收尾已完成（见下一条）: chezmoi 改管 state 版 settings.toml; greeter 切换脚本 `~/tmp/switch-greeter.sh` 待执行
-  - 备份: `~/tmp/noctalia-backup-20261031/`（config / state / cache / 旧二进制 / 旧 share 资产 / `settings.toml.post-upgrade`）
-
-- **noctalia 收尾: dotfiles 收纳 state 配置、polkit 代理缺失真相与 147 包更新积压 (2026-10-31, 部分待执行)**:
-  - **dotfiles 改造已完成并推送**: `chezmoi add ~/.local/state/noctalia/settings.toml`（落在源端 `dot_local/private_state/noctalia/settings.toml`, chezmoi 自动识别 state 为私有目录）, 并从源里删掉失效的 `dot_config/noctalia/settings.json`(924 行) 与 `plugins.json`(65 行); 判别依据是 `strings /usr/bin/noctalia` 里 `settings.json`/`plugins.json` 出现 **0 次**, 而 `settings.toml`/`config.toml`/`colors.json` 都有引用; 两份旧文件归档在 `~/tmp/noctalia-backup-20261031/legacy-config/`; 提交 `ec03aa0` 已推送成功（github 当时已恢复）
-  - **polkit 认证代理根本没装（重要新发现）**: `~/.config/niri/cfg/autostart.kdl` 一直 spawn `/usr/lib/polkit-kde-authentication-agent-1`, 但该文件属于 `polkit-kde-agent` 包, **从未安装**（`pacman -Q polkit-kde-agent` 为空）, 所以会话内没有任何 polkit 认证代理; 实测 `pkexec` 直接报 `Error creating textual authentication agent`, 这就是 MEMORY 里「pkexec 卡死」的真正根因; 该包仅 82KB, 依赖（kcoreaddons/kcrash/ki18n/kirigami/knotifications/kwindowsystem/polkit-qt6/qt6-*）全已就位
-  - noctalia 二进制里确实有自带 polkit 面板（`PolkitAgent` / `org.noctalia.PolkitAuthenticationAgent` / `auth.polkit.*` 文案）, 但 5.4.0 上未注册, `noctalia msg plugins list`（316 条）里也没有 polkit 插件; 官方 registry 里 `polkit-agent` 标 official 但 shell 未收录, 所以暂时只能靠 polkit-kde-agent
-  - **greeter 替换可行性与安全垫**: 官方 `noctalia-greeter 1.7.0` 与已装 git 版 1.0.0.r168 的 `setup_greeter_system.sh` / `setup_greetd_pam.sh` **逐行相同**（不需要重跑系统级配置）, 文件布局一致且多一个 `noctalia-greeter-xsession`; 状态目录 `/var/lib/noctalia-greeter`(greeter:greeter 0750) 需先备份; `getty@tty2` 默认 **disabled**（登录层翻车没有本地文本通道）, `sshd` 已 enabled+active 可远程兜底; greetd 的 `[default_session] command` 仍指向 `/usr/bin/noctalia-greeter-session` 不变
-  - **系统更新积压 147 个包**: 重点 nvidia-580xx 580.178.04→580.196.07（DKMS 需重建并重启）、KDE Plasma 6.8.1→6.8.2 全家桶（kwin/breeze/powerdevil/xdg-desktop-portal-kde）、hyprland 0.57.0、ghostty 1.3.1→1.4.0、harfbuzz 14.6→15.0.0（大字版本通常伴随重建）、gcc/clang/llvm 工具链、limine 12.9.4（引导器）、zed 1.26.2、reaper 7.83、wine 11.21、tailscale 1.104.4、shelly 3.1.10; 建议一次 `paru -Syu` 后重启
-  - 备份: 同上 `~/tmp/noctalia-backup-20261031/`（另含 `greeter-git/` 5 个旧二进制 + share 资产, 回滚直接 `sudo cp -a ... /usr/bin/`）
-
-- **Steam 大屏幕模式卡顿根因: niri 全局模糊规则把 Steam 客户端本体也圈进去了 (2026-10-31, 已修复)**:
-  - 现象: Steam 大屏幕模式操作发滞, 翻页与选中不跟手
-  - 根因: niri 全局窗口规则 `match app-id=".*"` 带 `opacity 0.98` + `blur true`, 而游戏窗口规则只覆盖 `^steam_app_.*` 与 `^pbz[.]exe$`, **Steam 客户端本体的 app-id 恰好就是 `steam`** 于是掉进全局规则, 大屏界面每帧整屏高斯模糊压在核显上
-  - 关键发现: niri 窗口规则是**先匹配先生效**, 后在下面补一条 `match app-id="steam"` 的专属规则**不会**覆盖前面的全局规则 (实测合成器 CPU 纹丝不动, 仍是 17.5%); 正确做法是在全局规则里加 `exclude app-id="steam"` 把 Steam 踢出去, 让它落到专属规则
-  - 实测 A/B (niri 合成器 CPU, 大屏界面可见): 改动前 17.5% → 全局关掉 blur 的理论下限 12.0% → exclude + 专属规则 12.4% (已贴到下限), 合成器负载降约 29%
-  - 落地: `dot_config/niri/config.kdl` 全局规则加 `exclude app-id="steam"`, 并新增 steam 专属 window-rule (opacity 1.0 / geometry-corner-radius 0 / clip-to-geometry false / blur false), 已 chezmoi apply + 热重载生效, dotfiles 提交 d2b2a01
-  - 踩坑: 本版 niri **没有** `niri msg action reload-config` 子命令, 正确命令是 `niri msg action load-config-file`; 且 `niri validate -c <chezmoi源文件>` 会因 `include "./cfg/*.kdl"` 的相对路径解析失败, 必须校验**目标文件** `~/.config/niri/config.kdl`
-  - 备份: `~/tmp/niri-config.kdl.bak-20261031-191129`, `~/tmp/niri-pre-exclude.kdl`
-
-- **盖世小鸡 启明星2 的 2.4G 接收器会跟随手柄平台模式切换 USB 身份, Xbox 身份在 Linux 枚举失败而 PS4 身份秒通 (2026-10-31, 已解决)**:
-  - 硬件身份: VID `0x3537` (Zikway/GameSir), 2.4G 接收器枚举为 `3537:1098` "2.4G XBOX 360 For Windows" (制造商串 "2.4G", 全速 12Mbps), 三接口 —— iface0 为 `ff/5d/01` 厂商类, 被 xpad 按类别别名接管并起名 "Generic X-Box pad"; iface1 为 HID 键盘; iface2 为厂商 hidraw
-  - 真正根因: 这类接收器是"跟随手柄平台模式"的伪装型 dongle, 会按手柄当前平台模式换一套 USB 身份 —— Xbox 平台冒充 `045e:028e` 并带备用身份 `3537:1098` (三接口: ff/5d/01 厂商类 + HID 键盘 + 厂商 hidraw), Switch 平台冒充 `057E:2009`, PS4 平台冒充 `054c:09cc` DualShock 4; Linux 上**只有 Xbox 那条路死掉**: `045e:028e` 每次插入连续 3 次 `-110` 超时 (每次卡 6 秒), 内核触发 `usb usb3-port9: attempt power cycle`, 累计 14 次枚举失败后才退回 `3537:1098`, 而 xpad 接管 3537:1098 后射频侧从不投递数据 (evdev 探针 180 秒 0 事件, 同期 `EVIOCGRAB` 可成功证明无人独占抓取)
-  - 排查误判教训: 有线时同样先尝试 `045e:028e` 失败 (-71 / -110) 再落到 `054c:09cc`, 一度被误读成"有线能用 / 无线坏了"; 实际两次跑的都是同一套 PS4 平台身份, 与插线还是插 dongle 无关 —— 判断依据必须是 dongle 当前呈现的 VID/PID, 而不是接线方式
-  - 手柄自身组合键 (官方 n2lite 文档): 【X+HOME】= 2.4G 接收器模式 (绿灯), 【B+HOME】= 蓝牙 (蓝灯), 【A+HOME】= 安卓 (黄灯), 短按 Home 1 秒开机并可组合 A/B/X/Y 指定模式, 长按 Home 5 秒关机, 长按【Home+截图键】3 秒强制进配对, 长按【菜单键+视图键】可把通道灯切回绿灯
-  - 关键排查手法: Steam 的 `logs/controller.txt` 是最可靠的交叉验证点, 里面会打印 SDL 对 VID/PID 的完整按键轴映射, 能直接判断"驱动层通了但游戏层没映射"还是"驱动层就没数据"
-  - 解决方案与铁证: 把手柄切到 PS4 平台模式后 dongle 立刻以 `054c:09cc` DualShock 4 正常工作, 只剩单接口 `3-9:1.0` (class 03) 由 usbhid + hid-playstation 接管, 输入节点 `event257` + `js1` 正常; 决定性证据是 `/sys/class/power_supply/ps-controller-battery-00:01:6c:ee:95:de` 稳定报 `capacity=100 / status=Full`, 该电量由 hid-playstation 从手柄真实 HID 报文解析而来, 能读出来就说明无线链路完全打通
-  - 备选与注意: 若日后要回到 Xbox 平台模式, 需注意该身份在本机 xHCI 口 (`3-9`) 上枚举不稳, 可换 USB 2.0 口试 (集线器 `3-6` 为 Huasheng USB2.0 HUB) 或到 Windows 上交叉验证; 蓝牙方案为 `xpadneo-dkms 0.10.5-1` (在 cachyos 官方源, 非 AUR 无需审 PKGBUILD)
-  - 调试脚本: `~/tmp/pad-watch.sh` 与 `~/tmp/pad_probe.py`, 前者按 by-id 自动解析当前手柄节点并实时打印 KEY/ABS 事件
-
-- **影之刃零 (Phantom Blade Zero, Steam AppID 4115450) 卡顿根因与实时优化 (2026-10-31, 桌面侧已落地, 游戏内设置待重启)**:
-  - 硬件链路: COLORFUL X15 XS 22, i5-12450H (4P+4E / 12 线程) + RTX 3050 Laptop 4GB (GA107M, 功耗上限 70W / 核心上限 2100MHz), eDP-1 1920x1080@144 且 EDID 支持 VRR, 内屏与 niri 合成都在核显 i915 上, 独显帧经 dma-buf 跨 GPU 交给核显合帧, 无 MUX
-  - 根因一 (权重最大): 系统 CPU 严重超卖, load average 20-21 对 12 线程, 游戏本体 GameThread 独吃 700-780%, 而 `/opt/Antigravity/resources/bin/language_server` 单进程吃 166% CPU + 5.5GB RSS 且被 ananicy-cpp 提到 nice=-8, 另有两个 DSH 构建遗留守护进程 (Gradle java 17741 / Kotlin java 18108) 占 3GB 内存与 4.8GB zram
-  - 根因二: niri 的全局 window-rule `match app-id=".*"` 把 opacity 0.98 + blur true 套到了游戏窗口上, 每帧 1080p 画面被整屏高斯模糊后才呈现, 合成器 CPU 41-48%, 144Hz 帧预算 6.94ms 被吃穿
-  - 根因三: 显存长期贴顶 3735-3807 / 4096 MiB (仅余 240MB), UE5 流送必然溢出到共享内存走 PCIe
-  - 根因四: 独显 86-87°C 触发 SW Thermal Slowdown (累计 2.6s), 核心在 1740-1837MHz 之间来回抖 (上限 2100), CPU 包 93°C, 散热是硬件瓶颈
-  - 处置与效果: kill 构建守护进程 (内存 21499→18539MB, zram 14.3→9.9G); 语言服务器 renice 19 + ionice idle 后 SIGSTOP; 新增 niri 游戏窗口规则 (`^steam_app_.*` / `^pbz[.]exe$`, opacity 1.0, blur false, corner-radius 0, clip-to-geometry false, open-fullscreen true, variable-refresh-rate 标记) 并把 eDP-1 开 VRR; `niri msg action fullscreen-window` 让游戏进独占全屏 → 合成器 CPU 41-48% 降到 20%, Xwayland 14% → 6%, 非游戏 CPU 总量 ~500% → ~140%
-  - 新增工具: `~/.local/bin/game-mode.sh on|off|status`, 用 SIGSTOP/SIGCONT 冻结 Antigravity 语言服务器 / slugcatpet / Bettbox, 状态落 `$XDG_RUNTIME_DIR/game-mode.frozen`, 故意不含 Zen 浏览器与 Steam (前者是对话界面, 后者是游戏父进程)
-  - 待做 (都需退出游戏): GameUserSettings.ini 的 `FrameRateLimit` 0 → 60 与 `sg.ResolutionQuality` 100 → 70 (或在游戏内开 DLSS 质量档并锁 60 帧), 关 Steam 内嵌覆盖, 装 mangohud 看帧时间, 长期方案是清灰换硅脂
-  - 超分能力核实 (2026-10-31): 游戏随包带完整 NVIDIA 链路 —— `Engine/Plugins/Runtime/Nvidia/DLSS/Binaries/ThirdParty/Win64/nvngx_dlss.dll` (58.9MB) 与 `nvngx_dlssd.dll`, `StreamlineCore` 里还有 `nvngx_dlssg.dll` / `sl.reflex.dll` / `sl.common.dll`, 且游戏进程 maps 里已加载它们, 前缀内 Proton 生成 `nvapi64.dll` + `_nvngx.dll`, 宿主 `/usr/lib/libnvidia-ngx.so.580.178.04` 在位, 说明 NVAPI/NGX 链路本来就通, 不需要额外启动参数; 主程序里有 `UpScaleMode` / `DLSSMode` / `DLSSPreset` / `DLSSRRPreset` / `DLSSGMode` / `XeSSMode` 等枚举, 菜单确实暴露 DLSS; 但 RTX 3050 是 Ampere, 没有 Ada 的硬件光流加速器, DLSS 帧生成不可用 (菜单灰掉属正常), 光追关着时 DLSS RR 也用不上, 能开的就是 DLSS 超分 + Reflex
-  - 踩坑: niri 26.04 的 output 段 `variable-refresh-rate` 只能写裸标志 (带 true / false / "on-demand" 都会被判 unexpected argument), 但 window-rule 里却要写 `variable-refresh-rate true`; KDL 1.0 字符串里 `\.` 是非法转义, 正则要写 `^pbz[.]exe$`; 开 VRR 后 niri 会打 `early VBlank` 帧时钟告警 (实测 2 条 / 30 秒, 关掉即 0), 属诊断噪音
-  - 备份: `~/tmp/niri-test`, `~/tmp/verify-niri` 为本次校验用配置副本
-
-- **桌面鼠标卡顿根因: 全局 PRIME offload 叠加全屏桌宠与全窗口模糊吃满 144Hz 帧预算 (2026-10-29, 已改配置待重登验证)**:
-  - 现象: 鼠标移动明显卡顿, 但鼠标本体健康 (MCHOSE G3 V2 2.4G, 端点 bInterval=1ms 即 1000Hz, dmesg 无 USB 复位/断连/HID 错误)
-  - 硬证据: 面板 eDP-1 挂在 card1=i915 核显且 niri 合成在 renderD128 核显, 但整个用户会话被 `~/.config/environment.d/nvidia.conf` 与 niri config.kdl 双重注入 `__NV_PRIME_RENDER_OFFLOAD=1` / `__GLX_VENDOR_LIBRARY_NAME=nvidia` / `__VK_LAYER_NV_optimus=NVIDIA_only` / `DRI_PRIME=pci-0000:01:00.0`, 于是 zen/steam/Bettbox/ghostty/noctalia 全部持有 card0(10de) 图形上下文, 独显长期停在 P5 / 472-607MHz
-  - 负载实测: 鼠标静止 niri 23% CPU / iGPU render 65%, 一移动光标 niri 48-52% CPU / iGPU 114-117% (超实时线即掉帧), 144Hz 每帧预算只有 6.94ms
-  - 放大器二: slugcatpet 的 GTK3 桥每 16ms 整屏清零并重绘 1920x1080 透明 TOP 层 (8.3MB/帧 wl_shm) 常驻 46% CPU, 合成器被迫每帧整屏重混合
-  - 放大器三: niri 全窗口 `opacity 0.98` + `blur true` 使任何窗口都无法直出扫描 (禁用 blur 单此项 iGPU 就从 65% 掉到 47%)
-  - 处置: nvidia.conf 只保留 QT_X11_NO_MITSHM=1; niri config.kdl 删掉两条注入; Zen 的 flatpak override 用 `--unset-env` 去掉三个 NVIDIA 变量; Krita/DaVinci 新增 `~/.local/share/applications` 覆盖改 `prime-run` 前缀 (Blender/LunarClient 早已如此); 桌宠改按 Qt 侧脏矩形 `queue_draw_area` 局部重绘
-  - 效果 (桌宠部分已即时生效): 桌宠 CPU 41.5-46.5% → 10-18%, niri 空闲 23% → 12.6-17%, 移动光标时 niri 48-52% → 16.3%, iGPU 114-117% → 59.5%, 移动光标不再放大合成器负载
-  - 待验证: environment.d 与 niri environment 段需重登生效, 重登后 `nvidia-smi` 不应再出现 zen/steam 的图形上下文; Zen 的 `layers.dmabuf.disable=true` 留作下一步实验 (核显路径下大概率不再需要, 去掉可再省一笔合成开销)
-  - 回滚备份: `~/tmp/zen-flatpak-override.bak`, `~/tmp/niri-config.kdl.chezmoi.bak`, 桌宠原文件 `~/tmp/gtk3_bridge.py.orig`, 桌宠也可用 `SLUGCATPET_LEGACY_FULL_REDRAW=1` 退回整屏重绘
-  - 次要嫌疑 (未处理): WiFi 在 ch1 (2412MHz 20MHz) 且蓝牙常开, 与 2.4G 鼠标接收器同频, 只会造成偶发跳帧而非持续卡顿
+- **K60 桌面拦截第三方 app 钉小组件 (2026-11-10, 处理中)**:
+  - 真因是 OplusLauncher 自己的白名单不是权限: `AddItemActivity.isAllowedAddWidget()` 只放行系统应用、可卸载预装、持 `oplus.permission.OPLUS_COMPONENT_SAFE`、`WidgetControlHelper.isInWhiteList`，否则弹「请长按桌面后到卡片-插件添加」并 finish
+  - 白名单来自 RUS 云配置 `app_nebula_fwk_widget_wl`，本机该 provider 不存在且 APK 里没有同名 asset → 白名单恒空；总开关 `FeatureOption.isSupportWhiteListControl()` 国内机型恒 true
+  - 绕行方案按代价排序: LuckyTool 已启用的「移除组件添加请求白名单」/ 自写 LSPosed hook `WidgetControlHelper.isInWhiteList` 返回 true / 系统化到 `/system_ext/priv-app` 走 isSystemApp 分支（副作用是该 app 不能正常更新）
+  - 排查备忘: 桌面布局在 `/data/user_de/0/com.android.launcher/databases/launcher.db` 的 `singledesktopitems_draw` 表（widget itemType=5、卡片 itemType=100），**没有 favorites 表**；中间产物在 `~/tmp/k60-launcher/`
 
 ### 归档索引
 
-2026-10-26 及更早的条目已整段移入 `~/MEMORY-archive.md`（原文未删减，要回溯历史改动时去那里查）
-- 2026-10-26 平板通信共享掉线与看门狗 v3 出口排除法、Tailscale 双端自愈、kde-material-you-colors 单元风暴清理
+`~/MEMORY-archive.md` 原文保留已结束条目，最近一次整理 2026-11-17
+- 2026-11-12 打分器 v2-v13 完整迭代、11-03 QQNT 琉璃主题、11-02 Zen 拿不到代理、11-01 逃生汉化与星语猫娘桌宠
+- 2026-10-31 noctalia 5.4.0 切换与 v5 配置分层、polkit 缺失、Steam 大屏模糊、盖世小鸡手柄、影之刃零优化、10-29 鼠标卡顿
+- 2026-10-26 平板通信共享掉线与看门狗 v3、Tailscale 双端自愈、kde-material-you-colors 单元风暴
 - 2026-10-18 ~ 10-25 ReveriePaint-native 六项（本地化规范、KRA 导入、撤销滑杆、MotionPredictor 清理、手写笔侧键、面板越界）与 K60 ColorOS 16.1 脏刷
 - 2026-10-19 ~ 10-23 NyanoMuse 四十余项（情绪系统、多气泡、跨端同步、长期记忆与冲突消解、grill-me 原生工具化）
 - 2026-10-18 ~ 10-19 nanoMuse 全端部署、UU 远程被控端、CodeBuddy、DSH 升级、WorkBuddy 卡顿、IDEA 配色
@@ -332,29 +81,29 @@
 ## 桌面环境
 
 - 显示管理器：`greetd` + `noctalia-greeter`，壁纸与多显示器布局依赖 Noctalia 设置 → Shell → 安全 → Sync Now；`/etc/greetd/config.toml` 的 default_session 为 `/usr/bin/noctalia-greeter-session`（user greeter），initial_session 为 `niri-session`
-- 提权通道：`polkit-kde-agent`（提供 `/usr/lib/polkit-kde-authentication-agent-1`，niri autostart 里有 spawn 行）；该包此前一直未安装导致 pkexec 无代理可用，已列入 `~/tmp/switch-greeter.sh` 一并补装；`sshd` 常开可作远程兜底，`getty@tty2` 默认关闭
-- 主题引擎：`~/.config/noctalia/morandi-gen.py` 统一生成莫兰迪配色（含 write_ghostty/write_fastfetch/write_fcitx5/write_pi/write_bilibili_danmaku/write_hyprland/write_idea）；新应用主题化必须扩展此脚本，严禁直改应用配置；Wine 应用与 Krita 不走主题引擎
+- 提权通道：`polkit-kde-agent` **至今未安装**（`pacman -Q` 为空），niri autostart 里 spawn 的 `/usr/lib/polkit-kde-authentication-agent-1` 因此不存在，`pkexec` 直接报 `Error creating textual authentication agent`；需要时装 `sudo pacman -S polkit-kde-agent`（依赖基本就位），在此之前提权只能由用户在交互终端执行 sudo，旧记录里的 `~/tmp/switch-greeter.sh` 已随 tmp 清理不复存在，greeter 仍是 `noctalia-greeter-git 1.0.0.r168` 未替换；`sshd` 常开可作远程兜底，`getty@tty2` 默认关闭
+- 主题引擎：`~/.config/noctalia/morandi-gen.py` 统一生成莫兰迪配色（含 write_ghostty/write_fastfetch/write_fcitx5/write_pi/write_bilibili_danmaku/write_hyprland/write_idea/write_antigravity_ide）；新应用主题化必须扩展此脚本，严禁直改应用配置；Wine 应用与 Krita 不走主题引擎
+- Noctalia：官方源 `5.4.1-1.1`，运行期实际读写 `~/.local/state/noctalia/settings.toml`（chezmoi 托管），`~/.config/noctalia/settings.json` 是 v4 遗留、运行时不读；5.4 起调色板键名 `surface_variant`→`surface_container`、`outline`→`outline_variant` 但主题生成时新旧双写，`morandi-gen.py` 无需改；Luau 沙箱**不提供 `io` 库**，读文件用 `noctalia.readFile(path)`；重启顺序必须先 `pkill -P $(pgrep -x noctalia)` 清 runStream 子进程再杀主进程，否则复制通知会重复
 - Niri：动画 stiffness 180-220 / damping-ratio 0.8 弹性轻柔滑行（cfg/animation.kdl）；窗口间距 8px（cfg/layout.kdl）；全局 opacity 0.98 + blur true（`draw-border-with-background false` 必设防聚焦实心边框）；全局规则排除 Krita/Loupe/Kando/SPlayer/cs2/gamescope/steam 与全部游戏窗口类（`steam_app_.*`、`pbz[.]exe`、`OLGame.*`、`.*[Oo]utlast.*`），**排除必须在全局规则里写 exclude，补专属规则不生效**；游戏专属规则给 `open-fullscreen true` + `variable-refresh-rate true` + 关模糊
 - Ghostty：输入法修复依赖 wrapper `~/.local/bin/ghostty`（`env -u GTK_IM_MODULE` 解决不转发 key release 导致 fcitx5 状态机异常）；term_bg 公式 `max(l_b+0, 4)`；集成 Master GLSL 光标着色器与连字支持
 - Fcitx5：bamboo-dark 皮肤（morandi-gen 注入），竖排候选，rime_ice（雾凇拼音）；支持 niri ext-background-effect 候选框模糊
 - Fastfetch：write_fastfetch 全量生成 config.jsonc；源码中 ≥U+F0000 码点必须使用 8 位 `\U000FXXXX` 转义
-- Noctalia 重启：先 `pkill -P $(pgrep -x noctalia)` 清掉 runStream 子进程, 再 `pkill -x noctalia`, 然后 `setsid nohup noctalia > ~/tmp/noctalia-restart.log 2>&1 < /dev/null & disown`；运行期配置在 `~/.local/state/noctalia/settings.toml`, `~/.config/noctalia/settings.json` 已失效
 - OBS：屏幕采集依赖 mesa EGL 核显渲染（强制覆盖 desktop Exec：`env -u __NV_PRIME_RENDER_OFFLOAD -u __GLX_VENDOR_LIBRARY_NAME __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json obs`）；编码器使用核显 QSV（`obs_qsv11_v2`）；B 站推流插件位于 `~/.config/obs-studio/plugins/bilibili-stream-for-obs/`（含 PR #27 扫码登录补丁）
 - Caelestia KDE Shell：KWin 6.7.4 + caelestia-shell 2.4.0 精简安装，配置位于 `~/.config/quickshell/caelestia/`，会话 `~/.local/bin/start-kwin-caelestia.sh`；缩略图依赖 PipeWire，nvidia.conf 严禁设全局 PRIME offload 变量防黑屏
 - 显卡策略：默认全部走核显，严禁在 `environment.d/nvidia.conf` 或 niri `environment` 段设全局 PRIME offload（面板与合成器都在核显，全局强制独显会让每帧跨 GPU 拷贝并吃掉 144Hz 帧预算）；需要独显用 `prime-run` 前缀，桌面项覆盖见 `~/.local/share/applications/` 下的 blender / org.kde.krita / DaVinciResolve / com.lunarclient.LunarClient
-- Zen 浏览器 (Flatpak)：2026-10-29 已用 `flatpak override --user --unset-env` 去掉 `__NV_PRIME_RENDER_OFFLOAD` / `__GLX_VENDOR_LIBRARY_NAME` / `VK_ICD_FILENAMES`，改走 Mesa 核显；user.js 仍启用 `layers.dmabuf.disable=true` 防止 2D canvas 合成失效；D-Bus portal 授权只读访问 fcitx5 目录；**代理必须写死在 user.js（手动 127.0.0.1:7890）**, 沙箱内没有 dconf 模块, 系统代理对它有等于无
+- Zen 浏览器 (Flatpak)：已用 `flatpak override --user --unset-env` 去掉三个 NVIDIA 变量改走 Mesa 核显；user.js 仍启用 `layers.dmabuf.disable=true` 防止 2D canvas 合成失效；D-Bus portal 授权只读访问 fcitx5 目录；**代理必须写死在 user.js（手动 127.0.0.1:7890）**，沙箱内没有 dconf 模块，系统代理对它有等于无
 - SPlayer-Next：AUR `splayer-next-bin`，二进制 `/opt/SPlayer-Next/SPlayer-Next`，命令 `/usr/bin/splayer-next`
 - slugcatpet 桌宠：`~/Projects/slugcatpet`，GTK3 窗口必须设为 Layer.TOP；GTK3 桥按 Qt 侧 `_dirty_rect` 算好的脏矩形做 `queue_draw_area` 局部重绘，禁止退回每帧整屏 `queue_draw`（全屏透明面整屏重绘会把合成器整屏混合负载拉满）
 
 ## 项目
 
 ### perfectionism-scorer 打分器 — `~/Projects/perfectionism-scorer`
-- 心理汇报《完美主义》开场游戏：90 秒内反复改一句话拿分，结尾揭穿分数只取决于「这是你第几次提交」
-- 零依赖 Node 服务（无 npm 依赖、无构建）+ SSE 实时推送 + 每 400ms 原子写 `data/state.json`；手机端 `public/play.html`，大屏 `public/board.html`
-- 分数 `lib/engine.mjs`：基准曲线 77..80（400 值不循环）+ FNV 个人偏移 ±1 + 内容项 0/1 → 全场 76..82；`contentTerm` 只认字数/标点种类/分句数；改完必须跑 `npm run check:curve`（16 条断言）
-- 二维码 `lib/qr.mjs` 自研（v1-10 字节模式、掩码择优），`npm run check:qr` 用 zbarimg 验证
-- 大屏阶段（空格推进）：待机二维码 → 分数墙 → 时间到数据 → 一人一张小图 → 对齐 → 合成一条线 → 反转
-- 工具：`tools/seed.mjs` 造 42 人假数据、`tools/loadtest.mjs` 80 并发压测、`tools/shot.mjs` CDP 截图
+- 心理汇报《完美主义》开场游戏：扫码后 120 秒内反复改一句话拿分，结尾揭穿「分数有刻度，只是它量错了东西」
+- 零依赖 Node 服务（无 npm 依赖无构建）+ SSE 实时推送 + 每 400ms 原子写 `data/state.json`；状态机抽在 `lib/game.mjs` 纯函数，Node 与 Durable Object 共用一份
+- 分数模型：基准 72..88（单次可掉 4 涨 3）+ 个人偏移 ±3 + 内容项 0/2/5 → 全场 69..96；内容项只认字数/标点种类/分句数；同句同分靠「文本 FNV 哈希 → 分数」memo，否则改回旧版本分数会变、两次就被试穿
+- 二维码 `lib/qr.mjs` 自研（v1-10 字节模式、掩码按惩罚分择优），`npm run check:qr` 用 zbarimg 验证
+- 路由：`/`→play、`/board` 大屏、`/admin` 揭底与 CSV 导出、`/present` 放映稿、`/ppt` 旧版
+- 工具：`tools/seed.mjs` 造数、`tools/stress.mjs` 压测、`tools/shot.mjs` CDP 截图（复用 playwright 缓存里的 chromium，服务与截图必须在同一次 bash 调用里起）
 
 ### MoClock 墨钟 — `~/Projects/MoClock`
 - Material 3 风格安卓桌面时钟小部件（Compose 主界面 + Jetpack Glance 小部件，包名 `io.github.lanrhyme.moclock`），5 种版式（数字/表盘/文字/双城/日历）+ 30 余项配置 + 7 套预设
@@ -364,23 +113,23 @@
 - Glance 1 没有 rotate/Canvas：表盘用 android.graphics 画成 Bitmap 再交给 `Image(ImageProvider(bitmap))`
 - 刷新：AlarmManager 整分对齐，开秒且亮屏时 1s 一次，息屏降回整分；TIME_SET/TIMEZONE/DATE/BOOT/MY_PACKAGE_REPLACED 均重排
 - 构建：`./gradlew :app:assembleDebug`（release 走 R8，2.1MB）；验证机 emulator-5554 与平板 100.107.36.2:5555
-- **视觉口径（2026-11-10 晚按老大反馈返工）**：老大要的是 Pixel 那种组件，第一版被否；现已改成 Pixel 排版——大数字用 sans-serif-light、冒号与数字同色、日期紧跟时间下方（`dateSize=0.26*timeSize` clamp 12–18）、内边距 18dp、时间上限 96dp；表盘改为 `DialStyle.PIXEL` 素盘（12 短刻度 alpha195 + 圆头锥形指针 + 中心双点），默认关秒针
-- **装机**：K60 `100.127.72.106:5555` 已装 release APK（versionName 0.1.0，5 个 provider 注册成功）；注意 Tailscale 上 `adb install` 会卡死（stream install 挂住），可靠做法是 `adb push` 到 /data/local/tmp 再 `pm install -r`，另外 `adb kill-server` 后需要 `adb connect` 重连
-- **未完成验证**：桌面侧无法自动化加小部件（Pixel Launcher 上 `requestPinAppWidget` 返回 false、`input draganddrop` 无效、`dumpsys appwidget grantbind` 也不生效），真实 Glance 渲染尚未在真机看到；`app/src/debug` 里有 `DebugHostActivity` 可用 AppWidgetHost 直连渲染，需先拿到 BIND_APPWIDGET
-- 副作用记录：本轮为跑截图用了 `emulator -avd Medium_Phone_API_36.1 -wipe-data`，该 AVD 原有数据已被清空
+- **视觉口径**：Pixel 排版——大数字 sans-serif-light、冒号与数字同色、日期紧跟时间下方（`dateSize=0.26*timeSize` clamp 12–18）、内边距 18dp、时间上限 96dp；表盘为 `DialStyle.PIXEL` 素盘（12 短刻度 alpha195 + 圆头锥形指针 + 中心双点），默认关秒针
+- 装机：K60 `100.127.72.106:5555` 已装 release APK（versionName 0.1.0）；注意 Tailscale 上 `adb install` 会卡死（stream install 挂住），可靠做法是 `adb push` 到 /data/local/tmp 再 `pm install -r`，`adb kill-server` 后需要 `adb connect` 重连
+- **未完成验证**：桌面侧无法自动化加小部件（Pixel Launcher 上 `requestPinAppWidget` 返回 false，根因见最近动态的 OplusLauncher 白名单条目），真实 Glance 渲染尚未在真机确认；`app/src/debug` 里有 `DebugHostActivity` 可用 AppWidgetHost 直连渲染，需先拿到 BIND_APPWIDGET
+- 副作用记录：曾为跑截图用 `emulator -avd Medium_Phone_API_36.1 -wipe-data`，该 AVD 原有数据已被清空
 
 ### MiuiCamera-Fix — `~/Projects/MiuiCamera-Fix`
 - 小米澎湃OS移植包相机机型与版本校验不匹配强退修复 Xposed 模块（Java + Xposed API 82，目标包 `com.android.camera`，测试机 ed3fdd92）
 - 包名：`io.github.lanrhyme.camerafix`
 - 机制：Hook `G6.c.w()` 返回 `false`，Hook `G6.e.g()` 修正 `f2302a = Boolean.FALSE`，Hook `ActivityBase` Handler 丢弃 Message 11 退出消息
-- 仓库：`https://github.com/LanRhyme/MiuiCamera-Fix`（Release Tag: `v1.0.0`）
+- 仓库：`https://github.com/LanRhyme/MiuiCamera-Fix`（Release Tag `v1.0.0`）
 - 构建：`./gradlew assembleRelease` + `adb install -r app/build/outputs/apk/release/app-release.apk`
 
 ### WeType-Kaomoji — `~/Projects/WeType-Kaomoji`
 - 微信键盘表情面板颜文字注入与分类增强 Xposed 模块（Kotlin + LibXposed API 102，目标包 `com.tencent.wetype` 3.5.3，测试机 ed3fdd92）
 - 包名：`io.github.lanrhyme.wetypekaomoji`
 - 机制：`w.C` 注入分列数据，`a1.b0`/`a1.a0` 移除推荐表情并将颜文字置首；`x.getItemViewType` 隔离独立复用池类型 88；`ImeEmojiBoardView` 注入胶囊分类栏；内置 250+ 萌系颜文字
-- 仓库：`https://github.com/LanRhyme/WeType-Kaomoji` 与官方模块源 `Xposed-Modules-Repo/io.github.lanrhyme.wetypekaomoji`（Release Tag: `1-1.0.0`）
+- 仓库：`https://github.com/LanRhyme/WeType-Kaomoji` 与官方模块源 `Xposed-Modules-Repo/io.github.lanrhyme.wetypekaomoji`（Release Tag `1-1.0.0`）
 - 构建：`./gradlew assembleRelease` + `adb install -r app/build/outputs/apk/release/app-release.apk` + `adb shell pkill -9 -f com.tencent.wetype`
 
 ### pi-web / pi-neostudio — `~/Projects/pi-web`
@@ -395,12 +144,12 @@
 - 快捷键与外接键盘：StylusDriver 与手写笔 Adapter 增加 isStylusKeyEvent 判定；keyEventToString 兼容 Meta 与 Ctrl 统一映射；handleKeyEvent 引入长按连发节流与单次触发限制
 - 手势与拾色：解除 canEyedrop 对 !penOnlyMode 的限制，单指长按画布吸色与手写笔吸色并存；ACTION_MOVE 增加长按容差检测；双指捏合平移触发时立即执行 cancelPendingShapeGesture 回滚首指误落节点
 - 渲染引擎与投影管线：renderToBuffer 在后台异步调度器活跃时强制 waitForDone 阻塞等待合并完成，空闲时才由 compositeLayersRange 毫秒级同步合成笔画与预览脏区，杜绝多线程并发读写 projection 瓦片导致的 KisTiledExtentManager SIGABRT 闪退
-- 崩溃诊断引擎：接入 ReverieCrashHandler (C++) 信号安全拦截器 (SIGSEGV/SIGABRT/SIGBUS/SIGFPE/SIGILL) 与 128KB 独立信号备用栈，捕获 48 帧 Native 符号栈与寄存器状态；Java 层集成 Thread.UncaughtExceptionHandler；双端搭载容量 25 条的 Breadcrumbs 环形操作轨迹；启动阶段弹出 Morandi 诊断弹窗
+- 崩溃诊断引擎：接入 ReverieCrashHandler (C++) 信号安全拦截器与 128KB 独立信号备用栈，捕获 48 帧 Native 符号栈与寄存器状态；Java 层集成 Thread.UncaughtExceptionHandler；双端搭载容量 25 条的 Breadcrumbs 环形操作轨迹；启动阶段弹出 Morandi 诊断弹窗
 - 构建：`scripts/build_native.sh`（QT_ANDROID_DIR=/opt/Qt6/6.6.3/android_arm64_v8a，纯 Kotlin 改动直接 assembleDebug）
 
 ### Horizon — `~/Projects/Horizon`
 - 现代化 Android 平板浏览器（GeckoView + Mozilla Android Components + Rust Firefox Sync，前台 Jetpack Compose，针对一加平板 2 Pro 定制）
-- 应用名：`Horizon`，包名：`top.lanrhyme.horizon`
+- 应用名 `Horizon`，包名 `top.lanrhyme.horizon`
 - 架构特色：Zen / Arc 风格三态可折叠侧边栏、多工作区（Spaces）、同屏双开分屏（Split View）、WebExtensions 插件生态、全量 Firefox 跨端同步、Morandi 与 Material You 双轨动态色彩
 
 ### Krita 插件套件
@@ -409,8 +158,8 @@
 
 ### 其他项目
 - **threejs-dragon-flight**：`~/Projects/Tests/threejs-dragon-flight`，3D 巨龙空域自由翱翔飞行模拟器，Three.js + 骨骼动画 + 云海粒子与音效
-- **threejs-pistol-disassembly**：`~/Projects/Tests/threejs-pistol-disassembly`，3D 手枪机械结构拆解与精密爆炸图交互系统，Three.js + 机械声效 + 分步教学
-- **voxel-jrpg-village**：`~/Projects/Tests/voxel-jrpg-village`，日式幻想体素村落 JRPG 网页，Three.js + Web Audio API 原生程序化和弦合成
+- **threejs-pistol-disassembly**：`~/Projects/Tests/threejs-pistol-disassembly`，3D 手枪机械结构拆解与精密爆炸图交互系统
+- **voxel-jrpg-village**：`~/Projects/Tests/voxel-jrpg-village`，日式幻想体素村落 JRPG 网页，Three.js + Web Audio 程序化和弦合成
 - **Pi Codex GUI**：`~/Project/pi-codex-gui`，Tauri 2 + bridge.js（RPC 模式下事件转发格式必须为 `{ ...ev, type: 'ui_request' }`）
 - **bilibili-pixel-danmaku**：`~/Projects/bilibili-pixel-danmaku`，PySide6 弹幕助手，莫兰迪配色经 morandi_colors.json 热更新，启动项由 chezmoi 托管
 - **Pi Agent TUI**：`~/.pi/agent`，zentui/open-tui 扩展，morandi-gen 的 write_pi 同步配色
@@ -418,15 +167,18 @@
 
 ## 安装与服务
 
+- **Tailscale (PC)**：`tailscale 1.104.5-1.1`，系统服务 `tailscaled`（drop-in `proxy.conf` 强制走 7890 代理，不可删）；`OperatorUser=lanrhyme`，常规操作免 root；自愈看门狗 `tailscale-watchdog.service`（enabled）；serve 配置见最近动态
 - **nanoMuse**：v1.0.5 跨设备 Agent；桌面端 AppImage 部署于 `~/.local/opt/nanomuse/nanoMuse.AppImage`，CLI 链接 `~/.local/bin/nanomuse`，桌面项 `nanomuse.desktop`；手机与平板端均通过 ADB 部署 `io.github.nanomuse.app` 并注入电池优化白名单
-- **网易 UU 远程被控端 (uu-remote-linux)**：社区原生 Rust 被控端（`/usr/bin/uuremote-server`，集成 `--features wayland,portal`）；用户服务 `uu-remote-native.service`（自启常驻，支持 Wayland 活跃 Socket 自动探测与重载自愈）；依赖 `/dev/uinput` 与 `xdg-desktop-portal`；凭据存储于 `~/.config/uuremote/config.json`；支持官方客户端扫码登录绑定
-- **Bettbox & FlClash**：AUR 包 `bettbox-bin 1.19.3-1` 与 `flclash-bin 0.8.93-1`；数据位于 `~/.local/share/com.appshub.bettbox/`；BettboxCore 内置 SUID root 免密启动 TUN；保留双客户端共存
-- **Xiaomi MiMo Desktop**：AUR 包 `mimo-desktop 26.909.91205-2`；官方 Linux deb 打包，命令 `mimo-desktop`；针对官方包漏打 `node-machine-id` 导致登录缺失 `deviceId` 报错，已在 PKGBUILD 中补丁直接读取 `/etc/machine-id` 修复 `app.asar`
-- **Dufs (WebDAV) & Cloudflare Tunnel**：AUR 包 `dufs-bin 0.46.0-2`；数据根目录 `~/WebDAV`（含 `reader/`、`backup/`）；监听本地 `5000/tcp`（全私有 Basic 认证，用户 `lanrhyme`）；配置文件 `~/.config/dufs/config.yaml`（权限 600）；搭配 Cloudflare Tunnel（`cloudflared-webdav.service`）绑定公网域名 `https://webdav.lanrhyme.top/`；systemd user 服务常驻自启（开启 linger）
+- **网易 UU 远程被控端 (uu-remote-linux)**：社区原生 Rust 被控端（`/usr/bin/uuremote-server`，集成 `--features wayland,portal`）；用户服务 `uu-remote-native.service`（自启常驻，支持 Wayland 活跃 Socket 自动探测与重载自愈）；依赖 `/dev/uinput` 与 `xdg-desktop-portal`；凭据在 `~/.config/uuremote/config.json`
+- **Antigravity 星语猫娘桌宠**：插件位于 `~/.gemini/config/plugins/star-pet/`（main.mjs 编排 + layer.mjs Shadow DOM 图层），控制入口 `~/.local/bin/star-pet status|on|off|scale|state|log`，改的是插件数据目录的 `settings.json`（sidecar 每 2 秒重读）；皮肤只铺当前壁纸不覆盖主题变量，遮罩取宿主 `var(--background)` 默认 0.4；宿主重拉 sidecar 约 45 秒，识别新代码看 `pet.log` 里是否有新的 `injected layer`
+- **QQNT 琉璃主题**：启动链 `~/.local/share/applications/qq.desktop` → `~/.local/bin/linuxqq`（bwrap 免 root 覆盖 /opt）→ `/usr/bin/linuxqq`；LiteLoaderQQNT 1.4.1 在 `~/.local/share/LiteLoaderQQNT`，主题插件 `plugins/liuli-dsh-theme`；QQ 升级或补丁丢失后跑 `~/.local/bin/qqnt-liteli-setup` 重建（幂等），回滚删 qq.desktop 即可
+- **Bettbox & FlClash**：AUR 包 `bettbox-bin 1.19.3-1` 与 `flclash-bin 0.8.93-1`；数据位于 `~/.local/share/com.appshub.bettbox/` 与 `~/.local/share/com.follow.clash/`；两者 mixed-port 都定到 7890，谁先起谁占；BettboxCore 内置 SUID root 免密启动 TUN
+- **Xiaomi MiMo Desktop**：AUR 包 `mimo-desktop 26.909.91205-2`；官方包漏打 `node-machine-id` 导致登录缺 `deviceId`，已在 PKGBUILD 里补丁改读 `/etc/machine-id` 修复 `app.asar`
+- **Dufs (WebDAV) & Cloudflare Tunnel**：AUR 包 `dufs-bin 0.46.0-2`；数据根目录 `~/WebDAV`（含 `reader/`、`backup/`）；监听 `127.0.0.1:5000`（全私有 Basic 认证，用户 `lanrhyme`，绑定必须留在 loopback 否则会抢 tailscale serve 的 5000）；配置 `~/.config/dufs/config.yaml`（权限 600）；搭配 `cloudflared-webdav.service` 绑定 `https://webdav.lanrhyme.top/`；systemd user 服务常驻自启（开启 linger）
 - **MicYou**：本地包 `micyou 2.0.0.alpha.1-1`；Noctalia 插件开源于 `lanrhyme/micyou`；手机端安装于 K60；ufw 放行 8554/tcp、8555/udp、8443/tcp、5353/udp
 - **企业微信**：deepin Wine 版 `com.qq.weixin.work.deepin`，容器位于 `~/.deepinwine/Deepin-WXWork`，启动脚本 `/opt/apps/com.qq.weixin.work.deepin/files/run.sh`
 - **Waydroid**：Android 16 (LineageOS 23.2)，开启 Intel iGPU/GBM 加速；依赖 UFW 规则 `sudo ufw allow in on waydroid0`；脚本位于 `~/tmp/a16/`
-- **DeepSeek Harness**：AUR 包 `deepseek-harness-bin 0.2.0rc.2-1`（`/usr/bin/dsh`）；Superpower 预设位于 `~/.dsh/.agent-presets/superpower/`；LLM 路由配置在 `~/.dsh/settings.yaml` 的 `llm-pi-ai.providers`（密钥只存 `~/.dsh/.credentials.yaml`）；接入 WFClub 中转 `https://api.wfclub.fun/v1`（route `openai`，默认模型 `deepseek-ai/DeepSeek-V4.1-Flash`，显式添加 `input: [text, image]` 开启识图）
+- **DeepSeek Harness**：已装 `deepseek-harness-bin 0.2.0rc.2-1`（`/usr/bin/dsh`），`0.2.2rc.1` 已打包待装；Superpower 预设位于 `~/.dsh/.agent-presets/superpower/`；LLM 路由在 `~/.dsh/settings.yaml` 的 `llm-pi-ai.providers`（密钥只存 `~/.dsh/.credentials.yaml`）；接入 WFClub 中转 `https://api.wfclub.fun/v1`（route `openai`，默认模型 `deepseek-ai/DeepSeek-V4.1-Flash`，须显式加 `input: [text, image]` 才开识图）
 - **Antigravity**：AUR 包滞后需手动维护（本地 2.9.1，构建于 `~/tmp/antigravity-pkgbuild/`）；网络直连易超时，依赖 FlClash TUN 透明代理正常连通；CLI 为 `~/.local/bin/agy`
 - **CodeBuddy IDE**：AUR 包 `codebuddy-ide-cn 4.12.0.37847260-1`，腾讯云代码助手独立桌面客户端，命令 `codebuddy-ide-cn`
 - **WorkBuddy**：Electron 44 架构，`~/.workbuddy/app/gpu-crash-info.json` 软链接至 `/dev/null` 切断 GPU 降级死锁；`electron44-flags.conf` 配置 Ozone Wayland 原生 GPU 合成
@@ -447,17 +199,19 @@
 
 ## 踩坑速查
 
-- **Steam 游戏掉帧三件套**：先 `nvidia-smi --query-compute-apps` 看游戏进程有没有图形上下文，再 `grep -c -i nvidia /proc/<pid>/maps` 判断到底跑在哪块 GPU（原生 Linux 移植版窗口类不是 `steam_app_*`，是 exe 名本身），`journalctl --user | grep xwayland-satellite` 能直接打出窗口类；最后核对 niri 全局规则有没有把游戏窗口圈进 blur（规则先匹配先生效，必须 `exclude`）。Proton/DXVK 会把 DISCRETE_GPU 排到最前，切 Proton 往往同时解决独显与中文（汉化补丁都只针对 Windows 的 `CookedPCConsole`）
-- **第三方汉化补丁跑法**：用 `bwrap --unshare-net` 加独立 `WINEPREFIX` 关笼子，只 `--bind` 游戏目录其余全只读，汉化器多数会自动完成不需要点按钮；Steam「验证游戏文件完整性」是通用回滚手段，自动更新也会把汉化冲掉；手工 `--ro-bind` 把 exe 挂进游戏目录会在卸载后留下 0 字节同名文件，记得删
-- **Wayland 合成器掉帧与鼠标卡顿排查**：先 `niri msg outputs` 确认刷新率与 VRR，再 `nvidia-smi` 看有没有不该出现的图形上下文（若面板挂在核显却有一堆…G 进程在独显即为全局 PRIME offload 作祟）；判据用「鼠标静止 vs `ydotool mousemove` 高频注入移动」两种状态下 niri 的 CPU 与 `/proc/<niri>/fdinfo/*` 里 `drm-engine-render` 的增量，移动时翻倍即帧预算已满；常见放大器是全屏透明 layer 面按固定间隔整屏重绘、全窗口 `blur true` 与 `opacity` < 1（两者都让窗口无法直出扫描）、跨 GPU 渲染（独显绘制 + 核显合成）；`libinput list-devices` 要 root，直接读 `/proc/bus/input/devices` 与 `/sys/bus/usb/devices/<dev>:1.0/ep_*/interval` 更快
-- **网络（FlClash fake-ip 间歇性 TLS 失败）**：curl/git/gh 可用 `--resolve` 直连真实 IP（github.com=20.205.243.166, api.github.com=20.205.243.168, uploads.github.com=20.205.243.161）+ `http.version=HTTP/1.1`；AUR 遇到网络超时改下载 snapshot tarball 手动 makepkg；TUN 静默掉线时在 FlClash 界面开关一次网卡重启
-- **提权**：pkexec 在 niri 下因 polkit 弹窗缺失卡死，需由用户在交互终端直接执行 sudo；`pkexec pacman -U` 必须使用绝对路径
+- **Tailscale 卡死不可自愈**：判据是本机在 `tailscale status` 里显示 offline 且 `journalctl -u tailscaled` 里 `controlhttp: failed dialing` 持续出现（≥6 次/3 分钟），处理一律 `tailscale down && tailscale up`（operator 权限即可，不需要 root）；不要因此删 `proxy.conf`，直连 TLS 是被切断的；根因是 Tailscale 受限 DNS 解析器拒绝 IP 字面量代理地址
+- **布尔判定的 jq 陷阱**：`jq '.X // true'` 在 `.X` 为 `false` 时会返回 `true`（`//` 把 false 当空值），判布尔一律直接取 `.X` 再与字符串 `"false"` 比较
+- **Steam 游戏掉帧三件套**：先 `nvidia-smi --query-compute-apps` 看游戏进程有没有图形上下文，再 `grep -c -i nvidia /proc/<pid>/maps` 判断到底跑在哪块 GPU（原生 Linux 移植版窗口类不是 `steam_app_*`，是 exe 名本身），`journalctl --user | grep xwayland-satellite` 能直接打出窗口类；最后核对 niri 全局规则有没有把游戏窗口圈进 blur（规则先匹配先生效，必须 `exclude`），Proton/DXVK 会把 DISCRETE_GPU 排到最前，切 Proton 往往同时解决独显与中文
+- **第三方汉化补丁跑法**：用 `bwrap --unshare-net` 加独立 `WINEPREFIX` 关笼子，只 bind 游戏目录其余全只读，汉化器多数会自动完成；Steam「验证游戏文件完整性」是通用回滚手段，自动更新也会把汉化冲掉；手工把 exe 挂进游戏目录会在卸载后留下 0 字节同名文件
+- **Wayland 合成器掉帧与鼠标卡顿排查**：先 `niri msg outputs` 确认刷新率与 VRR，再 `nvidia-smi` 看有没有不该出现的图形上下文；判据用「鼠标静止 vs `ydotool mousemove` 高频注入移动」两种状态下 niri 的 CPU 与 `/proc/<niri>/fdinfo/*` 里 `drm-engine-render` 的增量，移动时翻倍即帧预算已满；常见放大器是全屏透明 layer 面按固定间隔整屏重绘、全窗口 `blur true` 与 `opacity` < 1
+- **网络（FlClash fake-ip 间歇性 TLS 失败）**：curl/git/gh 可用 `--resolve` 直连真实 IP（github.com=20.205.243.166, api.github.com=20.205.243.168, uploads.github.com=20.205.243.161）+ `http.version=HTTP/1.1`；AUR 遇网络超时改下载 snapshot tarball 手动 makepkg；TUN 静默掉线时在 FlClash 界面开关一次网卡重启
+- **提权**：pkexec 在 niri 下因 polkit 弹窗缺失卡死（polkit-kde-agent 未装），需由用户在交互终端直接执行 sudo；`pkexec pacman -U` 必须使用绝对路径
 - **Git**：`git tag -f` 重打注释 tag 必须带 `-m` 或 `-F` 防 vi 卡死；覆盖发布采用删远程 tag 重新 push 并重建 GitHub Release
-- **adb 与多层 shell**：`su -c` 内嵌复杂变量与转义时写成本地脚本 push 后执行；抓取日志前必须 `logcat -c` 清除缓冲区防止历史日志干扰
-- **Hindsight 残留处理**：`uvx daemon start` 异常退出会遗留孤儿进程锁定 `.cache/uv/.lock`，kill 后需手动删除 lock 文件
-- **systemd 用户单元失控重启与沙箱内驱动**：默认 `StartLimitIntervalSec=10s` / `StartLimitBurst=5`，`RestartSec=3` 永远凑不满 5 次/10 秒，限流不会触发，坏单元会通宵重启，必须手动 `disable` 收口；DSH 的 bwrap 沙箱里 `systemctl --user` 连 `/run/user/1000/systemd/private` 会在 AUTHENTICATING 阶段报 ENODATA，改用 `busctl --user call org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager <方法>`，`StopUnit` 签名 `ss`（单元名 + `replace`）、`DisableUnitFiles` 签名 `asb`、`ResetFailedUnit` 签名 `s`
+- **adb 与多层 shell**：`su -c` 内嵌复杂变量与转义时写成本地脚本 push 后执行；抓取日志前必须 `logcat -c` 清除缓冲区防历史日志干扰
+- **Hindsight 残留处理**：`uvx daemon start` 异常退出会遗留孤儿进程锁定 `.cache/uv/.lock`，kill 后需手动删 lock 文件
+- **systemd 用户单元失控重启与沙箱内驱动**：默认 `StartLimitIntervalSec=10s` / `StartLimitBurst=5`，`RestartSec=3` 永远凑不满 5 次/10 秒，限流不会触发，坏单元会通宵重启，必须手动 `disable` 收口；DSH 的 bwrap 沙箱里 `systemctl --user` 连 `/run/user/1000/systemd/private` 会在 AUTHENTICATING 阶段报 ENODATA，改用 `busctl --user call`，`StopUnit` 签名 `ss`、`DisableUnitFiles` 签名 `asb`、`ResetFailedUnit` 签名 `s`；需要真正联动用户单元时申请 danger-full-access 跑 `systemctl --user`
 - **Android 17 (SDK 37) 与 KernelSU-Next / Zygisk Next / Vector 保留 Root 更新要点**：
   - 1. **Root 镜像注入**：OTA 后若 LKM 签名不匹配或被 Seccomp 拦截，需从官方底包提取 `boot_a.img`，利用 `android12-5.10` KMI 与当前内核版本号注入 KernelSU-Next LKM 驱动与专属签名后 Fastboot 直刷
-  - 2. **Zygisk Next 黑名单排查**：若应用无法加载模块，核对 `/data/adb/ksu/bin/znctl status` 中的 `enforce_denylist`，必须执行 `znctl enforce-denylist disabled`（置 0）以防应用被跳过注入
+  - 2. **Zygisk Next 黑名单排查**：若应用无法加载模块，核对 `/data/adb/ksu/bin/znctl status` 中的 `enforce_denylist`，必须执行 `znctl enforce-denylist disabled`（置 0）防跳过注入
   - 3. **Vector 守护进程**：若 `cli status` 报 Socket Failure，检查 `service.sh` 中是否残留 toybox 不支持的 `unshare --propagation slave`，统一修正为 `unshare -m`
-  - 4. **Xposed 模块兼容性**：旧模块若写死判断 `SDK_INT <= 36` 会抛出 NPE（如 Thanox），需停用或反编译 smali 将 SDK 版本识别限制在 36 并做判空保护；相机等 OEM 应用小版本更新可能会变更混淆字段名，需同步反编译更新 Hook 点
+  - 4. **Xposed 模块兼容性**：旧模块若写死 `SDK_INT <= 36` 会抛 NPE（如 Thanox），需停用或改 smali 限制在 36 并做判空保护；相机等 OEM 应用小版本更新可能变更混淆字段名，需同步反编译更新 Hook 点
