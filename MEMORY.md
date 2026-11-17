@@ -5,6 +5,11 @@
 
 ## 最近动态
 
+- **Tailscale 掉线排查与 Dufs 端口冲突修复 (2026-11-17, 已完成)**:
+  - **掉线真因**: `/etc/systemd/system/tailscaled.service.d/proxy.conf` 设定了 `ALL_PROXY=socks5://127.0.0.1:7890`，12:36 本地代理短暂断开导致 tailscale 控制面与 DERP 握手失败离线；随后代理恢复，tailscaled 自动重新入网
+  - **端口冲突修复**: tailscale serve 配置了 5000 端口（反代本地 dufs），但 `~/.config/dufs/config.yaml` 之前设定 `bind: 0.0.0.0` 霸占全接口，导致 tailscale 报 `localListener failed to listen on 100.73.79.77:5000: bind: address already in use` 循环退避重试；已将 dufs 绑定改为 `127.0.0.1` 并重启服务，tailscale0 顺利接管 5000 端口，HTTPS WebDAV 访问恢复正常
+  - **链路核验**: K60 与 OnePlus Pad 在线正常，双端 ADB 已自动重连，双向 ping 与 HTTPS 端口 5000 访问均通过
+
 - **DSH 与插件升级 + 安装 ds-harness-remote (2026-11-17, 已完成)**:
   - **dsh 本体构建**: 已审查 PKGBUILD 并完成编译打包 `deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst`（来源官方 npm `@deepseek-ai/dsh@0.2.2-rc.1`），归档于 `~/tmp/deepseek-harness-bin/` 与 `~/.cache/paru/clone/deepseek-harness-bin/`，终端执行 `sudo pacman -U ~/.cache/paru/clone/deepseek-harness-bin/deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst` 即可升级
   - **新插件安装**: 已安装 `ds-harness-remote@0.6.5`（P2P/WebRTC 端到端加密远程接入）并写入 `~/.dsh/profiles/web/package.json` 的 `dependencies` 与 `bundles`，移除旧 `dsh-remote`
