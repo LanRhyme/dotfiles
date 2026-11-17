@@ -13,7 +13,8 @@
     - `dsh-opencode-zen`: 补齐缺失的 `cordis.patch.yml` 并添加 0.2.2-rc.1 版本豁免
     - `dsh-better-sidebar`: 升级至 0.31.1（精确对齐 DSH 0.2.2-rc.1），并保留 0.2.0-rc.2 兼容豁免
     - 全量升级 `@liustack/modlens` 3.27.5、`@liustack/modsearch` 5.10.14、`dsh-agy-link` 0.6.29、`dsh-better-sidebar` 0.31.1、`dsh-client-auto-continue` 0.19.0、`dsh-context` 0.85.1、`dsh-plugin-smooth-stream` 1.6.3、`dsh-pocket` 2.13.1、`dsh-skin-market` 0.1.83、`dsh-turn-fold` 0.7.3、`dshmarket` 1.73.20
-    - 配置备份于 `~/tmp/dsh-web-backup-20261117081034/`，启动测试端口 3081/3082/3083 验证通过无报错，`ds-harness-remote` 成功挂载并就绪 OpenCode/Antigravity ACP 桥接
+    - 配置备份于 `~/tmp/dsh-web-backup-20261117081034/`，启动测试验证通过无报错，`ds-harness-remote` 成功挂载并就绪 OpenCode/Antigravity ACP 桥接
+    - **启动排障与体验优化**: 清理了 `cordis.patch.yml` 中 18 项废弃插件补丁，禁用 `ds-harness-remote` 未安装的 codex/cursor/acp 告警消除红色刷屏；包装脚本 `~/.local/bin/dsh` 增加无参默认调用 `web` profile，已通过 chezmoi 提交同步
 
 - **心理汇报《完美主义》打分器 (2026-11-12, 已完成可交付)**:
   - 需求: 用户下周心理小组汇报, 开场要一个 90 秒小游戏 —— 屏幕给一句话, 同学扫码改得更好, 提交拿分, 想更高就继续改; 结尾反转「分数是随机的, 你追了 90 秒的东西从头到尾都不存在」; 现场 60 人以上同时在线
