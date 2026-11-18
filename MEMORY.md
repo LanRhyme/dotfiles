@@ -6,21 +6,39 @@
 
 ## 最近动态
 
-- **Antigravity 长流掉线根因定位与 FlClash TUN 参数重构 (2026-11-18, 配置已改、待重启验证)**:
-  - 现象: Antigravity 对话中途模型掉线，客户端重试循环二十多分钟不恢复
-  - 直接证据: `~/.config/Antigravity/logs/language_server.log` 里 6 次连续失败全为 `Post .../v1internal:streamGenerateContent?alt=sse: local error: tls: bad record MAC`，反推流存活 156 / 162 / 255 / 164 s 后被斩，而客户端重试是整条重来（退避 4 → 57 s），所以体感是「一直掉线」
-  - 排除项: 同域名短 RPC（`loadCodeAssist` / `fetchAvailableModels`）在崩溃期间穿插全部成功；TLS 握手 0.44 s 正常；50 MB 下载 ×2 经 7890 与经 TUN 都 sha256 一致；170 s 慢速流零错误 → 不是节点宕、不是限流、不是普遍乱码；main.log 里的 429/503 是时间戳与端口号的数字巧合，非真实错误
-  - 关键链路: `Exec=/usr/bin/antigravity` 不读 shell，`http_proxy` 只写在 `~/.bashrc` / `~/.zshrc`，`/etc/environment` 与 `~/.config/environment.d/` 均无兜底 → IDE 拿不到 7890，全部流量硬走 FlClash TUN
-  - 病灶: TUN 原为 `stack: gvisor` 且未设 mtu（实测 9000），长 TLS 流静默数分钟后突发大帧时失配；外部同案 `google-antigravity/antigravity-cli#1096` 与 Google 论坛帖（FlClash TUN + MTU 9000）逐条吻合
-  - 处置: `~/.local/share/com.follow.clash/shared_preferences.json` 内 `patchClashConfig` 改为 `tun.stack=system`、`tun.mtu=1360`、`keep-alive-interval=15`，备份在 `~/tmp/flclash-backup/`
-  - 该文件不由 chezmoi 管理（只有 `~/.config/autostart/flclash.desktop` 在管），改动只落本地
-  - 待办: 重启 FlClash 后核对 `cat /sys/class/net/FlClash/mtu` 应为 1360；观察 system 栈是否影响 Tailscale 的 P2P 打洞
+- **Mine in Abyss 汉化模组 mia-zh (2026-11-18, 首版完成、待进服验证)**:
+  - 实例: `/mnt/WindowsD/MC/.minecraft/versions/Mine In Abyss Modpack 1.4.2`（MC 1.21.11 / Fabric Loader 0.18.4 / 40 个纯客户端性能 mod）
+  - 关键结论: MIA 内容全在服务端，物品名是 `setData(DataComponentTypes.ITEM_NAME, itemName.miniMsg())` 的字面量组件，服务端仓库无 `locale` / `i18n` / `<lang:`；自带资源包仅 26 个有效条目（按钮贴图、全景、`splashes.txt`、一个 ogg），**0 个 lang/fonts/models 条目** → 常规汉化资源包路线在 MIA 无效
+  - 方案: 自研客户端 Fabric mod（`~/Projects/mia-zh`），Mixin 拦截 `ItemStack#getName/getTooltip`、`Entity#getDisplayName`、`Screen#getTitle`、`ChatHud#addMessage`、`InGameHud#setTitle/setSubtitle/setOverlayMessage`、`BossBar#getName`、`ScoreboardObjective#getDisplayName`、`Team#getPrefix/getSuffix/decorateName`，按离线词典（精确 + 正则）替换字面文本，不联网
+  - 工程要点: Loom 1.19 需要 JVM 25 且对 1.21.11 拒绝 `officialMojangMappings()`，故改用 **Loom 1.11.8 + Gradle 8.14.3 + Yarn 1.21.11+build.6 + JDK 21**（插件 id 用旧的 `fabric-loom`），mixin 需显式 `compileOnly net.fabricmc:sponge-mixin:0.17.0+mixin.0.8.7`；JDK 25 落在 `~/.local/opt/jdk-25`
+  - 词典: `tools/build_dict.py` 合并 `tools/vanilla_en_zh.json`（en_us/zh_cn 按 key 对齐的 2776 条名词）与 `tools/mia_glossary.json`（MIA 物品 223 / 生物 66 / 界面），产出 3077 词条 + 29 条正则；运行时 `config/mia-zh/{dict,user}.json` 热重载，`harvest.txt` 记录未命中英文
+  - 验证: jar 已装进实例 `mods/`，实机启动日志 `[mia-zh] 自检通过 5/5`（炭沙锭 / 巨颚鳞片 / 伤害：12 等），8 个 Mixin 全 apply（required=true 未崩即证明）
+  - **v0.2.0 修订（2026-11-18 下午）**: 首轮实测 harvest 暴露出三个问题并已修 —— ① 服务端物品名用 `Cooked X` / `Roasted X` 语序且写 `Corpse-Weeper` 带连字符，与 wiki 的 `X Cooked` / 空格写法不符，词典加了两侧别名，条数 3077 → 6054；② lore 是**逐行字面英文句子**（含被拆成碎片的跨行句），已补 93 条常见描述，并让记录逻辑改为记录整行而非碎片；③ **真 bug**：重建组件时用 `Text.empty()` 当新父节点，子节点丢掉了从父级继承的 `font`/颜色，MIA 自定义字体图标会变成原始占位符（`[mineinabyss:ui/prefixes/layer/layer_2@gui]` 等），这正是「材质包 UI 错乱」的最可能原因，已改为 `MutableText.of(content).setStyle(原style)` 且仅在有子节点真被替换时才重建；同时对占位符与 § 颜色码做了放过与剥离处理；词典改用内容指纹判断，jar 内词典一升级就覆盖磁盘 `dict.json`，用户改动仍写 `user.json`
+  - **顺带查出的真问题**: 客户端连不上任何 MC 服务器（Hypixel 同样「连接中断」）。证据：`survive.mineinabyss.com` 真实 IP `144.76.219.79`、mcsrvstat 显示在线、ICMP 253 ms 通；但经 TUN 与经 7890 CONNECT 的 TCP 均「连上但 0 字节」，portquiz 的 80/8080/12345/25565 全 0 字节、明文 HTTP 被节点回 403 → **当前节点只放行 TLS，裸 TCP 全掐**。已修：在活动订阅 `profiles/357383640134455296.yaml` 的 `rules:` 顶部插入 `DOMAIN-SUFFIX,mineinabyss.com,DIRECT` 与 `IP-CIDR,144.76.219.79/32,DIRECT,no-resolve`，重启 FlClash 后 status 探测拿到 `Velocity 1.7.2-26.3`、9/250 在线，客户端日志出现 `Connecting to survive.mineinabyss.com` 并进到登录阶段（假 token 才停在断线界面）；订阅更新会覆盖 profile，重打用 `~/Projects/mia-zh/tools/patch_flclash_rule.py`（幂等、自动备份、自动重启），本次备份在 `~/tmp/flclash-backup-mia-20261118-125742`
 
-- **磁盘清理 53 GiB (2026-11-18, 用户级已执行、root 部分待跑)**:
+- **Antigravity 长流掉线根因定位 (2026-11-18, 定位完成、待换节点验证)**:
+  - 现象: Antigravity 对话中途模型掉线，客户端重试循环二十多分钟不恢复
+  - 直接证据: `~/.config/Antigravity/logs/language_server.log` 里 6 次连续失败全为 `Post .../v1internal:streamGenerateContent?alt=sse: local error: tls: bad record MAC`，反推流存活约 160 ~ 255 s 后被斩，客户端重试是整条重来（退避 4 → 57 s），所以体感是「一直掉线」
+  - 排除项: 同域名短 RPC（`loadCodeAssist` / `fetchAvailableModels`）在崩溃期间穿插全成功；TLS 握手正常；50 MB 下载 ×2 经 7890 与经 TUN 都 sha256 一致；170 s 慢速流零错误 → 不是节点宕、不是限流、不是普遍乱码；main.log 里的 429/503 是时间戳与端口号的数字巧合，非真实错误
+  - **链路修正（重要，早期判断错了）**: 一度认为「IDE 拿不到 http_proxy 所以硬走 TUN」，实测推翻 —— `pgrep -f language_server` 后读 `/proc/<pid>/environ` 确认该进程带着 `https_proxy=http://127.0.0.1:7890`，`ss -tnp` 也显示 7 条 ESTAB 连向 `127.0.0.1:7890`，因此 Antigravity 一直走 7890 代理口，**与 TUN 无关**，后续排查不要再往 TUN / MTU 方向走
+  - 病灶: 当前节点 `🇺🇸美国ai-0.1倍率` 为 `vless + flow: xtls-rprx-vision + REALITY`（`server: 134.195.101.76`，伪装 SNI `cdn-dynmedia-1.microsoft.com`，`client-fingerprint: ios`），与 `google-antigravity/antigravity-cli#1096` 报告者环境逐字相同（大陆 + VLESS + REALITY + xtls-rprx-vision + 美国节点）；XTLS Vision 的 TLS-in-TLS 拼接在「静默思考 + 突发大帧」形态下易失步，表现为内层 TLS 记录校验失败
+  - **TUN 参数实验结论（踩坑，勿重犯）**: 曾把 `tun.stack` 改 `system` 并加 `mtu: 1360`，重启后 **TUN 彻底不转发**（连 baidu 都 10 s 超时，仅 7890 代理口正常），已回滚 `gvisor` 并验证恢复（gstatic 0.56 s、30 MB 跑 3.36 MB/s）；`system` 栈在本机（niri + wlan0）不可用；且 FlClash GUI 的配置模型不含 `mtu` 字段（二进制里 `FlClash` 0 处匹配、`FlClashCore` 40 处），`patchClashConfig.tun.mtu` 会被渲染阶段直接丢弃，界面与配置文件两条路都设不了 TUN MTU
+  - 保留的唯一改动: `keep-alive-interval` 30 → 15（压缩 NAT 空闲回收窗口，无害）；备份在 `~/tmp/flclash-backup/`；该文件不由 chezmoi 管理（只有 `~/.config/autostart/flclash.desktop` 在管）
+  - 下一步: 换非 vision 节点验证 —— 46 个节点里 11 个 vision、35 个非 vision，优先试 hysteria2 的 `🇺🇸美国ai解锁-0.1倍率` / `🇭🇰香港家宽专线` / `🇯🇵日本专线-0.1倍率`，或 vless+ws 的 `🇺🇸美国1号-0.1倍率`
+
+- **磁盘清理与软件卸载 (2026-11-18, 已完成)**:
   - 主因: `~/.cache/Shelly/db/sync/` 被 shelly AUR 助手泄漏 19583 个 `.db.part.*` 半途下载碎片，占 48.2 GB（真正的 sync 库只有 8 个文件 15 M），已全删只留 `.db`
-  - 同轮清理: `~/.cache/uv` 15 G、`~/.cache/paru` 6.1 G、bettbox 数据 65 M 与构建缓存 89 M、`~/.config/BetterDiscord` 孤儿（Discord 早已不在）、`~/.local/share/baloo` 1.6 G（`baloo` 包根本没装，前任 KDE 死索引，niri 下从未运行）
-  - 结果: 占用 80% → 73%，可用 142 G → 195 G
-  - 待执行: `sudo bash ~/tmp/cleanup-root.sh` —— paccache -rk1（干跑实测省 30.02 GiB）、卸 `bettbox-bin`、卸 `clash-verge-rev-bin` 并移除无主 unit `/etc/systemd/system/clash-verge-service.service`、卸 `neofetch`、最后重算孤儿包
+  - 用户级清理: `~/.cache/uv` 15 G、`~/.cache/paru` 6.1 G、bettbox 数据 65 M 与构建缓存 89 M、`~/.config/BetterDiscord` 孤儿（Discord 早已不在）、`~/.local/share/baloo` 1.6 G（`baloo` 包根本没装，前任 KDE 死索引，niri 下从未运行）
+  - root 级清理（已跑 `~/tmp/cleanup-root.sh`）: paccache -rk1 把 pacman 缓存 44 G → 17 G；卸 `bettbox-bin`（`/usr/share/Bettbox` 与 `Bettbox.desktop` 一并消失）、`clash-verge-rev-bin`（含无主 unit `/etc/systemd/system/clash-verge-service.service`）、`neofetch`；清孤儿包 13 个
+  - **误伤提醒**: 重算孤儿时 `xdotool`、`zip`、`python-tqdm` 也被判为孤儿并删掉，`zip` 已用 `pacman -S --needed zip` 补回（AUR 打包/解压依赖它），`xdotool` 经查 0 处引用未补回
+  - 软件卸载: 旧版 `splayer_ba7680d8...`（~/Applications 下 158 M，配 appimagekit 启动器，已删；`splayer-next-bin` 保留完好）、`mimo-desktop`（包 + `/opt/Xiaomi MiMo` 942 M + `~/.config/Xiaomi MiMo` 709 M）、`shelly`（包 + 缓存 3.9 G + 图标 54 M + `shelly-notifications.service`，该单元 enabled+active 但二进制随包已删，靠 `Restart=on-failure` 每 5 s 空转，已 stop/disable/删单元）
+  - NyanoMuse/nanoMuse 应用层全清: `~/.local/opt/nyanomuse{,-desktop,.bak-20261101}` 共 3.4 G、`~/.config/nyanomuse-desktop` 842 M 与 `nanomuse-desktop` 24 M、`~/.local/share/applications/nyanomuse-desktop.desktop`、autostart `nanomuse-desktop.desktop`、`~/.local/bin/{nanomuse-desktop,nanomuse-bridge,nyanomuse-bridge,nanomuse.bak-20261101,nanomuse-mobile-sync.sh}`、用户单元 `nyanomuse-cloud.service`（已 stop/disable/删）、`~/.config/environment.d/nyanomuse.conf`（内含 `NYANOMUSE_RELAY_URL` / `NANOMUSE_CLOUD_URL=https://nyanomuse.lanrhyme.top`）
+  - **源码已推送后删除**: `~/Projects/NyanoMuse` 8.8 G —— 本地 main 曾领先 origin **27 个未推送提交**，已 `git push origin main`（`afad1368..c6a5f919`）并用 `git ls-remote` 确认远端 HEAD 与本地一致后删除，恢复方式 `git clone https://github.com/LanRhyme/NyanoMuse.git`
+  - 家目录残留一并清理: `~/.nyanomuse`（含 goals / memory / reminders / triggers 四个 sqlite）、`~/.nanomuse`（指向 `~/.nyanomuse` 的符号链接）、`~/nanoMuse`（soul-sync，19 M）、空目录 `~/NyanoMuse`；删除前已打包备份 `~/tmp/nyanomuse-data-backup-20261118_122439.tar.gz`（5.6 M）
+  - **特意保留未删**: `~/Projects/dsh-go-plugin/node_modules/dsh-go-nyanomuse-memory` 是指向 `../packages/memory` 的符号链接，属独立的 dsh-go-plugin 项目源码；各 `~/Projects/*/.git/mimocode-project-id` 为 1 字节项目标记
+  - 小米 MiMo 的 CLI 版一并删除: `~/.mimocode`（180 M，`@mimo-ai/plugin`）、`~/.config/mimocode`、`~/.local/share/mimocode`、`~/.local/state/mimocode`、`~/.cache/mimocode`、空的 `~/XiaomiMiMoProjects`，合计 417 M
+  - 结果: 占用 80% → **68%**，可用 142 G → **232 G**
+  - AUR 助手剩 `paru 2.2.0` 与 `yay 13.1.0`，按 AGENTS.md 规范日常用 paru
 
 - **Tailscale PC 侧掉线根因与自愈看门狗 (2026-11-17, 已完成)**:
   - 现象: 本机在控台显示 offline、控台同步失败，journal 里 `controlhttp: failed dialing` 约 195 次/小时且持续 2 小时不自愈，当天 12:36 与 15:18 各掉一次
@@ -182,12 +200,12 @@
 ## 安装与服务
 
 - **Tailscale (PC)**：`tailscale 1.104.5-1.1`，系统服务 `tailscaled`（drop-in `proxy.conf` 强制走 7890 代理，不可删）；`OperatorUser=lanrhyme`，常规操作免 root；自愈看门狗 `tailscale-watchdog.service`（enabled）；出网依赖 FlClash，已配 `~/.config/autostart/flclash.desktop` 开机自启；serve 配置见最近动态
-- **nanoMuse**：v1.0.5 跨设备 Agent；桌面端 AppImage 部署于 `~/.local/opt/nanomuse/nanoMuse.AppImage`，CLI 链接 `~/.local/bin/nanomuse`，桌面项 `nanomuse.desktop`；手机与平板端均通过 ADB 部署 `io.github.nanomuse.app` 并注入电池优化白名单
+- **nanoMuse / NyanoMuse**：已于 2026-11-18 完全删除（桌面端、CLI 链接、cloud 服务、源码仓库全部清除，详见「已弃用/已删除」）；手机上若仍装有 `io.github.nanomuse.app` 需另行 ADB 卸载
 - **网易 UU 远程被控端 (uu-remote-linux)**：社区原生 Rust 被控端（`/usr/bin/uuremote-server`，集成 `--features wayland,portal`）；用户服务 `uu-remote-native.service`（自启常驻，支持 Wayland 活跃 Socket 自动探测与重载自愈）；依赖 `/dev/uinput` 与 `xdg-desktop-portal`；凭据在 `~/.config/uuremote/config.json`
 - **Antigravity 星语猫娘桌宠**：插件位于 `~/.gemini/config/plugins/star-pet/`（main.mjs 编排 + layer.mjs Shadow DOM 图层），控制入口 `~/.local/bin/star-pet status|on|off|scale|state|log`，改的是插件数据目录的 `settings.json`（sidecar 每 2 秒重读）；皮肤只铺当前壁纸不覆盖主题变量，遮罩取宿主 `var(--background)` 默认 0.4；宿主重拉 sidecar 约 45 秒，识别新代码看 `pet.log` 里是否有新的 `injected layer`
 - **QQNT 琉璃主题**：启动链 `~/.local/share/applications/qq.desktop` → `~/.local/bin/linuxqq`（bwrap 免 root 覆盖 /opt）→ `/usr/bin/linuxqq`；LiteLoaderQQNT 1.4.1 在 `~/.local/share/LiteLoaderQQNT`，主题插件 `plugins/liuli-dsh-theme`；QQ 升级或补丁丢失后跑 `~/.local/bin/qqnt-liteli-setup` 重建（幂等），回滚删 qq.desktop 即可
 - **FlClash（主力，Bettbox 已弃）**：AUR 包 `flclash-bin 0.8.93-1`，数据位于 `~/.local/share/com.follow.clash/`，mixed-port 7890，开机自启由 chezmoi 托管的 `~/.config/autostart/flclash.desktop` 拉起；TUN 设备名 `FlClash`，栈与 mtu 见最近动态；`~/.cache/Shelly` 曾泄漏大量 `.db.part` 碎片需定期清；`bettbox-bin` 已于 2026-11-18 弃用并卸载（原 mixed-port 同为 7890，谁先起谁占，BettboxCore 内置 SUID root 免密启 TUN）；`clash-verge-rev-bin` 同期卸载，7897 / 9097 早已无监听
-- **Xiaomi MiMo Desktop**：AUR 包 `mimo-desktop 26.909.91205-2`；官方包漏打 `node-machine-id` 导致登录缺 `deviceId`，已在 PKGBUILD 里补丁改读 `/etc/machine-id` 修复 `app.asar`
+- **Xiaomi MiMo（桌面版 + CLI）**：已于 2026-11-18 卸载，包与 CLI 目录全部清除；历史踩坑备忘：官方包漏打 `node-machine-id` 会导致登录缺 `deviceId`，曾于 PKGBUILD 补丁改读 `/etc/machine-id` 修复 `app.asar`
 - **Dufs (WebDAV) & Cloudflare Tunnel**：AUR 包 `dufs-bin 0.46.0-2`；数据根目录 `~/WebDAV`（含 `reader/`、`backup/`）；监听 `127.0.0.1:5000`（全私有 Basic 认证，用户 `lanrhyme`，绑定必须留在 loopback 否则会抢 tailscale serve 的 5000）；配置 `~/.config/dufs/config.yaml`（权限 600）；搭配 `cloudflared-webdav.service` 绑定 `https://webdav.lanrhyme.top/`；systemd user 服务常驻自启（开启 linger）
 - **MicYou**：本地包 `micyou 2.0.0.alpha.1-1`；Noctalia 插件开源于 `lanrhyme/micyou`；手机端安装于 K60；ufw 放行 8554/tcp、8555/udp、8443/tcp、5353/udp
 - **企业微信**：deepin Wine 版 `com.qq.weixin.work.deepin`，容器位于 `~/.deepinwine/Deepin-WXWork`，启动脚本 `/opt/apps/com.qq.weixin.work.deepin/files/run.sh`
@@ -210,6 +228,10 @@
 - **Krita-MorandiTimeline**：已删除，备份于 `~/tmp/Krita-MorandiTimeline-backup-20260803.tar.gz`
 - **Alacritty**：已全面弃用并由 Ghostty 替代
 - **kde-material-you-colors**：用户单元已停止并禁用，unit 文件与遗留配置目录一并删除（备份 `~/tmp/disabled-units/`），KDE 配色统一由 `morandi-gen.py` 提供；日后若重装该 AUR 包需先确认不会与 morandi-gen 争抢同一批配色写入
+- **Bettbox / Clash Verge / Shelly（2026-11-18 卸载）**：`bettbox-bin`、`clash-verge-rev-bin`、`shelly` 三个包全部卸除，代理客户端只保留 `flclash-bin`；`shelly` 卸载后其 `shelly-notifications.service` 会因二进制消失而空转，已一并 stop/disable/删除
+- **旧版 SPlayer 3.1.1（2026-11-18 删除）**：`~/Applications/splayer_ba7680d8...`（158 M AIO 二进制 + appimagekit 启动器）已删，播放器统一用 `splayer-next-bin`
+- **Xiaomi MiMo Desktop + CLI（2026-11-18 卸载）**：桌面版 `mimo-desktop` 包、`/opt/Xiaomi MiMo`、`~/.config/Xiaomi MiMo` 全清；CLI 版 `~/.mimocode`（`@mimo-ai/plugin`）与 `mimocode` 的 config/share/state/cache 目录、空目录 `~/XiaomiMiMoProjects` 一并删除
+- **NyanoMuse / nanoMuse（2026-11-18 完全清除）**：`~/.local/opt/nyanomuse*` 3.4 G、`~/.config/nyanomuse-desktop` + `nanomuse-desktop`、autostart、`nyanomuse-cloud.service`、`~/.local/bin` 下四个相关链接、`environment.d/nyanomuse.conf`、`~/.nyanomuse` 数据目录（goals/memory/reminders/triggers 四个 sqlite，已备份 `~/tmp/nyanomuse-data-backup-20261118_122439.tar.gz`）、`~/nanoMuse`、空目录 `~/NyanoMuse` **以及源码仓库 `~/Projects/NyanoMuse`**（8.8 G，删除前已将 27 个未推送提交 push 到 GitHub 并核验）；恢复源码用 `git clone https://github.com/LanRhyme/NyanoMuse.git`，`~/Projects/dsh-go-plugin` 里的 `dsh-go-nyanomuse-memory` 属另一个项目未受影响
 
 ## 踩坑速查
 
@@ -219,7 +241,7 @@
 - **第三方汉化补丁跑法**：用 `bwrap --unshare-net` 加独立 `WINEPREFIX` 关笼子，只 bind 游戏目录其余全只读，汉化器多数会自动完成；Steam「验证游戏文件完整性」是通用回滚手段，自动更新也会把汉化冲掉；手工把 exe 挂进游戏目录会在卸载后留下 0 字节同名文件
 - **Wayland 合成器掉帧与鼠标卡顿排查**：先 `niri msg outputs` 确认刷新率与 VRR，再 `nvidia-smi` 看有没有不该出现的图形上下文；判据用「鼠标静止 vs `ydotool mousemove` 高频注入移动」两种状态下 niri 的 CPU 与 `/proc/<niri>/fdinfo/*` 里 `drm-engine-render` 的增量，移动时翻倍即帧预算已满；常见放大器是全屏透明 layer 面按固定间隔整屏重绘、全窗口 `blur true` 与 `opacity` < 1
 - **网络（FlClash fake-ip 间歇性 TLS 失败）**：curl/git/gh 可用 `--resolve` 直连真实 IP（github.com=20.205.243.166, api.github.com=20.205.243.168, uploads.github.com=20.205.243.161）+ `http.version=HTTP/1.1`；AUR 遇网络超时改下载 snapshot tarball 手动 makepkg；TUN 静默掉线时在 FlClash 界面开关一次网卡重启
-- **长流 TLS `bad record MAC` 排查顺序**：先分辨是 `local error: tls: bad record MAC`（记录完整性失败，属数据被弄坏）还是 `i/o timeout` / `EOF`（属断链），前者按「短请求是否仍成功 → 大文件 sha256 是否一致 → TUN 栈与 mtu」三步走；Antigravity 日志在 `~/.config/Antigravity/logs/language_server.log`，Gemini / Antigravity 的 `streamGenerateContent?alt=sse` 天然长驻，静默思考期 + 突发大帧最易触发；FlClash 默认 `stack: gvisor` 且不写 mtu（默认 9000）在此形态下易失配，改 `system` + `1360` + `keep-alive-interval 15`，配置入口是 `~/.local/share/com.follow.clash/shared_preferences.json` 里的 `patchClashConfig`；另一条更省事的路是让 IDE 走系统代理而非 TUN，但需把 `http_proxy` 写进 `~/.config/environment.d/`（桌面启动不读 shell rc）
+- **长流 TLS `bad record MAC` 排查顺序**：先分辨是 `local error: tls: bad record MAC`（记录完整性失败，属数据被弄坏）还是 `i/o timeout` / `EOF`（属断链）；第一步必须先确定进程**实际**走哪条路，别靠 .desktop 的 Exec 猜，直接 `pgrep -f <进程名>` 后读 `/proc/<pid>/environ` 看 http_proxy，再用 `ss -tnp | grep pid=<pid>` 看是连 `127.0.0.1:7890` 还是走 TUN 接口；第二步查当前节点的传输特征，**`flow: xtls-rprx-vision` + REALITY 是长流下的头号嫌疑**（TLS-in-TLS 拼接易失步，短请求与连续大流量都正常，只有「静默数分钟 + 突发大帧」会炸），换 hysteria2 或 vless+ws 节点即可验证；Antigravity 日志在 `~/.config/Antigravity/logs/language_server.log`，其 `language_server` 实测走 7890 不走 TUN，不要再按 TUN 方向排查；**不要把 FlClash 的 `tun.stack` 改成 `system`**，本机实测会把 TUN 整个弄死（连国内站点都超时），只能保持 `gvisor`，且 FlClash GUI 配置模型不含 `mtu` 字段，TUN MTU 无法设置
 - **提权**：pkexec 在 niri 下因 polkit 弹窗缺失卡死（polkit-kde-agent 未装），需由用户在交互终端直接执行 sudo；`pkexec pacman -U` 必须使用绝对路径
 - **Git**：`git tag -f` 重打注释 tag 必须带 `-m` 或 `-F` 防 vi 卡死；覆盖发布采用删远程 tag 重新 push 并重建 GitHub Release
 - **adb 与多层 shell**：`su -c` 内嵌复杂变量与转义时写成本地脚本 push 后执行；抓取日志前必须 `logcat -c` 清除缓冲区防历史日志干扰
