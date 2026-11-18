@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=FlClash
+Comment=代理客户端，Tailscale 出网依赖它（TUN 由 SUID 助手提权，无需密码）
+Exec=/usr/bin/flclash
+Icon=flclash
+Terminal=false
+Categories=Network;
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Phase=Applications
+StartupNotify=false

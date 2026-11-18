@@ -14,6 +14,8 @@
   - 链路现状: 两端只能走 DERP 中继（K60→hkg、平板→nue），RTT 650-900ms，原因是 Clash TUN 代理了 tailscaled 的 UDP 使 P2P 打洞失败
   - 看门狗: `~/.local/bin/tailscale-watchdog.sh` + `tailscale-watchdog.service`（enabled），每 60s 判一次、连续 2 次命中才动手，动手前先验 7890 与 controlplane 可达，600s 冷却，`BackendState` 非 Running 一律不干预，空跑用 `TS_WATCHDOG_ONCE=1`
   - serve 现状: `:443 → 127.0.0.1:8787`、`:5000 → dufs(127.0.0.1:5000)`，访问用 `https://cachyos.tail1d48f3.ts.net:5000/`
+  - **11-18 二次故障: 代理没开机自启 (已修)**: 10:26 重启后 FlClash 没起，tailscaled 全程 `proxyconnect ... connection refused`（225 次），控台连不上一直卡到 10:40 手动打开代理；根因是 `~/.local/share/com.follow.clash/shared_preferences.json` 里 `autoLaunch:false` 而 `autoRun:true`，已加 `~/.config/autostart/flclash.desktop`（systemd 的 xdg-autostart generator 已生成 `app-flclash@autostart.service`），开机自动拉起并自动连 TUN
+  - **看门狗 v2（11-18 升级）**: 同类日志 600s 节流（原来 24 小时刷了 270 行）、自愈后改为每 5s 轮询最多 45s 才判定成败（原来只等 5s，17 号两次「自愈后仍失联」都是误报，实际两分钟内就恢复了）、代理不通与机场不可达时发桌面通知说明原因
 
 - **DSH 与插件升级 (2026-11-17, 打包已完成、安装待执行)**:
   - `deepseek-harness-bin 0.2.2rc.1-1` 已审查 PKGBUILD 并构建打包（来源官方 npm `@deepseek-ai/dsh@0.2.2-rc.1`），归档于 `~/tmp/deepseek-harness-bin/` 与 `~/.cache/paru/clone/deepseek-harness-bin/`，**当前系统里装的仍是 0.2.0rc.2-1**，升级命令 `sudo pacman -U ~/.cache/paru/clone/deepseek-harness-bin/deepseek-harness-bin-0.2.2rc.1-1-x86_64.pkg.tar.zst`
@@ -163,7 +165,7 @@
 
 ## 安装与服务
 
-- **Tailscale (PC)**：`tailscale 1.104.5-1.1`，系统服务 `tailscaled`（drop-in `proxy.conf` 强制走 7890 代理，不可删）；`OperatorUser=lanrhyme`，常规操作免 root；自愈看门狗 `tailscale-watchdog.service`（enabled）；serve 配置见最近动态
+- **Tailscale (PC)**：`tailscale 1.104.5-1.1`，系统服务 `tailscaled`（drop-in `proxy.conf` 强制走 7890 代理，不可删）；`OperatorUser=lanrhyme`，常规操作免 root；自愈看门狗 `tailscale-watchdog.service`（enabled）；出网依赖 FlClash，已配 `~/.config/autostart/flclash.desktop` 开机自启；serve 配置见最近动态
 - **nanoMuse**：v1.0.5 跨设备 Agent；桌面端 AppImage 部署于 `~/.local/opt/nanomuse/nanoMuse.AppImage`，CLI 链接 `~/.local/bin/nanomuse`，桌面项 `nanomuse.desktop`；手机与平板端均通过 ADB 部署 `io.github.nanomuse.app` 并注入电池优化白名单
 - **网易 UU 远程被控端 (uu-remote-linux)**：社区原生 Rust 被控端（`/usr/bin/uuremote-server`，集成 `--features wayland,portal`）；用户服务 `uu-remote-native.service`（自启常驻，支持 Wayland 活跃 Socket 自动探测与重载自愈）；依赖 `/dev/uinput` 与 `xdg-desktop-portal`；凭据在 `~/.config/uuremote/config.json`
 - **Antigravity 星语猫娘桌宠**：插件位于 `~/.gemini/config/plugins/star-pet/`（main.mjs 编排 + layer.mjs Shadow DOM 图层），控制入口 `~/.local/bin/star-pet status|on|off|scale|state|log`，改的是插件数据目录的 `settings.json`（sidecar 每 2 秒重读）；皮肤只铺当前壁纸不覆盖主题变量，遮罩取宿主 `var(--background)` 默认 0.4；宿主重拉 sidecar 约 45 秒，识别新代码看 `pet.log` 里是否有新的 `injected layer`
@@ -195,7 +197,7 @@
 
 ## 踩坑速查
 
-- **Tailscale 卡死不可自愈**：判据是本机在 `tailscale status` 里显示 offline 且 `journalctl -u tailscaled` 里 `controlhttp: failed dialing` 持续出现（≥6 次/3 分钟），处理一律 `tailscale down && tailscale up`（operator 权限即可，不需要 root）；不要因此删 `proxy.conf`，直连 TLS 是被切断的；根因是 Tailscale 受限 DNS 解析器拒绝 IP 字面量代理地址
+- **Tailscale 卡死不可自愈**：开机后就掉线先 `nc -z 127.0.0.1 7890` 查代理在不在（FlClash 自启已配，但代理本身没连上时 tailscaled 完全出不去，日志为 `proxyconnect ... connection refused`）；确认代理正常后判据是本机在 `tailscale status` 里显示 offline 且 `journalctl -u tailscaled` 里 `controlhttp: failed dialing` 持续出现（≥6 次/3 分钟），处理一律 `tailscale down && tailscale up`（operator 权限即可，不需要 root）；不要因此删 `proxy.conf`，直连 TLS 是被切断的；根因是 Tailscale 受限 DNS 解析器拒绝 IP 字面量代理地址
 - **布尔判定的 jq 陷阱**：`jq '.X // true'` 在 `.X` 为 `false` 时会返回 `true`（`//` 把 false 当空值），判布尔一律直接取 `.X` 再与字符串 `"false"` 比较
 - **Steam 游戏掉帧三件套**：先 `nvidia-smi --query-compute-apps` 看游戏进程有没有图形上下文，再 `grep -c -i nvidia /proc/<pid>/maps` 判断到底跑在哪块 GPU（原生 Linux 移植版窗口类不是 `steam_app_*`，是 exe 名本身），`journalctl --user | grep xwayland-satellite` 能直接打出窗口类；最后核对 niri 全局规则有没有把游戏窗口圈进 blur（规则先匹配先生效，必须 `exclude`），Proton/DXVK 会把 DISCRETE_GPU 排到最前，切 Proton 往往同时解决独显与中文
 - **第三方汉化补丁跑法**：用 `bwrap --unshare-net` 加独立 `WINEPREFIX` 关笼子，只 bind 游戏目录其余全只读，汉化器多数会自动完成；Steam「验证游戏文件完整性」是通用回滚手段，自动更新也会把汉化冲掉；手工把 exe 挂进游戏目录会在卸载后留下 0 字节同名文件
