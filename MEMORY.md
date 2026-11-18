@@ -6,6 +6,22 @@
 
 ## 最近动态
 
+- **Antigravity 长流掉线根因定位与 FlClash TUN 参数重构 (2026-11-18, 配置已改、待重启验证)**:
+  - 现象: Antigravity 对话中途模型掉线，客户端重试循环二十多分钟不恢复
+  - 直接证据: `~/.config/Antigravity/logs/language_server.log` 里 6 次连续失败全为 `Post .../v1internal:streamGenerateContent?alt=sse: local error: tls: bad record MAC`，反推流存活 156 / 162 / 255 / 164 s 后被斩，而客户端重试是整条重来（退避 4 → 57 s），所以体感是「一直掉线」
+  - 排除项: 同域名短 RPC（`loadCodeAssist` / `fetchAvailableModels`）在崩溃期间穿插全部成功；TLS 握手 0.44 s 正常；50 MB 下载 ×2 经 7890 与经 TUN 都 sha256 一致；170 s 慢速流零错误 → 不是节点宕、不是限流、不是普遍乱码；main.log 里的 429/503 是时间戳与端口号的数字巧合，非真实错误
+  - 关键链路: `Exec=/usr/bin/antigravity` 不读 shell，`http_proxy` 只写在 `~/.bashrc` / `~/.zshrc`，`/etc/environment` 与 `~/.config/environment.d/` 均无兜底 → IDE 拿不到 7890，全部流量硬走 FlClash TUN
+  - 病灶: TUN 原为 `stack: gvisor` 且未设 mtu（实测 9000），长 TLS 流静默数分钟后突发大帧时失配；外部同案 `google-antigravity/antigravity-cli#1096` 与 Google 论坛帖（FlClash TUN + MTU 9000）逐条吻合
+  - 处置: `~/.local/share/com.follow.clash/shared_preferences.json` 内 `patchClashConfig` 改为 `tun.stack=system`、`tun.mtu=1360`、`keep-alive-interval=15`，备份在 `~/tmp/flclash-backup/`
+  - 该文件不由 chezmoi 管理（只有 `~/.config/autostart/flclash.desktop` 在管），改动只落本地
+  - 待办: 重启 FlClash 后核对 `cat /sys/class/net/FlClash/mtu` 应为 1360；观察 system 栈是否影响 Tailscale 的 P2P 打洞
+
+- **磁盘清理 53 GiB (2026-11-18, 用户级已执行、root 部分待跑)**:
+  - 主因: `~/.cache/Shelly/db/sync/` 被 shelly AUR 助手泄漏 19583 个 `.db.part.*` 半途下载碎片，占 48.2 GB（真正的 sync 库只有 8 个文件 15 M），已全删只留 `.db`
+  - 同轮清理: `~/.cache/uv` 15 G、`~/.cache/paru` 6.1 G、bettbox 数据 65 M 与构建缓存 89 M、`~/.config/BetterDiscord` 孤儿（Discord 早已不在）、`~/.local/share/baloo` 1.6 G（`baloo` 包根本没装，前任 KDE 死索引，niri 下从未运行）
+  - 结果: 占用 80% → 73%，可用 142 G → 195 G
+  - 待执行: `sudo bash ~/tmp/cleanup-root.sh` —— paccache -rk1（干跑实测省 30.02 GiB）、卸 `bettbox-bin`、卸 `clash-verge-rev-bin` 并移除无主 unit `/etc/systemd/system/clash-verge-service.service`、卸 `neofetch`、最后重算孤儿包
+
 - **Tailscale PC 侧掉线根因与自愈看门狗 (2026-11-17, 已完成)**:
   - 现象: 本机在控台显示 offline、控台同步失败，journal 里 `controlhttp: failed dialing` 约 195 次/小时且持续 2 小时不自愈，当天 12:36 与 15:18 各掉一次
   - 根因: `/etc/systemd/system/tailscaled.service.d/proxy.conf` 把 tailscaled 钉在 `127.0.0.1:7890`，而 Tailscale 受限 DNS 解析器拒绝 IP 字面量代理地址（`dnscache: unexpected hostname "127.0.0.1" doesn't match expected "controlplane.tailscale.com"`），DialPlan 拨号路径永远失败只剩回退路径，FlClash 换节点或重载配置切断长连接后即长期退避
@@ -170,7 +186,7 @@
 - **网易 UU 远程被控端 (uu-remote-linux)**：社区原生 Rust 被控端（`/usr/bin/uuremote-server`，集成 `--features wayland,portal`）；用户服务 `uu-remote-native.service`（自启常驻，支持 Wayland 活跃 Socket 自动探测与重载自愈）；依赖 `/dev/uinput` 与 `xdg-desktop-portal`；凭据在 `~/.config/uuremote/config.json`
 - **Antigravity 星语猫娘桌宠**：插件位于 `~/.gemini/config/plugins/star-pet/`（main.mjs 编排 + layer.mjs Shadow DOM 图层），控制入口 `~/.local/bin/star-pet status|on|off|scale|state|log`，改的是插件数据目录的 `settings.json`（sidecar 每 2 秒重读）；皮肤只铺当前壁纸不覆盖主题变量，遮罩取宿主 `var(--background)` 默认 0.4；宿主重拉 sidecar 约 45 秒，识别新代码看 `pet.log` 里是否有新的 `injected layer`
 - **QQNT 琉璃主题**：启动链 `~/.local/share/applications/qq.desktop` → `~/.local/bin/linuxqq`（bwrap 免 root 覆盖 /opt）→ `/usr/bin/linuxqq`；LiteLoaderQQNT 1.4.1 在 `~/.local/share/LiteLoaderQQNT`，主题插件 `plugins/liuli-dsh-theme`；QQ 升级或补丁丢失后跑 `~/.local/bin/qqnt-liteli-setup` 重建（幂等），回滚删 qq.desktop 即可
-- **Bettbox & FlClash**：AUR 包 `bettbox-bin 1.19.3-1` 与 `flclash-bin 0.8.93-1`；数据位于 `~/.local/share/com.appshub.bettbox/` 与 `~/.local/share/com.follow.clash/`；两者 mixed-port 都定到 7890，谁先起谁占；BettboxCore 内置 SUID root 免密启动 TUN
+- **FlClash（主力，Bettbox 已弃）**：AUR 包 `flclash-bin 0.8.93-1`，数据位于 `~/.local/share/com.follow.clash/`，mixed-port 7890，开机自启由 chezmoi 托管的 `~/.config/autostart/flclash.desktop` 拉起；TUN 设备名 `FlClash`，栈与 mtu 见最近动态；`~/.cache/Shelly` 曾泄漏大量 `.db.part` 碎片需定期清；`bettbox-bin` 已于 2026-11-18 弃用并卸载（原 mixed-port 同为 7890，谁先起谁占，BettboxCore 内置 SUID root 免密启 TUN）；`clash-verge-rev-bin` 同期卸载，7897 / 9097 早已无监听
 - **Xiaomi MiMo Desktop**：AUR 包 `mimo-desktop 26.909.91205-2`；官方包漏打 `node-machine-id` 导致登录缺 `deviceId`，已在 PKGBUILD 里补丁改读 `/etc/machine-id` 修复 `app.asar`
 - **Dufs (WebDAV) & Cloudflare Tunnel**：AUR 包 `dufs-bin 0.46.0-2`；数据根目录 `~/WebDAV`（含 `reader/`、`backup/`）；监听 `127.0.0.1:5000`（全私有 Basic 认证，用户 `lanrhyme`，绑定必须留在 loopback 否则会抢 tailscale serve 的 5000）；配置 `~/.config/dufs/config.yaml`（权限 600）；搭配 `cloudflared-webdav.service` 绑定 `https://webdav.lanrhyme.top/`；systemd user 服务常驻自启（开启 linger）
 - **MicYou**：本地包 `micyou 2.0.0.alpha.1-1`；Noctalia 插件开源于 `lanrhyme/micyou`；手机端安装于 K60；ufw 放行 8554/tcp、8555/udp、8443/tcp、5353/udp
@@ -203,6 +219,7 @@
 - **第三方汉化补丁跑法**：用 `bwrap --unshare-net` 加独立 `WINEPREFIX` 关笼子，只 bind 游戏目录其余全只读，汉化器多数会自动完成；Steam「验证游戏文件完整性」是通用回滚手段，自动更新也会把汉化冲掉；手工把 exe 挂进游戏目录会在卸载后留下 0 字节同名文件
 - **Wayland 合成器掉帧与鼠标卡顿排查**：先 `niri msg outputs` 确认刷新率与 VRR，再 `nvidia-smi` 看有没有不该出现的图形上下文；判据用「鼠标静止 vs `ydotool mousemove` 高频注入移动」两种状态下 niri 的 CPU 与 `/proc/<niri>/fdinfo/*` 里 `drm-engine-render` 的增量，移动时翻倍即帧预算已满；常见放大器是全屏透明 layer 面按固定间隔整屏重绘、全窗口 `blur true` 与 `opacity` < 1
 - **网络（FlClash fake-ip 间歇性 TLS 失败）**：curl/git/gh 可用 `--resolve` 直连真实 IP（github.com=20.205.243.166, api.github.com=20.205.243.168, uploads.github.com=20.205.243.161）+ `http.version=HTTP/1.1`；AUR 遇网络超时改下载 snapshot tarball 手动 makepkg；TUN 静默掉线时在 FlClash 界面开关一次网卡重启
+- **长流 TLS `bad record MAC` 排查顺序**：先分辨是 `local error: tls: bad record MAC`（记录完整性失败，属数据被弄坏）还是 `i/o timeout` / `EOF`（属断链），前者按「短请求是否仍成功 → 大文件 sha256 是否一致 → TUN 栈与 mtu」三步走；Antigravity 日志在 `~/.config/Antigravity/logs/language_server.log`，Gemini / Antigravity 的 `streamGenerateContent?alt=sse` 天然长驻，静默思考期 + 突发大帧最易触发；FlClash 默认 `stack: gvisor` 且不写 mtu（默认 9000）在此形态下易失配，改 `system` + `1360` + `keep-alive-interval 15`，配置入口是 `~/.local/share/com.follow.clash/shared_preferences.json` 里的 `patchClashConfig`；另一条更省事的路是让 IDE 走系统代理而非 TUN，但需把 `http_proxy` 写进 `~/.config/environment.d/`（桌面启动不读 shell rc）
 - **提权**：pkexec 在 niri 下因 polkit 弹窗缺失卡死（polkit-kde-agent 未装），需由用户在交互终端直接执行 sudo；`pkexec pacman -U` 必须使用绝对路径
 - **Git**：`git tag -f` 重打注释 tag 必须带 `-m` 或 `-F` 防 vi 卡死；覆盖发布采用删远程 tag 重新 push 并重建 GitHub Release
 - **adb 与多层 shell**：`su -c` 内嵌复杂变量与转义时写成本地脚本 push 后执行；抓取日志前必须 `logcat -c` 清除缓冲区防历史日志干扰
