@@ -6,6 +6,16 @@
 
 ## 最近动态
 
+- **GitHub 主页统计卡片改为仓库内静态生成 (2026-11-20, 已完成)**:
+  - 现象: 主页两张卡片挂图，`github-readme-stats-eight-theta.vercel.app` 的 `/api` 与 `/api/top-langs` 均返回 `402 DEPLOYMENT_DISABLED`（Vercel 部署被停用），这是同一处第三次换实例（前两次见提交 `fbad640`、`1b07a63`）
+  - 方案: 仓库 `~/Projects/LanRhyme` 新增 `scripts/gen-cards.py`（纯标准库，GraphQL 取星标/贡献仓库/语言体积占比，search API 取 PR 与 Issue 总数，逐年 `contributionsCollection` 累加提交数含 `restrictedContributionsCount`）+ `.github/workflows/cards.yml`（每日 04:12 UTC、手动触发、脚本改动触发；`secrets.METRICS_TOKEN` 才有私有贡献；带 concurrency 去重与三次 pull-rebase 重试推送）
+  - 产物 `assets/stats.svg`、`assets/top-langs.svg` 提交入库，README 用相对路径 `./assets/*.svg` 引用（GitHub 解析成 `/raw/main/...`），彻底脱离第三方实例
+  - 约束: 卡片 SVG 只用内联表现属性（无 `<style>`、无脚本、无外链），尺寸 467×195 与原卡片一致（`height="170"` 时两张并排不换行，495 宽会挤成上下堆叠），两张之间用 `&nbsp;` 留间距
+  - streak 卡片已并入（同日第二批）: 同一脚本产出 `assets/streak.svg`（总贡献 / 当前连续 / 最长连续，数据来自逐年 `contributionCalendar` 按日累加），README 三张卡片全部走相对路径，`github-readme-streak-stats-eight-theta.vercel.app` 已从页面移除，主页统计区零第三方便利，仅剩 Metrics 与 snake 两个 GitHub 自家 workflow
+  - **版式二次返工（同日第三批，用户指出「样式和之前不一样」）**: 不再自创卡片，改按 GRS 原始几何逐项复刻 —— stats 卡 467×195（标题 (25,35) 18px/600、五行行距 25、图标 16×16 Octicons 原路径、标签 x=50 值 x=219.01 14px/700、右侧 rank 环 r=40 含 20% 底环 + 80% 进度弧按 percentile 走 dashoffset、rank 字母 24px/800 用 GRS 的 exponential_cdf + log_normal_cdf 权重算法算出）；top-langs compact 卡 300×165（顶部 250×8 圆角遮罩堆叠进度条、两列各 3 行、行距 25、11px 正文、百分比按前 6 语言重新归一）；streak 卡 495×195（三栏 x=165/330 分隔线、左右数字 #6b7e4f、中间数字 #e8f0d8 + r=40 火焰环 + #FB8C00 标签）
+  - 与原卡的两处有意偏差: ① streak 左右两侧标签原实例渲染成 #151515（几乎看不见，属对方 bug），本机改用 #e8f0d8 可见；② 提交数/贡献仓库改为全历史（原卡写 last year），故标签去了 (last year) 后缀；rank 仍算出 A，与原卡一致
+  - 排名新增数据源: `totalPullRequestReviewContributions` 按年累加（GRS rank 公式里 reviews 权重 1，缺它会把 A 算成 A-）
+
 - **Mine in Abyss 汉化模组 mia-zh (2026-11-18, 首版完成、待进服验证)**:
   - 实例: `/mnt/WindowsD/MC/.minecraft/versions/Mine In Abyss Modpack 1.4.2`（MC 1.21.11 / Fabric Loader 0.18.4 / 40 个纯客户端性能 mod）
   - 关键结论: MIA 内容全在服务端，物品名是 `setData(DataComponentTypes.ITEM_NAME, itemName.miniMsg())` 的字面量组件，服务端仓库无 `locale` / `i18n` / `<lang:`；自带资源包仅 26 个有效条目（按钮贴图、全景、`splashes.txt`、一个 ogg），**0 个 lang/fonts/models 条目** → 常规汉化资源包路线在 MIA 无效
