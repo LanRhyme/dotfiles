@@ -1,0 +1,97 @@
+#!/bin/bash
+# zen-gpu — 切换 Zen Browser（Flatpak）走核显 / 独显
+#
+#   zen-gpu status    查看当前 override 里的 GPU 相关变量
+#   zen-gpu nvidia    强制 NVIDIA 独显（EGL 走 nvidia-580-196-07 运行时）
+#   zen-gpu intel     还原成改造前的 override（核显）
+#   zen-gpu restart   重启 Zen 使配置生效
+#
+# 改完必须重启 Zen 才生效；沙箱内没有 DISPLAY，不要强推 XWayland
+
+set -u
+APP=app.zen_browser.zen
+OVR="$HOME/.local/share/flatpak/overrides/$APP"
+BACKUP="$HOME/tmp/zen-override-app.zen_browser.zen.bak"
+EGL_JSON=/usr/lib/x86_64-linux-gnu/GL/nvidia-580-196-07/glvnd/egl_vendor.d/10_nvidia.json
+
+usage() {
+    sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+restart_zen() {
+    flatpak kill "$APP" 2>/dev/null
+    sleep 1
+    setsid flatpak run "$APP" >/dev/null 2>&1 &
+    echo "已重启 $APP"
+}
+
+case "${1:-status}" in
+status)
+    echo "override: $OVR"
+    grep -E '__NV_PRIME|__GLX_VENDOR|__EGL_VENDOR|MOZ_ENABLE_WAYLAND' "$OVR" 2>/dev/null || echo "(没有任何 GPU 相关覆盖 → 走核显)"
+    echo
+    echo "已安装的 NVIDIA 运行时:"
+    flatpak list --runtime --columns=application,branch 2>/dev/null | grep -i 'GL.nvidia' || echo "(无)"
+    echo
+    echo "宿主驱动版本: $(cat /sys/module/nvidia/version 2>/dev/null || echo unknown)"
+    echo "沙箱内 NVIDIA 扩展: $(flatpak run --command=sh "$APP" -c 'test -e /usr/lib/x86_64-linux-gnu/GL/nvidia-580-196-07/lib/libEGL_nvidia.so.0 && echo 已挂载 || echo 未挂载' 2>/dev/null | tail -1)"
+    ;;
+nvidia)
+    [ -f "$OVR" ] && [ ! -f "$BACKUP" ] && cp "$OVR" "$BACKUP" && echo "已备份原 override → $BACKUP"
+    python3 - "$OVR" "$EGL_JSON" <<'PY'
+import sys, pathlib, re
+ovr, egl = pathlib.Path(sys.argv[1]), sys.argv[2]
+text = ovr.read_text() if ovr.exists() else "[Context]\ndevices=dri;\n\n[Environment]\n"
+def strip_gpu(t):
+    t = re.sub(r'^__NV_PRIME_RENDER_OFFLOAD=.*\n', '', t, flags=re.M)
+    t = re.sub(r'^__GLX_VENDOR_LIBRARY_NAME=.*\n', '', t, flags=re.M)
+    t = re.sub(r'^__EGL_VENDOR_LIBRARY_FILENAMES=.*\n', '', t, flags=re.M)
+    t = re.sub(r'^MOZ_ENABLE_WAYLAND=.*\n', '', t, flags=re.M)
+    return t
+text = strip_gpu(text)
+# 从 unset-environment 里精确摘掉被我们覆盖的变量，顺手清理空项
+def _fix_unset(t):
+    def repl(m):
+        parts = [x for x in m.group(1).split(';')
+                 if x and x not in ('__NV_PRIME_RENDER_OFFLOAD', '__GLX_VENDOR_LIBRARY_NAME')]
+        return 'unset-environment=' + ';'.join(parts) + (';' if parts else '') + chr(10)
+    return re.sub(r'^unset-environment=([^' + chr(10) + r']*)' + chr(10), repl, t, flags=re.M)
+text = _fix_unset(text)
+if '[Environment]' not in text:
+    text = text.rstrip() + "\n\n[Environment]\n"
+text = text.rstrip() + "\n" + "\n".join([
+    "__NV_PRIME_RENDER_OFFLOAD=1",
+    "__GLX_VENDOR_LIBRARY_NAME=nvidia",
+    "__EGL_VENDOR_LIBRARY_FILENAMES=" + egl,
+    "",
+])
+ovr.write_text(text)
+print("已写入独显覆盖")
+PY
+    echo "重启 Zen 生效：zen-gpu restart"
+    ;;
+intel)
+    if [ -f "$BACKUP" ]; then
+        cp "$BACKUP" "$OVR" && echo "已还原改造前的 override → $OVR"
+        echo "重启 Zen 生效：zen-gpu restart"
+    else
+        echo "找不到备份 $BACKUP；退化为删除 GPU 覆盖"
+        python3 - "$OVR" <<'PY'
+import sys, re, pathlib
+p = pathlib.Path(sys.argv[1])
+if p.exists():
+    t = p.read_text()
+    for pat in (r'^__NV_PRIME_RENDER_OFFLOAD=.*\n', r'^__GLX_VENDOR_LIBRARY_NAME=.*\n', r'^__EGL_VENDOR_LIBRARY_FILENAMES=.*\n'):
+        t = re.sub(pat, '', t, flags=re.M)
+    p.write_text(t)
+    print("已移除独显变量")
+PY
+    fi
+    ;;
+restart)
+    restart_zen
+    ;;
+*)
+    usage
+    ;;
+esac
