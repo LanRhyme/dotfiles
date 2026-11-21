@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Antigravity (dGPU)
+Comment=Experience liftoff — XWayland + PRIME 渲染卸载到 NVIDIA 独显
+GenericName=Agentic Platform
+Exec=env __NV_PRIME_RENDER_OFFLOAD=1 __VK_LAYER_NV_optimus=NVIDIA_only __GLX_VENDOR_LIBRARY_NAME=nvidia /usr/bin/antigravity --ozone-platform=x11 --remote-debugging-port=0 %U
+Icon=antigravity
+Type=Application
+StartupNotify=false
+StartupWMClass=Antigravity
+Categories=Development;Utility;
