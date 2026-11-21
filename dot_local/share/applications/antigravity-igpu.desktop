@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Antigravity (iGPU)
+Comment=Experience liftoff — 核显原生 Wayland 启动（备用，功耗更低）
+GenericName=Agentic Platform
+Exec=/usr/bin/antigravity --remote-debugging-port=0 %U
+Icon=antigravity
+Type=Application
+StartupNotify=false
+StartupWMClass=Antigravity
+Categories=Development;Utility;

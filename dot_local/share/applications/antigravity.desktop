@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Antigravity
-Comment=Experience liftoff
+Comment=Experience liftoff — 独显渲染（XWayland + PRIME 卸载到 NVIDIA）
 GenericName=Agentic Platform
-Exec=/usr/bin/antigravity --remote-debugging-port=0 %U
+Exec=env __NV_PRIME_RENDER_OFFLOAD=1 __VK_LAYER_NV_optimus=NVIDIA_only __GLX_VENDOR_LIBRARY_NAME=nvidia /usr/bin/antigravity --ozone-platform=x11 --remote-debugging-port=0 %U
 Icon=antigravity
 Type=Application
 StartupNotify=false
