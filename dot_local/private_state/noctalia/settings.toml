@@ -1,7 +1,10 @@
-config_version = 16
+config_version = 20
 
 [accessibility]
 ui_scale = 0.95000000670552254
+
+[backdrop]
+blur_intensity = 0.0
 
 [bar]
 order = [ "default", "topbar" ]
