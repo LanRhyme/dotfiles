@@ -6,6 +6,14 @@
 
 ## 最近动态
 
+- **AUR 三包构建失败定位与本地修包 (2026-11-22, 已构建待安装)**:
+  - 现象: `sudo pacman -Syu` 之后 `paru` 报 `未能构建的软件包: mark-shot-0.2.0-1 uu-remote-bin-0.2.64-1 wechat-universal-bwrap-4.1.13.26-3`，三个包根因互不相同
+  - `uu-remote-bin`: AUR 0.2.64-1 的 PKGBUILD 仍从 `contrib/desktop/` 取 svg 与两个 desktop 文件，上游 v0.2.64 已把它们挪到 `packaging/common/desktop/`（systemd/udev 同样挪进 `packaging/common/`），`install: 调用 stat 失败` 直接中断；本地只把 3 处路径改成 `packaging/common/desktop/`，产物 `~/tmp/aur-fix/uu-remote-bin/`
+  - `wechat-universal-bwrap`: 校验和不符并非文件被污染 —— dldir1v6 的版本无关地址 `WeChatLinux_x86_64.deb` 在 2026-11-20 已换成 4.1.13.29（deb 内 `control` 的 `Version: 4.1.13.29`），AUR 仍停在 4.1.13.26；本地把 pkgver 提到 4.1.13.29 并写入实际 sha256 `d5b21c6e21186a58b2c2fd41712a4ef90f9452735931a6b8500e85c5b0913b0b`，图标尺寸与 `libwxtrans.so` / `vlc_plugins` 布局均未变
+  - `mark-shot`: 两个独立问题 —— ① 0.2.0 的 `scripts/packaging/collect_licenses.sh` 去 `raw.githubusercontent.com/microsoft/onnxruntime/<sha>/LICENSE` 抓许可证，该路径现在 404，上游 `44edb04` 已改成读仓库内 vendored 的 `release/onnxruntime-notices.tar.xz`；② 链接期 `rust-lld: undefined symbol spa_format_parse_libspa_rs` 是 CachyOS `makepkg.conf` 的 `OPTIONS=(lto)` 往 CFLAGS 追加 `-flto=auto`，`libspa-sys` 经 cc crate 编出只含 `.gnu.lto_*` 段的 GCC slim-LTO 对象，rust-lld 不加载 GCC LTO 插件故符号全丢，上游 v0.2.3 已在 `build_linux.sh` 顶部 `export CFLAGS="${CFLAGS:-} -fno-lto"` 修掉，故直接把 `_commit` 前移到 v0.2.3 `a0745d7edcc9d5e7e365f49259b91360b55ea63f`
+  - 产物: `~/tmp/aur-fix/` 下三个 `.pkg.tar.zst`（uu 13M / 微信 306M / mark-shot 30M），依赖已用 `pacman -T` 核对齐备；安装需 `sudo pacman -U`，本机 sudo 要密码，代理无法代跑
+  - 后续: AUR 追上后不会误降级（本地 4.1.13.29-1、0.2.3-1 都高于 AUR 现版），只有 uu 因版本号相同（0.2.64-1）不会自动重建，需要时 `paru -S --rebuild uu-remote-bin`；paru 缓存里的 PKGBUILD 改动会在下次 `git pull` 被覆盖，补丁另存 `~/tmp/aur-fix/*.patch`
+
 - **GitHub 主页统计卡片改为仓库内静态生成 (2026-11-20, 已完成)**:
   - 现象: 主页两张卡片挂图，`github-readme-stats-eight-theta.vercel.app` 的 `/api` 与 `/api/top-langs` 均返回 `402 DEPLOYMENT_DISABLED`（Vercel 部署被停用），这是同一处第三次换实例（前两次见提交 `fbad640`、`1b07a63`）
   - 方案: 仓库 `~/Projects/LanRhyme` 新增 `scripts/gen-cards.py`（纯标准库，GraphQL 取星标/贡献仓库/语言体积占比，search API 取 PR 与 Issue 总数，逐年 `contributionsCollection` 累加提交数含 `restrictedContributionsCount`）+ `.github/workflows/cards.yml`（每日 04:12 UTC、手动触发、脚本改动触发；`secrets.METRICS_TOKEN` 才有私有贡献；带 concurrency 去重与三次 pull-rebase 重试推送）
@@ -248,6 +256,9 @@
 
 ## 踩坑速查
 
+- **AUR 报「未能构建的软件包」先分三类**：`install: 调用 stat 失败` 是上游目录漂移（改路径即可）；`一个或多个文件没有通过有效性检查` 先别怀疑投毒，用 `bsdtar -xOf <pkg>.deb ./control.tar.* | tar -xO ./control` 看真实版本，腾讯/网易这类版本无关下载地址会静默换包，AUR 滞后就会校验失败；`rust-lld: undefined symbol` 见下一条 LTO
+- **CachyOS 上编 Rust 包（经 cc crate 编 C 源码）报 rust-lld 找不到符号**：`/etc/makepkg.conf` 的 `OPTIONS=(lto)` 会让 `/usr/share/makepkg/buildenv/lto.sh` 往 CFLAGS 加 `-flto=auto`，`libspa-sys` 之类产出只含 `.gnu.lto_*` 段的 GCC slim-LTO 对象，而 rustc 1.90+ 默认用 rust-lld、它不加载 GCC LTO 插件，静态库里的符号在链接期全部丢失；判据 `readelf -SW <obj> | grep -c gnu.lto` 非 0 即中招；处理是 PKGBUILD 加 `options+=(!lto)`，或让构建脚本末尾追加 `-fno-lto`（GCC 后者覆盖前者），上游已修就优先前移 `_commit`
+- **本地修好 AUR 包之后别指望 paru 自动跟上**：pacman 只按版本号比较，本地手搓的包版本高于 AUR 就不会降级；版本号相同（只修 PKGBUILD 的 pkgrel 未变）则永远不会重建，要 `paru -S --rebuild <pkg>`；paru 缓存目录 `~/.cache/paru/clone/<pkg>/` 是 git 仓库，手改的 PKGBUILD 下次 `git pull` 会被覆盖，补丁务必另存
 - **Tailscale 卡死不可自愈**：开机后就掉线先 `nc -z 127.0.0.1 7890` 查代理在不在（FlClash 自启已配，但代理本身没连上时 tailscaled 完全出不去，日志为 `proxyconnect ... connection refused`）；确认代理正常后判据是本机在 `tailscale status` 里显示 offline 且 `journalctl -u tailscaled` 里 `controlhttp: failed dialing` 持续出现（≥6 次/3 分钟），处理一律 `tailscale down && tailscale up`（operator 权限即可，不需要 root）；不要因此删 `proxy.conf`，直连 TLS 是被切断的；根因是 Tailscale 受限 DNS 解析器拒绝 IP 字面量代理地址
 - **布尔判定的 jq 陷阱**：`jq '.X // true'` 在 `.X` 为 `false` 时会返回 `true`（`//` 把 false 当空值），判布尔一律直接取 `.X` 再与字符串 `"false"` 比较
 - **Steam 游戏掉帧三件套**：先 `nvidia-smi --query-compute-apps` 看游戏进程有没有图形上下文，再 `grep -c -i nvidia /proc/<pid>/maps` 判断到底跑在哪块 GPU（原生 Linux 移植版窗口类不是 `steam_app_*`，是 exe 名本身），`journalctl --user | grep xwayland-satellite` 能直接打出窗口类；最后核对 niri 全局规则有没有把游戏窗口圈进 blur（规则先匹配先生效，必须 `exclude`），Proton/DXVK 会把 DISCRETE_GPU 排到最前，切 Proton 往往同时解决独显与中文
