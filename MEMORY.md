@@ -6,6 +6,13 @@
 
 ## 最近动态
 
+- **sherlock 用户名侦查工具安装 (2026-11-27, 已完成)**:
+  - 用户要求装 `github.com/sherlock-project/sherlock`（按用户名跨社交平台查账号，内置 482 个站点）
+  - 路径选择: AUR 有 `sherlock` 0.16.2-1（维护者 dfimium499，已审查 PKGBUILD —— 仅从官方 tag tarball 解包 + `python -m build --wheel --no-isolation` + `python -m installer`，无 .install 钩子、无 patch、无自定义网络请求与权限变更，干净），但本机 `sudo -n` 要密码，代理无法代跑 root 安装，故改走用户空间 `uv tool install --python 3.14 sherlock-project`
+  - 落点: venv 在 `~/.local/share/uv/tools/sherlock-project`，入口软链 `~/.local/bin/sherlock`（已在 PATH），PyPI 包名是 **sherlock-project** 不是 sherlock，依赖 pandas 2.3.3 / numpy 2.5.5 / openpyxl / stem / requests-futures 全部有 cp314 wheel
+  - 实测: `sherlock lanrhyme --site GitHub --site Reddit` 正常返回 2 条命中；唯一的噪音是启动时 `A problem occurred while checking for an update: 'tag_name'` —— 0.16.2 的版本检查写在 `__main__` 里**无条件执行**（`requests.get(api.github.com/.../releases/latest)` 再取 `tag_name`），没有任何命令行开关能关（不存在 `--no-version-check`，别记错），报错仅因出口 IP 134.195.101.74 被 GitHub 未认证 40 次/小时限流，不影响搜索，嫌噪音只能改包源码或忽略
+  - 如需系统级: `paru -S --noconfirm sherlock`（需 sudo 密码），会与 uv 版撞同名命令，先 `uv tool uninstall sherlock-project`
+
 - **AUR 三包构建失败定位与本地修包 (2026-11-22, 已构建待安装)**:
   - 现象: `sudo pacman -Syu` 之后 `paru` 报 `未能构建的软件包: mark-shot-0.2.0-1 uu-remote-bin-0.2.64-1 wechat-universal-bwrap-4.1.13.26-3`，三个包根因互不相同
   - `uu-remote-bin`: AUR 0.2.64-1 的 PKGBUILD 仍从 `contrib/desktop/` 取 svg 与两个 desktop 文件，上游 v0.2.64 已把它们挪到 `packaging/common/desktop/`（systemd/udev 同样挪进 `packaging/common/`），`install: 调用 stat 失败` 直接中断；本地只把 3 处路径改成 `packaging/common/desktop/`，产物 `~/tmp/aur-fix/uu-remote-bin/`
