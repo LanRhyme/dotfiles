@@ -13,6 +13,9 @@ x-scheme-handler/workbuddy=workbuddy.desktop
 model/gltf-binary=blender.desktop
 x-scheme-handler/clashmeta=flclash-url-handler.desktop
 x-scheme-handler/flclash=flclash-url-handler.desktop
+x-scheme-handler/qoder=qoder.desktop
+x-scheme-handler/qoder-app=qoder.desktop
+x-scheme-handler/qoder-cn=qoder-cn.desktop
 
 [Added Associations]
 application/yaml=neovide.desktop;
@@ -22,3 +25,4 @@ x-scheme-handler/clash-verge=clash-verge.desktop;
 image/png=org.gnome.Loupe.desktop;
 text/markdown=dev.zed.Zed.desktop;
 model/gltf-binary=blender.desktop;
+x-scheme-handler/qoder-cn=qoder-cn.desktop;
